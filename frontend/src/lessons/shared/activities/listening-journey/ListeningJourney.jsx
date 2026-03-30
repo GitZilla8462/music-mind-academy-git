@@ -118,12 +118,16 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       const fbData = fbWork?.data;
       if (fbData?.sections?.length > 0) {
         console.log('☁️ Restored listening journey from Firebase:', fbData.sections.length, 'sections');
-        setSections(fbData.sections.map(s => ({
-          ...s,
-          sky: s.sky || 'clear-day',
-          scene: s.scene || (presetMode ? null : 'forest'),
-          ground: s.ground || 'grass',
-        })));
+        const defaultSections = pieceConfig?.defaultSections || [];
+        setSections(fbData.sections.map((s, i) => {
+          const fallbackSection = defaultSections[i] || {};
+          return {
+            ...s,
+            sky: s.sky || fallbackSection.sky || 'clear-day',
+            scene: s.scene || fallbackSection.scene || (presetMode ? null : 'forest'),
+            ground: s.ground ?? fallbackSection.ground ?? 'grass',
+          };
+        }));
         if (fbData.items) {
           // Recalculate placedAtOffset so stickers stay anchored to correct sections
           const fbSections = fbData.sections;

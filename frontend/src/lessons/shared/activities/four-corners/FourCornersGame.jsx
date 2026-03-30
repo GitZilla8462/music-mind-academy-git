@@ -11,7 +11,7 @@
 // 4. Finished - Final leaderboard
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Play, Users, Eye, ChevronRight, CheckCircle, Volume2, RotateCcw } from 'lucide-react';
+import { Play, Eye, ChevronRight, CheckCircle, Volume2, RotateCcw } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 
 // ============================================================
@@ -27,115 +27,211 @@ const VIVALDI_SPRING = '/lessons/film-music-project/lesson2/mp3/Classicals.de-Vi
 // Correct answers distributed evenly: A=3, B=3, C=3, D=3
 // ============================================================
 const QUESTIONS = [
-  // --- Q1: Dynamics — Forte ---
+  // --- Q1: Dynamics — Forte (close distractors: all medium-to-loud markings) ---
   {
     id: 'q1', category: 'dynamics',
     prompt: 'Listen! What dynamic level is this?',
     audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 8, volume: 0.85 },
-    answers: { A: 'Piano', B: 'Forte', C: 'Pianissimo', D: 'Mezzo Piano' },
-    correct: 'B',
-    explanation: 'That was forte — loud and strong!'
+    answers: { A: 'Mezzo Piano', B: 'Mezzo Forte', C: 'Forte', D: 'Fortissimo' },
+    correct: 'C',
+    explanation: 'That was forte — loud and strong, but not as extreme as fortissimo!'
   },
-  // --- Q2: Dynamics — Crescendo ---
+  // --- Q2: Dynamics — Piano (close distractors: all soft-to-medium markings) ---
   {
     id: 'q2', category: 'dynamics',
-    prompt: 'Listen! What is happening to the dynamics?',
-    audio: { path: VIVALDI_SPRING, startTime: 60, endTime: 72, volume: 0.7 },
-    answers: { A: 'Decrescendo', B: 'Staying the same', C: 'Crescendo', D: 'Sforzando' },
-    correct: 'C',
-    explanation: 'That was a crescendo — getting louder!'
+    prompt: 'Listen! What dynamic level is this?',
+    audio: { path: VIVALDI_SPRING, startTime: 36, endTime: 46, volume: 0.4 },
+    answers: { A: 'Pianissimo', B: 'Piano', C: 'Mezzo Piano', D: 'Mezzo Forte' },
+    correct: 'B',
+    explanation: 'That was piano — soft! Pianissimo is even softer, and mezzo piano is medium-soft.'
   },
-  // --- Q3: Tempo — Accelerando ---
+  // --- Q3: Tempo — Andante (close distractors: all tempo markings) ---
   {
     id: 'q3', category: 'tempo',
-    prompt: 'Listen! What is happening to the tempo?',
-    audio: { path: '/audio/classical/grieg-mountain-king.mp3', volume: 0.7 },
-    answers: { A: 'Ritardando', B: 'Accelerando', C: 'Staying the same', D: 'Fermata' },
+    prompt: 'Listen! What tempo is this?',
+    audio: { path: '/audio/classical/grieg-morning-mood.mp3', startTime: 0, endTime: 10, volume: 0.7 },
+    answers: { A: 'Adagio', B: 'Andante', C: 'Allegro', D: 'Presto' },
     correct: 'B',
-    explanation: 'That was accelerando — gradually speeding up!'
+    explanation: 'That was Andante — walking speed! Adagio is slower, Allegro is faster.'
   },
-  // --- Q4: Tempo — Presto ---
+  // --- Q4: Tempo — Presto (close distractors: all tempo markings) ---
   {
     id: 'q4', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
     audio: { path: '/audio/classical/vivaldi-summer-presto-1.mp3', volume: 0.7 },
-    answers: { A: 'Andante', B: 'Largo', C: 'Presto', D: 'Adagio' },
-    correct: 'C',
-    explanation: 'That was Presto — very fast!'
+    answers: { A: 'Adagio', B: 'Allegro', C: 'Andante', D: 'Presto' },
+    correct: 'D',
+    explanation: 'That was Presto — very fast! Allegro is fast but Presto is even faster.'
   },
-  // --- Q5: Strings — Cello ---
+  // --- Q5: Strings — Cello (all string distractors) ---
   {
     id: 'q5', category: 'strings',
     prompt: 'Listen! What string instrument is this?',
     audio: { path: '/audio/orchestra-samples/strings/cello.mp3', volume: 0.7 },
-    answers: { A: 'Violin', B: 'Viola', C: 'Double Bass', D: 'Cello' },
-    correct: 'D',
-    explanation: 'That was the cello — rich and warm, like a singing voice!'
+    answers: { A: 'Violin', B: 'Viola', C: 'Cello', D: 'Double Bass' },
+    correct: 'C',
+    explanation: 'That was the cello! The viola is higher, the double bass is lower. All four are in the string family.'
   },
-  // --- Q6: Woodwinds — Bassoon ---
+  // --- Q6: Woodwinds — Bassoon (all woodwind distractors) ---
   {
     id: 'q6', category: 'woodwinds',
     prompt: 'Listen! What woodwind instrument is this?',
     audio: { path: '/audio/orchestra-samples/woodwinds/bassoon.mp3', volume: 1.0 },
-    answers: { A: 'Bassoon', B: 'Clarinet', C: 'Oboe', D: 'Flute' },
-    correct: 'A',
-    explanation: 'That was the bassoon — the deepest woodwind!'
+    answers: { A: 'Clarinet', B: 'Bassoon', C: 'Oboe', D: 'Flute' },
+    correct: 'B',
+    explanation: 'That was the bassoon — the deepest woodwind! The clarinet and oboe are higher.'
   },
-  // --- Q7: Woodwinds — Flute ---
+  // --- Q7: Woodwinds — Flute (all woodwind distractors) ---
   {
     id: 'q7', category: 'woodwinds',
     prompt: 'Listen! What woodwind instrument is this?',
     audio: { path: '/audio/orchestra-samples/woodwinds/flute.mp3', volume: 1.0 },
-    answers: { A: 'Oboe', B: 'Bassoon', C: 'Clarinet', D: 'Flute' },
+    answers: { A: 'Oboe', B: 'Clarinet', C: 'Bassoon', D: 'Flute' },
     correct: 'D',
-    explanation: 'That was the flute — bright and airy!'
+    explanation: 'That was the flute — bright and airy! The oboe has a nasal, reedy sound. The clarinet is warmer and darker.'
   },
-  // --- Q8: Brass — Tuba ---
+  // --- Q8: Brass — Tuba (all brass distractors) ---
   {
     id: 'q8', category: 'brass',
     prompt: 'Listen! What brass instrument is this?',
     audio: { path: '/audio/orchestra-samples/brass/tuba.mp3', volume: 1.0 },
     answers: { A: 'Trombone', B: 'French Horn', C: 'Trumpet', D: 'Tuba' },
     correct: 'D',
-    explanation: 'That was the tuba — deep and powerful!'
+    explanation: 'That was the tuba — the lowest and deepest brass instrument!'
   },
-  // --- Q9: Brass — Trumpet ---
+  // --- Q9: Brass — Trumpet (all brass distractors) ---
   {
     id: 'q9', category: 'brass',
     prompt: 'Listen! What brass instrument is this?',
     audio: { path: '/audio/orchestra-samples/brass/trumpet.mp3', volume: 1.0 },
-    answers: { A: 'French Horn', B: 'Tuba', C: 'Trumpet', D: 'Trombone' },
-    correct: 'C',
-    explanation: 'That was the trumpet — bright and bold!'
+    answers: { A: 'French Horn', B: 'Trumpet', C: 'Trombone', D: 'Tuba' },
+    correct: 'B',
+    explanation: 'That was the trumpet — the brightest brass instrument! The French horn is mellower, the trombone is lower.'
   },
-  // --- Q10: Form — Rondo ---
+  // --- Q10: Form — Ternary (In the Hall of the Mountain King) ---
   {
     id: 'q10', category: 'form',
-    prompt: 'A piece goes A-B-A-C-A. What form is this?',
+    prompt: 'What form is In the Hall of the Mountain King?',
     audio: null,
-    answers: { A: 'Rondo', B: 'Binary', C: 'Ternary', D: 'Theme & Variations' },
-    correct: 'A',
-    explanation: 'ABACA is rondo form — the A section keeps returning!'
-  },
-  // --- Q11: Form — Ternary ---
-  {
-    id: 'q11', category: 'form',
-    prompt: 'A piece has three sections: the first and last sound the same. What form is this?',
-    audio: null,
-    answers: { A: 'Rondo', B: 'Ternary', C: 'Through-composed', D: 'Binary' },
-    correct: 'B',
-    explanation: 'ABA is ternary form — it returns to the opening section!'
-  },
-  // --- Q12: Form — Ritardando vs Decrescendo ---
-  {
-    id: 'q12', category: 'form',
-    prompt: 'The music is getting slower. What is the Italian term for this?',
-    audio: null,
-    answers: { A: 'Decrescendo', B: 'Crescendo', C: 'Ritardando', D: 'Accelerando' },
+    answers: { A: 'Rondo', B: 'Binary', C: 'Ternary', D: 'Strophic' },
     correct: 'C',
-    explanation: 'Ritardando means gradually slowing down. Decrescendo means getting softer — that\'s dynamics, not tempo!'
+    explanation: 'In the Hall of the Mountain King is ternary form (ABA) — the soft sneaking theme returns after the wild middle section!'
+  },
+  // --- Q11: Tempo — Adagio (close distractors: all tempo markings) ---
+  {
+    id: 'q11', category: 'tempo',
+    prompt: 'Listen! What tempo is this?',
+    audio: { path: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', startTime: 4.5, endTime: 14, volume: 0.7 },
+    answers: { A: 'Adagio', B: 'Andante', C: 'Allegro', D: 'Presto' },
+    correct: 'A',
+    explanation: 'That was Adagio — slow and relaxed! Andante is a bit faster (walking speed).'
   }
 ];
+
+// Round 2: Same categories, different correct answers and audio clips
+const QUESTIONS_ROUND2 = [
+  // --- Dynamics — Fortissimo ---
+  {
+    id: 'r2-q1', category: 'dynamics',
+    prompt: 'Listen! What dynamic level is this?',
+    audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 8, volume: 1.0 },
+    answers: { A: 'Forte', B: 'Fortissimo', C: 'Mezzo Forte', D: 'Mezzo Piano' },
+    correct: 'B',
+    explanation: 'That was fortissimo — very loud! Even louder than forte.'
+  },
+  // --- Dynamics — Mezzo Forte ---
+  {
+    id: 'r2-q2', category: 'dynamics',
+    prompt: 'Listen! What dynamic level is this?',
+    audio: { path: VIVALDI_SPRING, startTime: 20, endTime: 30, volume: 0.6 },
+    answers: { A: 'Piano', B: 'Pianissimo', C: 'Mezzo Forte', D: 'Forte' },
+    correct: 'C',
+    explanation: 'That was mezzo forte — medium loud! Not as strong as forte, not as soft as piano.'
+  },
+  // --- Tempo — Allegro ---
+  {
+    id: 'r2-q3', category: 'tempo',
+    prompt: 'Listen! What tempo is this?',
+    audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 10, volume: 0.7 },
+    answers: { A: 'Andante', B: 'Presto', C: 'Allegro', D: 'Adagio' },
+    correct: 'C',
+    explanation: 'That was Allegro — fast and lively! Not quite as fast as Presto.'
+  },
+  // --- Tempo — Largo ---
+  {
+    id: 'r2-q4', category: 'tempo',
+    prompt: 'Listen! What tempo is this?',
+    audio: { path: '/audio/classical/handel-xerxes-largo-showcase.mp3', startTime: 0, endTime: 10, volume: 0.7 },
+    answers: { A: 'Largo', B: 'Adagio', C: 'Andante', D: 'Allegro' },
+    correct: 'A',
+    explanation: 'That was Largo — very slow! Even slower than Adagio.'
+  },
+  // --- Strings — Violin ---
+  {
+    id: 'r2-q5', category: 'strings',
+    prompt: 'Listen! What string instrument is this?',
+    audio: { path: '/audio/orchestra-samples/strings/violin.mp3', volume: 0.7 },
+    answers: { A: 'Violin', B: 'Viola', C: 'Cello', D: 'Double Bass' },
+    correct: 'A',
+    explanation: 'That was the violin — the highest and brightest string instrument!'
+  },
+  // --- Woodwinds — Clarinet ---
+  {
+    id: 'r2-q6', category: 'woodwinds',
+    prompt: 'Listen! What woodwind instrument is this?',
+    audio: { path: '/audio/orchestra-samples/woodwinds/clarinet.mp3', volume: 1.0 },
+    answers: { A: 'Flute', B: 'Oboe', C: 'Clarinet', D: 'Bassoon' },
+    correct: 'C',
+    explanation: 'That was the clarinet — warm and smooth with a wide range!'
+  },
+  // --- Woodwinds — Oboe ---
+  {
+    id: 'r2-q7', category: 'woodwinds',
+    prompt: 'Listen! What woodwind instrument is this?',
+    audio: { path: '/audio/orchestra-samples/woodwinds/oboe.mp3', volume: 1.0 },
+    answers: { A: 'Oboe', B: 'Flute', C: 'Clarinet', D: 'Bassoon' },
+    correct: 'A',
+    explanation: 'That was the oboe — nasal and reedy! The orchestra tunes to the oboe.'
+  },
+  // --- Brass — French Horn ---
+  {
+    id: 'r2-q8', category: 'brass',
+    prompt: 'Listen! What brass instrument is this?',
+    audio: { path: '/audio/orchestra-samples/brass/french-horn.mp3', volume: 1.0 },
+    answers: { A: 'Trumpet', B: 'Trombone', C: 'Tuba', D: 'French Horn' },
+    correct: 'D',
+    explanation: 'That was the French horn — warm and mellow! It has a big bell that faces backward.'
+  },
+  // --- Brass — Trombone ---
+  {
+    id: 'r2-q9', category: 'brass',
+    prompt: 'Listen! What brass instrument is this?',
+    audio: { path: '/audio/orchestra-samples/brass/trombone.mp3', volume: 1.0 },
+    answers: { A: 'Tuba', B: 'French Horn', C: 'Trombone', D: 'Trumpet' },
+    correct: 'C',
+    explanation: 'That was the trombone — it uses a slide instead of valves!'
+  },
+  // --- Form — Mountain King again ---
+  {
+    id: 'r2-q10', category: 'form',
+    prompt: 'In the Hall of the Mountain King has an A section, then B, then A again. What is this called?',
+    audio: null,
+    answers: { A: 'Binary', B: 'Strophic', C: 'Through-composed', D: 'Ternary' },
+    correct: 'D',
+    explanation: 'ABA = ternary form! The A section returns at the end.'
+  },
+  // --- Tempo — Andante (different audio) ---
+  {
+    id: 'r2-q11', category: 'tempo',
+    prompt: 'Listen! What tempo is this?',
+    audio: { path: '/audio/classical/grieg-morning-mood.mp3', startTime: 10, endTime: 20, volume: 0.7 },
+    answers: { A: 'Presto', B: 'Largo', C: 'Andante', D: 'Allegro' },
+    correct: 'C',
+    explanation: 'That was Andante — walking speed! Like a comfortable stroll.'
+  }
+];
+
+const ALL_ROUNDS = [QUESTIONS, QUESTIONS_ROUND2];
 
 // Corner definitions matching physical room layout
 const CORNERS = {
@@ -173,6 +269,7 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
   // Game state
   const [gamePhase, setGamePhase] = useState('setup');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [currentRound, setCurrentRound] = useState(0);
 
   // Students
   const [students, setStudents] = useState([]);
@@ -189,7 +286,8 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
   const stopTimerRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const currentQuestion = QUESTIONS[currentQuestionIndex] || null;
+  const currentQuestions = ALL_ROUNDS[currentRound] || QUESTIONS;
+  const currentQuestion = currentQuestions[currentQuestionIndex] || null;
 
   // Cleanup audio on unmount
   useEffect(() => {
@@ -301,7 +399,8 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
   }, [sessionCode]);
 
   // Start game
-  const startGame = useCallback(() => {
+  const startGame = useCallback((round = currentRound) => {
+    const questions = ALL_ROUNDS[round] || QUESTIONS;
     setCurrentQuestionIndex(0);
     setGamePhase('question');
     setCorrectCount(0);
@@ -316,7 +415,7 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
       });
     }
 
-    const firstQ = QUESTIONS[0];
+    const firstQ = questions[0];
     updateGame({
       phase: 'question',
       currentQuestion: 0,
@@ -330,7 +429,7 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
 
     // Play audio for the first question
     playAudio(firstQ);
-  }, [sessionCode, students, updateGame, playAudio]);
+  }, [currentRound, sessionCode, students, updateGame, playAudio]);
 
   // Reveal answer
   const reveal = useCallback(() => {
@@ -370,7 +469,7 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
 
     const nextIdx = currentQuestionIndex + 1;
 
-    if (nextIdx >= QUESTIONS.length) {
+    if (nextIdx >= currentQuestions.length) {
       setGamePhase('finished');
       updateGame({ phase: 'finished', revealedAnswer: null });
     } else {
@@ -378,7 +477,7 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
       setGamePhase('question');
       setCorrectCount(0);
 
-      const nextQ = QUESTIONS[nextIdx];
+      const nextQ = currentQuestions[nextIdx];
       updateGame({
         phase: 'question',
         currentQuestion: nextIdx,
@@ -407,23 +506,22 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
             <h1 className="text-4xl font-bold">Four Corners</h1>
             {gamePhase !== 'setup' && gamePhase !== 'finished' && (
               <span className="bg-white/10 px-4 py-2 rounded-full text-xl">
-                Q{currentQuestionIndex + 1}/{QUESTIONS.length}
+                Q{currentQuestionIndex + 1}/{currentQuestions.length}
                 {currentQuestion && (
                   <span className="ml-2 opacity-70">{CATEGORY_EMOJI[currentQuestion.category]}</span>
                 )}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 text-2xl">
-            <Users size={28} />
-            <span>{students.length}</span>
-          </div>
+          {currentRound > 0 && (
+            <span className="bg-white/10 px-4 py-2 rounded-full text-xl">Round {currentRound + 1}</span>
+          )}
         </div>
 
         {/* Progress bar */}
         {gamePhase !== 'setup' && gamePhase !== 'finished' && (
           <div className="flex gap-1 mb-3 flex-shrink-0">
-            {QUESTIONS.map((q, idx) => {
+            {currentQuestions.map((q, idx) => {
               const isComplete = idx < currentQuestionIndex || (idx === currentQuestionIndex && gamePhase === 'revealed');
               const isCurrent = idx === currentQuestionIndex && gamePhase === 'question';
               return (
@@ -604,7 +702,7 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
                     onClick={nextQuestion}
                     className="px-10 py-4 bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-2"
                   >
-                    {currentQuestionIndex >= QUESTIONS.length - 1 ? (
+                    {currentQuestionIndex >= currentQuestions.length - 1 ? (
                       <>Finish Game <ChevronRight size={28} /></>
                     ) : (
                       <>Next Question <ChevronRight size={28} /></>
@@ -618,15 +716,34 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
             {gamePhase === 'finished' && (
               <div className="text-center">
                 <div className="text-9xl mb-6">{'\uD83C\uDF89'}</div>
-                <h2 className="text-5xl font-black mb-4">Game Complete!</h2>
+                <h2 className="text-5xl font-black mb-4">Round {currentRound + 1} Complete!</h2>
                 <p className="text-2xl text-white/70 mb-8">Great job everyone!</p>
 
-                <button
-                  onClick={() => onComplete?.()}
-                  className="px-10 py-5 bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
-                >
-                  Continue <ChevronRight size={28} />
-                </button>
+                {currentRound < ALL_ROUNDS.length - 1 ? (
+                  <button
+                    onClick={() => {
+                      const nextRound = currentRound + 1;
+                      setCurrentRound(nextRound);
+                      startGame(nextRound);
+                    }}
+                    className="px-10 py-5 bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
+                  >
+                    <RotateCcw size={28} /> Play Round {currentRound + 2}
+                  </button>
+                ) : (
+                  <div className="flex flex-col items-center gap-4">
+                    <p className="text-xl text-white/50">All rounds complete!</p>
+                    <button
+                      onClick={() => {
+                        setCurrentRound(0);
+                        startGame(0);
+                      }}
+                      className="px-10 py-5 bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
+                    >
+                      <RotateCcw size={28} /> Replay from Round 1
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

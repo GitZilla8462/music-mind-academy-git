@@ -5,6 +5,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Check, Save, Play, Square, Plus, ChevronDown } from 'lucide-react';
 import { getPieceById } from '../../../listening-lab/lesson4/lesson4Config';
+import { saveStudentWork, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
+import { useSession } from '../../../../context/SessionContext';
+import { getDatabase, ref, onValue } from 'firebase/database';
 
 const SELECTION_STORAGE_KEY = 'listening-lab-lesson4-selected-piece';
 const PLAN_STORAGE_KEY = 'listening-lab-lesson4-capstone-plan';
@@ -342,6 +345,60 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null, 
 
   const done = useCallback(() => { save(); onComplete?.(); }, [save, onComplete]);
 
+  // Full save: localStorage + Firebase (used by teacher Save All)
+  const fullSave = useCallback(() => {
+    if (!piece) return;
+    // Save to localStorage
+    localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify({ pieceId: piece.id, sections: plans, savedAt: new Date().toISOString() }));
+    setIsSaved(true);
+    // Save to Firebase via studentWorkStorage
+    const authInfo = getClassAuthInfo();
+    saveStudentWork('capstone-planning', {
+      title: 'Plan Your Journey',
+      emoji: '\uD83D\uDCDD',
+      viewRoute: '/lessons/listening-lab/lesson3?view=plan',
+      subtitle: `${piece.title} — ${Object.keys(plans).length} sections`,
+      category: 'Listening Lab',
+      lessonId: 'll-lesson3',
+      data: { pieceId: piece.id, sections: plans }
+    }, null, authInfo);
+  }, [piece, plans]);
+
+  // Listen for teacher's "Save All & Continue" command from Firebase
+  const { sessionCode } = useSession();
+  const classCode = new URLSearchParams(window.location.search).get('classCode');
+  const effectiveSessionCode = sessionCode || classCode;
+  const lastSaveCommandRef = useRef(null);
+  const componentMountTimeRef = useRef(Date.now());
+  const [teacherSaveToast, setTeacherSaveToast] = useState(false);
+
+  useEffect(() => {
+    if (!effectiveSessionCode || !isSessionMode || viewMode) return;
+
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
+
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+      if (!saveCommand) return;
+
+      if (saveCommand <= componentMountTimeRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('\uD83D\uDCBE Teacher save command received for capstone planning!');
+        fullSave();
+        setTeacherSaveToast(true);
+        setTimeout(() => setTeacherSaveToast(false), 3000);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [effectiveSessionCode, isSessionMode, viewMode, fullSave]);
+
   if (!piece) return null;
 
   const fmt = (t) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
@@ -469,6 +526,12 @@ const CapstonePlanning = ({ onComplete, isSessionMode, highlightSection = null, 
         </div>
       </div>
 
+      {/* Teacher Save All toast */}
+      {teacherSaveToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg text-lg font-bold z-50 animate-bounce">
+          Work Saved!
+        </div>
+      )}
     </div>
   );
 };

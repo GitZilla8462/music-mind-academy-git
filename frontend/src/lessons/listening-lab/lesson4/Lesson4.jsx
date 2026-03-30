@@ -212,12 +212,7 @@ const Lesson4 = () => {
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
           </div>
-          {showTransition && (
-            <TransitionOverlay
-              message="Great work! Moving to the next section..."
-              onComplete={() => setShowTransition(false)}
-            />
-          )}
+          <TransitionOverlay isVisible={showTransition} />
         </>
       );
     }
@@ -232,12 +227,7 @@ const Lesson4 = () => {
             <h1 className="text-5xl font-bold mb-4">Watch the Video</h1>
             <p className="text-2xl text-gray-400">Look at the main screen</p>
           </div>
-          {showTransition && (
-            <TransitionOverlay
-              message="Great work! Moving to the next section..."
-              onComplete={() => setShowTransition(false)}
-            />
-          )}
+          <TransitionOverlay isVisible={showTransition} />
         </>
       );
     }
@@ -257,12 +247,7 @@ const Lesson4 = () => {
             lessonConfig={lessonConfig}
             currentStage={currentStage}
           />
-          {showTransition && (
-            <TransitionOverlay
-              message="Great work! Moving to the next section..."
-              onComplete={() => setShowTransition(false)}
-            />
-          )}
+          <TransitionOverlay isVisible={showTransition} />
         </>
       );
     }
@@ -276,12 +261,7 @@ const Lesson4 = () => {
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
           <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
         </div>
-        {showTransition && (
-          <TransitionOverlay
-            message="Great work! Moving to the next section..."
-            onComplete={() => setShowTransition(false)}
-          />
-        )}
+        <TransitionOverlay isVisible={showTransition} />
       </>
     );
   }

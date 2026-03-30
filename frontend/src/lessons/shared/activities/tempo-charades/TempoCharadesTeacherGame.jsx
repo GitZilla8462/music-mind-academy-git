@@ -88,18 +88,6 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     update(ref(db, `sessions/${sessionCode}/tempoCharades`), data);
   }, [sessionCode]);
 
-  // Reset game state in Firebase on mount so students see "waiting" (clears stale data)
-  useEffect(() => {
-    if (!sessionCode) return;
-    const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/tempoCharades`), {
-      phase: 'setup',
-      currentQuestion: 0,
-      correctAnswer: null,
-      playStartTime: null
-    });
-  }, [sessionCode]);
-
   // Firebase: Subscribe to students
   useEffect(() => {
     if (!sessionCode) return;

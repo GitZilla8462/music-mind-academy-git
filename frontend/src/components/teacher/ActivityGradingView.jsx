@@ -316,6 +316,41 @@ const ActivityGradingView = ({
     }
   };
 
+  // Helper: render capstone planning preview
+  const renderCapstonePreview = (data) => {
+    const sections = data.sections || {};
+    const sectionIds = Object.keys(sections);
+    const formatList = (arr) => Array.isArray(arr) && arr.length > 0 ? arr.join(', ') : '—';
+    return (
+      <div className="flex-1 overflow-auto p-4">
+        <div className="max-w-2xl mx-auto space-y-3">
+          <h3 className="text-white text-lg font-bold text-center mb-4">Plan Your Journey</h3>
+          {sectionIds.map((sid) => {
+            const s = sections[sid];
+            return (
+              <div key={sid} className="bg-white/10 rounded-lg p-3">
+                <h4 className="text-white font-bold text-sm mb-1">Section {sid}</h4>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                  <span className="text-gray-400">Dynamics:</span>
+                  <span className="text-white">{formatList(s.dynamics)}</span>
+                  <span className="text-gray-400">Tempo:</span>
+                  <span className="text-white">{formatList(s.tempo)}</span>
+                  <span className="text-gray-400">Families:</span>
+                  <span className="text-white">{formatList(s.families)}</span>
+                  <span className="text-gray-400">Instruments:</span>
+                  <span className="text-white">{formatList(s.instruments)}</span>
+                </div>
+              </div>
+            );
+          })}
+          {sectionIds.length === 0 && (
+            <p className="text-gray-400 text-center">No sections planned yet.</p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // Helper: render a work preview from data (used for both student work and answer key)
   const renderWorkContent = (workData) => {
     if (!workData) return null;
@@ -326,6 +361,9 @@ const ActivityGradingView = ({
           <img src={img} alt="Work" className="max-w-full max-h-full rounded-lg shadow-lg" />
         </div>
       );
+    }
+    if (workData.data?.pieceId && workData.data?.sections && !Array.isArray(workData.data.sections)) {
+      return renderCapstonePreview(workData.data);
     }
     if (workData.data?.sections) {
       return (
@@ -655,6 +693,10 @@ const ActivityGradingView = ({
                   </span>
                 )}
               </div>
+            </div>
+          ) : currentWork?.data?.pieceId && currentWork?.data?.sections && !Array.isArray(currentWork.data.sections) ? (
+            <div className="flex-1 overflow-auto p-4">
+              {renderCapstonePreview(currentWork.data)}
             </div>
           ) : currentWork?.data?.sections ? (
             <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="w-10 h-10 text-gray-400 animate-spin" /></div>}>

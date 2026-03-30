@@ -282,27 +282,13 @@ export const lessonSections = [
         description: 'Students build their Listening Journey — focus on dynamics today.'
       },
       {
-        id: 'swap-intro',
-        type: 'summary',
-        label: 'Swap Chromebooks',
-        duration: 1,
-        description: 'Students swap devices with their partner.'
-      },
-      {
-        id: 'peer-play',
+        id: 'pair-and-share',
         type: 'activity',
-        label: 'Play Partner\'s Game',
-        duration: 4,
+        label: 'Pair and Share',
+        duration: 7,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students play their partner\'s Listening Journey game.'
-      },
-      {
-        id: 'peer-feedback',
-        type: 'discussion',
-        label: 'Give Feedback',
-        duration: 2,
-        description: 'Students give feedback on sticker placement.'
+        description: 'Students pair up, play each other\'s games, and give feedback.'
       },
       {
         id: 'lesson-complete',
@@ -524,9 +510,9 @@ export const lessonStages = [
       title: 'Listening Journey Game Creator',
       subtitle: 'Build a game your classmates will play!',
       bullets: [
-        '🎵 Create a visual world that matches the music',
-        '🐦 Place dynamic stickers (pp, p, f, ff) where you hear them',
-        '🎮 Your classmates play your game and collect your stickers for points!',
+        'Create a visual world that matches the music',
+        'Place dynamic stickers (pp, p, f, ff) where you hear them',
+        'Your classmates play your game and collect your stickers for points!',
       ]
     }
   },
@@ -544,51 +530,16 @@ export const lessonStages = [
     }
   },
   {
-    id: 'swap-intro',
-    label: 'Swap Chromebooks',
-    description: 'Students swap devices with their partner to play each other\'s games.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'Swap Chromebooks!',
-      subtitle: 'Time to play your partner\'s game',
-      bullets: [
-        '👥 Switch Chromebooks with your partner',
-        '▶️ Press "Play Game" on the top bar, then give your Chromebook to someone to play',
-        '🎮 A bird collects stickers for points — listen carefully!',
-        '🎵 Do the stickers match the music?',
-      ]
-    }
-  },
-  {
-    id: 'peer-play',
-    label: 'Play Partner\'s Game',
-    description: 'Students play their partner\'s Listening Journey game and earn points.',
+    id: 'pair-and-share',
+    label: 'Pair and Share',
+    description: 'Students pair up, play each other\'s games, and give feedback.',
     type: 'activity',
-    duration: 4,
+    duration: 7,
     hasTimer: true,
     presentationView: {
-      type: 'journey-animator-directions',
+      type: 'pair-and-share-overlay',
       pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG,
       journeyProps: { gameMode: true, hideDecoys: true },
-    }
-  },
-  {
-    id: 'peer-feedback',
-    label: 'Give Feedback',
-    description: 'Students give feedback on partner\'s sticker placement.',
-    type: 'discussion',
-    duration: 2,
-    presentationView: {
-      type: 'summary',
-      title: 'Give Feedback',
-      subtitle: 'Swap back and tell your partner:',
-      bullets: [
-        '✅ Which stickers matched the music perfectly?',
-        '🔧 Which stickers felt wrong? (e.g. "ff" during a quiet part)',
-        '💡 Any spots where a sticker was missing?',
-      ]
     }
   },
   {
@@ -691,9 +642,7 @@ export const getActivityForStage = (stage) => {
     'planning-intro': 'capstone-planning',
     'game-creator-intro': 'summary',
     'animator-directions': 'listening-journey',
-    'swap-intro': 'summary',
-    'peer-play': 'listening-journey',
-    'peer-feedback': 'summary',
+    'pair-and-share': 'listening-journey',
     'lesson-complete': 'summary',
     'bonus-activity-intro': 'summary',
     'four-corners-instructions': 'summary',

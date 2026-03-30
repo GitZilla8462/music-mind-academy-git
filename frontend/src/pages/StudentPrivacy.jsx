@@ -366,6 +366,7 @@ const StudentPrivacy = () => {
               <div className="it-domain-list">
                 {!isEduSite && <span className="it-domain">musicmindacademy.com</span>}
                 <span className="it-domain">musicroomtools.org</span>
+                <span className="it-domain">media.musicmindacademy.com</span>
                 <span className="it-domain">*.firebaseapp.com</span>
                 <span className="it-domain">*.firebaseio.com</span>
                 <span className="it-domain">accounts.google.com</span>

@@ -1414,6 +1414,66 @@ const PresentationContent = ({
       );
     }
 
+    // Pair and Share overlay (Listening Lab Lesson 3) - Listening Journey with instructions modal
+    if (type === 'pair-and-share-overlay') {
+      const configJourneyProps = currentStageData.presentationView.journeyProps || {};
+      return (
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 [&>div]:!h-full [&>div]:!max-h-full overflow-hidden">
+            {ListeningJourney ? (
+              <ListeningJourney
+                onComplete={() => {}}
+                viewMode={false}
+                isSessionMode={false}
+                pieceConfig={pieceConfig || null}
+                skipSavedData={true}
+                hideDrawingTools={true}
+                allowedCharacters={['yellow-bird', 'crow', 'pigeon']}
+                allowedEnvironments={['clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night']}
+                defaultScene="clouds-day"
+                {...configJourneyProps}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full bg-gray-900">
+                <p className="text-gray-400 text-xl">Loading Listening Journey...</p>
+              </div>
+            )}
+          </div>
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+              <div className="bg-purple-600 px-6 py-4">
+                <h3 className="text-xl font-bold text-white">Pair and Share</h3>
+              </div>
+              <div className="p-6">
+                <ol className="space-y-3 text-gray-700">
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">1</span>
+                    <span>Find a partner.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">2</span>
+                    <span>Have one student play first while the other watches.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">3</span>
+                    <span>Press <strong>"Play Game"</strong> on the top bar.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">4</span>
+                    <span>Give feedback to the game maker — do the stickers and markings match the music?</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">5</span>
+                    <span>Make corrections to the markings if needed and switch games!</span>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Form Answer Key (Listening Lab Lesson 3) - Mountain King ABA answer key
     if (type === 'form-answer-key') {
       const FormAnswerKeySlide = () => {
@@ -4420,10 +4480,11 @@ const TeacherLessonView = ({
     return () => clearInterval(interval);
   }, [classroomTimer.isRunning, playTimerEndSound]);
 
-  // Check if current stage is a saveable activity (composition, listening map, listening journey, or reflection)
+  // Check if current stage is a saveable activity (composition, listening map, listening journey, capstone planning, or reflection)
   const isSaveableActivity = currentStageData?.type === 'activity' &&
     (currentStageData?.id?.includes('composition') || currentStageData?.id?.includes('listening-map') ||
      currentStageData?.id === 'animator-directions' || currentStageData?.id === 'build-time' ||
+     currentStageData?.id === 'planning-intro' ||
      currentStageData?.id?.includes('reflection'));
 
   // Send save command to all students via Firebase

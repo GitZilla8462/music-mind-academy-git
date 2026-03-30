@@ -118,6 +118,13 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
         return;
       }
 
+      // Ignore stale game data from previous sessions (older than 2 hours)
+      const isStale = data.playStartTime && (Date.now() - data.playStartTime > 2 * 60 * 60 * 1000);
+      if (isStale && data.phase !== 'setup' && data.phase !== 'waiting') {
+        setGamePhase('waiting');
+        return;
+      }
+
       setGamePhase(data.phase || 'waiting');
       setCurrentQuestion(data.currentQuestion || 0);
       setTotalQuestions(data.totalQuestions || 10);

@@ -115,6 +115,7 @@ export const CURRICULUM = [
         concept: 'Brass/percussion families and ternary form',
         route: '/lessons/listening-lab/lesson3',
         activities: [
+          { id: 'capstone-planning', name: 'Plan Your Journey', type: 'composition' },
           { id: 'listening-journey', name: 'Listening Journey (Draft)', type: 'composition' }
         ]
       },

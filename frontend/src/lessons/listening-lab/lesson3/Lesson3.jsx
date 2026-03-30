@@ -32,6 +32,55 @@ import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
 import ExitSessionButton from '../../../components/ExitSessionButton';
 
+// Pair and Share overlay — shown on student screen during pair-and-share stage
+const PairAndShareOverlay = () => {
+  const [dismissed, setDismissed] = useState(false);
+
+  if (dismissed) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+        <div className="bg-purple-600 px-6 py-4">
+          <h3 className="text-xl font-bold text-white">Pair and Share</h3>
+        </div>
+        <div className="p-6">
+          <ol className="space-y-3 text-gray-700">
+            <li className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">1</span>
+              <span>Find a partner.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">2</span>
+              <span>Have one student play first while the other watches.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">3</span>
+              <span>Press <strong>"Play Game"</strong> on the top bar.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">4</span>
+              <span>Give feedback to the game maker — do the stickers and markings match the music?</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">5</span>
+              <span>Make corrections to the markings if needed and switch games!</span>
+            </li>
+          </ol>
+        </div>
+        <div className="px-6 pb-6">
+          <button
+            onClick={() => setDismissed(true)}
+            className="w-full px-4 py-3 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors"
+          >
+            Got it!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LESSON_PROGRESS_KEY = 'listening-lab-lesson3-progress';
 const LESSON_TIMER_KEY = 'listening-lab-lesson3-timer';
 
@@ -71,7 +120,8 @@ const Lesson3 = () => {
 
   // Check for view modes from URL params
   const searchParams = new URLSearchParams(location.search);
-  const viewSavedMode = searchParams.get('view') === 'saved';
+  const viewPlanMode = searchParams.get('view') === 'plan' || (searchParams.get('view') === 'saved' && searchParams.get('activity') === 'capstone-planning');
+  const viewSavedMode = searchParams.get('view') === 'saved' && !viewPlanMode;
   const viewReflectionMode = searchParams.get('view') === 'reflection';
   const isPreviewMode = searchParams.get('preview') === 'true';
   const isMuted = searchParams.get('muted') === 'true';
@@ -185,7 +235,8 @@ const Lesson3 = () => {
     }
 
     // SUMMARY SLIDES: Students see "Watch the Main Screen" message
-    if (currentStageData?.type === 'summary' || currentStageData?.type === 'discussion') {
+    // Four Corners is a physical classroom game — students don't use Chromebooks
+    if (currentStageData?.type === 'summary' || currentStageData?.type === 'discussion' || currentStage === 'four-corners-game') {
       console.log('📺 Showing Watch the Main Screen for stage:', currentStage);
       return (
         <>
@@ -195,12 +246,7 @@ const Lesson3 = () => {
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
           </div>
-          {showTransition && (
-            <TransitionOverlay
-              message="Great work! Moving to the next section..."
-              onComplete={() => setShowTransition(false)}
-            />
-          )}
+          <TransitionOverlay isVisible={showTransition} />
         </>
       );
     }
@@ -215,12 +261,7 @@ const Lesson3 = () => {
             <h1 className="text-5xl font-bold mb-4">Watch the Video</h1>
             <p className="text-2xl text-gray-400">Look at the main screen</p>
           </div>
-          {showTransition && (
-            <TransitionOverlay
-              message="Great work! Moving to the next section..."
-              onComplete={() => setShowTransition(false)}
-            />
-          )}
+          <TransitionOverlay isVisible={showTransition} />
         </>
       );
     }
@@ -232,7 +273,7 @@ const Lesson3 = () => {
       return (
         <>
           <ActivityRenderer
-            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? (currentStage === 'peer-play' ? JOURNEY_L3_PLAY_PROPS : JOURNEY_L3_PROPS) : {}) }}
+            activity={{ type: activityType, id: currentStage, ...(activityType === 'listening-journey' ? (currentStage === 'pair-and-share' ? JOURNEY_L3_PLAY_PROPS : JOURNEY_L3_PROPS) : {}) }}
             onComplete={handleSessionActivityComplete}
             sessionCode={sessionCode}
             viewMode={false}
@@ -240,12 +281,11 @@ const Lesson3 = () => {
             lessonConfig={lessonConfig}
             currentStage={currentStage}
           />
-          {showTransition && (
-            <TransitionOverlay
-              message="Great work! Moving to the next section..."
-              onComplete={() => setShowTransition(false)}
-            />
+          {/* Pair and Share modal overlay on student screen */}
+          {currentStage === 'pair-and-share' && (
+            <PairAndShareOverlay />
           )}
+          <TransitionOverlay isVisible={showTransition} />
         </>
       );
     }
@@ -259,12 +299,7 @@ const Lesson3 = () => {
           <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
           <p className="text-2xl text-gray-400">Your teacher will provide instruction</p>
         </div>
-        {showTransition && (
-          <TransitionOverlay
-            message="Great work! Moving to the next section..."
-            onComplete={() => setShowTransition(false)}
-          />
-        )}
+        <TransitionOverlay isVisible={showTransition} />
       </>
     );
   }
@@ -325,6 +360,19 @@ const Lesson3 = () => {
   // NORMAL MODE (NO SESSION)
   // ========================================
 
+  // View saved capstone plan
+  if (viewPlanMode) {
+    return (
+      <ActivityRenderer
+        activity={{ type: 'capstone-planning', id: 'planning-intro' }}
+        onComplete={() => navigate(-1)}
+        viewMode={true}
+        isSessionMode={false}
+        lessonConfig={lessonConfig}
+      />
+    );
+  }
+
   // View saved work mode
   if (viewSavedMode || viewReflectionMode) {
     return (
@@ -374,7 +422,7 @@ const Lesson3 = () => {
 
   return (
     <ActivityRenderer
-      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? (currentActivity.id === 'peer-play' ? JOURNEY_L3_PLAY_PROPS : JOURNEY_L3_PROPS) : {}) }}
+      activity={{ type: currentActivity.type, id: currentActivity.id, ...(currentActivity.type === 'listening-journey' ? (currentActivity.id === 'pair-and-share' ? JOURNEY_L3_PLAY_PROPS : JOURNEY_L3_PROPS) : {}) }}
       onComplete={lesson.handleActivityComplete}
       viewMode={false}
       isSessionMode={false}
