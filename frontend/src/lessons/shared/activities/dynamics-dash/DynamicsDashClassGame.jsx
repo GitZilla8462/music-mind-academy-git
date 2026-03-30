@@ -13,14 +13,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Play, Pause, Users, Trophy, Eye, RotateCcw, ChevronRight } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 import { useSession } from '../../../../context/SessionContext';
-
-// Format "First Last" as "First L."
-const formatName = (fullName) => {
-  if (!fullName) return null;
-  const parts = fullName.trim().split(/\s+/);
-  if (parts.length < 2) return parts[0];
-  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
-};
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import { AUDIO_PATH, DYNAMICS, GRADUAL_DYNAMICS, QUESTIONS, TOTAL_QUESTIONS, getVolumeForDynamic } from './dynamicsDashConfig';
 
 // Shuffle helper
@@ -92,10 +85,10 @@ const DynamicsDashClassGame = ({ sessionData, onComplete }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName || s.name)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
           id,
-          name: formatName(s.playerName || s.displayName || s.name) || s.playerName || s.displayName || s.name,
+          name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
           score: s.dynamicsDashScore || 0,
           answer: s.dynamicsDashAnswer,
           answerTime: s.dynamicsDashAnswerTime,

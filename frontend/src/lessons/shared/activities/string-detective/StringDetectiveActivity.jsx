@@ -7,7 +7,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Volume2, Play, Pause, Trophy, Clock, RefreshCw, Check, X } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, push, get, onValue } from 'firebase/database';
-import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
+import { getPlayerColor, getPlayerEmoji, getStudentDisplayName } from '../layer-detective/nameGenerator';
 import {
   STRING_INSTRUMENTS,
   DYNAMIC_LEVELS,
@@ -128,36 +128,15 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
     return () => clearInterval(heartbeat);
   }, [effectiveSessionCode, userId, gameStarted]);
 
-  // Generate player name
+  // Get player name on mount - use real name (first name last initial)
   useEffect(() => {
     if (!userId) return;
 
     const assignPlayerName = async () => {
       try {
-        const db = getDatabase();
         const color = getPlayerColor(userId);
         const emoji = getPlayerEmoji(userId);
-        let name;
-
-        if (effectiveSessionCode) {
-          try {
-            const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
-            const snapshot = await get(studentsRef);
-            const studentsData = snapshot.val() || {};
-
-            const existingNames = Object.entries(studentsData)
-              .filter(([id]) => id !== userId)
-              .map(([, data]) => data.playerName)
-              .filter(Boolean);
-
-            name = generateUniquePlayerName(userId, existingNames);
-          } catch (err) {
-            console.error('Error fetching existing names:', err);
-            name = generateUniquePlayerName(userId, []);
-          }
-        } else {
-          name = generateUniquePlayerName(userId, []);
-        }
+        const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
 
         setPlayerName(name);
         setPlayerColor(color);
@@ -191,10 +170,10 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
     const unsubStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: s.displayName || s.playerName || s.name,
         score: s.stringDetectiveScore || 0,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '🎻'

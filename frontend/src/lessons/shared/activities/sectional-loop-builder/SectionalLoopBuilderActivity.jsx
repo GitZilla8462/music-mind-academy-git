@@ -13,7 +13,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Flame, Clock, Play, RotateCcw, Globe } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
-import { generatePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
+import { getPlayerColor, getPlayerEmoji, getStudentDisplayName } from '../layer-detective/nameGenerator';
 import TransitionOverlay from '../../components/TransitionOverlay';
 
 // ============ ACTIVITY BANNER ============
@@ -613,33 +613,34 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     return <DemoModeGame />;
   }
 
-  // Init player
+  // Init player - use real name (first name last initial)
   useEffect(() => {
     if (!userId || initRef.current) return;
     initRef.current = true;
-    
-    const name = generatePlayerName(userId);
-    const color = getPlayerColor(userId);
-    const emoji = getPlayerEmoji(userId);
-    
-    setPlayerName(name);
-    setPlayerColor(color);
-    setPlayerEmoji(emoji);
-    
-    if (effectiveSessionCode && !viewMode) {
-      const db = getDatabase();
-      // Don't reset score/streak on rejoin - only update display info
-      // Score is managed by calculateScore(), streak by reveal updates
-      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
-        playerName: name,
-        displayName: name,
-        playerColor: color,
-        playerEmoji: emoji,
-        currentAnswer: null,
-        lockedIn: false,
-        lastActivity: Date.now()
-      }).catch(console.error);
-    }
+
+    const initPlayer = async () => {
+      const color = getPlayerColor(userId);
+      const emoji = getPlayerEmoji(userId);
+      const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
+
+      setPlayerName(name);
+      setPlayerColor(color);
+      setPlayerEmoji(emoji);
+
+      if (effectiveSessionCode && !viewMode) {
+        const db = getDatabase();
+        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+          displayName: name,
+          playerColor: color,
+          playerEmoji: emoji,
+          currentAnswer: null,
+          lockedIn: false,
+          lastActivity: Date.now()
+        }).catch(console.error);
+      }
+    };
+
+    initPlayer();
   }, [userId, effectiveSessionCode, viewMode]);
 
   // Keep userIdRef in sync for Firebase listener closures

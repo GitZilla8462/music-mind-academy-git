@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Trophy } from 'lucide-react';
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 const SectionalLoopBuilderResults = ({ sessionData }) => {
   const [students, setStudents] = useState([]);
@@ -16,7 +17,7 @@ const SectionalLoopBuilderResults = ({ sessionData }) => {
       .filter(([, data]) => data.playerName || data.displayName || data.name)
       .map(([id, data]) => ({
         id,
-        name: data.playerName || data.displayName || data.name,
+        name: formatFirstNameLastInitial(data.displayName || data.playerName || data.name),
         score: data.score || 0,
         playerColor: data.playerColor || '#3B82F6',
         playerEmoji: data.playerEmoji || '🎵'

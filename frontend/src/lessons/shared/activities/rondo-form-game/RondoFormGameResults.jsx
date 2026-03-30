@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 const RondoFormGameResults = ({ sessionData }) => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -18,10 +19,10 @@ const RondoFormGameResults = ({ sessionData }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.rondoGameScore || 0,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '🎵'

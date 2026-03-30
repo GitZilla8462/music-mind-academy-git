@@ -122,3 +122,53 @@ export const getPlayerEmoji = (userId) => {
   const num = numMatch ? parseInt(numMatch[0], 10) : hashCode(userId);
   return emojis[Math.floor(num / 8) % emojis.length]; // Offset by color count for variety
 };
+
+/**
+ * Format a full name as "FirstName L." (first name + last initial)
+ * @param {string} fullName - e.g. "Charles Taube"
+ * @returns {string} - e.g. "Charles T."
+ */
+export const formatFirstNameLastInitial = (fullName) => {
+  if (!fullName) return 'Student';
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  const firstName = parts[0];
+  const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
+  return `${firstName} ${lastInitial}.`;
+};
+
+/**
+ * Get the student's real display name from Firebase session data or localStorage,
+ * formatted as "FirstName L." Falls back to generated animal name.
+ * @param {string} userId
+ * @param {string|null} sessionCode - effective session code
+ * @param {string|null} studentsPath - Firebase path to studentsJoined (for class-based sessions)
+ * @returns {Promise<string>}
+ */
+export const getStudentDisplayName = async (userId, sessionCode, studentsPath) => {
+  const { getDatabase, ref, get } = await import('firebase/database');
+  const db = getDatabase();
+  let name = null;
+
+  // Try Firebase session data first (the name set when student joined)
+  const path = studentsPath || (sessionCode ? `sessions/${sessionCode}/studentsJoined/${userId}/name` : null);
+  if (path) {
+    try {
+      const namePath = studentsPath ? `${studentsPath}/${userId}/name` : path;
+      const snapshot = await get(ref(db, namePath));
+      if (snapshot.exists()) {
+        name = snapshot.val();
+      }
+    } catch {
+      // Fall through
+    }
+  }
+
+  // Try localStorage fallback
+  if (!name) {
+    name = localStorage.getItem('current-session-studentName');
+  }
+
+  // Format as "FirstName L." or fall back to generated name
+  return name ? formatFirstNameLastInitial(name) : generateUniquePlayerName(userId, []);
+};

@@ -12,7 +12,7 @@ import { Volume2, VolumeX, Play, Pause, RotateCcw, Trophy, Clock, RefreshCw } fr
 import { useSession } from '../../../../context/SessionContext';
 import { updateStudentScore } from '../../../../firebase/config';
 import { getDatabase, ref, update, push, set, onValue, get } from 'firebase/database';
-import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from './nameGenerator';
+import { getPlayerColor, getPlayerEmoji, getStudentDisplayName, formatFirstNameLastInitial } from './nameGenerator';
 
 const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
   const { sessionCode, userId: contextUserId, userRole, currentStage } = useSession();
@@ -144,39 +144,15 @@ useEffect(() => {
     };
   }, [effectiveSessionCode, userId, gameStarted]);
 
-  // Generate player name on mount
-  // Fetches existing names first to avoid duplicates
+  // Get player name on mount - use real name (first name last initial)
   useEffect(() => {
     if (!userId) return;
 
     const assignPlayerName = async () => {
       try {
-        const db = getDatabase();
         const color = getPlayerColor(userId);
         const emoji = getPlayerEmoji(userId);
-        let name;
-
-        // Fetch existing player names to avoid duplicates
-        if (effectiveSessionCode) {
-          try {
-            const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
-            const snapshot = await get(studentsRef);
-            const studentsData = snapshot.val() || {};
-
-            // Get all existing player names (excluding our own if re-joining)
-            const existingNames = Object.entries(studentsData)
-              .filter(([id]) => id !== userId)
-              .map(([, data]) => data.playerName)
-              .filter(Boolean);
-
-            name = generateUniquePlayerName(userId, existingNames);
-          } catch (err) {
-            console.error('Error fetching existing names:', err);
-            name = generateUniquePlayerName(userId, []);
-          }
-        } else {
-          name = generateUniquePlayerName(userId, []);
-        }
+        const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
 
         setPlayerName(name);
         setPlayerColor(color);
@@ -215,10 +191,10 @@ useEffect(() => {
     const unsubStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.layerDetectiveScore || 0,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '🎵'

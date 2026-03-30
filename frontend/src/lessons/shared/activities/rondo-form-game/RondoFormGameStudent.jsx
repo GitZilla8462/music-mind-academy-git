@@ -9,7 +9,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Check, Trophy, Volume2, GripVertical } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
-import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
+import { getPlayerColor, getPlayerEmoji, getStudentDisplayName, formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import {
   PIECE, CORRECT_FORM, SECTION_OPTIONS, GUIDED_SECTIONS, SECTIONS_DATA,
   SCORING, calculateRound1SpeedBonus, calculateRound2SpeedBonus, calculateRound3SpeedBonus,
@@ -73,33 +73,21 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
   const r2SelectedRef = useRef(null);
   const r2PlayStartRef = useRef(null);
 
-  // Generate player name
+  // Get player name on mount - use real name (first name last initial)
   useEffect(() => {
     if (!userId) return;
     const assignPlayerName = async () => {
-      const db = getDatabase();
       const color = getPlayerColor(userId);
       const emoji = getPlayerEmoji(userId);
-      let name;
-      if (effectiveSessionCode) {
-        try {
-          const snap = await get(ref(db, `sessions/${effectiveSessionCode}/studentsJoined`));
-          const data = snap.val() || {};
-          const existing = Object.entries(data)
-            .filter(([id]) => id !== userId)
-            .map(([, d]) => d.playerName)
-            .filter(Boolean);
-          name = generateUniquePlayerName(userId, existing);
-        } catch { name = generateUniquePlayerName(userId, []); }
-      } else {
-        name = generateUniquePlayerName(userId, []);
-      }
+      const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
       setPlayerName(name);
       setPlayerColor(color);
       setPlayerEmoji(emoji);
       if (effectiveSessionCode) {
+        const { getDatabase, ref, update } = await import('firebase/database');
+        const db = getDatabase();
         update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
-          playerName: name, playerColor: color, playerEmoji: emoji
+          displayName: name, playerColor: color, playerEmoji: emoji
         });
       }
     };
@@ -266,10 +254,10 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
     const unsubscribe = onValue(studentsRef, (snap) => {
       const data = snap.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.rondoGameScore || 0,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '🎵'

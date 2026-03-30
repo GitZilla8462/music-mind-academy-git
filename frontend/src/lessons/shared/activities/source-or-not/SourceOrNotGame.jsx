@@ -13,6 +13,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Users, Eye, ChevronRight, CheckCircle, XCircle, Trophy, Award, Medal } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 // ============================================================
 // ROUNDS DATA — 8 rounds
@@ -128,10 +129,10 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
           id,
-          name: s.playerName || s.displayName,
+          name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
           answer: s.sourceOrNotAnswer,
           score: s.sourceOrNotScore || 0,
           answerTime: s.sourceOrNotAnswerTime || null,

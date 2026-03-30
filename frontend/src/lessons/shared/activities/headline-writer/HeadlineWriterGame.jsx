@@ -14,6 +14,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Users, ChevronRight, Trophy, Award, Medal, PenLine, Vote, Crown, Timer } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 // ============================================================
 // SUMMARIES DATA — 5 rounds
@@ -102,10 +103,10 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
           id,
-          name: s.playerName || s.displayName,
+          name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
           headline: s.headlineWriterHeadline || null,
           vote: s.headlineWriterVote || null,
           wins: s.headlineWriterWins || 0,

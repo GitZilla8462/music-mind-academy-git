@@ -9,6 +9,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Play, Pause, Users, Trophy, Eye, ChevronRight, CheckCircle, XCircle, Volume2, Music } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 import { useSession } from '../../../../context/SessionContext';
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 // ============================================================
 // GAME ROUNDS — one artist per genre, curated for clear genre identity
@@ -209,10 +210,10 @@ const GenreMatchTeacherGame = ({ sessionData, onComplete }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
           id,
-          name: s.playerName || s.displayName,
+          name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
           score: s.genreMatchScore || 0,
           answer: s.genreMatchAnswer,
           answerTime: s.genreMatchAnswerTime,

@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Volume2, Check, Trophy } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
-import { generateUniquePlayerName, getPlayerColor } from './nameGenerator';
+import { getPlayerColor, getStudentDisplayName } from './nameGenerator';
 
 // Answer options (1, 2, 3)
 const ANSWERS = [
@@ -65,45 +65,22 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
   // Audio refs (not used for playback, but for cleanup)
   const audioRefs = useRef([]);
 
-  // Generate player name on mount (no emoji)
-  // Fetches existing names first to avoid duplicates
+  // Get player name on mount - use real name (first name last initial)
   useEffect(() => {
     if (!userId) return;
 
     const assignPlayerName = async () => {
-      const db = getDatabase();
       const color = getPlayerColor(userId);
-      let name;
-
-      // Fetch existing player names to avoid duplicates
-      if (effectiveSessionCode) {
-        try {
-          const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
-          const snapshot = await get(studentsRef);
-          const studentsData = snapshot.val() || {};
-
-          // Get all existing player names (excluding our own if re-joining)
-          const existingNames = Object.entries(studentsData)
-            .filter(([id]) => id !== userId)
-            .map(([, data]) => data.playerName)
-            .filter(Boolean);
-
-          name = generateUniquePlayerName(userId, existingNames);
-        } catch (err) {
-          console.error('Error fetching existing names:', err);
-          name = generateUniquePlayerName(userId, []);
-        }
-      } else {
-        name = generateUniquePlayerName(userId, []);
-      }
+      const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
 
       setPlayerName(name);
       setPlayerColor(color);
 
-      // Save player info to Firebase (don't reset score here - let game logic handle it)
       if (effectiveSessionCode) {
+        const { getDatabase, ref, update } = await import('firebase/database');
+        const db = getDatabase();
         update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
-          playerName: name,
+          displayName: name,
           playerColor: color
         });
       }
@@ -237,10 +214,10 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: s.displayName || s.playerName || s.name,
         score: s.layerDetectiveScore || 0,
         playerColor: s.playerColor || '#3B82F6'
       }));

@@ -15,6 +15,7 @@ import {
   PIECE, GUIDED_SECTIONS, CORRECT_FORM, SECTION_OPTIONS, SECTIONS_DATA,
   SCORING, calculateRound2SpeedBonus
 } from './rondoFormGameConfig';
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 const ActivityBanner = () => (
   <div
@@ -134,10 +135,10 @@ const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.rondoGameScore || 0,
         r2Answer: s.rondoR2Answer,
         r2AnswerTime: s.rondoR2AnswerTime,

@@ -13,6 +13,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Users, Eye, ChevronRight, CheckCircle, XCircle, Trophy, Award, Medal } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 // ============================================================
 // STATEMENTS DATA — 10 statements
@@ -132,10 +133,10 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
           id,
-          name: s.playerName || s.displayName,
+          name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
           answer: s.factOpinionAnswer,
           score: s.factOpinionScore || 0,
           answerTime: s.factOpinionAnswerTime || null,

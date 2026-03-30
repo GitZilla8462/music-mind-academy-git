@@ -11,6 +11,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Pause, Users, Trophy, Eye, RotateCcw, ChevronRight } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { formatFirstNameLastInitial } from './nameGenerator';
 
 // ============ QUESTIONS DATA ============
 const QUESTIONS = [
@@ -183,10 +184,10 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.layerDetectiveScore || 0,
         answer: s.layerDetectiveAnswer,
         answerTime: s.layerDetectiveAnswerTime,

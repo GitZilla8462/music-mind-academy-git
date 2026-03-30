@@ -13,6 +13,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Pause, Users, Trophy, Eye, ChevronRight, CheckCircle, XCircle, Zap, Volume2 } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import { useSession } from '../../../../context/SessionContext';
 
 // ============================================================
@@ -265,10 +266,10 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.nteScore || 0,
         answer: s.nteAnswer,
         instrumentAnswer: s.nteInstrumentAnswer,

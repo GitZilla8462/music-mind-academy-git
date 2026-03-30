@@ -17,6 +17,7 @@ import {
 } from './SectionalLoopBuilderAudio';
 
 import { sfx, animationStyles } from './SectionalLoopBuilderSFX';
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 // Student Activity Time Banner (matches Lesson 1/2 composition slides)
 const ActivityBanner = () => (
@@ -215,10 +216,10 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName || s.name)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName || s.name,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.score || 0,
         streak: s.streak || 0,
         currentAnswer: s.currentAnswer,

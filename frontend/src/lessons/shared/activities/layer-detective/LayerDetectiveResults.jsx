@@ -4,6 +4,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Trophy } from 'lucide-react';
+import { formatFirstNameLastInitial } from './nameGenerator';
 
 const LayerDetectiveResults = ({ sessionData, onPlayAgain, onNextActivity }) => {
   const [students, setStudents] = useState([]);
@@ -16,7 +17,7 @@ const LayerDetectiveResults = ({ sessionData, onPlayAgain, onNextActivity }) => 
       .filter(([, data]) => data.playerName || data.displayName || data.name)
       .map(([id, data]) => ({
         id,
-        name: data.playerName || data.displayName || data.name,
+        name: formatFirstNameLastInitial(data.displayName || data.playerName || data.name),
         score: data.layerDetectiveScore || data.score || 0,
         playerColor: data.playerColor || '#3B82F6',
         playerEmoji: data.playerEmoji || '🎵'

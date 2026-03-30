@@ -8,7 +8,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Check, Trophy } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
-import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
+import { getPlayerColor, getPlayerEmoji, getStudentDisplayName } from '../layer-detective/nameGenerator';
 import { QA_SCORING, calculateQASpeedBonus } from './sectionSpotterConfig';
 
 const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
@@ -54,40 +54,24 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
   const wasCorrectRef = useRef(null);
   const questionStartTimeRef = useRef(null);
 
-  // Generate player name on mount
+  // Get player name on mount - use real name (first name last initial)
   useEffect(() => {
     if (!userId) return;
 
     const assignPlayerName = async () => {
-      const db = getDatabase();
       const color = getPlayerColor(userId);
       const emoji = getPlayerEmoji(userId);
-      let name;
-
-      if (effectiveSessionCode) {
-        try {
-          const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
-          const snapshot = await get(studentsRef);
-          const studentsData = snapshot.val() || {};
-          const existingNames = Object.entries(studentsData)
-            .filter(([id]) => id !== userId)
-            .map(([, data]) => data.playerName)
-            .filter(Boolean);
-          name = generateUniquePlayerName(userId, existingNames);
-        } catch {
-          name = generateUniquePlayerName(userId, []);
-        }
-      } else {
-        name = generateUniquePlayerName(userId, []);
-      }
+      const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
 
       setPlayerName(name);
       setPlayerColor(color);
       setPlayerEmoji(emoji);
 
       if (effectiveSessionCode) {
+        const { getDatabase, ref, update } = await import('firebase/database');
+        const db = getDatabase();
         update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
-          playerName: name,
+          displayName: name,
           playerColor: color,
           playerEmoji: emoji
         });
@@ -248,10 +232,10 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: s.displayName || s.playerName || s.name,
         score: s.sectionSpotterScore || 0,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '\uD83C\uDFB5'

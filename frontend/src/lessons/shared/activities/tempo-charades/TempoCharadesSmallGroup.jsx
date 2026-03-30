@@ -8,18 +8,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Users, Trophy, Play, Pause, Check, X, RotateCcw, Crown, Headphones } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get, set } from 'firebase/database';
-import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
+import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji, formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import { TEMPO_OPTIONS, AUDIO_CLIPS, CLIP_DURATION, shuffleArray, calculateSpeedBonus, getTempoBySymbol } from './tempoCharadesConfig';
-
-// Format name as "FirstName L." (first name + last initial)
-const formatFirstNameLastInitial = (fullName) => {
-  if (!fullName) return 'Student';
-  const parts = fullName.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0];
-  const firstName = parts[0];
-  const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
-  return `${firstName} ${lastInitial}.`;
-};
 
 const TOTAL_ROUNDS = 10;
 const AUTO_ADVANCE_DELAY = 3000;

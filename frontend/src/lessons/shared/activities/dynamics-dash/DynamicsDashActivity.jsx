@@ -7,17 +7,9 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Pause, Trophy, Clock, RefreshCw } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, push, get, onValue } from 'firebase/database';
-import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
+import { getPlayerColor, getPlayerEmoji, getStudentDisplayName, formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import { AUDIO_PATH, DYNAMICS, QUESTIONS, calculateSpeedBonus, BASE_POINTS, TOTAL_QUESTIONS, getVolumeForDynamic } from './dynamicsDashConfig';
 import safeStorage from '../../../../utils/safeStorage';
-
-// Format "First Last" as "First L."
-const formatStudentName = (fullName) => {
-  if (!fullName) return null;
-  const parts = fullName.trim().split(/\s+/);
-  if (parts.length < 2) return parts[0];
-  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
-};
 
 const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
   const { sessionCode, userId: contextUserId, currentStage } = useSession();
@@ -75,46 +67,15 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
     setShuffledQuestions(shuffled);
   }, []);
 
-  // Generate player name — use real name if available from PIN session
+  // Get player name on mount - use real name (first name last initial)
   useEffect(() => {
     if (!userId) return;
 
     const assignPlayerName = async () => {
       try {
-        const db = getDatabase();
         const color = getPlayerColor(userId);
         const emoji = getPlayerEmoji(userId);
-        let name;
-
-        // Try to get real name from PIN session
-        try {
-          const pinData = safeStorage.getItem('student-pin-session');
-          if (pinData) {
-            const session = JSON.parse(pinData);
-            const formatted = formatStudentName(session.displayName);
-            if (formatted) name = formatted;
-          }
-        } catch { /* fall through */ }
-
-        // Fallback to musical name if no real name
-        if (!name) {
-          if (effectiveSessionCode) {
-            try {
-              const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
-              const snapshot = await get(studentsRef);
-              const studentsData = snapshot.val() || {};
-              const existingNames = Object.entries(studentsData)
-                .filter(([id]) => id !== userId)
-                .map(([, data]) => data.playerName)
-                .filter(Boolean);
-              name = generateUniquePlayerName(userId, existingNames);
-            } catch {
-              name = generateUniquePlayerName(userId, []);
-            }
-          } else {
-            name = generateUniquePlayerName(userId, []);
-          }
-        }
+        const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
 
         setPlayerName(name);
         setPlayerColor(color);
@@ -147,10 +108,10 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
     const unsubStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.dynamicsDashScore || 0,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '🎵'

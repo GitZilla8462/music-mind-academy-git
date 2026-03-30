@@ -6,8 +6,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Check, Trophy, Award, Medal } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
-import { getDatabase, ref, update, onValue, get } from 'firebase/database';
-import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
+import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { getPlayerColor, getPlayerEmoji, getStudentDisplayName, formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 const FactOpinionStudentView = ({ onComplete, isSessionMode = true }) => {
   const { sessionCode, classId, userId: contextUserId } = useSession();
@@ -55,40 +55,24 @@ const FactOpinionStudentView = ({ onComplete, isSessionMode = true }) => {
   const wasCorrectRef = useRef(null);
   const myScoreRef = useRef(0);
 
-  // Generate player name on mount
+  // Get player name on mount - use real name (first name last initial)
   useEffect(() => {
     if (!userId) return;
 
     const assignPlayerName = async () => {
-      const db = getDatabase();
       const color = getPlayerColor(userId);
       const emoji = getPlayerEmoji(userId);
-      let name;
-
-      if (studentsPath) {
-        try {
-          const studentsRef = ref(db, studentsPath);
-          const snapshot = await get(studentsRef);
-          const studentsData = snapshot.val() || {};
-          const existingNames = Object.entries(studentsData)
-            .filter(([id]) => id !== userId)
-            .map(([, data]) => data.playerName)
-            .filter(Boolean);
-          name = generateUniquePlayerName(userId, existingNames);
-        } catch {
-          name = generateUniquePlayerName(userId, []);
-        }
-      } else {
-        name = generateUniquePlayerName(userId, []);
-      }
+      const name = await getStudentDisplayName(userId, null, studentsPath);
 
       setPlayerName(name);
       setPlayerColor(color);
       setPlayerEmoji(emoji);
 
       if (studentsPath) {
+        const { getDatabase, ref, update } = await import('firebase/database');
+        const db = getDatabase();
         update(ref(db, `${studentsPath}/${userId}`), {
-          playerName: name,
+          displayName: name,
           playerColor: color,
           playerEmoji: emoji
         });
@@ -182,10 +166,10 @@ const FactOpinionStudentView = ({ onComplete, isSessionMode = true }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const board = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
           id,
-          name: s.playerName || s.displayName,
+          name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
           score: s.factOpinionScore || 0,
           isMe: id === userId,
         }))

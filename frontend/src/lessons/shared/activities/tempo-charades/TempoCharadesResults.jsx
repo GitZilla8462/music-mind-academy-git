@@ -4,16 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
-
-// Format name as "FirstName L." (first name + last initial)
-const formatFirstNameLastInitial = (fullName) => {
-  if (!fullName) return 'Student';
-  const parts = fullName.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0];
-  const firstName = parts[0];
-  const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
-  return `${firstName} ${lastInitial}.`;
-};
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 const TempoCharadesResults = ({ sessionData }) => {
   const urlParams = new URLSearchParams(window.location.search);

@@ -23,6 +23,7 @@ import {
   calculateQASpeedBonus,
   getSectionByLabel
 } from './sectionSpotterConfig';
+import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 // Student Activity Banner
 const ActivityBanner = () => (
@@ -130,10 +131,10 @@ const SectionSpotterTeacherGame = ({ sessionData, onComplete, pieceId = 'mountai
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.playerName || s.displayName,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.sectionSpotterScore || 0,
         answer: s.sectionSpotterAnswer,
         answerTime: s.sectionSpotterAnswerTime,

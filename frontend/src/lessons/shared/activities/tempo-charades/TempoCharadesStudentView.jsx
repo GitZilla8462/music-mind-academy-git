@@ -7,18 +7,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Check, Trophy } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
-import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
+import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji, formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import { TEMPO_OPTIONS, SCORING, calculateSpeedBonus, getTempoBySymbol } from './tempoCharadesConfig';
-
-// Format name as "FirstName L." (first name + last initial)
-const formatFirstNameLastInitial = (fullName) => {
-  if (!fullName) return 'Student';
-  const parts = fullName.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0];
-  const firstName = parts[0];
-  const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
-  return `${firstName} ${lastInitial}.`;
-};
 
 const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
   const { sessionCode, userId: contextUserId } = useSession();
