@@ -265,8 +265,9 @@ export const SessionProvider = ({ children }) => {
     // Need either sessionCode OR classId to subscribe
     if (!sessionCode && !classId) return;
 
-    const sessionIdentifier = sessionCode || classId;
-    const isClassSession = !sessionCode && !!classId;
+    // Class-based sessions use classId for Firebase subscription, not sessionCode
+    const isClassSession = !!classId;
+    const sessionIdentifier = isClassSession ? classId : sessionCode;
 
     console.log('📡 Subscribing to', isClassSession ? 'class session:' : 'session:', sessionIdentifier);
     setIsLoadingSession(true);
