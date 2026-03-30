@@ -11,6 +11,16 @@ import { getDatabase, ref, update, onValue, get, set } from 'firebase/database';
 import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
 import { TEMPO_OPTIONS, AUDIO_CLIPS, CLIP_DURATION, shuffleArray, calculateSpeedBonus, getTempoBySymbol } from './tempoCharadesConfig';
 
+// Format name as "FirstName L." (first name + last initial)
+const formatFirstNameLastInitial = (fullName) => {
+  if (!fullName) return 'Student';
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  const firstName = parts[0];
+  const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
+  return `${firstName} ${lastInitial}.`;
+};
+
 const TOTAL_ROUNDS = 10;
 const AUTO_ADVANCE_DELAY = 3000;
 const TRANSITION_DELAY = 2000;
@@ -84,16 +94,43 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
   useEffect(() => { currentRoundRef.current = currentRound; }, [currentRound]);
   useEffect(() => { gamePhaseRef.current = gamePhase; }, [gamePhase]);
 
-  // Generate player identity on mount
+  // Get player identity on mount - use real name (first name last initial) from session data
   useEffect(() => {
     if (!userId) return;
-    const name = generateUniquePlayerName(userId, []);
-    const color = getPlayerColor(userId);
-    const emoji = getPlayerEmoji(userId);
-    setPlayerName(name);
-    setPlayerColor(color);
-    setPlayerEmoji(emoji);
-  }, [userId]);
+
+    const assignPlayerName = async () => {
+      const color = getPlayerColor(userId);
+      const emoji = getPlayerEmoji(userId);
+      let name;
+
+      // Try to get real student name from session data or localStorage
+      if (effectiveSessionCode) {
+        try {
+          const db = getDatabase();
+          const studentRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}/name`);
+          const snapshot = await get(studentRef);
+          if (snapshot.exists()) {
+            name = snapshot.val();
+          }
+        } catch {
+          // Fall through to localStorage fallback
+        }
+      }
+
+      if (!name) {
+        name = localStorage.getItem('current-session-studentName');
+      }
+
+      // Format as "FirstName L." or fall back to generated name
+      const displayName = name ? formatFirstNameLastInitial(name) : generateUniquePlayerName(userId, []);
+
+      setPlayerName(displayName);
+      setPlayerColor(color);
+      setPlayerEmoji(emoji);
+    };
+
+    assignPlayerName();
+  }, [userId, effectiveSessionCode]);
 
   // Web Audio API setup
   const ensureAudioContext = useCallback(() => {
@@ -255,14 +292,8 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
         return;
       }
 
-      const existingNames = groupData.members
-        ? Object.values(groupData.members).map(m => m.name)
-        : [];
-      const uniqueName = generateUniquePlayerName(userId, existingNames);
-      setPlayerName(uniqueName);
-
       await update(ref(db, `${getGroupPath(code)}/members/${userId}`), {
-        name: uniqueName,
+        name: playerName,
         color: playerColor,
         emoji: playerEmoji,
         score: 0,

@@ -10,6 +10,16 @@ import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji } from '../layer-detective/nameGenerator';
 import { TEMPO_OPTIONS, SCORING, calculateSpeedBonus, getTempoBySymbol } from './tempoCharadesConfig';
 
+// Format name as "FirstName L." (first name + last initial)
+const formatFirstNameLastInitial = (fullName) => {
+  if (!fullName) return 'Student';
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  const firstName = parts[0];
+  const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
+  return `${firstName} ${lastInitial}.`;
+};
+
 const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
   const { sessionCode, userId: contextUserId } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
@@ -51,7 +61,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
   const wasCorrectRef = useRef(null);
   const playStartTimeRef = useRef(null);
 
-  // Generate player name on mount
+  // Get player name on mount - use real name (first name last initial) from session data
   useEffect(() => {
     if (!userId) return;
 
@@ -61,30 +71,33 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
       const emoji = getPlayerEmoji(userId);
       let name;
 
+      // Try to get real student name from session data or localStorage
       if (effectiveSessionCode) {
         try {
-          const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
-          const snapshot = await get(studentsRef);
-          const studentsData = snapshot.val() || {};
-          const existingNames = Object.entries(studentsData)
-            .filter(([id]) => id !== userId)
-            .map(([, data]) => data.playerName)
-            .filter(Boolean);
-          name = generateUniquePlayerName(userId, existingNames);
+          const studentRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}/name`);
+          const snapshot = await get(studentRef);
+          if (snapshot.exists()) {
+            name = snapshot.val();
+          }
         } catch {
-          name = generateUniquePlayerName(userId, []);
+          // Fall through to localStorage fallback
         }
-      } else {
-        name = generateUniquePlayerName(userId, []);
       }
 
-      setPlayerName(name);
+      if (!name) {
+        name = localStorage.getItem('current-session-studentName');
+      }
+
+      // Format as "FirstName L." or fall back to generated name
+      const displayName = name ? formatFirstNameLastInitial(name) : generateUniquePlayerName(userId, []);
+
+      setPlayerName(displayName);
       setPlayerColor(color);
       setPlayerEmoji(emoji);
 
       if (effectiveSessionCode) {
         update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
-          playerName: name,
+          displayName: displayName,
           playerColor: color,
           playerEmoji: emoji
         });
@@ -216,10 +229,10 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.displayName || s.playerName,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.tempoCharadesScore || 0,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '\u{1F3B5}'

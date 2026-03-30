@@ -13,6 +13,16 @@ import { Play, Pause, Users, Trophy, Eye, ChevronRight, Headphones } from 'lucid
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 import { TEMPO_OPTIONS, AUDIO_CLIPS, CLIP_DURATION, SCORING, generateQuestions, getTempoBySymbol, calculateSpeedBonus } from './tempoCharadesConfig';
 
+// Format name as "FirstName L." (first name + last initial)
+const formatFirstNameLastInitial = (fullName) => {
+  if (!fullName) return 'Student';
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  const firstName = parts[0];
+  const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
+  return `${firstName} ${lastInitial}.`;
+};
+
 // Student Activity Banner
 const ActivityBanner = () => (
   <div
@@ -87,6 +97,18 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     update(ref(db, `sessions/${sessionCode}/tempoCharades`), data);
   }, [sessionCode]);
 
+  // Reset game state in Firebase on mount so students see "waiting" (clears stale data)
+  useEffect(() => {
+    if (!sessionCode) return;
+    const db = getDatabase();
+    update(ref(db, `sessions/${sessionCode}/tempoCharades`), {
+      phase: 'setup',
+      currentQuestion: 0,
+      correctAnswer: null,
+      playStartTime: null
+    });
+  }, [sessionCode]);
+
   // Firebase: Subscribe to students
   useEffect(() => {
     if (!sessionCode) return;
@@ -96,10 +118,10 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.displayName || s.playerName,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.tempoCharadesScore || 0,
         answer: s.tempoCharadesAnswer,
         answerTime: s.tempoCharadesAnswerTime,

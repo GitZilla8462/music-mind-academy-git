@@ -1092,7 +1092,7 @@ const PresentationContent = ({
 
       return (
         <div className="absolute inset-0">
-          <TempoShowcase sessionData={sessionData} />
+          <TempoShowcase sessionData={sessionData} onNextSlide={goToNextStage} />
         </div>
       );
     }

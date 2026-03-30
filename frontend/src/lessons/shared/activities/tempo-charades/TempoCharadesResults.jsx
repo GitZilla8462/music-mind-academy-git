@@ -5,6 +5,16 @@ import React, { useState, useEffect } from 'react';
 import { Trophy } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
+// Format name as "FirstName L." (first name + last initial)
+const formatFirstNameLastInitial = (fullName) => {
+  if (!fullName) return 'Student';
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  const firstName = parts[0];
+  const lastInitial = parts[parts.length - 1].charAt(0).toUpperCase();
+  return `${firstName} ${lastInitial}.`;
+};
+
 const TempoCharadesResults = ({ sessionData }) => {
   const urlParams = new URLSearchParams(window.location.search);
   const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
@@ -19,10 +29,10 @@ const TempoCharadesResults = ({ sessionData }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.playerName || s.displayName)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
         id,
-        name: s.displayName || s.playerName,
+        name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
         score: s.tempoCharadesScore || 0,
         playerColor: s.playerColor || '#3B82F6',
         playerEmoji: s.playerEmoji || '\u{1F3B5}'

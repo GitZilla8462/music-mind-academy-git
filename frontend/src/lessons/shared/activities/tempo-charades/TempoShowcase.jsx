@@ -44,7 +44,7 @@ const TEACHER_SCRIPT = {
   outro: "Those are your five tempo markings \u2014 from Largo to Presto. Each tempo gives music a completely different feeling! In a moment, you'll get to test your ears in Tempo Detective!",
 };
 
-const TempoShowcase = ({ sessionData }) => {
+const TempoShowcase = ({ sessionData, onNextSlide }) => {
   const [currentIndex, setCurrentIndex] = useState(-1); // -1 = not started
   const [hasPlayed, setHasPlayed] = useState(false); // whether current tempo has been demonstrated
   const [demoFinished, setDemoFinished] = useState(false); // demo done, show Next
@@ -391,13 +391,22 @@ const TempoShowcase = ({ sessionData }) => {
         {allDone && (
           <div className="flex flex-col items-center gap-3">
             <span className="text-2xl text-green-400 font-bold">All tempo markings covered!</span>
-            <span className="text-lg text-white/60">Click Next in the sidebar to advance to the next slide</span>
-            <button
-              onClick={handleReset}
-              className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-lg font-medium text-white flex items-center gap-2 transition-all"
-            >
-              <RotateCcw size={20} /> Replay
-            </button>
+            <div className="flex items-center gap-4">
+              {onNextSlide && (
+                <button
+                  onClick={onNextSlide}
+                  className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-2xl text-2xl font-bold text-white flex items-center gap-3 hover:scale-105 transition-all"
+                >
+                  Next Slide <ChevronRight size={28} />
+                </button>
+              )}
+              <button
+                onClick={handleReset}
+                className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-lg font-medium text-white flex items-center gap-2 transition-all"
+              >
+                <RotateCcw size={20} /> Replay
+              </button>
+            </div>
           </div>
         )}
       </div>

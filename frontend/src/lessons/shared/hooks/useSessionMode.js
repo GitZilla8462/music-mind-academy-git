@@ -6,12 +6,14 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { useFirebaseAuth } from '../../../context/FirebaseAuthContext';
 import { useSession } from '../../../context/SessionContext';
+import { useStudentAuth } from '../../../context/StudentAuthContext';
 
 export const useSessionMode = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { user: firebaseUser, loading: firebaseAuthLoading } = useFirebaseAuth();
   const { startSession, joinSession, getCurrentStage, sessionCode: activeSessionCode, userRole: activeRole } = useSession();
+  const { currentStudentInfo } = useStudentAuth();
 
   const [sessionMode, setSessionMode] = useState(false);
   const [sessionInitialized, setSessionInitialized] = useState(false);
@@ -68,7 +70,8 @@ export const useSessionMode = () => {
             localStorage.setItem('classroom-user-id', studentId);
             console.log('🆔 Created new persistent student ID:', studentId);
           }
-          const studentName = localStorage.getItem('classroom-username') || 'Student';
+          // Use PIN-auth student name first (from class roster), then fall back to classroom-username
+          const studentName = currentStudentInfo?.displayName || localStorage.getItem('classroom-username') || 'Student';
           // Use classCode for class-based sessions, sessionCode for quick sessions
           const codeToJoin = urlClassCode || urlSessionCode;
           if (codeToJoin) {
