@@ -703,7 +703,7 @@ const playNote = async (noteId, deviceId = null) => {
   const shiftedNote = shiftNoteOctave(noteId, config.octaveShift);
 
   // Use Tone.now() + small offset to avoid "start time must be strictly greater" errors
-  const time = Tone.now() + 0.01;
+  const time = Tone.now() + 0.05;
 
   // MetalSynth uses frequency, not note names
   try {
@@ -733,7 +733,7 @@ export const playSimpleGrid = async (grid, bpm = 120, onBeatChange, deviceId = n
         const shiftedNote = shiftNoteOctave(NOTES[row].id, config.octaveShift);
 
         // MetalSynth uses frequency
-        const time = Tone.now() + 0.01;
+        const time = Tone.now() + 0.05;
         try {
           if (config.synthType === 'metal') {
             const freq = Tone.Frequency(shiftedNote).toFrequency();
