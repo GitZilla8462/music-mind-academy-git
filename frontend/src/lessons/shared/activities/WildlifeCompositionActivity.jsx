@@ -445,15 +445,29 @@ const WildlifeCompositionActivity = ({
           const { lessonId, activityId: parsedActivityId } = parseActivityId('wildlife-composition');
           const firebaseData = await loadFromFirebase(authInfo.uid, lessonId, parsedActivityId);
           if (firebaseData && firebaseData.data && firebaseData.data.placedLoops && firebaseData.data.placedLoops.length > 0) {
-            if (!firebaseData.data.videoId || firebaseData.data.videoId === selectedVideo.id) {
-              localStorage.removeItem('composition-wildlife-composition');
-              setPlacedLoops(firebaseData.data.placedLoops);
-              setVideoDuration(firebaseData.data.videoDuration || selectedVideo.duration);
-              console.log('✅ Loaded from Firebase:', firebaseData.data.placedLoops.length, 'loops');
-              hasLoadedRef.current = true;
-              setIsLoadingWork(false);
-              return;
+            // If video doesn't match, switch to the saved video so we don't lose work
+            // (shared Chromebooks can overwrite the global video selection key)
+            let videoForLoad = selectedVideo;
+            if (firebaseData.data.videoId && firebaseData.data.videoId !== selectedVideo.id) {
+              const savedVideoTemplate = WILDLIFE_VIDEOS.find(v => v.id === firebaseData.data.videoId);
+              if (savedVideoTemplate) {
+                console.log('🔄 Switching to saved video:', savedVideoTemplate.title, '(was:', selectedVideo.title + ')');
+                const restoredVideo = { ...savedVideoTemplate, duration: firebaseData.data.videoDuration || savedVideoTemplate.duration || 90 };
+                setSelectedVideo(restoredVideo);
+                setVideoDuration(restoredVideo.duration);
+                videoForLoad = restoredVideo;
+              } else {
+                console.log('⚠️ Firebase saved video not found in WILDLIFE_VIDEOS:', firebaseData.data.videoId);
+              }
             }
+
+            localStorage.removeItem('composition-wildlife-composition');
+            setPlacedLoops(firebaseData.data.placedLoops);
+            setVideoDuration(firebaseData.data.videoDuration || videoForLoad.duration);
+            console.log('✅ Loaded from Firebase:', firebaseData.data.placedLoops.length, 'loops');
+            hasLoadedRef.current = true;
+            setIsLoadingWork(false);
+            return;
           }
           // Firebase has no data for this student — start fresh (don't fall through to localStorage)
           console.log('ℹ️ No Firebase data for this student — starting fresh');

@@ -462,19 +462,31 @@ const CityCompositionActivity = ({
           const { lessonId, activityId: parsedActivityId } = parseActivityId('city-composition');
           const firebaseData = await loadFromFirebase(classAuth.uid, lessonId, parsedActivityId);
           if (firebaseData?.data?.placedLoops?.length > 0) {
-            // Make sure loops match the current video
-            if (!firebaseData.data.videoId || firebaseData.data.videoId === selectedVideo.id) {
-              // Clear MusicComposer's internal localStorage to prevent stale data race
-              localStorage.removeItem('composition-city-composition');
-              setPlacedLoops(firebaseData.data.placedLoops);
-              setVideoDuration(firebaseData.data.videoDuration || selectedVideo.duration);
-              console.log('☁️ Loaded from Firebase:', firebaseData.data.placedLoops.length, 'loops');
-              hasLoadedRef.current = true;
-              setIsLoadingWork(false);
-              return;
-            } else {
-              console.log('⚠️ Firebase saved video mismatch - saved:', firebaseData.data.videoId, 'current:', selectedVideo.id);
+            // If video doesn't match, switch to the saved video so we don't lose work
+            // (shared Chromebooks can overwrite the global video selection key)
+            let videoForLoad = selectedVideo;
+            if (firebaseData.data.videoId && firebaseData.data.videoId !== selectedVideo.id) {
+              const savedVideoTemplate = CITY_VIDEOS.find(v => v.id === firebaseData.data.videoId);
+              if (savedVideoTemplate) {
+                console.log('🔄 Switching to saved video:', savedVideoTemplate.title, '(was:', selectedVideo.title + ')');
+                const restoredVideo = { ...savedVideoTemplate, duration: firebaseData.data.videoDuration || savedVideoTemplate.duration || 90 };
+                setSelectedVideo(restoredVideo);
+                setVideoDuration(restoredVideo.duration);
+                saveSelectedVideo(restoredVideo.id, restoredVideo.title);
+                videoForLoad = restoredVideo;
+              } else {
+                console.log('⚠️ Firebase saved video not found in CITY_VIDEOS:', firebaseData.data.videoId);
+              }
             }
+
+            // Clear MusicComposer's internal localStorage to prevent stale data race
+            localStorage.removeItem('composition-city-composition');
+            setPlacedLoops(firebaseData.data.placedLoops);
+            setVideoDuration(firebaseData.data.videoDuration || videoForLoad.duration);
+            console.log('☁️ Loaded from Firebase:', firebaseData.data.placedLoops.length, 'loops');
+            hasLoadedRef.current = true;
+            setIsLoadingWork(false);
+            return;
           }
           // Firebase has no data for this student — start fresh (don't use stale localStorage)
           console.log('ℹ️ No saved work in Firebase for authenticated student — starting fresh');

@@ -458,17 +458,30 @@ const SportsCompositionActivity = ({
             console.log('📂 Found saved work in Firebase:', firebaseWork);
 
             if (firebaseWork.data.placedLoops && firebaseWork.data.placedLoops.length > 0) {
-              if (firebaseWork.data.videoId === selectedVideo.id) {
-                localStorage.removeItem('composition-sports-composition');
-                setPlacedLoops(firebaseWork.data.placedLoops);
-                setVideoDuration(firebaseWork.data.videoDuration || selectedVideo.duration);
-                console.log('✅ Loaded from Firebase:', firebaseWork.data.placedLoops.length, 'loops for', selectedVideo.title);
-                hasLoadedRef.current = true;
-                setIsLoadingWork(false);
-                return;
-              } else {
-                console.log('⚠️ Firebase saved video mismatch - saved:', firebaseWork.data.videoId, 'current:', selectedVideo.id);
+              // If video doesn't match, switch to the saved video so we don't lose work
+              // (shared Chromebooks can overwrite the global video selection key)
+              let videoForLoad = selectedVideo;
+              if (firebaseWork.data.videoId && firebaseWork.data.videoId !== selectedVideo.id) {
+                const savedVideoTemplate = SPORTS_VIDEOS.find(v => v.id === firebaseWork.data.videoId);
+                if (savedVideoTemplate) {
+                  console.log('🔄 Switching to saved video:', savedVideoTemplate.title, '(was:', selectedVideo.title + ')');
+                  const restoredVideo = { ...savedVideoTemplate, duration: firebaseWork.data.videoDuration || savedVideoTemplate.duration || 90 };
+                  setSelectedVideo(restoredVideo);
+                  setVideoDuration(restoredVideo.duration);
+                  saveSelectedVideo(restoredVideo.id, restoredVideo.title);
+                  videoForLoad = restoredVideo;
+                } else {
+                  console.log('⚠️ Firebase saved video not found in SPORTS_VIDEOS:', firebaseWork.data.videoId);
+                }
               }
+
+              localStorage.removeItem('composition-sports-composition');
+              setPlacedLoops(firebaseWork.data.placedLoops);
+              setVideoDuration(firebaseWork.data.videoDuration || videoForLoad.duration);
+              console.log('✅ Loaded from Firebase:', firebaseWork.data.placedLoops.length, 'loops for', videoForLoad.title);
+              hasLoadedRef.current = true;
+              setIsLoadingWork(false);
+              return;
             }
           }
 
