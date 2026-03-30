@@ -39,7 +39,7 @@ const PairAndShareOverlay = () => {
   if (dismissed) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
         <div className="bg-purple-600 px-6 py-4">
           <h3 className="text-xl font-bold text-white">Pair and Share</h3>

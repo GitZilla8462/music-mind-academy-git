@@ -1439,37 +1439,47 @@ const PresentationContent = ({
               </div>
             )}
           </div>
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
-              <div className="bg-purple-600 px-6 py-4">
-                <h3 className="text-xl font-bold text-white">Pair and Share</h3>
-              </div>
-              <div className="p-6">
-                <ol className="space-y-3 text-gray-700">
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">1</span>
-                    <span>Find a partner.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">2</span>
-                    <span>Have one student play first while the other watches.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">3</span>
-                    <span>Press <strong>"Play Game"</strong> on the top bar.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">4</span>
-                    <span>Give feedback to the game maker — do the stickers and markings match the music?</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">5</span>
-                    <span>Make corrections to the markings if needed and switch games!</span>
-                  </li>
-                </ol>
+          {!pairShareDismissed && (
+            <div className="absolute inset-0 z-[500] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+                <div className="bg-purple-600 px-6 py-4">
+                  <h3 className="text-xl font-bold text-white">Pair and Share</h3>
+                </div>
+                <div className="p-6">
+                  <ol className="space-y-3 text-gray-700">
+                    <li className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">1</span>
+                      <span>Find a partner.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">2</span>
+                      <span>Have one student play first while the other watches.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">3</span>
+                      <span>Press <strong>"Play Game"</strong> on the top bar.</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">4</span>
+                      <span>Give feedback to the game maker — do the stickers and markings match the music?</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">5</span>
+                      <span>Make corrections to the markings if needed and switch games!</span>
+                    </li>
+                  </ol>
+                </div>
+                <div className="px-6 pb-6">
+                  <button
+                    onClick={() => setPairShareDismissed(true)}
+                    className="w-full px-4 py-3 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors"
+                  >
+                    Got it!
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       );
     }
@@ -4086,6 +4096,7 @@ const TeacherLessonView = ({
   const [sessionData, setSessionData] = useState(null);
   const [timerVisible, setTimerVisible] = useState(true);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [pairShareDismissed, setPairShareDismissed] = useState(false);
   const [pendingStageId, setPendingStageId] = useState(null); // Track stage to navigate to after save
   const [isSavingAll, setIsSavingAll] = useState(false);
   const [saveConfirmedCount, setSaveConfirmedCount] = useState(0);
