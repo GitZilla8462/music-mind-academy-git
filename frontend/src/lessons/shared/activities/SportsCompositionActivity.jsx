@@ -393,8 +393,9 @@ const SportsCompositionActivity = ({
     selectedVideoRef.current = selectedVideo;
   }, [placedLoops, studentId, selectedVideo]);
 
+  // Safety net: Save on unmount (fires in ALL modes so Firebase stays in sync)
   useEffect(() => {
-    if (!isSessionMode || viewMode) return;
+    if (viewMode) return;
 
     return () => {
       // Skip auto-save if reset was just triggered (prevents re-saving cleared work)
@@ -430,7 +431,7 @@ const SportsCompositionActivity = ({
         console.log('💾 Unmount save complete');
       }
     };
-  }, [isSessionMode, viewMode]);
+  }, [viewMode]);
 
   // Load saved work on mount - FIREBASE-FIRST for authenticated students
   useEffect(() => {

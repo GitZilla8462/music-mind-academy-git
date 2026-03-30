@@ -443,9 +443,9 @@ const GameCompositionActivity = ({
     return () => unsubscribe();
   }, [effectiveSessionCode, isSessionMode, viewMode, studentId]);
 
-  // Safety net: Save on unmount
+  // Safety net: Save on unmount (fires in ALL modes so Firebase stays in sync)
   useEffect(() => {
-    if (!isSessionMode || viewMode) return;
+    if (viewMode) return;
 
     return () => {
       // Skip auto-save if reset was just triggered (prevents re-saving cleared work)
@@ -477,7 +477,7 @@ const GameCompositionActivity = ({
         console.log('💾 Unmount save complete for student:', studentIdRef.current);
       }
     };
-  }, [isSessionMode, viewMode]);
+  }, [viewMode]);
 
   // Load saved work on mount — Firebase-first for authenticated (PIN login) students
   useEffect(() => {

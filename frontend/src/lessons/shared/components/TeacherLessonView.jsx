@@ -5204,11 +5204,6 @@ const TeacherLessonView = ({
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
                     <p className="text-gray-700 text-lg">Saving student work...</p>
                   </div>
-                  {studentCount > 0 && (
-                    <p className="text-green-600 font-semibold text-lg">
-                      {saveConfirmedCount}/{studentCount} student{studentCount !== 1 ? 's' : ''} saved
-                    </p>
-                  )}
                 </div>
               ) : (
                 <>
