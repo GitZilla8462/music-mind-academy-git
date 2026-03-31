@@ -454,7 +454,9 @@ const PresentationContent = ({
   onVideoEnded, // callback when video finishes playing
   goToNextStage, // callback to advance to next stage
   presentationZoom = 1, // zoom factor for scaling slides
-  isPreviewMode = false
+  isPreviewMode = false,
+  pairShareDismissed = false,
+  setPairShareDismissed
 }) => {
   // Display code: prefer classCode (permanent) over sessionCode (temporary)
   const displayCode = classCode || sessionCode;
@@ -2866,6 +2868,8 @@ const MiniPreview = ({ viewMode, sessionCode, classCode, currentStage, currentSt
                 viewMode="teacher"
                 goToNextStage={() => {}}
                 isPreviewMode={isPreviewMode}
+                pairShareDismissed={pairShareDismissed}
+                setPairShareDismissed={setPairShareDismissed}
               />
             </div>
           </div>
@@ -5176,6 +5180,8 @@ const TeacherLessonView = ({
               goToNextStage={goToNextStage}
               presentationZoom={presentationZoom}
               isPreviewMode={isPreviewMode}
+              pairShareDismissed={pairShareDismissed}
+              setPairShareDismissed={setPairShareDismissed}
             />
           </div>
 

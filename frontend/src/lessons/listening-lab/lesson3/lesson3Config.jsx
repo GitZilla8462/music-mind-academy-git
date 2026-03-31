@@ -394,11 +394,10 @@ export const lessonStages = [
         {
           heading: 'Today We Will',
           bullets: [
-            'Meet the BRASS FAMILY (trumpet, French horn, trombone, tuba)',
-            'Learn what MUSICAL FORM is — how composers organize music',
-            'Discover TERNARY form (ABA) in a piece from 1875!',
-            'Play SECTION SPOTTER to identify the form by ear',
-            'PLAN your Listening Journey — describe what you hear!'
+            'Meet the BRASS FAMILY — trumpet, French horn, trombone, tuba',
+            'Learn what MUSICAL FORM is — how music is organized into sections',
+            'Discover TERNARY form (ABA) in Grieg\'s Mountain King',
+            'Build your LISTENING JOURNEY game!'
           ]
         }
       ],

@@ -47,16 +47,18 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   const [sections, setSections] = useState(() => {
     if (savedData?.sections?.length > 0) {
-      return savedData.sections.map(s => {
+      const defaultSections = pieceConfig?.defaultSections || [];
+      return savedData.sections.map((s, i) => {
         // If scene isn't in the allowed list, replace with default
+        const fallbackSection = defaultSections[i] || {};
         const sceneAllowed = !allowedEnvironments || !s.scene || allowedEnvironments.includes(s.scene);
         const fallback = defaultScene || (allowedEnvironments ? allowedEnvironments[0] : null);
-        const scene = sceneAllowed ? (s.scene || (presetMode ? null : 'forest')) : fallback;
+        const scene = sceneAllowed ? (s.scene || fallbackSection.scene || (presetMode ? null : 'forest')) : fallback;
         return {
           ...s,
-          sky: sceneAllowed ? (s.sky || 'clear-day') : (SCENE_SKY_MAP[scene] || 'clear-day'),
+          sky: sceneAllowed ? (s.sky || fallbackSection.sky || 'clear-day') : (SCENE_SKY_MAP[scene] || 'clear-day'),
           scene,
-          ground: sceneAllowed ? (s.ground || 'grass') : (SCENE_GROUND_MAP[scene] || 'grass'),
+          ground: sceneAllowed ? (s.ground ?? fallbackSection.ground ?? 'grass') : (SCENE_GROUND_MAP[scene] || 'grass'),
         };
       });
     }
