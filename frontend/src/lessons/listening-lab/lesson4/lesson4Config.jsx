@@ -250,11 +250,13 @@ export const lessonSections = [
         bonusDescription: 'Make sure every sticker matches what you actually hear!'
       },
       {
-        id: 'peer-review-intro',
-        type: 'summary',
-        label: 'Peer Review Preview',
-        description: 'Explain the game concept — accuracy matters because classmates will play your game.',
-        duration: 2
+        id: 'pair-and-share',
+        type: 'activity',
+        label: 'Pair and Share',
+        duration: 7,
+        hasTimer: true,
+        trackProgress: true,
+        description: 'Students pair up, play each other\'s games, and give feedback.'
       }
     ]
   },
@@ -429,31 +431,16 @@ export const lessonStages = [
     }
   },
   {
-    id: 'peer-review-intro',
-    label: 'Peer Review Preview',
-    description: 'Explain the game concept and what\'s coming next class.',
-    type: 'summary',
-    duration: 2,
+    id: 'pair-and-share',
+    label: 'Pair and Share',
+    description: 'Students pair up, play each other\'s games, and give feedback.',
+    type: 'activity',
+    duration: 7,
+    hasTimer: true,
     presentationView: {
-      type: 'summary',
-      title: 'Your Journey Is a Game!',
-      subtitle: 'What\'s Coming Next Class',
-      sections: [
-        {
-          heading: 'How the Game Works',
-          bullets: [
-            'A bird flies through your world collecting stickers',
-            'Each sticker = +10 points (but only if it\'s accurate!)'
-          ]
-        },
-        {
-          heading: 'Next Class',
-          bullets: [
-            'Add DECOYS — fake stickers that cost players -5 points',
-            'Swap Chromebooks and PLAY each other\'s games!'
-          ]
-        }
-      ]
+      type: 'pair-and-share-overlay',
+      pieceConfig: buildPieceConfig(CAPSTONE_PIECES[0]),
+      journeyProps: { gameMode: true, hideDecoys: true },
     }
   },
   {
@@ -509,7 +496,7 @@ export const getActivityForStage = (stage) => {
     'percussion-showcase': 'summary',
     'worktime-intro': 'summary',
     'build-time': 'listening-journey',
-    'peer-review-intro': 'summary',
+    'pair-and-share': 'listening-journey',
     'review-game-intro': 'summary',
     'review-game': 'name-that-element'
   };

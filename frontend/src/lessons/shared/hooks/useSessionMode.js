@@ -39,8 +39,14 @@ export const useSessionMode = () => {
 
   // Determine user permissions
   const isDevelopment = import.meta.env.DEV;
-  const isClassroomUser = localStorage.getItem('classroom-logged-in') === 'true';
-  const classroomRole = localStorage.getItem('classroom-user-role');
+  let isClassroomUser = false;
+  let classroomRole = null;
+  try {
+    isClassroomUser = localStorage.getItem('classroom-logged-in') === 'true';
+    classroomRole = localStorage.getItem('classroom-user-role');
+  } catch (e) {
+    // localStorage blocked on some managed Chromebooks
+  }
   const isTeacher = user?.role === 'teacher' || classroomRole === 'teacher' || isVerifiedTeacher;
   const canAccessNavTools = isTeacher || isDevelopment;
 
@@ -64,14 +70,21 @@ export const useSessionMode = () => {
           console.log('👀 Preview mode - skipping student join to avoid counting teacher as student');
         } else {
           // Get or create a persistent student ID (fixes bug where refreshes created new IDs)
-          let studentId = localStorage.getItem('classroom-user-id');
-          if (!studentId) {
+          let studentId;
+          let studentName;
+          try {
+            studentId = localStorage.getItem('classroom-user-id');
+            if (!studentId) {
+              studentId = 'student-' + Date.now();
+              localStorage.setItem('classroom-user-id', studentId);
+              console.log('🆔 Created new persistent student ID:', studentId);
+            }
+            // Use PIN-auth student name first (from class roster), then fall back to classroom-username
+            studentName = currentStudentInfo?.displayName || localStorage.getItem('classroom-username') || 'Student';
+          } catch (e) {
             studentId = 'student-' + Date.now();
-            localStorage.setItem('classroom-user-id', studentId);
-            console.log('🆔 Created new persistent student ID:', studentId);
+            studentName = currentStudentInfo?.displayName || 'Student';
           }
-          // Use PIN-auth student name first (from class roster), then fall back to classroom-username
-          const studentName = currentStudentInfo?.displayName || localStorage.getItem('classroom-username') || 'Student';
           // Use classCode for class-based sessions, sessionCode for quick sessions
           const codeToJoin = urlClassCode || urlSessionCode;
           if (codeToJoin) {

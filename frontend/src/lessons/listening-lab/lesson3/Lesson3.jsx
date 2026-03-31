@@ -5,7 +5,7 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
-import { Monitor, Video, Gamepad2, Trophy, Clock } from 'lucide-react';
+import { Monitor, Video, Gamepad2, Trophy, Clock, Info } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Config
@@ -36,48 +36,59 @@ import ExitSessionButton from '../../../components/ExitSessionButton';
 const PairAndShareOverlay = () => {
   const [dismissed, setDismissed] = useState(false);
 
-  if (dismissed) return null;
-
   return (
-    <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
-        <div className="bg-purple-600 px-6 py-4">
-          <h3 className="text-xl font-bold text-white">Pair and Share</h3>
+    <>
+      {!dismissed && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+            <div className="bg-purple-600 px-6 py-4">
+              <h3 className="text-xl font-bold text-white">Pair and Share</h3>
+            </div>
+            <div className="p-6">
+              <ol className="space-y-3 text-gray-700">
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">1</span>
+                  <span>Find a partner.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">2</span>
+                  <span>Have one student play first while the other watches.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">3</span>
+                  <span>Press <strong>"Play Game"</strong> on the top bar.</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">4</span>
+                  <span>Give feedback to the game maker — do the stickers and markings match the music?</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">5</span>
+                  <span>Make corrections to the markings if needed and switch games!</span>
+                </li>
+              </ol>
+            </div>
+            <div className="px-6 pb-6">
+              <button
+                onClick={() => setDismissed(true)}
+                className="w-full px-4 py-3 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="p-6">
-          <ol className="space-y-3 text-gray-700">
-            <li className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">1</span>
-              <span>Find a partner.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">2</span>
-              <span>Have one student play first while the other watches.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">3</span>
-              <span>Press <strong>"Play Game"</strong> on the top bar.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">4</span>
-              <span>Give feedback to the game maker — do the stickers and markings match the music?</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">5</span>
-              <span>Make corrections to the markings if needed and switch games!</span>
-            </li>
-          </ol>
-        </div>
-        <div className="px-6 pb-6">
-          <button
-            onClick={() => setDismissed(true)}
-            className="w-full px-4 py-3 rounded-lg bg-purple-600 text-white font-semibold hover:bg-purple-700 transition-colors"
-          >
-            Got it!
-          </button>
-        </div>
-      </div>
-    </div>
+      )}
+      {dismissed && (
+        <button
+          onClick={() => setDismissed(false)}
+          className="fixed bottom-4 right-4 z-[400] flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-colors"
+        >
+          <Info size={18} />
+          Directions
+        </button>
+      )}
+    </>
   );
 };
 
