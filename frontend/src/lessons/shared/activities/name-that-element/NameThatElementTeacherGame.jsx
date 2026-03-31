@@ -10,7 +10,7 @@
 // 4. Finished - Final leaderboard + option to play Round 2
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Play, Pause, Users, Trophy, Eye, ChevronRight, CheckCircle, XCircle, Volume2 } from 'lucide-react';
+import { Play, Pause, Users, Trophy, Eye, ChevronRight, CheckCircle, XCircle, Volume2, RotateCcw } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import { useSession } from '../../../../context/SessionContext';
@@ -275,6 +275,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
   const audioRef = useRef(null);
   const stopTimerRef = useRef(null);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+  const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
 
   // Students
   const [students, setStudents] = useState([]);
@@ -331,6 +332,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
       }
       audio.play().then(() => {
         setIsAudioPlaying(true);
+        setHasPlayedOnce(true);
         if (hasTimeRange) {
           const duration = (currentQuestion.audio.endTime - currentQuestion.audio.startTime) * 1000;
           stopTimerRef.current = setTimeout(() => {
@@ -408,6 +410,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
     setGamePhase('question');
     setScoreChanges({});
     setCorrectCount(0);
+    setHasPlayedOnce(false);
 
     const now = Date.now();
     setQuestionStartTime(now);
@@ -504,6 +507,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
       setScoreChanges({});
       setCorrectCount(0);
       setQuestionStartTime(now);
+      setHasPlayedOnce(false);
 
       const nextQ = questions[nextIdx];
       updateGame({
@@ -634,39 +638,57 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                 </div>
 
                 {/* Bottom control bar */}
-                <div className="flex items-center justify-between mt-4 flex-shrink-0 max-w-4xl mx-auto w-full">
-                  {currentQuestion.audio ? (
-                    <button
-                      onClick={isAudioPlaying ? stopAudio : playAudio}
-                      className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-xl font-bold transition-all hover:scale-105 ${
-                        isAudioPlaying
-                          ? 'bg-gradient-to-r from-orange-500 to-red-500 animate-pulse shadow-lg shadow-orange-500/30'
-                          : 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-lg shadow-emerald-500/30'
-                      }`}
-                    >
-                      {isAudioPlaying ? (
-                        <><Pause size={24} /> Playing...</>
-                      ) : (
-                        <><Volume2 size={24} /> Play Clip</>
-                      )}
-                    </button>
-                  ) : (
-                    <div className="px-6 py-3 bg-white/10 rounded-2xl text-xl text-white/50">
-                      No audio — knowledge question
-                    </div>
-                  )}
-
-                  <div className="bg-white/10 rounded-2xl px-5 py-2">
-                    <span className="text-3xl font-black text-green-400">{lockedCount}</span>
-                    <span className="text-lg text-white/70"> / {students.length} answered</span>
+                <div className="flex flex-col items-center mt-4 flex-shrink-0 gap-3">
+                  {/* Answer count */}
+                  <div className="bg-white/10 rounded-2xl px-5 py-1.5">
+                    <span className="text-2xl font-black text-green-400">{lockedCount}</span>
+                    <span className="text-base text-white/70"> / {students.length} answered</span>
                   </div>
 
-                  <button
-                    onClick={reveal}
-                    className="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
-                  >
-                    <Eye size={24} /> Reveal Answer
-                  </button>
+                  {/* Centered controls */}
+                  <div className="flex items-center justify-center gap-4">
+                    {currentQuestion.audio ? (
+                      <>
+                        {/* Play / Pause button */}
+                        <button
+                          onClick={isAudioPlaying ? stopAudio : playAudio}
+                          className={`w-16 h-16 rounded-full flex items-center justify-center text-white transition-all hover:scale-105 active:scale-95 shadow-lg ${
+                            isAudioPlaying
+                              ? 'bg-gradient-to-r from-orange-500 to-red-500 animate-pulse shadow-orange-500/30'
+                              : hasPlayedOnce
+                                ? 'bg-gradient-to-r from-slate-600 to-slate-500 shadow-slate-500/30'
+                                : 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-500/30'
+                          }`}
+                        >
+                          {isAudioPlaying ? (
+                            <Pause size={28} />
+                          ) : hasPlayedOnce ? (
+                            <RotateCcw size={24} />
+                          ) : (
+                            <Play size={28} className="ml-1" />
+                          )}
+                        </button>
+
+                        {/* Reveal button — appears after first play */}
+                        {hasPlayedOnce && (
+                          <button
+                            onClick={reveal}
+                            className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl text-xl font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-orange-500/30"
+                          >
+                            <Eye size={24} /> Reveal Answer
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      /* Knowledge question — no audio, just reveal */
+                      <button
+                        onClick={reveal}
+                        className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl text-xl font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-orange-500/30"
+                      >
+                        <Eye size={24} /> Reveal Answer
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

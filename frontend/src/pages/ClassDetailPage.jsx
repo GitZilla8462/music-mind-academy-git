@@ -149,7 +149,13 @@ const ClassDetailPage = () => {
     fetchData();
   }, [classId, user, navigate]);
 
-  // Refresh only submissions when opening the grading view (lightweight — skips roster/grades/conducted)
+  // Refresh submissions when switching to classwork or grades tab, or opening grading view
+  useEffect(() => {
+    if (classId && (activeTab === 'classwork' || activeTab === 'grades')) {
+      getAllClassSubmissions(classId).then(subs => setSubmissions(subs || []));
+    }
+  }, [activeTab, classId]);
+
   useEffect(() => {
     if (activityGradingData && classId) {
       getAllClassSubmissions(classId).then(subs => setSubmissions(subs || []));

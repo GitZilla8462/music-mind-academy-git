@@ -29,12 +29,16 @@ export const saveStudentWork = async (studentUid, classId, lessonId, activityId,
     // (update() does shallow merge which can leave stale array indices in Firebase RTDB)
     const newData = workData.data || workData;
     await set(ref(database, `studentWork/${studentUid}/${workKey}/data`), newData);
-    await update(workRef, {
+    const updateFields = {
       title: workData.title || existing.title || activityId,
       emoji: workData.emoji || existing.emoji || '🎵',
       type: workData.type || existing.type || 'composition',
       updatedAt: Date.now()
-    });
+    };
+    if (workData.viewRoute) updateFields.viewRoute = workData.viewRoute;
+    if (workData.subtitle) updateFields.subtitle = workData.subtitle;
+    if (workData.category) updateFields.category = workData.category;
+    await update(workRef, updateFields);
     const loopCount = newData?.placedLoops?.length ?? 'N/A';
     console.log(`Updated work: ${workKey} for student ${studentUid} — ${loopCount} loops saved to Firebase`);
     return { ...existing, data: newData, updatedAt: Date.now() };
@@ -52,6 +56,9 @@ export const saveStudentWork = async (studentUid, classId, lessonId, activityId,
     data: workData.data || workData,
     title: workData.title || activityId,
     emoji: workData.emoji || '🎵',
+    viewRoute: workData.viewRoute || null,
+    subtitle: workData.subtitle || null,
+    category: workData.category || null,
     createdAt: Date.now(),
     updatedAt: Date.now(),
     submittedAt: null

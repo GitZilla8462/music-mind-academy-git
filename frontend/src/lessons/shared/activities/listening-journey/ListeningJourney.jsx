@@ -108,42 +108,53 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [leftPanelTab, setLeftPanelTab] = useState(defaultTab || gameMode ? 'stickers' : 'movement'); // 'stickers' | 'movement' | 'text'
   const [showScoreboard, setShowScoreboard] = useState(false);
 
-  // Firebase fallback — if no local data, try loading from Firebase (cross-device support)
+  // Firebase sync — for authenticated students, always check Firebase (source of truth)
+  // This ensures data saved by teacher's "Save All" is loaded even if localStorage has stale data
   useEffect(() => {
-    if (hasLocalData.current || skipSavedData || savedDataOverride) return;
+    if (skipSavedData || savedDataOverride) return;
     const authInfo = getClassAuthInfo();
     if (!authInfo?.uid) return;
 
     (async () => {
-      console.log('🔍 No local listening journey data, trying Firebase...');
+      console.log('🔍 Checking Firebase for listening journey data...');
       const fbWork = await loadStudentWorkAsync(storageKey, authInfo);
       const fbData = fbWork?.data;
       if (fbData?.sections?.length > 0) {
-        console.log('☁️ Restored listening journey from Firebase:', fbData.sections.length, 'sections');
-        const defaultSections = pieceConfig?.defaultSections || [];
-        setSections(fbData.sections.map((s, i) => {
-          const fallbackSection = defaultSections[i] || {};
-          return {
-            ...s,
-            sky: s.sky || fallbackSection.sky || 'clear-day',
-            scene: s.scene || fallbackSection.scene || (presetMode ? null : 'forest'),
-            ground: s.ground ?? fallbackSection.ground ?? 'grass',
-          };
-        }));
-        if (fbData.items) {
-          // Recalculate placedAtOffset so stickers stay anchored to correct sections
-          const fbSections = fbData.sections;
-          setItems(fbData.items.map(item => {
-            if (item.timestamp != null && fbSections.length > 0) {
-              return { ...item, placedAtOffset: getScrollOffsetAtTime(item.timestamp, fbSections) };
-            }
-            return item;
+        // Compare timestamps — only replace if Firebase is newer than what we loaded from localStorage
+        const fbTimestamp = fbWork?.updatedAt || 0;
+        const localTimestamp = savedSnapshot?.lastSaved ? new Date(savedSnapshot.lastSaved).getTime() : 0;
+
+        if (!hasLocalData.current || fbTimestamp > localTimestamp) {
+          console.log('☁️ Using Firebase data for listening journey:', fbData.sections.length, 'sections',
+            hasLocalData.current ? '(newer than localStorage)' : '(no local data)');
+          const defaultSections = pieceConfig?.defaultSections || [];
+          setSections(fbData.sections.map((s, i) => {
+            const fallbackSection = defaultSections[i] || {};
+            return {
+              ...s,
+              sky: s.sky || fallbackSection.sky || 'clear-day',
+              scene: s.scene || fallbackSection.scene || (presetMode ? null : 'forest'),
+              ground: s.ground ?? fallbackSection.ground ?? 'grass',
+            };
           }));
-          userInteractedRef.current = true;
+          if (fbData.items) {
+            const fbSections = fbData.sections;
+            setItems(fbData.items.map(item => {
+              if (item.timestamp != null && fbSections.length > 0) {
+                return { ...item, placedAtOffset: getScrollOffsetAtTime(item.timestamp, fbSections) };
+              }
+              return item;
+            }));
+            userInteractedRef.current = true;
+          }
+          if (fbData.character) setCharacter(fbData.character);
+          if (fbData.guideData) setGuideData(fbData.guideData);
+          if (fbData.essayData) setEssayData(fbData.essayData);
+        } else {
+          console.log('📂 localStorage data is current, skipping Firebase override');
         }
-        if (fbData.character) setCharacter(fbData.character);
-        if (fbData.guideData) setGuideData(fbData.guideData);
-        if (fbData.essayData) setEssayData(fbData.essayData);
+      } else if (!hasLocalData.current) {
+        console.log('ℹ️ No listening journey data in Firebase or localStorage');
       }
     })();
   }, [storageKey, viewMode, presetMode]);

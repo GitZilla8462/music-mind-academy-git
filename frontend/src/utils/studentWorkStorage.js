@@ -161,7 +161,10 @@ export const saveStudentWork = (activityId, options, studentId = null, authInfo 
       type: options.type || 'composition',
       title: options.title,
       emoji: options.emoji || '📁',
-      data: options.data
+      data: options.data,
+      viewRoute: options.viewRoute || null,
+      subtitle: options.subtitle || null,
+      category: options.category || null
     }).then(async () => {
       console.log(`☁️ Synced to Firebase: ${activityId}`);
 
@@ -382,9 +385,9 @@ export const getAllStudentWorkAsync = async (authInfo, studentId = null) => {
           activityId,
           title: item.title,
           emoji: item.emoji,
-          viewRoute: null,
-          subtitle: null,
-          category: null,
+          viewRoute: item.viewRoute || null,
+          subtitle: item.subtitle || null,
+          category: item.category || null,
           lastSaved: new Date(item.updatedAt).toISOString(),
           data: item.data,
           status: item.status,

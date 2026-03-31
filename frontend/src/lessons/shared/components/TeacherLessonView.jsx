@@ -4589,12 +4589,14 @@ const TeacherLessonView = ({
 
     const expectedCount = studentCount;
     let finished = false;
+    let unsub = null;
+    let timer = null;
 
     const finishSave = () => {
       if (finished) return;
       finished = true;
-      unsubConfirmations();
-      clearTimeout(fallbackTimer);
+      if (unsub) unsub();
+      if (timer) clearTimeout(timer);
       setIsSavingAll(false);
       setShowSaveModal(false);
       if (pendingStageId) {
@@ -4603,34 +4605,25 @@ const TeacherLessonView = ({
       }
     };
 
-    // If no students detected, still wait a few seconds for saves to complete
-    if (expectedCount === 0) {
-      const fallbackTimer = setTimeout(finishSave, 3000);
-      const unsubConfirmations = onValue(confirmationsRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data && Object.keys(data).length > 0) {
-          clearTimeout(fallbackTimer);
-          finishSave();
-        }
-      });
-      return;
-    }
-
-    // Wait for all students to confirm or max timeout (10s)
-    const unsubConfirmations = onValue(confirmationsRef, (snapshot) => {
+    // Listen for confirmations
+    unsub = onValue(confirmationsRef, (snapshot) => {
       const data = snapshot.val();
       const confirmed = data ? Object.keys(data).length : 0;
       setSaveConfirmedCount(confirmed);
 
-      if (confirmed >= expectedCount) {
+      if (expectedCount > 0 && confirmed >= expectedCount) {
+        finishSave();
+      } else if (expectedCount === 0 && confirmed > 0) {
         finishSave();
       }
     });
 
-    const fallbackTimer = setTimeout(() => {
-      console.log(`⏱️ Save All timeout — proceeding (${saveConfirmedCount}/${expectedCount} confirmed)`);
+    // Timeout: 1.5s if no students detected, 10s otherwise
+    const timeout = expectedCount === 0 ? 1500 : 10000;
+    timer = setTimeout(() => {
+      console.log(`⏱️ Save All timeout — proceeding`);
       finishSave();
-    }, 10000);
+    }, timeout);
   };
 
   // Navigate to previous stage (within content stages only)
