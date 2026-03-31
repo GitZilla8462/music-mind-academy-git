@@ -121,7 +121,8 @@ const useJourneyPlayback = (audioSrc, totalDuration, sections, volume = 1.0) => 
 
   // Derive current section from playback position
   const currentSectionIndex = useMemo(() => {
-    const idx = sections.findIndex(s => currentTime >= s.startTime && currentTime < s.endTime);
+    if (!sections || sections.length === 0) return 0;
+    const idx = sections.findIndex(s => s && currentTime >= s.startTime && currentTime < s.endTime);
     return idx !== -1 ? idx : 0;
   }, [currentTime, sections]);
 

@@ -339,7 +339,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   // Active section — always derived from playhead position
   const activeSectionIndex = useMemo(() => {
     if (sections.length === 0) return 0;
-    const idx = sections.findIndex(s => currentTime >= s.startTime && currentTime < s.endTime);
+    const idx = sections.findIndex(s => s && currentTime >= s.startTime && currentTime < s.endTime);
     return idx !== -1 ? idx : 0;
   }, [sections, currentTime]);
 

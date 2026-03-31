@@ -23,8 +23,10 @@ const hasDisplayableWork = (work) => {
   if (work.data.placedLoops?.length > 0) return true;
   // Listening maps (canvas image)
   if (work.data.imageData) return true;
-  // Listening journeys (sections)
-  if (work.data.sections) return true;
+  // Capstone planning (has pieceId)
+  if (work.data.pieceId && work.data.sections) return true;
+  // Listening journeys (sections array without pieceId)
+  if (!work.data.pieceId && Array.isArray(work.data.sections) && work.data.sections.length > 0) return true;
   return false;
 };
 
@@ -132,7 +134,8 @@ const ShowcaseMode = ({
   // Determine work type for rendering
   const isListeningMap = currentWork?.data?.imageData && !currentWork?.data?.placedLoops;
   const isComposition = currentWork?.data?.placedLoops?.length > 0;
-  const isListeningJourney = currentWork?.data?.sections?.length > 0;
+  const isCapstone = !!(currentWork?.data?.pieceId && currentWork?.data?.sections);
+  const isListeningJourney = !isCapstone && Array.isArray(currentWork?.data?.sections) && currentWork.data.sections.length > 0;
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -245,6 +248,30 @@ const ShowcaseMode = ({
               videoOnly={videoOnly}
             />
           </Suspense>
+        ) : isCapstone && currentWork ? (
+          <div className="flex-1 overflow-auto p-4">
+            <div className="max-w-2xl mx-auto space-y-3">
+              <h3 className="text-white text-lg font-bold text-center mb-4">Plan Your Journey</h3>
+              {Object.entries(currentWork.data.sections).filter(([, s]) => s != null).map(([sid, s]) => (
+                <div key={sid} className="bg-white/10 rounded-lg p-3">
+                  <h4 className="text-white font-bold text-sm mb-1">Section {sid}</h4>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                    <span className="text-gray-400">Dynamics:</span>
+                    <span className="text-white">{Array.isArray(s.dynamics) && s.dynamics.length > 0 ? s.dynamics.join(', ') : '—'}</span>
+                    <span className="text-gray-400">Tempo:</span>
+                    <span className="text-white">{Array.isArray(s.tempo) && s.tempo.length > 0 ? s.tempo.join(', ') : '—'}</span>
+                    <span className="text-gray-400">Families:</span>
+                    <span className="text-white">{Array.isArray(s.families) && s.families.length > 0 ? s.families.join(', ') : '—'}</span>
+                    <span className="text-gray-400">Instruments:</span>
+                    <span className="text-white">{Array.isArray(s.instruments) && s.instruments.length > 0 ? s.instruments.join(', ') : '—'}</span>
+                  </div>
+                </div>
+              ))}
+              {Object.keys(currentWork.data.sections).length === 0 && (
+                <p className="text-gray-400 text-center">No sections planned yet.</p>
+              )}
+            </div>
+          </div>
         ) : isListeningJourney && currentWork ? (
           <Suspense fallback={
             <div className="flex-1 flex items-center justify-center">

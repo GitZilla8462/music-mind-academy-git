@@ -119,7 +119,7 @@ export async function seedChloePortfolio() {
   }
 
   const { classId, seatNumber } = usernameSnap.val();
-  const studentUid = `pin-${classId}-${seatNumber}`;
+  const studentUid = `seat-${classId}-${seatNumber}`;
   console.log(`Found Chloe: classId=${classId}, seat=${seatNumber}, uid=${studentUid}`);
 
   const now = Date.now();

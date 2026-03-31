@@ -26,7 +26,7 @@ const StudentPortfolio = () => {
   // Determine student UID
   const getStudentUid = () => {
     if (isPinAuth && currentStudentInfo) {
-      return `pin-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`;
+      return `seat-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`;
     }
     return currentStudentInfo?.uid || null;
   };

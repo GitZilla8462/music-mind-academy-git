@@ -319,7 +319,7 @@ const ActivityGradingView = ({
   // Helper: render capstone planning preview
   const renderCapstonePreview = (data) => {
     const sections = data.sections || {};
-    const sectionIds = Object.keys(sections);
+    const sectionIds = Object.keys(sections).filter(k => sections[k] != null);
     const formatList = (arr) => Array.isArray(arr) && arr.length > 0 ? arr.join(', ') : '—';
     return (
       <div className="flex-1 overflow-auto p-4">
@@ -362,7 +362,7 @@ const ActivityGradingView = ({
         </div>
       );
     }
-    if (workData.data?.pieceId && workData.data?.sections && !Array.isArray(workData.data.sections)) {
+    if (workData.data?.pieceId && workData.data?.sections) {
       return renderCapstonePreview(workData.data);
     }
     if (workData.data?.sections) {
@@ -694,7 +694,7 @@ const ActivityGradingView = ({
                 )}
               </div>
             </div>
-          ) : currentWork?.data?.pieceId && currentWork?.data?.sections && !Array.isArray(currentWork.data.sections) ? (
+          ) : currentWork?.data?.pieceId && currentWork?.data?.sections ? (
             <div className="flex-1 overflow-auto p-4">
               {renderCapstonePreview(currentWork.data)}
             </div>

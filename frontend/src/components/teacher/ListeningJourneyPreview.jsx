@@ -61,7 +61,11 @@ const ListeningJourneyPreview = ({ workData, submittedAt }) => {
 
   const activeSection = currentSection || sections[0];
 
-  if (!activeSection) return null;
+  if (!activeSection) return (
+    <div className="flex-1 flex items-center justify-center bg-gray-900 text-gray-400 text-lg">
+      No listening journey data submitted yet.
+    </div>
+  );
 
   return (
     <div className="flex-1 flex flex-col bg-gray-900 overflow-hidden">

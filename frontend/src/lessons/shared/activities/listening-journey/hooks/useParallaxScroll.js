@@ -17,6 +17,7 @@ export const getScrollOffsetAtTime = (time, sections) => {
   if (!sections || sections.length === 0) return 0;
   let totalOffset = 0;
   for (const section of sections) {
+    if (!section || section.startTime == null) continue;
     if (time <= section.startTime) break;
     const elapsed = Math.min(time, section.endTime) - section.startTime;
     const speed = getSectionScrollSpeed(section);

@@ -452,9 +452,9 @@ const JourneyTimeline = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedPresetIndex, setSelectedPresetIndex] = useState(null);
 
-  const coveredEnd = sections.length > 0 ? sections[sections.length - 1].endTime : 0;
+  const coveredEnd = sections.length > 0 && sections[sections.length - 1] ? sections[sections.length - 1].endTime : 0;
   const coveredPct = (coveredEnd / totalDuration) * 100;
-  const activeIndex = sections.findIndex(s => currentTime >= s.startTime && currentTime < s.endTime);
+  const activeIndex = sections.findIndex(s => s && currentTime >= s.startTime && currentTime < s.endTime);
   const hasContent = presetMode ? true : sections.length > 0;
 
   // ── Time calc from clip strip (used for seeking + item drags) ─────

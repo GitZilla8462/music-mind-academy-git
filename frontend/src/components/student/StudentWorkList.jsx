@@ -23,7 +23,7 @@ const StudentWorkList = () => {
 
       try {
         const authInfo = isPinAuth
-          ? { uid: `pin-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}` }
+          ? { uid: `seat-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}` }
           : null;
 
         const workItems = await getAllStudentWorkAsync(authInfo);

@@ -37,7 +37,7 @@ const SubmitWorkButton = ({
   const getAuthInfo = () => {
     if (isPinAuth) {
       return {
-        uid: `pin-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`,
+        uid: `seat-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`,
         classId: currentStudentInfo.classId
       };
     }
@@ -125,7 +125,7 @@ export const SubmitWorkButtonCompact = ({
   const getAuthInfo = () => {
     if (isPinAuth) {
       return {
-        uid: `pin-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`,
+        uid: `seat-${currentStudentInfo.classId}-${currentStudentInfo.seatNumber}`,
         classId: currentStudentInfo.classId
       };
     }
