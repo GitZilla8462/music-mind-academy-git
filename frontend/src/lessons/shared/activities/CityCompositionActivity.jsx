@@ -362,6 +362,7 @@ const CityCompositionActivity = ({
       const currentDuration = videoDurationRef.current;
       if (isSessionMode && !viewMode && currentLoops.length > 0 && currentStudentId && currentVideo) {
         console.log('💾 Auto-saving city composition on unmount...', currentLoops.length, 'loops');
+        const authInfo = getClassAuthInfo();
         saveStudentWork('city-composition', {
           title: currentVideo.title || 'City Soundscape',
           emoji: currentVideo.emoji || '🏙️',
@@ -377,7 +378,7 @@ const CityCompositionActivity = ({
             videoEmoji: currentVideo.emoji,
             timestamp: Date.now()
           }
-        }, currentStudentId);
+        }, currentStudentId, authInfo);
       }
     };
   }, [isSessionMode, viewMode]);
@@ -409,6 +410,7 @@ const CityCompositionActivity = ({
         const currentDuration = videoDurationRef.current;
 
         if (currentLoops.length > 0 && currentStudentId && currentVideo) {
+          const authInfo = getClassAuthInfo();
           saveStudentWork('city-composition', {
             title: currentVideo.title || 'City Soundscape',
             emoji: currentVideo.emoji || '🏙️',
@@ -424,8 +426,8 @@ const CityCompositionActivity = ({
               videoEmoji: currentVideo.emoji,
               timestamp: Date.now()
             }
-          }, currentStudentId);
-          console.log('💾 Teacher-triggered save complete for city composition');
+          }, currentStudentId, authInfo);
+          console.log('💾 Teacher-triggered save complete for city composition', { hasAuth: !!authInfo });
 
           setTeacherSaveToast(true);
           setTimeout(() => setTeacherSaveToast(false), 3000);
@@ -584,6 +586,7 @@ const CityCompositionActivity = ({
     isSavingRef.current = true;
 
     // Use saveStudentWork for Firebase sync + Join page compatibility
+    const authInfo = getClassAuthInfo();
     saveStudentWork('city-composition', {
       title: selectedVideo.title || 'City Soundscape',
       emoji: selectedVideo.emoji || '🏙️',
@@ -599,7 +602,7 @@ const CityCompositionActivity = ({
         videoEmoji: selectedVideo.emoji,
         timestamp: Date.now()
       }
-    }, studentId);
+    }, studentId, authInfo);
 
     // Also keep the legacy localStorage save for backward compatibility
     const saveKey = `city-composition-${studentId}`;
@@ -816,8 +819,17 @@ const CityCompositionActivity = ({
 
       {/* Teacher Save Command Toast */}
       {teacherSaveToast && (
-        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-lg shadow-xl font-bold text-white bg-blue-600 animate-pulse">
-          💾 Your teacher saved your composition!
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden text-center">
+            <div className="bg-green-600 px-6 py-4">
+              <h3 className="text-xl font-bold text-white">Saving Your Work</h3>
+            </div>
+            <div className="p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-gray-700 text-lg font-semibold">Your composition is being saved!</p>
+              <p className="text-gray-500 text-sm mt-2">You can view it anytime from your dashboard.</p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -832,7 +844,7 @@ const CityCompositionActivity = ({
         <div className="px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-sm font-bold">City Soundscape</h2>
-            {!viewMode && !showReflection && (
+            {!showReflection && (
               <div className="flex items-center gap-1">
                 {CITY_VIDEOS.map(video => (
                   <button
@@ -1052,7 +1064,7 @@ const CityCompositionActivity = ({
       )}
       
       {/* Video selection as overlay - ✅ OPTIMIZED FOR 1366x768 */}
-      {showVideoSelection && !viewMode && (
+      {showVideoSelection && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-6 overflow-y-auto restore-cursor">
           <div className="max-w-6xl w-full my-4">
             <div className="text-center mb-5">

@@ -145,7 +145,8 @@ const SportsCompositionActivity = ({
   // NEW: Track detected durations for all videos
   const [videoDurations, setVideoDurations] = useState({});
   const [detectingDurations, setDetectingDurations] = useState(false);
-  
+  const [teacherSaveToast, setTeacherSaveToast] = useState(false);
+
   // Reflection flow states
   const [showReflection, setShowReflection] = useState(false);
   const [reflectionCompleted, setReflectionCompleted] = useState(false);
@@ -357,6 +358,7 @@ const SportsCompositionActivity = ({
         const currentVideo = selectedVideoRef.current;
 
         if (currentLoops.length > 0 && currentStudentId && currentVideo) {
+          const authInfo = getClassAuthInfo();
           saveStudentWork('sports-composition', {
             title: currentVideo.title,
             emoji: currentVideo.emoji,
@@ -372,8 +374,11 @@ const SportsCompositionActivity = ({
               videoEmoji: currentVideo.emoji,
               timestamp: Date.now()
             }
-          }, currentStudentId);
+          }, currentStudentId, authInfo);
           console.log('💾 Teacher-triggered save complete for sports composition');
+
+          setTeacherSaveToast(true);
+          setTimeout(() => setTeacherSaveToast(false), 3000);
         }
       }
     });
@@ -420,14 +425,15 @@ const SportsCompositionActivity = ({
         };
 
         // Save using the studentWorkStorage system
-        // Signature: saveStudentWork(activityId, { title, emoji, viewRoute, subtitle, data })
+        // Signature: saveStudentWork(activityId, { title, emoji, viewRoute, subtitle, data }, studentId, authInfo)
+        const authInfo = getClassAuthInfo();
         saveStudentWork('sports-composition', {
           title: videoToSave.title,
           emoji: videoToSave.emoji || '🏀',
           viewRoute: '/lessons/film-music-project/lesson4?view=saved',
           subtitle: `${loopsToSave.length} loops • ${Math.floor((videoToSave.duration || 90) / 60)}:${String(Math.floor((videoToSave.duration || 90) % 60)).padStart(2, '0')}`,
           data: compositionToSave
-        });
+        }, studentToSave, authInfo);
         console.log('💾 Unmount save complete');
       }
     };
@@ -621,8 +627,9 @@ const SportsCompositionActivity = ({
     }
     
     isSavingRef.current = true;
-    
+
     // ✅ NEW: Use saveStudentWork for automatic Join page integration
+    const authInfo = getClassAuthInfo();
     saveStudentWork('sports-composition', {
       title: selectedVideo.title,
       emoji: selectedVideo.emoji,
@@ -638,7 +645,7 @@ const SportsCompositionActivity = ({
         videoEmoji: selectedVideo.emoji,
         timestamp: Date.now()
       }
-    });
+    }, studentId, authInfo);
     
     console.log('💾 Saved using new studentWorkStorage system');
     
@@ -820,6 +827,21 @@ const SportsCompositionActivity = ({
   // MAIN ACTIVITY
   return (
     <div className={`h-full flex flex-col bg-gray-900 relative ${isChromebook ? 'chromebook-hide-cursor' : ''}`}>
+      {/* Teacher Save Modal */}
+      {teacherSaveToast && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden text-center">
+            <div className="bg-green-600 px-6 py-4">
+              <h3 className="text-xl font-bold text-white">Saving Your Work</h3>
+            </div>
+            <div className="p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-gray-700 text-lg font-semibold">Your composition is being saved!</p>
+              <p className="text-gray-500 text-sm mt-2">You can view it anytime from your dashboard.</p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Save Message Toast */}
       {saveMessage && (
         <div 

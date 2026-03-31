@@ -1660,10 +1660,19 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         />
       )}
 
-      {/* Teacher save toast */}
+      {/* Teacher save modal */}
       {teacherSaveToast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg text-sm font-semibold animate-bounce">
-          Teacher saved your work!
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden text-center">
+            <div className="bg-green-600 px-6 py-4">
+              <h3 className="text-xl font-bold text-white">Saving Your Work</h3>
+            </div>
+            <div className="p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-gray-700 text-lg font-semibold">Your work is being saved!</p>
+              <p className="text-gray-500 text-sm mt-2">You can view it anytime from your dashboard.</p>
+            </div>
+          </div>
         </div>
       )}
 

@@ -25,7 +25,7 @@ function JoinWithCode() {
   const [isJoining, setIsJoining] = useState(false);
 
   // Student auth
-  const { isPinAuth, pinSession, currentStudentInfo, signInWithUsername } = useStudentAuth();
+  const { isPinAuth, pinSession, currentStudentInfo, signInWithUsername, signOut } = useStudentAuth();
 
   // Active class session state (for logged-in students)
   const [activeSession, setActiveSession] = useState(null); // { classData, lessonRoute }
@@ -249,6 +249,13 @@ function JoinWithCode() {
                 Go to Dashboard
               </button>
 
+              <button
+                onClick={() => signOut()}
+                className="w-full mt-2 text-gray-400 hover:text-gray-600 text-xs py-1 transition-colors"
+              >
+                Not you? Sign out
+              </button>
+
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm text-center mt-3">
                   {error}
@@ -272,6 +279,13 @@ function JoinWithCode() {
               >
                 <LogIn size={18} />
                 Go to Dashboard
+              </button>
+
+              <button
+                onClick={() => signOut()}
+                className="w-full mt-2 text-gray-400 hover:text-gray-600 text-xs py-1 transition-colors"
+              >
+                Not you? Sign out
               </button>
             </>
           ) : (

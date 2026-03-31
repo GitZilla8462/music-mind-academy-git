@@ -349,6 +349,7 @@ const WildlifeCompositionActivity = ({
       const currentDuration = videoDurationRef.current;
       if (isSessionMode && !viewMode && currentLoops.length > 0 && currentStudentId && currentVideo) {
         console.log('💾 Auto-saving wildlife composition on unmount...', currentLoops.length, 'loops');
+        const authInfo = getClassAuthInfo();
         saveStudentWork('wildlife-composition', {
           title: currentVideo.title || 'Epic Wildlife',
           emoji: currentVideo.emoji || '🌍',
@@ -364,7 +365,7 @@ const WildlifeCompositionActivity = ({
             videoEmoji: currentVideo.emoji,
             timestamp: Date.now()
           }
-        }, currentStudentId);
+        }, currentStudentId, authInfo);
       }
     };
   }, [isSessionMode, viewMode]);
@@ -396,6 +397,7 @@ const WildlifeCompositionActivity = ({
         const currentDuration = videoDurationRef.current;
 
         if (currentLoops.length > 0 && currentStudentId && currentVideo) {
+          const authInfo = getClassAuthInfo();
           saveStudentWork('wildlife-composition', {
             title: currentVideo.title || 'Epic Wildlife',
             emoji: currentVideo.emoji || '🌍',
@@ -411,7 +413,7 @@ const WildlifeCompositionActivity = ({
               videoEmoji: currentVideo.emoji,
               timestamp: Date.now()
             }
-          }, currentStudentId);
+          }, currentStudentId, authInfo);
           console.log('💾 Teacher-triggered save complete for wildlife composition');
 
           setTeacherSaveToast(true);
@@ -582,6 +584,7 @@ const WildlifeCompositionActivity = ({
     console.log('💾 Manual save complete:', saveKey, saveData);
     
     // Also save to the generic student work system so it appears on Join page
+    const authInfo = getClassAuthInfo();
     saveStudentWork('wildlife-composition', {
       title: selectedVideo.title || 'Epic Wildlife',
       emoji: selectedVideo.emoji || '🌍',
@@ -589,7 +592,7 @@ const WildlifeCompositionActivity = ({
       subtitle: `${placedLoops.length} loops`,
       category: 'Film Music Project',
       data: saveData.composition
-    }, studentId);
+    }, studentId, authInfo);
     
     if (!silent) {
       console.log('🔔 About to show toast message, silent =', silent);
@@ -789,8 +792,17 @@ const WildlifeCompositionActivity = ({
 
       {/* Teacher Save Command Toast */}
       {teacherSaveToast && (
-        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-[9999] px-6 py-3 rounded-lg shadow-xl font-bold text-white bg-blue-600 animate-pulse">
-          💾 Your teacher saved your composition!
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden text-center">
+            <div className="bg-green-600 px-6 py-4">
+              <h3 className="text-xl font-bold text-white">Saving Your Work</h3>
+            </div>
+            <div className="p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-gray-700 text-lg font-semibold">Your composition is being saved!</p>
+              <p className="text-gray-500 text-sm mt-2">You can view it anytime from your dashboard.</p>
+            </div>
+          </div>
         </div>
       )}
       

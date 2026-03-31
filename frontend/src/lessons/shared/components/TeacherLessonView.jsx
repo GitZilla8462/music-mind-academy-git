@@ -4561,8 +4561,8 @@ const TeacherLessonView = ({
   // Confirm leaving saveable activity - save all and advance
   // Listens for actual student confirmations instead of a blind timeout
   const confirmLeaveComposition = async () => {
-    // No session or no students — just advance immediately
-    if (!effectiveCode || studentCount === 0) {
+    // No session code — just advance immediately
+    if (!effectiveCode) {
       setShowSaveModal(false);
       if (pendingStageId) {
         setCurrentStage(pendingStageId);
@@ -4584,12 +4584,12 @@ const TeacherLessonView = ({
       console.error('Failed to clear old confirmations:', err);
     }
 
+    // Always send save command — students may be connected even if studentCount is 0
     await sendSaveCommand();
 
     const expectedCount = studentCount;
     let finished = false;
 
-    // Proceed once all students confirm or max timeout (10s)
     const finishSave = () => {
       if (finished) return;
       finished = true;
@@ -4603,12 +4603,26 @@ const TeacherLessonView = ({
       }
     };
 
+    // If no students detected, still wait a few seconds for saves to complete
+    if (expectedCount === 0) {
+      const fallbackTimer = setTimeout(finishSave, 3000);
+      const unsubConfirmations = onValue(confirmationsRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data && Object.keys(data).length > 0) {
+          clearTimeout(fallbackTimer);
+          finishSave();
+        }
+      });
+      return;
+    }
+
+    // Wait for all students to confirm or max timeout (10s)
     const unsubConfirmations = onValue(confirmationsRef, (snapshot) => {
       const data = snapshot.val();
       const confirmed = data ? Object.keys(data).length : 0;
       setSaveConfirmedCount(confirmed);
 
-      if (confirmed >= expectedCount && expectedCount > 0) {
+      if (confirmed >= expectedCount) {
         finishSave();
       }
     });

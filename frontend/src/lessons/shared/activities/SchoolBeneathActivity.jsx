@@ -160,7 +160,8 @@ const SchoolBeneathActivity = ({
     // Set saving flag
     isSavingRef.current = true;
 
-    // Use saveStudentWork for Join page compatibility
+    // Use saveStudentWork for Join page compatibility — explicitly pass auth for Firebase sync
+    const authInfo = getClassAuthInfo();
     saveStudentWork(storageKey, {
       title: title,
       emoji: storageKey === 'adventure-composition' ? '🏔️' : '🏫',
@@ -177,9 +178,9 @@ const SchoolBeneathActivity = ({
         videoPath: videoPath,
         timestamp: Date.now()
       }
-    }, studentId);
+    }, studentId, authInfo);
 
-    console.log('💾 Manual save complete:', storageKey);
+    console.log('💾 Manual save complete:', storageKey, { hasAuth: !!authInfo });
 
     if (!silent) {
       setSaveMessage({ type: 'success', text: '✅ Composition saved! View it anytime from the Join page.' });
@@ -236,7 +237,9 @@ const SchoolBeneathActivity = ({
         const currentDuration = videoDurationRef.current;
         const currentStudentId = studentIdRef.current;
 
-        console.log('💾 Teacher save command received!', { loops: currentLoops.length, studentId: currentStudentId });
+        // Explicitly get auth info so Firebase save is guaranteed (don't rely on auto-detect which may fail if session expired)
+        const authInfo = getClassAuthInfo();
+        console.log('💾 Teacher save command received!', { loops: currentLoops.length, studentId: currentStudentId, hasAuth: !!authInfo });
 
         // Save directly using refs — bypasses isSavingRef guard so teacher saves ALWAYS go through
         if (currentLoops.length > 0 && currentStudentId) {
@@ -256,7 +259,7 @@ const SchoolBeneathActivity = ({
               videoPath: videoPath,
               timestamp: Date.now()
             }
-          }, currentStudentId);
+          }, currentStudentId, authInfo);
 
           console.log('💾 Teacher-triggered save complete:', storageKey, currentLoops.length, 'loops');
 
@@ -285,7 +288,7 @@ const SchoolBeneathActivity = ({
       const currentStudentId = studentIdRef.current;
       if (isSessionMode && !viewMode && currentLoops.length > 0 && currentStudentId) {
         console.log('💾 Auto-saving composition on unmount...', currentLoops.length, 'loops');
-        // Save in proper saveStudentWork format so it appears on dashboard
+        const authInfo = getClassAuthInfo();
         saveStudentWork(storageKey, {
           title: title,
           emoji: storageKey === 'adventure-composition' ? '🏔️' : '🏫',
@@ -301,7 +304,7 @@ const SchoolBeneathActivity = ({
             videoPath: videoPath,
             timestamp: Date.now()
           }
-        }, currentStudentId);
+        }, currentStudentId, authInfo);
       }
     };
   }, [isSessionMode, viewMode, storageKey, title, videoPath]);
@@ -602,14 +605,16 @@ const SchoolBeneathActivity = ({
 
       {/* Teacher Save Toast - shown when teacher saves all */}
       {teacherSaveToast && (
-        <div
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] bg-green-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3"
-          style={{ animation: 'slideDown 0.3s ease-out' }}
-        >
-          <span className="text-2xl">✅</span>
-          <div>
-            <div className="font-bold">Work Saved!</div>
-            <div className="text-sm opacity-90">Find it on your Join page</div>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden text-center">
+            <div className="bg-green-600 px-6 py-4">
+              <h3 className="text-xl font-bold text-white">Saving Your Work</h3>
+            </div>
+            <div className="p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-gray-700 text-lg font-semibold">Your composition is being saved!</p>
+              <p className="text-gray-500 text-sm mt-2">You can view it anytime from your dashboard.</p>
+            </div>
           </div>
         </div>
       )}
