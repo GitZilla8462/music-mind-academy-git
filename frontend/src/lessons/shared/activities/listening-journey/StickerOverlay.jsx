@@ -12,7 +12,7 @@ export let lastDragEndTime = 0;
 const renderStickerContent = (item, scale = 1) => {
   const renderType = item.render || 'emoji';
   const s = scale;
-  const c = item.color || '#facc15';
+  const c = item.color || '#000000';
 
   switch (renderType) {
     case 'svg': {
