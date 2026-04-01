@@ -1814,7 +1814,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               score={gameScore}
               collectedIds={collectedIds}
               isHurt={birdHurt}
-              onPause={pause}
+              onPause={pauseGame}
             >
               <DrawingOverlay
                 ref={drawingCanvasRef}
