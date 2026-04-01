@@ -1339,17 +1339,6 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         </div>
       )}
 
-      {/* Game mode: pause button during gameplay */}
-      {gameMode && (isPresent || isFullscreen) && gamePhase === 'playing' && (
-        <button
-          onClick={pauseGame}
-          className="absolute top-3 left-3 z-50 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white/60 hover:text-white transition-colors"
-          title="Pause (Esc)"
-        >
-          <Pause size={20} />
-        </button>
-      )}
-
       {/* Game mode: pause overlay */}
       {gameMode && (isPresent || isFullscreen) && gamePhase === 'paused' && (
         <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm">
