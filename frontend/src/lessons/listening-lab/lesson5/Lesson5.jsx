@@ -10,6 +10,7 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Config
 import { lesson5Config, lessonStages, getActivityForStage } from './lesson5Config';
+import { exitTicketQuestions } from './summarySlideContent';
 import DirectionsModal, { DirectionsReopenButton } from '../../shared/components/DirectionsModal';
 import useDirectionsModal from '../../shared/hooks/useDirectionsModal';
 import { getPieceById, buildPieceConfig } from '../lesson4/lesson4Config';
@@ -254,7 +255,8 @@ const Lesson5 = () => {
               type: activityType,
               id: currentStage,
               ...(activityType === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig(), ...JOURNEY_L5_EXTRAS } : {}),
-              ...(activityType === 'peer-play' ? { pieceConfig: getSelectedPieceConfig(), journeyExtras: JOURNEY_L5_EXTRAS } : {})
+              ...(activityType === 'peer-play' ? { pieceConfig: getSelectedPieceConfig(), journeyExtras: JOURNEY_L5_EXTRAS } : {}),
+              ...(activityType === 'exit-ticket' ? { questions: exitTicketQuestions, storageKey: 'listening-lab-exit-ticket' } : {})
             }}
             onComplete={handleSessionActivityComplete}
             sessionCode={sessionCode}

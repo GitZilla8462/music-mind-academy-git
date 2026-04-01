@@ -69,7 +69,7 @@ export const lessonSections = [
         id: 'peer-play',
         type: 'activity',
         label: 'Peer Play',
-        duration: 8,
+        duration: 15,
         hasTimer: true,
         trackProgress: false,
         description: 'Auto-matched pairs play each other\'s journeys. Students meet up, take turns, and watch each other play.'
@@ -77,27 +77,27 @@ export const lessonSections = [
     ]
   },
   {
-    id: 'gallery',
-    title: '3. Gallery Circle',
-    subtitle: 'Share & Celebrate',
+    id: 'exit-ticket',
+    title: '3. Exit Ticket',
+    subtitle: 'What Did You Learn?',
     color: 'purple',
-    estimatedTime: 9,
+    estimatedTime: 7,
     stages: [
       {
-        id: 'gallery-intro',
+        id: 'exit-ticket-intro',
         type: 'summary',
-        label: 'Gallery Circle',
-        description: 'Explain the Gallery Circle format. Teacher picks journeys to showcase.',
+        label: 'Exit Ticket',
+        description: 'Quick check — what did students learn this unit?',
         duration: 1
       },
       {
-        id: 'gallery-sharing',
+        id: 'exit-ticket',
         type: 'activity',
-        label: 'Gallery Circle',
-        duration: 8,
+        label: 'Exit Ticket',
+        duration: 5,
         hasTimer: true,
-        trackProgress: false,
-        description: 'Teacher projects student journeys on the big screen. Class watches and celebrates.'
+        trackProgress: true,
+        description: 'Students answer 2 quick questions and 2 reflections on their Chromebooks.'
       }
     ]
   }
@@ -107,39 +107,32 @@ export const lesson5Config = {
   id: 'listening-lab-lesson5',
   lessonPath: '/lessons/listening-lab/lesson5',
   title: "Finish & Play",
-  subtitle: "Decoys, Peer Play & Gallery Circle",
+  subtitle: "Decoys, Peer Play & Exit Ticket",
   featuredPiece: null,
   learningObjectives: [
-    "Finish building a Listening Journey that demonstrates dynamics, tempo, and form",
     "Add decoys to create a challenging game for classmates",
     "Play each other's Listening Journey games",
-    "Share your journey with the class and celebrate creative choices"
+    "Reflect on what you learned about dynamics and tempo"
   ],
   lessonSections,
   activities: [
     {
       id: 1,
       type: "listening-journey",
-      title: "Finish Your Listening Journey",
-      estimatedTime: "15 min"
+      title: "Add Decoys",
+      estimatedTime: "7 min"
     },
     {
       id: 2,
-      type: "listening-journey",
-      title: "Add Decoys",
-      estimatedTime: "5 min"
+      type: "listening-journey-peer-play",
+      title: "Play Each Other's Games",
+      estimatedTime: "15 min"
     },
     {
       id: 3,
-      type: "listening-journey-peer-play",
-      title: "Play Each Other's Games",
-      estimatedTime: "8 min"
-    },
-    {
-      id: 4,
-      type: "gallery-circle",
-      title: "Gallery Circle",
-      estimatedTime: "8 min"
+      type: "exit-ticket",
+      title: "Exit Ticket",
+      estimatedTime: "5 min"
     }
   ]
 };
@@ -168,10 +161,9 @@ export const lessonStages = [
         {
           heading: 'Today\'s Plan',
           bullets: [
-            'FINISH — Polish your Listening Journey (15 min)',
-            'DECOYS — Add traps to make it a game (5 min)',
-            'PLAY — Play each other\'s games (8 min)',
-            'GALLERY — Share favorites with the class (8 min)'
+            'ADD DECOYS — Finish your journey and add traps (7 min)',
+            'PEER PLAY — Play each other\'s games (15 min)',
+            'EXIT TICKET — Quick reflection (5 min)'
           ]
         },
         {
@@ -269,51 +261,42 @@ export const lessonStages = [
     description: 'Auto-matched pairs play each other\'s journey games with turn-based play.',
     type: 'activity',
     hasTimer: true,
-    duration: 8,
+    duration: 15,
     presentationView: {
       type: 'peer-play-teacher',
     }
   },
   {
-    id: 'gallery-intro',
-    label: 'Gallery Circle',
-    description: 'Explain the Gallery Circle sharing format.',
+    id: 'exit-ticket-intro',
+    label: 'Exit Ticket',
+    description: 'Introduce the exit ticket — quick check on what students learned.',
     type: 'summary',
     duration: 1,
     presentationView: {
       type: 'summary',
-      title: 'Gallery Circle',
-      subtitle: 'Time to Share!',
+      title: 'Exit Ticket',
+      subtitle: 'What Did You Learn?',
       sections: [
         {
-          heading: 'How It Works',
+          heading: 'Quick Check',
           bullets: [
-            'We\'ll project 4-5 journeys on the big screen',
-            'Watch the character fly through each world',
-            'Listen — can you hear the dynamics, tempo, and form?',
-            'After each, we\'ll share one thing we noticed'
-          ]
-        },
-        {
-          heading: 'Be a Great Audience',
-          bullets: [
-            'Listen carefully to the music AND watch the visuals',
-            'Think: What musical element stands out most?',
-            'Celebrate creative choices — every journey is unique!'
+            'Answer 2 quick questions on your Chromebook',
+            'Then write 2 short reflections about what you learned',
+            'Be honest — this helps your teacher know what stuck!'
           ]
         }
       ]
     }
   },
   {
-    id: 'gallery-sharing',
-    label: 'Gallery Circle',
-    description: 'Teacher projects student journeys on the big screen.',
+    id: 'exit-ticket',
+    label: 'Exit Ticket',
+    description: 'Students complete the exit ticket on their Chromebooks.',
     type: 'activity',
     hasTimer: true,
-    duration: 8,
+    duration: 5,
     presentationView: {
-      type: 'gallery-circle-teacher',
+      type: 'exit-ticket-teacher',
     }
   }
 ];
@@ -325,8 +308,8 @@ export const getActivityForStage = (stage) => {
     'decoy-time': 'listening-journey',
     'play-intro': 'summary',
     'peer-play': 'peer-play',
-    'gallery-intro': 'summary',
-    'gallery-sharing': 'gallery-circle'
+    'exit-ticket-intro': 'summary',
+    'exit-ticket': 'exit-ticket'
   };
   return stageMap[stage];
 };

@@ -149,6 +149,7 @@ import CapstonePlanning from '../activities/capstone/CapstonePlanning';
 
 // ✅ ADDED: Peer Play matchmaking (Listening Lab Lesson 5)
 import PeerPlayActivity from '../activities/peer-play/PeerPlayActivity';
+import ExitTicketActivity from '../activities/exit-ticket/ExitTicketActivity';
 
 // Wrapper: shows NewsHub feed, click article → ArticleReader, back button returns to feed
 // Dark background wrapper ensures white text is visible when embedded in any parent
@@ -858,6 +859,17 @@ const ActivityRenderer = ({
           key={`peer-play-${activity.id}`}
           pieceConfig={activity.pieceConfig || null}
           journeyExtras={activity.journeyExtras || {}}
+        />
+      );
+
+    case 'exit-ticket':
+      return (
+        <ExitTicketActivity
+          key={`exit-ticket-${activity.id}`}
+          questions={activity.questions || []}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+          storageKey={activity.storageKey || 'exit-ticket'}
         />
       );
 

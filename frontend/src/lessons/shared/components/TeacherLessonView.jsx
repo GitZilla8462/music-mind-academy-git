@@ -1991,6 +1991,25 @@ const PresentationContent = ({
       return <GalleryCircleTeacherSlide />;
     }
 
+    if (type === 'exit-ticket-teacher') {
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-8">
+          <h1 className="text-6xl font-black text-white mb-4">Exit Ticket</h1>
+          <p className="text-2xl text-white/70 mb-8">Students are answering on their Chromebooks</p>
+          <div className="bg-white/10 backdrop-blur rounded-2xl p-8 max-w-2xl w-full">
+            <div className="space-y-4 text-lg text-white/90">
+              <p className="font-bold text-white text-xl mb-2">Questions:</p>
+              <p>1. Which musical element describes how LOUD or SOFT the music is?</p>
+              <p>2. What does "Allegro" tell you about the music?</p>
+              <p className="mt-4 font-bold text-white text-xl">Reflections:</p>
+              <p>3. What was the most interesting thing you learned?</p>
+              <p>4. How has your listening changed since Lesson 1?</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Active Listening Audio Player (Listening Lab Lesson 2) - Hungarian Dance No. 5
     if (type === 'active-listening-play') {
       const ActiveListeningSlide = () => {

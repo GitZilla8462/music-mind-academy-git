@@ -81,18 +81,11 @@ export const exitTicketQuestions = [
   },
   {
     id: 3,
-    type: 'multiple-choice',
-    question: 'If a piece has the form A-B-A-C-A, what is it called?',
-    options: ['Binary', 'Ternary', 'Rondo', 'Through-composed'],
-    correctAnswer: 'Rondo'
-  },
-  {
-    id: 4,
     type: 'open-response',
     question: 'What was the most interesting thing you learned about listening to music in this unit?'
   },
   {
-    id: 5,
+    id: 4,
     type: 'open-response',
     question: 'How has the way you listen to music changed since Lesson 1?'
   }
