@@ -1920,40 +1920,50 @@ const PresentationContent = ({
     }
 
     if (type === 'exit-ticket-teacher') {
-      const ExitTicketTeacherView = () => {
-        const [showAnswers, setShowAnswers] = React.useState(false);
-        return (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-8">
-            <h1 className="text-6xl font-black text-white mb-2">Exit Ticket</h1>
-            <p className="text-2xl text-white/70 mb-8">Students are answering on their Chromebooks</p>
-            <div className="bg-white/10 backdrop-blur rounded-2xl p-8 max-w-2xl w-full space-y-5">
-              <div className="space-y-4 text-lg text-white/90">
-                <p className="font-bold text-white text-xl">Questions:</p>
-                <p>1. The music starts very soft and gradually gets louder over 30 seconds. What is this called?</p>
-                <p>2. A piece is marked "Presto" at the beginning. What should the performer do?</p>
-                <p className="mt-4 font-bold text-white text-xl">Reflections:</p>
-                <p>3. What was the most interesting thing you learned about listening to music in this unit?</p>
-                <p>4. How has the way you listen to music changed since Lesson 1?</p>
-              </div>
-              <button
-                onClick={() => setShowAnswers(!showAnswers)}
-                className="px-4 py-2 rounded-xl text-sm font-bold bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors"
-              >
-                {showAnswers ? 'Hide Answer Key' : 'Show Answer Key'}
-              </button>
-              {showAnswers && (
-                <div className="bg-emerald-500/10 border border-emerald-400/30 rounded-xl p-5 space-y-3">
-                  <p className="font-bold text-emerald-300 text-lg">Answer Key</p>
-                  <p className="text-white/90">1. <span className="font-bold text-emerald-300">Crescendo</span> — gradually getting louder</p>
-                  <p className="text-white/90">2. <span className="font-bold text-emerald-300">Play very fast</span> — Presto is the fastest tempo marking</p>
-                  <p className="text-white/50 text-sm mt-2">Reflections 3 and 4 are open-ended — no right or wrong answer.</p>
-                </div>
-              )}
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-8">
+          <h1 className="text-6xl font-black text-white mb-2">Exit Ticket</h1>
+          <p className="text-2xl text-white/70 mb-8">Students are answering on their Chromebooks</p>
+          <div className="bg-white/10 backdrop-blur rounded-2xl p-8 max-w-2xl w-full">
+            <div className="space-y-4 text-lg text-white/90">
+              <p className="font-bold text-white text-xl">Questions:</p>
+              <p>1. The music starts very soft and gradually gets louder over 30 seconds. What is this called?</p>
+              <p>2. A piece is marked "Presto" at the beginning. What should the performer do?</p>
+              <p className="mt-4 font-bold text-white text-xl">Reflections:</p>
+              <p>3. What was the most interesting thing you learned about listening to music in this unit?</p>
+              <p>4. How has the way you listen to music changed since Lesson 1?</p>
             </div>
           </div>
-        );
-      };
-      return <ExitTicketTeacherView />;
+        </div>
+      );
+    }
+
+    if (type === 'exit-ticket-answer-key') {
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-emerald-900 via-teal-900 to-cyan-900 p-8">
+          <h1 className="text-6xl font-black text-white mb-8">Answer Key</h1>
+          <div className="max-w-2xl w-full space-y-6">
+            <div className="bg-white/10 backdrop-blur rounded-2xl p-8 space-y-6">
+              <div className="space-y-1">
+                <p className="text-white/50 text-sm font-bold uppercase tracking-wider">Question 1</p>
+                <p className="text-xl text-white/80">The music starts very soft and gradually gets louder. What is this called?</p>
+                <p className="text-3xl font-black text-emerald-400 mt-2">Crescendo</p>
+              </div>
+              <div className="border-t border-white/10" />
+              <div className="space-y-1">
+                <p className="text-white/50 text-sm font-bold uppercase tracking-wider">Question 2</p>
+                <p className="text-xl text-white/80">A piece is marked "Presto." What should the performer do?</p>
+                <p className="text-3xl font-black text-emerald-400 mt-2">Play very fast</p>
+              </div>
+              <div className="border-t border-white/10" />
+              <div>
+                <p className="text-white/50 text-sm font-bold uppercase tracking-wider">Reflections 3 & 4</p>
+                <p className="text-lg text-white/60 mt-1">Open-ended — no right or wrong answer</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
     }
 
     // Active Listening Audio Player (Listening Lab Lesson 2) - Hungarian Dance No. 5

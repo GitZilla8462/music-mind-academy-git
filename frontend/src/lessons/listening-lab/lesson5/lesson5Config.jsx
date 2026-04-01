@@ -80,17 +80,24 @@ export const lessonSections = [
         id: 'exit-ticket-intro',
         type: 'summary',
         label: 'Exit Ticket',
-        description: 'Quick check — what did students learn this unit?',
+        description: 'Explain the exit ticket — students will answer on their Chromebooks.',
         duration: 1
       },
       {
         id: 'exit-ticket',
         type: 'activity',
-        label: 'Exit Ticket',
+        label: 'Unlock Exit Ticket',
         duration: 5,
         hasTimer: true,
         trackProgress: true,
         description: 'Students answer 2 quick questions and 2 reflections on their Chromebooks.'
+      },
+      {
+        id: 'answer-key',
+        type: 'summary',
+        label: 'Answer Key',
+        description: 'Review the correct answers with the class.',
+        duration: 2
       }
     ]
   }
@@ -273,13 +280,23 @@ export const lessonStages = [
   },
   {
     id: 'exit-ticket',
-    label: 'Exit Ticket',
+    label: 'Unlock Exit Ticket',
     description: 'Students complete the exit ticket on their Chromebooks.',
     type: 'activity',
     hasTimer: true,
     duration: 5,
     presentationView: {
       type: 'exit-ticket-teacher',
+    }
+  },
+  {
+    id: 'answer-key',
+    label: 'Answer Key',
+    description: 'Review the correct answers with the class.',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'exit-ticket-answer-key',
     }
   }
 ];
@@ -291,7 +308,8 @@ export const getActivityForStage = (stage) => {
     'decoy-time': 'listening-journey',
     'peer-play': 'listening-journey',
     'exit-ticket-intro': 'summary',
-    'exit-ticket': 'exit-ticket'
+    'exit-ticket': 'exit-ticket',
+    'answer-key': 'summary'
   };
   return stageMap[stage];
 };
