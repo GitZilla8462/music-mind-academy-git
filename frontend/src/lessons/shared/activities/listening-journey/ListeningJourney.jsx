@@ -361,9 +361,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         return;
       }
       const lookupClassId = classId || new URLSearchParams(window.location.search).get('classId');
-      const lessonId = pieceConfig?.lessonId || 'default';
-      const activityId = storageKey.replace(/^.*?-/, '') || 'listening-journey';
-      const wk = `${lessonId}-${activityId}`;
+      const parsed = parseActivityId(storageKey);
+      const wk = `${parsed.lessonId}-${parsed.activityId}`;
       const result = await loadJourneyByShareCode(peerCodeInput.trim(), lookupClassId, wk);
       if (!result) {
         setPeerPlayError('No game found for that code');
