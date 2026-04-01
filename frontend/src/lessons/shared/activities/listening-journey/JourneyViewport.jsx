@@ -30,6 +30,7 @@ const JourneyViewport = ({
   score = 0,
   collectedIds = new Set(),
   isHurt = false,
+  onPause,
 }) => {
   const dragRef = useRef(null);
 
@@ -244,10 +245,21 @@ const JourneyViewport = ({
         />
       )}
 
-      {/* Game mode score overlay */}
+      {/* Game mode score overlay + pause button */}
       {gameMode && (
-        <div className="absolute top-3 right-3 z-50 pointer-events-none">
-          <div className="bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
+        <div className="absolute top-3 right-3 z-50 flex items-center gap-2">
+          {isPlaying && onPause && (
+            <button
+              onClick={onPause}
+              className="pointer-events-auto bg-black/70 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/20 hover:bg-black/80 transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <rect x="6" y="4" width="4" height="16" rx="1" />
+                <rect x="14" y="4" width="4" height="16" rx="1" />
+              </svg>
+            </button>
+          )}
+          <div className="pointer-events-none bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
             <div className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Score</div>
             <div className={`text-2xl font-black tabular-nums ${score >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
               {score}

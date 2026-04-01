@@ -29,7 +29,7 @@ let _nextSectionId = Date.now();
 
 const DRAW_COLORS = ['#ffffff', '#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#6b7280'];
 const DRAW_SIZES = [4, 8, 16, 24, 32];
-const MAX_STICKERS = 200;
+const MAX_STICKERS = 1500;
 
 const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null, allowedEnvironments = null, allowedCharacters = null, hideDrawingTools = false, gameMode = false, hideDecoys = false, defaultScene = null, defaultCharacter: defaultCharacterProp = null, skipSavedData = false, onDirectionsClick = null, savedDataOverride = null }) => {
   // In-memory auth fallback for managed Chromebooks where localStorage is broken
@@ -713,36 +713,46 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   useEffect(() => {
     if (!gameMode || !isPlaying || !character?.flying) return;
 
-    const HIT_RADIUS = 0.12;
+    // Squared radius avoids sqrt per sticker per frame
+    const HIT_RADIUS_SQ = 0.12 * 0.12;
+    let frameCount = 0;
 
     const checkCollisions = () => {
-      const collected = collectedIdsRef.current;
-      itemsRef.current.forEach(item => {
-        if (item.type !== 'sticker') return;
-        if (collected.has(item.id)) return;
+      // Throttle: check every 2nd frame (30fps is plenty for collision)
+      frameCount++;
+      if (frameCount % 2 !== 0) return;
 
+      const collected = collectedIdsRef.current;
+      const scrollOffset = rawMidgroundOffsetRef.current;
+      const birdCenterX = birdXRef.current + 0.025;
+      const birdCenterY = birdYRef.current + 0.04;
+
+      const allItems = itemsRef.current;
+      for (let i = 0, len = allItems.length; i < len; i++) {
+        const item = allItems[i];
+        if (item.type !== 'sticker') continue;
+        if (collected.has(item.id)) continue;
+
+        // Viewport culling — skip stickers far off-screen
         const drift = item.placedAtOffset != null
-          ? -(rawMidgroundOffsetRef.current - item.placedAtOffset)
+          ? -(scrollOffset - item.placedAtOffset)
           : 0;
         const stickerX = item.position.x + drift;
-        const stickerY = item.position.y;
+        if (stickerX < -0.2 || stickerX > 1.2) continue;
 
-        // Offset collision point to bird center (birdX/birdY is top-left corner)
-        const birdCenterX = birdXRef.current + 0.025;
-        const birdCenterY = birdYRef.current + 0.04;
+        const stickerY = item.position.y;
         const dx = birdCenterX - stickerX;
         const dy = birdCenterY - stickerY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        // Squared distance avoids expensive sqrt
+        const distSq = dx * dx + dy * dy;
 
-        if (dist < HIT_RADIUS) {
-          // Update ref immediately to prevent double-scoring between frames
+        if (distSq < HIT_RADIUS_SQ) {
           const next = new Set(collectedIdsRef.current);
           next.add(item.id);
           collectedIdsRef.current = next;
           setCollectedIds(next);
           if (item.isDecoy) {
             setGameScore(prev => prev - 5);
-            // Trigger hurt animation for ~0.5s
             setBirdHurt(true);
             if (hurtTimerRef.current) clearTimeout(hurtTimerRef.current);
             hurtTimerRef.current = setTimeout(() => setBirdHurt(false), 600);
@@ -750,7 +760,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             setGameScore(prev => prev + 10);
           }
         }
-      });
+      }
     };
 
     let rafId;
@@ -1804,6 +1814,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               score={gameScore}
               collectedIds={collectedIds}
               isHurt={birdHurt}
+              onPause={pause}
             >
               <DrawingOverlay
                 ref={drawingCanvasRef}
