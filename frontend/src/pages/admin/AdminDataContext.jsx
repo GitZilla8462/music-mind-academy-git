@@ -518,15 +518,16 @@ export const AdminDataProvider = ({ children }) => {
       const details = [];
       const pilotData = pilotSnapshot.val();
 
-      // Pre-load all classes so we can look up class sessions by code
-      const classesRef = ref(database, 'classes');
-      const classesSnapshot = await get(classesRef);
-      const classesData = classesSnapshot.exists() ? classesSnapshot.val() : {};
-      // Build a map from classCode → classId for quick lookup
-      const classCodeToId = {};
-      for (const [cId, cData] of Object.entries(classesData)) {
-        if (cData.classCode) classCodeToId[cData.classCode] = cId;
-      }
+      // Helper: look up classId from a class code via classCodes/{code}
+      const classIdCache = {};
+      const getClassIdForCode = async (code) => {
+        if (classIdCache[code] !== undefined) return classIdCache[code];
+        try {
+          const snap = await get(ref(database, `classCodes/${code}`));
+          classIdCache[code] = snap.exists() ? snap.val() : null;
+        } catch { classIdCache[code] = null; }
+        return classIdCache[code];
+      };
 
       for (const sessionCode of Object.keys(pilotData)) {
         const pilotSession = pilotData[sessionCode];
@@ -546,7 +547,7 @@ export const AdminDataProvider = ({ children }) => {
 
           // Try class-based session (use stored classId or look up by class code)
           if (!found || actualCount === 0) {
-            const matchedClassId = pilotSession.classId || classCodeToId[sessionCode];
+            const matchedClassId = pilotSession.classId || await getClassIdForCode(sessionCode);
             if (matchedClassId) {
               const classStudentsRef = ref(database, `classes/${matchedClassId}/currentSession/studentsJoined`);
               const classSnap = await get(classStudentsRef);
