@@ -647,17 +647,23 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   const handleReset = useCallback(() => {
     if (presetMode && pieceConfig?.defaultSections) {
-      // In preset mode, restore to default sections (preserve backgrounds/scenes)
-      setSections(pieceConfig.defaultSections.map(s => ({ ...s })));
+      // In preset mode, restore to default sections with fallback scene/sky/ground
+      const fallbackScene = defaultScene || null;
+      setSections(pieceConfig.defaultSections.map(s => ({
+        ...s,
+        sky: s.sky || (fallbackScene ? (SCENE_SKY_MAP[fallbackScene] || 'clear-day') : null),
+        scene: s.scene || fallbackScene,
+        ground: s.ground || (fallbackScene ? (SCENE_GROUND_MAP[fallbackScene] || 'grass') : null),
+      })));
     } else {
       setSections([]);
     }
-    setCharacter(null);
+    setCharacter(defaultCharacter);
     setItems([]);
     setEditMode('select');
     setDrawingTool(null);
     drawingCanvasRef.current?.clear();
-  }, [presetMode, pieceConfig]);
+  }, [presetMode, pieceConfig, defaultScene, defaultCharacter]);
 
   // ── Sticker / text placement ───────────────────────────────────────
 
@@ -693,6 +699,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         icon: selectedSticker.symbol || selectedSticker.id,
         render: selectedSticker.render || 'emoji',
         name: selectedSticker.name,
+        color: selectedSticker.color || '#ffffff',
         timestamp: startTime,
         position: { x: pos.x, y: pos.y },
         placedAtOffset: rawMidgroundOffset,
@@ -753,6 +760,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             icon: sticker.symbol || sticker.id,
             render: sticker.render || 'emoji',
             name: sticker.name,
+            color: sticker.color || '#ffffff',
             timestamp: startTime,
             position: { x: posX, y: posY },
             placedAtOffset: rawMidgroundOffset,

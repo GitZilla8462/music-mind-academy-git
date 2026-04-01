@@ -29,7 +29,7 @@ const QUESTIONS = [
   {
     id: 'q1', category: 'dynamics',
     prompt: 'Listen! What dynamic level is this?',
-    audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 8, volume: 0.85 },
+    audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 16, volume: 0.85 },
     answers: { A: 'Piano', B: 'Mezzo Forte', C: 'Forte', D: 'Fortissimo' },
     correct: 'C',
     explanation: 'That was forte — loud and strong, but not as extreme as fortissimo!'
@@ -37,7 +37,7 @@ const QUESTIONS = [
   {
     id: 'q2', category: 'dynamics',
     prompt: 'Listen! What dynamic level is this?',
-    audio: { path: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', startTime: 4.5, endTime: 14, volume: 0.5 },
+    audio: { path: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', startTime: 4.5, endTime: 23.5, volume: 0.5 },
     answers: { A: 'Pianissimo', B: 'Piano', C: 'Mezzo Piano', D: 'Mezzo Forte' },
     correct: 'A',
     explanation: 'That was pianissimo — very soft! Even softer than piano.'
@@ -45,7 +45,7 @@ const QUESTIONS = [
   {
     id: 'q3', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
-    audio: { path: '/audio/classical/grieg-morning-mood.mp3', startTime: 0, endTime: 10, volume: 0.7 },
+    audio: { path: '/audio/classical/grieg-morning-mood.mp3', startTime: 0, endTime: 20, volume: 0.7 },
     answers: { A: 'Adagio', B: 'Andante', C: 'Allegro', D: 'Presto' },
     correct: 'B',
     explanation: 'That was Andante — walking speed! Adagio is slower, Allegro is faster.'
@@ -61,7 +61,7 @@ const QUESTIONS = [
   {
     id: 'q5', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
-    audio: { path: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', startTime: 4.5, endTime: 14, volume: 0.7 },
+    audio: { path: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', startTime: 4.5, endTime: 23.5, volume: 0.7 },
     answers: { A: 'Adagio', B: 'Andante', C: 'Allegro', D: 'Presto' },
     correct: 'A',
     explanation: 'That was Adagio — slow and relaxed! Andante is a bit faster (walking speed).'
@@ -109,7 +109,7 @@ const QUESTIONS = [
   {
     id: 'q11', category: 'dynamics',
     prompt: 'Listen! What\'s happening to the volume?',
-    audio: { path: '/audio/classical/grieg-mountain-king.mp3', startTime: 0, endTime: 30, volume: 0.6 },
+    audio: { path: '/audio/classical/grieg-mountain-king.mp3', startTime: 0, endTime: 45, volume: 0.6 },
     answers: { A: 'Crescendo', B: 'Decrescendo', C: 'Staying at forte', D: 'Staying at piano' },
     correct: 'A',
     explanation: 'That was a crescendo — gradually getting louder! Mountain King builds from pp to ff.'
@@ -124,7 +124,7 @@ const QUESTIONS_ROUND2 = [
   {
     id: 'r2-q1', category: 'dynamics',
     prompt: 'Listen! What dynamic level is this?',
-    audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 8, volume: 1.0 },
+    audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 16, volume: 1.0 },
     answers: { A: 'Forte', B: 'Fortissimo', C: 'Mezzo Forte', D: 'Mezzo Piano' },
     correct: 'B',
     explanation: 'That was fortissimo — very loud! Even louder than forte.'
@@ -132,7 +132,7 @@ const QUESTIONS_ROUND2 = [
   {
     id: 'r2-q2', category: 'dynamics',
     prompt: 'Listen! What dynamic level is this?',
-    audio: { path: VIVALDI_SPRING, startTime: 36, endTime: 46, volume: 0.4 },
+    audio: { path: VIVALDI_SPRING, startTime: 36, endTime: 56, volume: 0.4 },
     answers: { A: 'Pianissimo', B: 'Piano', C: 'Mezzo Piano', D: 'Mezzo Forte' },
     correct: 'B',
     explanation: 'That was piano — soft! Pianissimo is even softer, and mezzo piano is medium-soft.'
@@ -140,7 +140,7 @@ const QUESTIONS_ROUND2 = [
   {
     id: 'r2-q3', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
-    audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 10, volume: 0.7 },
+    audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 20, volume: 0.7 },
     answers: { A: 'Andante', B: 'Presto', C: 'Allegro', D: 'Adagio' },
     correct: 'C',
     explanation: 'That was Allegro — fast and lively! Not quite as fast as Presto.'
@@ -148,7 +148,7 @@ const QUESTIONS_ROUND2 = [
   {
     id: 'r2-q4', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
-    audio: { path: '/audio/classical/grieg-mountain-king.mp3', startTime: 0, endTime: 12, volume: 0.6 },
+    audio: { path: '/audio/classical/grieg-mountain-king.mp3', startTime: 0, endTime: 24, volume: 0.6 },
     answers: { A: 'Andante', B: 'Adagio', C: 'Allegro', D: 'Presto' },
     correct: 'A',
     explanation: 'That was Andante — walking speed! The Mountain King starts slow before speeding up.'
@@ -156,7 +156,7 @@ const QUESTIONS_ROUND2 = [
   {
     id: 'r2-q5', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
-    audio: { path: '/audio/classical/grieg-mountain-king.mp3', startTime: 130, endTime: 145, volume: 0.5 },
+    audio: { path: '/audio/classical/grieg-mountain-king.mp3', startTime: 130, endTime: 155, volume: 0.5 },
     answers: { A: 'Adagio', B: 'Andante', C: 'Allegro', D: 'Presto' },
     correct: 'D',
     explanation: 'That was Presto — the Mountain King ends in a wild frenzy!'
@@ -204,7 +204,7 @@ const QUESTIONS_ROUND2 = [
   {
     id: 'r2-q11', category: 'dynamics',
     prompt: 'Listen! What\'s happening to the volume?',
-    audio: { path: VIVALDI_SPRING, startTime: 15, endTime: 30, volume: 0.7 },
+    audio: { path: VIVALDI_SPRING, startTime: 15, endTime: 45, volume: 0.7 },
     answers: { A: 'Crescendo', B: 'Decrescendo', C: 'Staying at forte', D: 'Staying at piano' },
     correct: 'B',
     explanation: 'That was a decrescendo — gradually getting softer!'
@@ -375,7 +375,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
-      const list = Object.entries(data)
+      const rawList = Object.entries(data)
         .map(([id, s]) => ({
           id,
           name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
@@ -385,16 +385,17 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
           playerColor: s.playerColor || '#3B82F6',
           playerEmoji: s.playerEmoji || '🎵'
         }));
-      // Disambiguate duplicate display names by appending a number
-      const nameCounts = {};
-      list.forEach(s => { nameCounts[s.name] = (nameCounts[s.name] || 0) + 1; });
-      const namesSeen = {};
-      list.forEach(s => {
-        if (nameCounts[s.name] > 1) {
-          namesSeen[s.name] = (namesSeen[s.name] || 0) + 1;
-          s.name = `${s.name} (${namesSeen[s.name]})`;
+      // Deduplicate entries with the same display name (e.g. student reconnected
+      // with a new UID). Keep the entry with the highest score, or if tied, the
+      // one that answered (most recent activity).
+      const byName = new Map();
+      rawList.forEach(s => {
+        const existing = byName.get(s.name);
+        if (!existing || s.score > existing.score || (s.score === existing.score && s.answer && !existing.answer)) {
+          byName.set(s.name, s);
         }
       });
+      const list = [...byName.values()];
 
       setStudents(list);
       setLockedCount(list.filter(s => s.answer).length);
@@ -675,7 +676,12 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
                       {hasPlayedOnce && (
                         <button
                           onClick={reveal}
-                          className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
+                          disabled={isAudioPlaying}
+                          className={`px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-2xl font-bold flex items-center gap-2 transition-all ${
+                            isAudioPlaying
+                              ? 'opacity-40 cursor-not-allowed scale-95'
+                              : 'hover:scale-105 active:scale-95'
+                          }`}
                         >
                           <Eye size={28} /> Reveal Answer
                         </button>

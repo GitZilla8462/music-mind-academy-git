@@ -12,7 +12,7 @@ export let lastDragEndTime = 0;
 const renderStickerContent = (item, scale = 1) => {
   const renderType = item.render || 'emoji';
   const s = scale;
-  const c = item.color || '#000000';
+  const c = item.color || '#ffffff';
 
   switch (renderType) {
     case 'svg': {
@@ -122,10 +122,11 @@ const cleanupDrag = (ref) => {
   }
 };
 
-const StickerItemInner = ({ item, visible, anchorX, isSelected, isSingleSelected, onSelect, onUpdateItem, isBuildMode }) => {
+const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSelected, onSelect, onUpdateItem, isBuildMode }) => {
   const { position, type } = item;
   const scale = item.scale || 1;
   const rotation = item.rotation || 0;
+  const adjustedX = position.x + (scrollOffsetX || 0);
   const interactive = isBuildMode && visible;
   const dragRef = useRef(null);
   const resizeRef = useRef(null);
@@ -238,11 +239,12 @@ const StickerItemInner = ({ item, visible, anchorX, isSelected, isSingleSelected
   return (
     <div
       data-sticker-root
-      className={`absolute z-30 select-none ${interactive ? 'cursor-grab pointer-events-auto' : 'pointer-events-none'}`}
+      className={`absolute z-30 select-none ${interactive ? 'cursor-grab' : 'pointer-events-none'}`}
       style={{
-        left: `${anchorX * 100}%`,
+        left: `${adjustedX * 100}%`,
         top: `${position.y * 100}%`,
         transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+        willChange: 'transform',
         display: visible ? 'inline-block' : 'none',
         width: 'fit-content',
       }}
@@ -350,30 +352,20 @@ const StickerItem = React.memo(StickerItemInner);
 
 const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem, onUpdateItem, onAddItem, onSwitchToSelect, rawScrollOffset = 0, selectedItemIds = new Set(), onSelectItem, isBuildMode = false, gameMode = false, collectedIds = new Set() }) => {
   const singleSelected = selectedItemIds.size === 1;
-
-  // Filter to only visible stickers — anchorX minus scroll must be roughly on-screen
-  // This avoids rendering 100s of off-screen stickers entirely
-  const visibleItems = items.filter((item) => {
-    const anchorX = item.position.x + (item.placedAtOffset || 0);
-    const screenX = anchorX - rawScrollOffset;
-    // Always render selected items (user may be dragging them)
-    if (selectedItemIds.has(item.id)) return true;
-    return screenX > -0.3 && screenX < 1.3;
-  });
-
   return (
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        transform: `translateX(${-rawScrollOffset * 100}%)`,
-        willChange: 'transform',
-        pointerEvents: 'none',
-      }}
-    >
-      {visibleItems.map((item) => {
-        // anchorX = original position + scroll offset when placed (stable per sticker)
-        const anchorX = item.position.x + (item.placedAtOffset || 0);
+    <>
+      {items.map((item) => {
+        const visible = true;
+
+        // Compute drift since sticker was placed (negative = scrolls left with background)
+        const drift = item.placedAtOffset != null
+          ? -(rawScrollOffset - item.placedAtOffset)
+          : 0;
+
+        const adjustedX = item.position.x + drift;
+
+        // Cull off-screen stickers — skip rendering entirely
+        if (!selectedItemIds.has(item.id) && (adjustedX < -0.3 || adjustedX > 1.3)) return null;
 
         // In game mode (not build): collected stickers get a flash + disappear
         const collected = gameMode && !isBuildMode && collectedIds.has(item.id);
@@ -382,8 +374,8 @@ const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem,
           <StickerItem
             key={item.id}
             item={collected ? { ...item, _collected: true } : item}
-            visible={true}
-            anchorX={anchorX}
+            visible={visible}
+            scrollOffsetX={drift}
             isSelected={selectedItemIds.has(item.id)}
             isSingleSelected={singleSelected}
             onSelect={onSelectItem}
@@ -392,7 +384,7 @@ const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem,
           />
         );
       })}
-    </div>
+    </>
   );
 };
 
