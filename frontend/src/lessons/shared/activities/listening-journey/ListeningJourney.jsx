@@ -19,7 +19,7 @@ import useParallaxScroll, { getScrollOffsetAtTime } from './hooks/useParallaxScr
 import { MOVEMENT_TYPES } from './characterAnimations';
 import { AUDIO_PATH, TOTAL_DURATION, CHARACTER_OPTIONS, SCENE_SKY_MAP, SECTION_COLORS } from './journeyDefaults';
 import { SCENE_GROUND_MAP } from './config/groundTypes';
-import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo, getStudentId } from '../../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo, getStudentId, parseActivityId } from '../../../../utils/studentWorkStorage';
 import { useSession } from '../../../../context/SessionContext';
 import { useStudentAuth } from '../../../../context/StudentAuthContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
@@ -172,9 +172,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     const studentUid = authInfo?.uid || getStudentId(pinSession);
     const displayName = authInfo?.displayName || 'Student';
 
-    const lessonId = pieceConfig?.lessonId || 'default';
-    const activityId = storageKey.replace(/^.*?-/, '') || 'listening-journey';
-    const workKey = `${lessonId}-${activityId}`;
+    const parsed = parseActivityId(storageKey);
+    const workKey = `${parsed.lessonId}-${parsed.activityId}`;
     getOrCreateShareCode(studentUid, workKey, displayName)
       .then(code => setShareCode(code))
       .catch(() => {});
@@ -872,25 +871,27 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           const posX = (ex - rect.left) / rect.width;
           const posY = (ey - rect.top) / rect.height;
           // Place the sticker (same logic as handleViewportClick)
-          if (items.length >= MAX_STICKERS) return; // cap stickers
           userInteractedRef.current = true;
-          const startTime = currentTime;
-          const duration = totalDuration - currentTime;
-          setItems(prev => [...prev, {
-            type: 'sticker',
-            icon: sticker.symbol || sticker.id,
-            render: sticker.render || 'emoji',
-            name: sticker.name,
-            color: sticker.color || '#facc15',
-            timestamp: startTime,
-            position: { x: posX, y: posY },
-            placedAtOffset: rawMidgroundOffset,
-            entryOffsetX: 1.0 - posX,
-            _placedWallTime: performance.now(),
-            duration,
-            scale: 2,
-            id: _nextSectionId++,
-          }]);
+          const startTime = currentTimeRef.current;
+          const duration = totalDurationRef.current - startTime;
+          setItems(prev => {
+            if (prev.length >= MAX_STICKERS) return prev;
+            return [...prev, {
+              type: 'sticker',
+              icon: sticker.symbol || sticker.id,
+              render: sticker.render || 'emoji',
+              name: sticker.name,
+              color: sticker.color || '#facc15',
+              timestamp: startTime,
+              position: { x: posX, y: posY },
+              placedAtOffset: rawMidgroundOffsetRef.current,
+              entryOffsetX: 1.0 - posX,
+              _placedWallTime: performance.now(),
+              duration,
+              scale: 2,
+              id: _nextSectionId++,
+            }];
+          });
         }
       }
       setDragGhost(null);
@@ -2009,10 +2010,10 @@ const DragGhostContent = ({ sticker }) => {
         setIconComp(() => mod.INSTRUMENT_ICONS[sticker.id]);
       });
     }, [sticker.id]);
-    if (IconComp) return <IconComp size={48} />;
+    if (IconComp) return <IconComp size={64} />;
     return null;
   }
-  return <span style={{ fontSize: '40px' }}>{sticker.symbol || sticker.id}</span>;
+  return <span style={{ fontSize: '48px' }}>{sticker.symbol || sticker.id}</span>;
 };
 
 // ── Sticker Panel Wrapper ──────────────────────────────────────────
