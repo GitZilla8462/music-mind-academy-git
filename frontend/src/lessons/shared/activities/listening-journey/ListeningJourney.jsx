@@ -174,15 +174,30 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     const lessonId = pieceConfig?.lessonId || 'default';
     const activityId = storageKey.replace(/^.*?-/, '') || 'listening-journey';
     const workKey = `${lessonId}-${activityId}`;
+    const localCodeKey = `share-code-${studentUid}-${workKey}`;
 
+    // Try Firebase first, fall back to localStorage-generated code
     getOrCreateShareCode(studentUid, workKey, displayName)
-      .then(code => setShareCode(code))
-      .catch(err => console.error('Failed to get share code:', err));
+      .then(code => {
+        setShareCode(code);
+        try { localStorage.setItem(localCodeKey, code); } catch {}
+      })
+      .catch(err => {
+        console.warn('Firebase share code failed, using local fallback:', err);
+        // Generate or retrieve a local code
+        let localCode = null;
+        try { localCode = localStorage.getItem(localCodeKey); } catch {}
+        if (!localCode) {
+          localCode = String(Math.floor(10000 + Math.random() * 90000));
+          try { localStorage.setItem(localCodeKey, localCode); } catch {}
+        }
+        setShareCode(localCode);
+      });
 
     // Also load peer play scores (who played my game)
     loadPeerPlayScores(studentUid, workKey)
       .then(scores => setPeerPlayScores(scores))
-      .catch(err => console.error('Failed to load peer play scores:', err));
+      .catch(() => {});
   }, [storageKey, viewMode, savedDataOverride, pieceConfig?.lessonId, pinSession]);
 
   // Drawing tool state
@@ -814,7 +829,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         icon: selectedSticker.symbol || selectedSticker.id,
         render: selectedSticker.render || 'emoji',
         name: selectedSticker.name,
-        color: selectedSticker.color || '#ffffff',
+        color: selectedSticker.color || '#facc15',
         timestamp: startTime,
         position: { x: pos.x, y: pos.y },
         placedAtOffset: rawMidgroundOffset,
@@ -875,7 +890,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             icon: sticker.symbol || sticker.id,
             render: sticker.render || 'emoji',
             name: sticker.name,
-            color: sticker.color || '#ffffff',
+            color: sticker.color || '#facc15',
             timestamp: startTime,
             position: { x: posX, y: posY },
             placedAtOffset: rawMidgroundOffset,
@@ -975,33 +990,37 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         setItems(prev => prev.filter(i => !selectedItemIdsRef.current.has(i.id)));
         clearSelectionRef.current();
       }
-      // Ctrl+C / Cmd+C — copy first selected sticker
+      // Ctrl+C / Cmd+C — copy all selected stickers
       if ((e.ctrlKey || e.metaKey) && e.code === 'KeyC' && selectedItemIdsRef.current.size > 0) {
         e.preventDefault();
-        const firstId = [...selectedItemIdsRef.current][0];
-        const item = itemsRef.current.find(i => i.id === firstId);
-        if (item) {
-          clipboardRef.current = item;
+        const selectedItems = itemsRef.current.filter(i => selectedItemIdsRef.current.has(i.id));
+        if (selectedItems.length > 0) {
+          clipboardRef.current = selectedItems;
           pasteCountRef.current = 0;
         }
       }
-      // Ctrl+V / Cmd+V — paste copied sticker, each paste offsets further down-right
+      // Ctrl+V / Cmd+V — paste all copied stickers, offset to the right
       if ((e.ctrlKey || e.metaKey) && e.code === 'KeyV' && clipboardRef.current) {
         e.preventDefault();
         pasteCountRef.current++;
-        const src = clipboardRef.current;
-        const offset = 0.03 * pasteCountRef.current;
-        const newItem = {
-          ...src,
-          id: _nextSectionId++,
-          position: { x: Math.min(src.position.x + offset, 0.95), y: Math.min(src.position.y + offset, 0.95) },
-          timestamp: currentTimeRef.current,
-          duration: totalDurationRef.current - currentTimeRef.current,
-          placedAtOffset: rawMidgroundOffsetRef.current,
-          _placedWallTime: performance.now(),
-        };
-        setItems(prev => [...prev, newItem]);
-        setSelectedItemIds(new Set([newItem.id]));
+        const sources = Array.isArray(clipboardRef.current) ? clipboardRef.current : [clipboardRef.current];
+        const offset = 0.05 * pasteCountRef.current;
+        const newIds = new Set();
+        const newItems = sources.map(src => {
+          const id = _nextSectionId++;
+          newIds.add(id);
+          return {
+            ...src,
+            id,
+            position: { x: Math.min(src.position.x + offset, 0.95), y: src.position.y },
+            timestamp: currentTimeRef.current,
+            duration: totalDurationRef.current - currentTimeRef.current,
+            placedAtOffset: rawMidgroundOffsetRef.current,
+            _placedWallTime: performance.now(),
+          };
+        });
+        setItems(prev => [...prev, ...newItems]);
+        setSelectedItemIds(newIds);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -1056,19 +1075,19 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   return (
     <div className="h-screen flex flex-col bg-gray-900 text-white overflow-hidden">
-      {/* Game code pill — always visible top-left */}
-      {shareCode && !viewMode && !savedDataOverride && (
-        <div className="absolute top-2 left-2 z-[250] bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/15 flex items-center gap-2">
-          <span className="text-[11px] sm:text-xs text-white/70 font-medium">
+      {/* Game code pill — always visible top-left during gameplay */}
+      {shareCode && !viewMode && !savedDataOverride && (isGamePlaying || peerPlayData) && (
+        <div className="absolute top-2 left-2 z-[250] bg-black/70 backdrop-blur-sm rounded-2xl px-4 py-2 border border-amber-400/30 flex items-center gap-2 shadow-lg">
+          <span className="text-xs sm:text-sm text-white/80 font-bold">
             {(getClassAuthInfo(pinSession)?.displayName || 'My')}&#39;s Game Code:
           </span>
-          <span className="text-sm sm:text-base font-black text-amber-400 tracking-wider">{shareCode}</span>
+          <span className="text-lg sm:text-xl font-black text-amber-400 tracking-wider">{shareCode}</span>
         </div>
       )}
 
-      {/* Peer play: show whose game you're playing */}
-      {peerPlayData && (
-        <div className="absolute top-2 left-2 z-[250] bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-purple-400/30 flex items-center gap-2">
+      {/* Peer play: show whose game you're playing (below game code) */}
+      {peerPlayData && (isGamePlaying) && (
+        <div className="absolute top-14 left-2 z-[250] bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-purple-400/30 flex items-center gap-2">
           <span className="text-[11px] sm:text-xs text-purple-300 font-medium">
             Playing {peerPlayData.displayName}&#39;s Journey
           </span>
@@ -1931,9 +1950,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             transform: 'scale(1.2)',
           }}
         >
-          <span style={{ fontSize: '40px' }}>
-            {dragGhost.sticker.symbol || dragGhost.sticker.id}
-          </span>
+          <DragGhostContent sticker={dragGhost.sticker} />
         </div>
       )}
 
@@ -1988,6 +2005,22 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       )}
     </div>
   );
+};
+
+// ── Drag Ghost Content ───────────────────────────────────────────
+// Renders the correct visual for a sticker being dragged from the panel
+const DragGhostContent = ({ sticker }) => {
+  if (sticker.render === 'svg') {
+    const [IconComp, setIconComp] = React.useState(null);
+    React.useEffect(() => {
+      import('../texture-drawings/config/InstrumentIcons').then(mod => {
+        setIconComp(() => mod.INSTRUMENT_ICONS[sticker.id]);
+      });
+    }, [sticker.id]);
+    if (IconComp) return <IconComp size={48} />;
+    return null;
+  }
+  return <span style={{ fontSize: '40px' }}>{sticker.symbol || sticker.id}</span>;
 };
 
 // ── Sticker Panel Wrapper ──────────────────────────────────────────
