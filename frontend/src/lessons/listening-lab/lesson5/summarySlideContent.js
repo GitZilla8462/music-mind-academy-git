@@ -22,7 +22,7 @@ export const summarySlides = {
   galleryCircle: {
     title: 'Gallery Circle',
     subtitle: 'Time to Share!',
-    icon: '🎪',
+    icon: null,
     howItWorks: [
       '1. We\'ll project 4-5 journeys on the big screen',
       '2. Watch the character walk through each world',
@@ -41,7 +41,7 @@ export const summarySlides = {
   exitTicket: {
     title: 'Exit Ticket',
     subtitle: 'What Did You Learn?',
-    icon: '📝',
+    icon: null,
     questions: [
       'Name one musical element you can now identify by ear.',
       'What was the most surprising thing you learned in this unit?',
@@ -55,10 +55,10 @@ export const summarySlides = {
 // 2. GALLERY CIRCLE PEER FEEDBACK
 // ========================================
 export const peerFeedbackPrompts = [
-  { id: 'dynamics', prompt: 'I could hear the dynamics because...', element: 'Dynamics', emoji: '📢' },
-  { id: 'tempo', prompt: 'The tempo was shown by...', element: 'Tempo', emoji: '⏱️' },
-  { id: 'form', prompt: 'I noticed the form when...', element: 'Form', emoji: '🔤' },
-  { id: 'creative', prompt: 'A creative choice I liked was...', element: 'Creativity', emoji: '⭐' }
+  { id: 'dynamics', prompt: 'I could hear the dynamics because...', element: 'Dynamics' },
+  { id: 'tempo', prompt: 'The tempo was shown by...', element: 'Tempo' },
+  { id: 'form', prompt: 'I noticed the form when...', element: 'Form' },
+  { id: 'creative', prompt: 'A creative choice I liked was...', element: 'Creativity' }
 ];
 
 // ========================================

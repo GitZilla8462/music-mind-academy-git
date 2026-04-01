@@ -10,6 +10,8 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Config
 import { lesson3Config, lessonStages, getActivityForStage, MOUNTAIN_KING_JOURNEY_CONFIG } from './lesson3Config';
+import DirectionsModal, { DirectionsReopenButton } from '../../shared/components/DirectionsModal';
+import useDirectionsModal from '../../shared/hooks/useDirectionsModal';
 
 // L3: Only cloud environments + bird characters, no drawing tools
 import { CHARACTER_OPTIONS } from '../../shared/activities/listening-journey/journeyDefaults';
@@ -144,6 +146,9 @@ const Lesson3 = () => {
   const currentStageData = useMemo(() => {
     return lessonStages.find(stage => stage.id === currentStage);
   }, [currentStage]);
+
+  // Student directions modal
+  const activityDirections = useDirectionsModal(currentStage);
 
   // Mute audio in preview mode
   React.useEffect(() => {
@@ -281,6 +286,9 @@ const Lesson3 = () => {
     if (currentStageData?.type === 'activity') {
       const activityType = getActivityForStage(currentStage);
 
+      // Show directions on first entry if stage has studentDirections
+      if (currentStageData.studentDirections) activityDirections.triggerIfUnseen();
+
       return (
         <>
           <ActivityRenderer
@@ -292,6 +300,21 @@ const Lesson3 = () => {
             lessonConfig={lessonConfig}
             currentStage={currentStage}
           />
+          {/* Student directions modal */}
+          {currentStageData.studentDirections && (
+            <>
+              <DirectionsModal
+                title={currentStageData.label || 'Directions'}
+                isOpen={activityDirections.isOpen}
+                onClose={activityDirections.close}
+                steps={currentStageData.studentDirections}
+                bonusText={currentStageData.studentDirectionsBonusText}
+              />
+              {!activityDirections.isOpen && (
+                <DirectionsReopenButton onClick={activityDirections.open} />
+              )}
+            </>
+          )}
           {/* Pair and Share modal overlay on student screen */}
           {currentStage === 'pair-and-share' && (
             <PairAndShareOverlay />

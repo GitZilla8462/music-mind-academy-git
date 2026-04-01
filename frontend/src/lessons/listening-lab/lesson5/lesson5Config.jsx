@@ -26,11 +26,11 @@ export const LESSON_TIMER_KEY = 'listening-lab-lesson5-timer';
 // ========================================
 export const lessonSections = [
   {
-    id: 'worktime',
-    title: '1. Finish Your Journey',
-    subtitle: 'Build & Polish',
-    color: 'blue',
-    estimatedTime: 17,
+    id: 'decoys',
+    title: '1. Add Decoys',
+    subtitle: 'Set Your Traps',
+    color: 'red',
+    estimatedTime: 9,
     stages: [
       {
         id: 'welcome-back',
@@ -40,46 +40,20 @@ export const lessonSections = [
         duration: 2
       },
       {
-        id: 'build-time',
-        type: 'activity',
-        label: 'Finish Your Journey',
-        duration: 15,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'Students polish their Listening Journey. Final build session!',
-        bonusDescription: 'Make sure your stickers, scenes, and character match the music!'
-      }
-    ]
-  },
-  {
-    id: 'decoys',
-    title: '2. Add Decoys',
-    subtitle: 'Set Your Traps',
-    color: 'red',
-    estimatedTime: 7,
-    stages: [
-      {
-        id: 'decoy-intro',
-        type: 'summary',
-        label: 'What Are Decoys?',
-        description: 'Explain the decoy feature — fake stickers that trick players.',
-        duration: 2
-      },
-      {
         id: 'decoy-time',
         type: 'activity',
         label: 'Add Decoys',
-        duration: 5,
+        duration: 7,
         hasTimer: true,
         trackProgress: true,
-        description: 'Students add decoy stickers using the Decoy button.',
+        description: 'Students finish their journey AND add decoy stickers.',
         bonusDescription: 'Place decoys near real stickers to make your game harder!'
       }
     ]
   },
   {
     id: 'play',
-    title: '3. Peer Play',
+    title: '2. Peer Play',
     subtitle: 'Play Each Other\'s Journeys',
     color: 'green',
     estimatedTime: 10,
@@ -104,7 +78,7 @@ export const lessonSections = [
   },
   {
     id: 'gallery',
-    title: '4. Gallery Circle',
+    title: '3. Gallery Circle',
     subtitle: 'Share & Celebrate',
     color: 'purple',
     estimatedTime: 9,
@@ -194,56 +168,18 @@ export const lessonStages = [
         {
           heading: 'Today\'s Plan',
           bullets: [
-            '🏗️ FINISH — Polish your Listening Journey (15 min)',
-            '🎯 DECOYS — Add traps to make it a game (5 min)',
-            '🎮 PLAY — Play each other\'s games (8 min)',
-            '🎪 GALLERY — Share favorites with the class (8 min)'
+            'FINISH — Polish your Listening Journey (15 min)',
+            'DECOYS — Add traps to make it a game (5 min)',
+            'PLAY — Play each other\'s games (8 min)',
+            'GALLERY — Share favorites with the class (8 min)'
           ]
         },
         {
           heading: 'Quick Check-In',
           bullets: [
-            '👍 Almost done? Polish your scenes and add details',
-            '✋ Need help? Raise your hand',
-            '🎯 Goal: Every journey should show dynamics, tempo, AND form'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'build-time',
-    label: 'Finish Your Journey',
-    description: 'Final build session — polish your Listening Journey.',
-    bonusDescription: 'Make sure your stickers, scenes, and character match the music!',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 15,
-    presentationView: {
-      type: 'journey-animator-directions',
-      pieceConfig: buildPieceConfig(getPieceById('mountain-king')),
-      journeyProps: { gameMode: true },
-    }
-  },
-  {
-    id: 'decoy-intro',
-    label: 'What Are Decoys?',
-    description: 'Explain the decoy feature to students.',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'summary',
-      title: 'Add Decoys',
-      subtitle: 'Trick your classmates!',
-      sections: [
-        {
-          heading: 'Decoys = Fake Stickers',
-          bullets: [
-            'Real stickers = +10 pts, Decoys = -5 pts',
-            'Click "Decoy" in the toolbar to turn it on (turns red)',
-            'Place decoys near real stickers to trick players',
-            'Click any existing sticker to toggle it between real and decoy'
+            'Almost done? Polish your scenes and add details',
+            'Need help? Raise your hand',
+            'Goal: Every journey should show dynamics, tempo, AND form'
           ]
         }
       ]
@@ -252,16 +188,46 @@ export const lessonStages = [
   {
     id: 'decoy-time',
     label: 'Add Decoys',
-    description: 'Students add up to 5 decoy stickers to their journey.',
+    description: 'Students finish their journey and add decoy stickers.',
     bonusDescription: 'Place decoys near real stickers to make your game harder!',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 5,
+    duration: 7,
+    showDirectionsOnStudent: true,
     presentationView: {
       type: 'journey-animator-directions',
       pieceConfig: buildPieceConfig(getPieceById('mountain-king')),
       journeyProps: { gameMode: true },
+      directions: [
+        {
+          title: 'What Are Decoys?',
+          items: [
+            'Decoys are fake stickers that trick the player',
+            'When a bird flies into a decoy, the player LOSES 5 points',
+            'Real stickers are worth +10 points, decoys cost -5 points',
+            'Your job: make it hard to tell real stickers from fakes!'
+          ]
+        },
+        {
+          title: 'How to Place Decoys',
+          items: [
+            'Click the red "Place Decoy" button in the toolbar',
+            'The button turns bright red when decoy mode is ON',
+            'Click anywhere on the scene to place a decoy sticker',
+            'Click any existing sticker to toggle it between real and decoy'
+          ]
+        },
+        {
+          title: 'Strategy Tips',
+          items: [
+            'Place decoys RIGHT NEXT TO real stickers to make them tricky',
+            'Use similar-looking stickers for your decoys',
+            'Spread decoys across different sections of your journey',
+            'Test your game by clicking "Play Game" to see how hard it is!'
+          ]
+        }
+      ]
     }
   },
   {
@@ -356,8 +322,6 @@ export const lessonStages = [
 export const getActivityForStage = (stage) => {
   const stageMap = {
     'welcome-back': 'summary',
-    'build-time': 'listening-journey',
-    'decoy-intro': 'summary',
     'decoy-time': 'listening-journey',
     'play-intro': 'summary',
     'peer-play': 'peer-play',

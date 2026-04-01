@@ -10,6 +10,8 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Config
 import { lesson5Config, lessonStages, getActivityForStage } from './lesson5Config';
+import DirectionsModal, { DirectionsReopenButton } from '../../shared/components/DirectionsModal';
+import useDirectionsModal from '../../shared/hooks/useDirectionsModal';
 import { getPieceById, buildPieceConfig } from '../lesson4/lesson4Config';
 
 // L5: Cloud environments + bird characters
@@ -141,6 +143,9 @@ const Lesson5 = () => {
   const [showTransition, setShowTransition] = React.useState(false);
   const lastSaveCommandRef = React.useRef(null);
 
+  // Decoy directions modal for students
+  const decoyDirections = useDirectionsModal(currentStage);
+
   // Listen for teacher's "Save & Continue" command from Firebase
   // Use classCode for class-based sessions where sessionCode is null
   const effectiveSessionCode = sessionCode || sessionMode.urlClassCode;
@@ -236,6 +241,12 @@ const Lesson5 = () => {
     if (currentStageData?.type === 'activity') {
       const activityType = getActivityForStage(currentStage);
 
+      // Show decoy directions on first entry to decoy-time
+      if (currentStage === 'decoy-time') decoyDirections.triggerIfUnseen();
+
+      // Get directions from stage config
+      const stageDirectionsPages = currentStageData?.presentationView?.directions || null;
+
       return (
         <>
           <ActivityRenderer
@@ -252,6 +263,20 @@ const Lesson5 = () => {
             lessonConfig={lessonConfig}
             currentStage={currentStage}
           />
+          {/* Directions modal for current stage */}
+          {stageDirectionsPages && (
+            <>
+              <DirectionsModal
+                title={stageDirectionsPages[0]?.title || 'Directions'}
+                isOpen={decoyDirections.isOpen}
+                onClose={decoyDirections.close}
+                pages={stageDirectionsPages}
+              />
+              {!decoyDirections.isOpen && (
+                <DirectionsReopenButton onClick={decoyDirections.open} label="Directions" />
+              )}
+            </>
+          )}}
           <TransitionOverlay isVisible={showTransition} />
         </>
       );

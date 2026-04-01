@@ -31,6 +31,9 @@ import { INSTRUMENT_ICONS } from './config/InstrumentIcons';
 // Context
 import { useSession } from '../../../../context/SessionContext';
 
+// Shared directions modal
+import DirectionsModal from '../../components/DirectionsModal';
+
 // Storage - Use generic system so it appears on Join page
 import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo, getStudentId } from '../../../../utils/studentWorkStorage';
 
@@ -870,7 +873,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
               title="Directions"
             >
-              ❓ Directions
+              Directions
             </button>
           )}
           <button
@@ -1086,39 +1089,17 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
       )}
 
       {/* Directions modal (tempo-listening-map only) */}
-      {showDirections && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-2xl font-black text-white">Tempo Listening Map</h2>
-              <button onClick={() => setShowDirections(false)} className="text-white/70 hover:text-white text-2xl font-bold leading-none">✕</button>
-            </div>
-            <div className="px-6 py-5 space-y-4">
-              <div className="flex items-start gap-3">
-                <span className="text-2xl font-black text-purple-600 w-8 text-center">1</span>
-                <p className="text-lg text-gray-700">Listen to the song on the Listening Map</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-2xl font-black text-purple-600 w-8 text-center">2</span>
-                <p className="text-lg text-gray-700">As you listen, place as many <strong>tempo markings</strong> as you can on the map</p>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-2xl font-black text-purple-600 w-8 text-center">3</span>
-                <p className="text-lg text-gray-700">Shoot for at least <strong>8 different tempo markings</strong> throughout the piece</p>
-              </div>
-              <div className="flex items-start gap-3 bg-yellow-50 rounded-xl p-3 -mx-1">
-                <span className="text-2xl">⭐</span>
-                <p className="text-lg text-gray-700 font-medium">Bonus: Add dynamics and instruments too!</p>
-              </div>
-            </div>
-            <div className="px-6 pb-5">
-              <button onClick={() => setShowDirections(false)} className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white text-lg font-bold rounded-xl transition-colors">
-                Got it!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DirectionsModal
+        title="Tempo Listening Map"
+        isOpen={showDirections}
+        onClose={() => setShowDirections(false)}
+        steps={[
+          { text: 'Listen to the song on the Listening Map' },
+          { text: <>As you listen, place as many <strong>tempo markings</strong> as you can on the map</> },
+          { text: <>Shoot for at least <strong>8 different tempo markings</strong> throughout the piece</> },
+        ]}
+        bonusText="Add dynamics and instruments too!"
+      />
     </div>
     </>
   );

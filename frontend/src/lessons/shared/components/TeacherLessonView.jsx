@@ -40,6 +40,7 @@ import { saveSurveyResponse, saveMidPilotSurvey, saveFinalPilotSurvey } from '..
 import { getDatabase, ref, onValue, update, remove } from 'firebase/database';
 import { useTimerSound } from '../hooks/useTimerSound';
 import ActivityRenderer from './ActivityRenderer';
+import DirectionsModal from './DirectionsModal';
 
 // ============================================
 // SLIDE WITH AUDIO COMPONENT
@@ -1397,12 +1398,14 @@ const PresentationContent = ({
     // Journey Animator Directions (Listening Lab) - Live animator + floating draggable overlay
     if (type === 'journey-animator-directions') {
       const configJourneyProps = currentStageData.presentationView.journeyProps || {};
+      const customDirections = currentStageData.presentationView.directions || null;
       return (
         <div className="absolute inset-0">
           <AnimatorDirectionsOverlay
             ListeningJourneyComponent={ListeningJourney}
             pieceConfig={pieceConfig}
             dismissedRef={animatorDirDismissedRef}
+            customDirections={customDirections}
             journeyProps={{
               skipSavedData: true,
               hideDrawingTools: true,
@@ -3889,93 +3892,56 @@ const TempoDetectiveDirections = React.memo(({ TempoDetectiveComponent, dismisse
 // ============================================
 // ANIMATOR DIRECTIONS OVERLAY (stable component to prevent remounting)
 // ============================================
-const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, pieceConfig, dismissedRef, journeyProps = {} }) => {
+const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, pieceConfig, dismissedRef, journeyProps = {}, customDirections = null }) => {
   const [showOverlay, setShowOverlay] = useState(!dismissedRef.current);
-  const [dirStep, setDirStep] = useState(0);
 
-  // Dragging state - null means centered (not yet dragged)
-  const [pos, setPos] = useState(null);
-  const dragRef = useRef(null);
-  const offsetRef = useRef({ x: 0, y: 0 });
-  const isDragging = useRef(false);
-
-  const handleMouseDown = useCallback((e) => {
-    if (e.target.closest('button')) return;
-    isDragging.current = true;
-    const rect = dragRef.current.getBoundingClientRect();
-    offsetRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    if (pos === null) {
-      setPos({ x: rect.left, y: rect.top });
-    }
-    e.preventDefault();
-  }, [pos]);
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (!isDragging.current) return;
-      setPos({
-        x: e.clientX - offsetRef.current.x,
-        y: e.clientY - offsetRef.current.y,
-      });
-    };
-    const handleMouseUp = () => { isDragging.current = false; };
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, []);
-
-  const directions = [
+  const defaultDirections = [
     {
       title: 'Listening Journey Game Creator',
-      icon: '\uD83C\uDFAE',
       items: [
-        <>Welcome to the <span className="font-bold text-purple-700">Listening Journey Game Creator!</span></>,
-        <>Listen to the music and add <span className="font-bold text-amber-600">symbols, dynamics, tempo markings, and instruments</span> that match what you hear</>,
-        <>You're building a <span className="font-bold text-emerald-700">game</span> — a bird character will fly through your world and <span className="font-bold text-gray-900">collect the stickers you place for points</span></>,
-        <>Your classmates will get to <span className="font-bold text-blue-600">play your game!</span> Make it awesome</>,
+        'Welcome to the Listening Journey Game Creator!',
+        'Listen to the music and add symbols, dynamics, tempo markings, and instruments that match what you hear',
+        'You\'re building a game — a bird character will fly through your world and collect the stickers you place for points',
+        'Your classmates will get to play your game! Make it awesome',
       ],
     },
     {
       title: 'Your Job',
-      icon: '\uD83D\uDDFA\uFE0F',
       items: [
-        <>Focus on placing as many <span className="font-bold text-amber-600">dynamic markings</span> on the screen as you can</>,
-        <>Click on each <span className="font-bold text-gray-900">section (A, B, A&apos;)</span> and drag dynamics stickers to show how loud or soft the music is</>,
-        <>If you have time, add <span className="font-bold text-emerald-700">tempos</span>, <span className="font-bold text-pink-600">emojis</span>, or <span className="font-bold text-purple-700">instruments</span> too!</>,
+        'Focus on placing as many dynamic markings on the screen as you can',
+        'Click on each section (A, B, A\') and drag dynamics stickers to show how loud or soft the music is',
+        'If you have time, add tempos, emojis, or instruments too!',
       ],
     },
     {
       title: 'How to Use the Listening Journey',
-      icon: '\uD83C\uDFA8',
       items: [
-        <>Click on a <span className="font-bold text-gray-900">section (A, B, A&apos;)</span> in the timeline to edit it</>,
-        <>Drag <span className="font-bold text-amber-600">dynamic markings</span> from the sticker panel onto the scene</>,
-        <>Press <span className="font-bold text-gray-900">Play</span> to hear the music and see your stickers appear</>,
+        'Click on a section (A, B, A\') in the timeline to edit it',
+        'Drag dynamic markings from the sticker panel onto the scene',
+        'Press Play to hear the music and see your stickers appear',
       ],
     },
     {
       title: 'Tips',
-      icon: '\uD83D\uDCA1',
       items: [
-        <>Think about how the dynamics <span className="font-bold text-gray-900">change between sections</span> — A is quiet, B gets louder, A&apos; is very loud!</>,
-        <>You can go back and change things any time</>,
-        <>Make each section look different — show how the music changes!</>,
+        'Think about how the dynamics change between sections — A is quiet, B gets louder, A\' is very loud!',
+        'You can go back and change things any time',
+        'Make each section look different — show how the music changes!',
       ],
     },
   ];
 
+  const directions = customDirections || defaultDirections;
+
   const reopenOverlay = useCallback(() => {
     dismissedRef.current = false;
     setShowOverlay(true);
-    setDirStep(0);
-    setPos(null);
   }, [dismissedRef]);
 
-  const dir = directions[dirStep];
-  const c = { outer: 'bg-white border-gray-200', header: 'border-gray-200', bg: 'bg-gray-50', border: 'border-gray-200', dot: 'bg-gray-800', itemText: 'text-gray-900', nav: 'border-gray-200', navBack: 'text-gray-600 hover:bg-gray-100', navNext: 'bg-gray-800 hover:bg-gray-900 text-white' };
+  const handleClose = useCallback(() => {
+    dismissedRef.current = true;
+    setShowOverlay(false);
+  }, [dismissedRef]);
 
   return (
     <div className="absolute inset-0">
@@ -3997,83 +3963,13 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
         )}
       </div>
 
-      {/* Floating draggable overlay - centered in presentation area until dragged */}
-      {showOverlay && (
-        <div
-          ref={dragRef}
-          onMouseDown={handleMouseDown}
-          className={`z-50 w-[420px] ${c.outer} backdrop-blur-md rounded-2xl border shadow-2xl cursor-default select-none ${pos === null ? 'absolute top-4 left-4' : 'fixed'}`}
-          style={pos !== null ? { left: pos.x, top: pos.y } : undefined}
-        >
-          {/* Drag handle / header */}
-          <div className={`flex items-center justify-between px-4 py-3 border-b cursor-move ${c.header}`}>
-            <div className="flex items-center gap-2">
-              <div className="text-2xl">{dir.icon}</div>
-              <h3 className="text-lg font-bold text-gray-900">{dir.title}</h3>
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Step dots */}
-              <div className="flex gap-1.5 mr-2">
-                {directions.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      i === dirStep ? 'bg-gray-800 scale-125' : i < dirStep ? 'bg-gray-400' : 'bg-gray-300'
-                    }`}
-                  />
-                ))}
-              </div>
-              <button
-                onClick={() => { dismissedRef.current = true; setShowOverlay(false); }}
-                className="w-7 h-7 rounded-full bg-gray-100 hover:bg-red-500 flex items-center justify-center transition-colors group cursor-pointer"
-              >
-                <X size={14} className="text-gray-500 group-hover:text-white" />
-              </button>
-            </div>
-          </div>
-
-          {/* Direction content */}
-          <div className={`mx-3 my-3 ${c.bg} ${c.border} border rounded-xl p-4`}>
-            <ul className="space-y-2.5">
-              {dir.items.map((item, i) => (
-                <li key={i} className={`text-sm ${c.itemText || 'text-slate-200'} leading-relaxed flex items-start gap-2`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${c.dot} mt-1.5 flex-shrink-0`} />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Navigation */}
-          <div className={`flex items-center justify-between px-4 py-3 border-t ${c.nav}`}>
-            <button
-              onClick={() => setDirStep(Math.max(0, dirStep - 1))}
-              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-1 cursor-pointer ${
-                dirStep === 0 ? 'opacity-0 pointer-events-none' : c.navBack
-              }`}
-            >
-              <ChevronLeft size={14} /> Back
-            </button>
-            {dirStep < directions.length - 1 ? (
-              <button
-                onClick={() => setDirStep(dirStep + 1)}
-                className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-1 cursor-pointer"
-              >
-                Next <ChevronRight size={14} />
-              </button>
-            ) : (
-              <button
-                onClick={() => { dismissedRef.current = true; setShowOverlay(false); }}
-                className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all flex items-center gap-1 cursor-pointer"
-              >
-                <Check size={14} /> Got it!
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Directions re-open handled by ListeningJourney's built-in Directions button in the top bar */}
+      {/* Centered directions modal — matches student view style */}
+      <DirectionsModal
+        title={directions[0]?.title || 'Directions'}
+        isOpen={showOverlay}
+        onClose={handleClose}
+        pages={directions}
+      />
     </div>
   );
 });
@@ -4263,23 +4159,8 @@ const TeacherLessonView = ({
   };
 
   const handleEndSession = () => {
-    if (studentCount >= MIN_STUDENTS_FOR_SURVEY) {
-      const lessonNum = getLessonNumber();
-
-      if (lessonNum === 3 && isUnit1()) {
-        // Mid-pilot survey after Unit 1, Lesson 3 only
-        setSurveyType('midPilot');
-      } else if (lessonNum === 5 && isUnit1()) {
-        // Final PMF survey after Unit 1, Lesson 5 only
-        setSurveyType('finalPilot');
-      } else {
-        // No popup survey — unit-complete emails handle feedback for other units
-        endSession();
-      }
-    } else {
-      // Skip survey for testing (< 5 students)
-      endSession();
-    }
+    // Auto surveys disabled for now
+    endSession();
   };
 
   const handleSurveyComplete = () => {

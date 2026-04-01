@@ -526,7 +526,14 @@ export const lessonStages = [
       type: 'journey-animator-directions',
       pieceConfig: MOUNTAIN_KING_JOURNEY_CONFIG,
       journeyProps: { gameMode: true, hideDecoys: true },
-    }
+    },
+    studentDirections: [
+      { text: 'Listen to the music and add stickers that match what you hear' },
+      { text: <>Focus on placing <strong>dynamic markings</strong> (pp, p, mf, f, ff) on each section</> },
+      { text: 'Click on a section (A, B, A\') in the timeline, then drag stickers onto the scene' },
+      { text: 'Press Play to hear the music and watch your journey come to life' },
+    ],
+    studentDirectionsBonusText: 'Add tempo markings, instruments, and emojis too!',
   },
   {
     id: 'pair-and-share',

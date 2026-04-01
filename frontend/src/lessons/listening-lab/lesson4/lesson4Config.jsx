@@ -428,7 +428,14 @@ export const lessonStages = [
       type: 'journey-animator-directions',
       pieceConfig: buildPieceConfig(CAPSTONE_PIECES[0]),
       journeyProps: { gameMode: true, hideDecoys: true },
-    }
+    },
+    studentDirections: [
+      { text: 'Continue building your Listening Journey' },
+      { text: <>Today: add <strong>tempo, instruments, and form</strong> stickers</> },
+      { text: 'Make sure every sticker matches what you actually hear in the music' },
+      { text: 'Press Play to preview your journey as a game' },
+    ],
+    studentDirectionsBonusText: 'Try to make each section look and feel different!',
   },
   {
     id: 'pair-and-share',

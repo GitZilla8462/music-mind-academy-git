@@ -10,6 +10,8 @@ import { getDatabase, ref, onValue } from 'firebase/database';
 
 // Config
 import { lesson4Config, lessonStages, getActivityForStage, getPieceById, buildPieceConfig } from './lesson4Config';
+import DirectionsModal, { DirectionsReopenButton } from '../../shared/components/DirectionsModal';
+import useDirectionsModal from '../../shared/hooks/useDirectionsModal';
 
 // L4: Cloud environments (10 scenes) + bird characters, game mode ON (no decoys until L5)
 import { CHARACTER_OPTIONS } from '../../shared/activities/listening-journey/journeyDefaults';
@@ -162,6 +164,9 @@ const Lesson4 = () => {
     return lessonStages.find(stage => stage.id === currentStage);
   }, [currentStage]);
 
+  // Student directions modal
+  const activityDirections = useDirectionsModal(currentStage);
+
   // Mute audio in preview mode
   React.useEffect(() => {
     if (isPreviewMode || isMuted) {
@@ -297,6 +302,9 @@ const Lesson4 = () => {
     if (currentStageData?.type === 'activity') {
       const activityType = getActivityForStage(currentStage);
 
+      // Show directions on first entry if stage has studentDirections
+      if (currentStageData.studentDirections) activityDirections.triggerIfUnseen();
+
       return (
         <>
           <ActivityRenderer
@@ -308,6 +316,21 @@ const Lesson4 = () => {
             lessonConfig={lessonConfig}
             currentStage={currentStage}
           />
+          {/* Student directions modal */}
+          {currentStageData.studentDirections && (
+            <>
+              <DirectionsModal
+                title={currentStageData.label || 'Directions'}
+                isOpen={activityDirections.isOpen}
+                onClose={activityDirections.close}
+                steps={currentStageData.studentDirections}
+                bonusText={currentStageData.studentDirectionsBonusText}
+              />
+              {!activityDirections.isOpen && (
+                <DirectionsReopenButton onClick={activityDirections.open} />
+              )}
+            </>
+          )}
           {/* Pair and Share modal overlay on student screen */}
           {currentStage === 'pair-and-share' && (
             <PairAndShareOverlay />
