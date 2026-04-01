@@ -68,16 +68,16 @@ export const exitTicketQuestions = [
   {
     id: 1,
     type: 'multiple-choice',
-    question: 'Which musical element describes how LOUD or SOFT the music is?',
-    options: ['Tempo', 'Dynamics', 'Form', 'Timbre'],
-    correctAnswer: 'Dynamics'
+    question: 'The music starts very soft and gradually gets louder over 30 seconds. What is this called?',
+    options: ['Decrescendo', 'Fortissimo', 'Crescendo', 'Sforzando'],
+    correctAnswer: 'Crescendo'
   },
   {
     id: 2,
     type: 'multiple-choice',
-    question: 'What does "Allegro" tell you about the music?',
-    options: ['It\'s loud', 'It\'s fast', 'It has sections', 'It\'s played by strings'],
-    correctAnswer: 'It\'s fast'
+    question: 'A piece is marked "Presto" at the beginning. What should the performer do?',
+    options: ['Play very softly', 'Play at a walking pace', 'Play very fast', 'Play with a bow'],
+    correctAnswer: 'Play very fast'
   },
   {
     id: 3,

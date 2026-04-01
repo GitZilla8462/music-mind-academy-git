@@ -52,10 +52,6 @@ const ExitTicketActivity = ({ questions = [], onComplete, isSessionMode = false,
       submittedAt: new Date().toISOString(),
     };
     saveStudentWork(storageKey, data);
-
-    if (onComplete) {
-      setTimeout(() => onComplete(data), 2000);
-    }
   }, [allAnswered, submitted, answers, questions, storageKey, onComplete]);
 
   // ── Submitted screen ──

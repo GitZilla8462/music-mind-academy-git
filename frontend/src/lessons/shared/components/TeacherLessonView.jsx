@@ -1929,8 +1929,8 @@ const PresentationContent = ({
             <div className="bg-white/10 backdrop-blur rounded-2xl p-8 max-w-2xl w-full space-y-5">
               <div className="space-y-4 text-lg text-white/90">
                 <p className="font-bold text-white text-xl">Questions:</p>
-                <p>1. Which musical element describes how LOUD or SOFT the music is?</p>
-                <p>2. What does "Allegro" tell you about the music?</p>
+                <p>1. The music starts very soft and gradually gets louder over 30 seconds. What is this called?</p>
+                <p>2. A piece is marked "Presto" at the beginning. What should the performer do?</p>
                 <p className="mt-4 font-bold text-white text-xl">Reflections:</p>
                 <p>3. What was the most interesting thing you learned about listening to music in this unit?</p>
                 <p>4. How has the way you listen to music changed since Lesson 1?</p>
@@ -1944,8 +1944,8 @@ const PresentationContent = ({
               {showAnswers && (
                 <div className="bg-emerald-500/10 border border-emerald-400/30 rounded-xl p-5 space-y-3">
                   <p className="font-bold text-emerald-300 text-lg">Answer Key</p>
-                  <p className="text-white/90">1. <span className="font-bold text-emerald-300">Dynamics</span> — describes how loud or soft the music is</p>
-                  <p className="text-white/90">2. <span className="font-bold text-emerald-300">It's fast</span> — Allegro means fast and lively</p>
+                  <p className="text-white/90">1. <span className="font-bold text-emerald-300">Crescendo</span> — gradually getting louder</p>
+                  <p className="text-white/90">2. <span className="font-bold text-emerald-300">Play very fast</span> — Presto is the fastest tempo marking</p>
                   <p className="text-white/50 text-sm mt-2">Reflections 3 and 4 are open-ended — no right or wrong answer.</p>
                 </div>
               )}
