@@ -256,15 +256,6 @@ const JourneyViewport = ({
         </div>
       )}
 
-      {/* Game mode: arrow key hint */}
-      {gameMode && !isPlaying && character?.flying && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-          <div className="bg-black/70 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20 text-center">
-            <div className="text-white/80 text-sm font-bold">Press Play, then use Arrow Keys or WASD to fly!</div>
-            <div className="text-white/50 text-xs mt-0.5">Collect stickers for points — watch out for decoys!</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

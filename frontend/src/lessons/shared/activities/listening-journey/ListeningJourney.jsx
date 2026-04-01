@@ -29,6 +29,7 @@ let _nextSectionId = Date.now();
 
 const DRAW_COLORS = ['#ffffff', '#000000', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#6b7280'];
 const DRAW_SIZES = [4, 8, 16, 24, 32];
+const MAX_STICKERS = 200;
 
 const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null, allowedEnvironments = null, allowedCharacters = null, hideDrawingTools = false, gameMode = false, hideDecoys = false, defaultScene = null, defaultCharacter: defaultCharacterProp = null, skipSavedData = false, onDirectionsClick = null, savedDataOverride = null }) => {
   // In-memory auth fallback for managed Chromebooks where localStorage is broken
@@ -174,25 +175,9 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     const lessonId = pieceConfig?.lessonId || 'default';
     const activityId = storageKey.replace(/^.*?-/, '') || 'listening-journey';
     const workKey = `${lessonId}-${activityId}`;
-    const localCodeKey = `share-code-${studentUid}-${workKey}`;
-
-    // Try Firebase first, fall back to localStorage-generated code
     getOrCreateShareCode(studentUid, workKey, displayName)
-      .then(code => {
-        setShareCode(code);
-        try { localStorage.setItem(localCodeKey, code); } catch {}
-      })
-      .catch(err => {
-        console.warn('Firebase share code failed, using local fallback:', err);
-        // Generate or retrieve a local code
-        let localCode = null;
-        try { localCode = localStorage.getItem(localCodeKey); } catch {}
-        if (!localCode) {
-          localCode = String(Math.floor(10000 + Math.random() * 90000));
-          try { localStorage.setItem(localCodeKey, localCode); } catch {}
-        }
-        setShareCode(localCode);
-      });
+      .then(code => setShareCode(code))
+      .catch(() => {});
 
     // Also load peer play scores (who played my game)
     loadPeerPlayScores(studentUid, workKey)
@@ -263,7 +248,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [showPeerScores, setShowPeerScores] = useState(false);
 
   // Teacher save command listener
-  const { sessionCode } = useSession();
+  const { sessionCode, classId } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
   const lastSaveCommandRef = useRef(null);
@@ -376,7 +361,11 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         setPeerPlayLoading(false);
         return;
       }
-      const result = await loadJourneyByShareCode(peerCodeInput.trim());
+      const lookupClassId = classId || new URLSearchParams(window.location.search).get('classId');
+      const lessonId = pieceConfig?.lessonId || 'default';
+      const activityId = storageKey.replace(/^.*?-/, '') || 'listening-journey';
+      const wk = `${lessonId}-${activityId}`;
+      const result = await loadJourneyByShareCode(peerCodeInput.trim(), lookupClassId, wk);
       if (!result) {
         setPeerPlayError('No game found for that code');
         setPeerPlayLoading(false);
@@ -818,6 +807,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     if (appMode !== 'build') return;
 
     if (editMode === 'sticker' && selectedSticker) {
+      if (items.length >= MAX_STICKERS) return; // cap stickers
       // Sticker visible from now until end of piece (scrolls off screen naturally)
       const startTime = currentTime;
       const duration = totalDuration - currentTime;
@@ -882,6 +872,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           const posX = (ex - rect.left) / rect.width;
           const posY = (ey - rect.top) / rect.height;
           // Place the sticker (same logic as handleViewportClick)
+          if (items.length >= MAX_STICKERS) return; // cap stickers
           userInteractedRef.current = true;
           const startTime = currentTime;
           const duration = totalDuration - currentTime;
@@ -1002,6 +993,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       // Ctrl+V / Cmd+V — paste all copied stickers, offset to the right
       if ((e.ctrlKey || e.metaKey) && e.code === 'KeyV' && clipboardRef.current) {
         e.preventDefault();
+        if (itemsRef.current.length >= MAX_STICKERS) return; // cap stickers
         pasteCountRef.current++;
         const sources = Array.isArray(clipboardRef.current) ? clipboardRef.current : [clipboardRef.current];
         const offset = 0.05 * pasteCountRef.current;

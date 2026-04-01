@@ -1,9 +1,11 @@
 // Share Codes for Listening Journey Peer Play
 // Generates 5-digit codes so students can play each other's games
-// Path: shareCodes/{code} → { studentUid, workKey, displayName, createdAt }
-// Path: studentWork/{studentUid}/{workKey}/shareCode → code
+// Stores codes on the student's work record (studentWork/{uid}/{workKey}/shareCode)
+// Lookup: scans classmates' work records to find matching code
+// Falls back to localStorage if Firebase unavailable
 
-import { getDatabase, ref, get, set, runTransaction } from 'firebase/database';
+import { getDatabase, ref, get, update } from 'firebase/database';
+import safeStorage from '../utils/safeStorage';
 
 /**
  * Generate a random 5-digit code (10000-99999)
@@ -14,80 +16,100 @@ const generateCode = () => {
 
 /**
  * Get or create a share code for a student's listening journey.
- * If one already exists (stored on the work record), returns it.
- * Otherwise generates a new unique code and stores the mapping.
+ * Stores the code on the student's existing work record (no new Firebase paths needed).
+ * Falls back to localStorage if Firebase permissions fail.
  *
  * @param {string} studentUid - e.g., "seat-classId-3"
- * @param {string} workKey - e.g., "ll-lesson4-listening-journey"
+ * @param {string} workKey - e.g., "ll-lesson5-listening-journey"
  * @param {string} displayName - e.g., "Julia"
  * @returns {Promise<string>} The 5-digit share code
  */
 export const getOrCreateShareCode = async (studentUid, workKey, displayName) => {
+  const localKey = `share-code-${studentUid}-${workKey}`;
   const db = getDatabase();
 
-  // Check if this student already has a code for this work
-  const existingCodeRef = ref(db, `studentWork/${studentUid}/${workKey}/shareCode`);
-  const existingSnap = await get(existingCodeRef);
-  if (existingSnap.exists()) {
-    return existingSnap.val();
-  }
+  try {
+    // Check if this student already has a code on their work record
+    const workRef = ref(db, `studentWork/${studentUid}/${workKey}`);
+    const workSnap = await get(workRef);
 
-  // Generate a unique code (retry if collision)
-  let code;
-  let attempts = 0;
-  while (attempts < 10) {
-    code = generateCode();
-    const codeRef = ref(db, `shareCodes/${code}`);
-    const codeSnap = await get(codeRef);
-    if (!codeSnap.exists()) {
-      // Claim this code
-      await set(codeRef, {
-        studentUid,
-        workKey,
-        displayName: displayName || 'Student',
-        createdAt: Date.now()
-      });
-      // Store code on the work record for fast lookup next time
-      await set(existingCodeRef, code);
-      return code;
+    if (workSnap.exists()) {
+      const work = workSnap.val();
+      if (work.shareCode) {
+        // Save to localStorage for fast access
+        try { safeStorage.setItem(localKey, work.shareCode); } catch {}
+        return work.shareCode;
+      }
     }
-    attempts++;
-  }
 
-  throw new Error('Could not generate unique share code');
+    // Generate a new code
+    const code = generateCode();
+
+    // Store on the work record using update() (merge, not overwrite)
+    await update(ref(db, `studentWork/${studentUid}/${workKey}`), {
+      shareCode: code,
+      shareCodeName: displayName || 'Student'
+    });
+
+    try { safeStorage.setItem(localKey, code); } catch {}
+    return code;
+  } catch (err) {
+    // Firebase failed — use localStorage fallback
+    console.warn('Share code Firebase error, using localStorage:', err.message);
+    let localCode = null;
+    try { localCode = safeStorage.getItem(localKey); } catch {}
+    if (!localCode) {
+      localCode = generateCode();
+      try { safeStorage.setItem(localKey, localCode); } catch {}
+    }
+    return localCode;
+  }
 };
 
 /**
  * Look up a journey by share code.
- * Returns the full saved journey data ready for savedDataOverride.
+ * Scans classmates' work records to find matching code.
  *
  * @param {string} code - 5-digit share code
- * @returns {Promise<{ data: object, displayName: string, workKey: string } | null>}
+ * @param {string} classId - Class ID to search within
+ * @param {string} workKey - Work key to search (e.g., "ll-lesson5-listening-journey")
+ * @returns {Promise<{ data: object, displayName: string, workKey: string, studentUid: string } | null>}
  */
-export const loadJourneyByShareCode = async (code) => {
+export const loadJourneyByShareCode = async (code, classId, workKey) => {
   const db = getDatabase();
 
-  // Look up code → studentUid + workKey
-  const codeRef = ref(db, `shareCodes/${code}`);
-  const codeSnap = await get(codeRef);
-  if (!codeSnap.exists()) return null;
+  // Get all students in this class session
+  const studentsRef = ref(db, `classes/${classId}/currentSession/studentsJoined`);
+  const studentsSnap = await get(studentsRef);
+  if (!studentsSnap.exists()) return null;
 
-  const { studentUid, workKey, displayName } = codeSnap.val();
+  const students = studentsSnap.val();
+  const studentIds = Object.keys(students);
 
-  // Load the student's work
-  const workRef = ref(db, `studentWork/${studentUid}/${workKey}`);
-  const workSnap = await get(workRef);
-  if (!workSnap.exists()) return null;
+  // Check each student's work record for matching share code
+  for (const sid of studentIds) {
+    try {
+      const workRef = ref(db, `studentWork/${sid}/${workKey}`);
+      const workSnap = await get(workRef);
+      if (!workSnap.exists()) continue;
 
-  const work = workSnap.val();
-  if (!work.data?.sections?.length) return null; // no journey built yet
+      const work = workSnap.val();
+      if (work.shareCode === code) {
+        if (!work.data?.sections?.length) return null; // game not built yet
 
-  return {
-    data: work.data,
-    displayName,
-    workKey,
-    studentUid
-  };
+        return {
+          data: work.data,
+          displayName: work.shareCodeName || students[sid]?.name || 'Student',
+          workKey,
+          studentUid: sid
+        };
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
 };
 
 /**
@@ -102,8 +124,7 @@ export const loadJourneyByShareCode = async (code) => {
  */
 export const savePeerPlayScore = async (creatorUid, workKey, playerUid, playerName, score) => {
   const db = getDatabase();
-  const playRef = ref(db, `studentWork/${creatorUid}/${workKey}/peerPlays/${playerUid}`);
-  await set(playRef, {
+  await update(ref(db, `studentWork/${creatorUid}/${workKey}/peerPlays/${playerUid}`), {
     playerName: playerName || 'Student',
     score,
     playedAt: Date.now()
