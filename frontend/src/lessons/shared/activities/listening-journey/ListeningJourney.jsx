@@ -1197,26 +1197,12 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             <div className="w-px h-5 bg-white/20" />
             {/* Mode switcher */}
             {gameMode ? (
-              <>
-                <div className="flex rounded-xl overflow-hidden shadow-lg">
-                  <button
-                    onClick={() => setAppModeWithGame('build')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-bold transition-colors ${
-                      isBuild ? 'bg-indigo-500 text-white' : 'bg-indigo-500/30 text-indigo-200 hover:bg-indigo-500/50'
-                    }`}
-                  >
-                    <Hammer size={14} /> Build
-                  </button>
-                  <button
-                    onClick={() => setAppModeWithGame('present')}
-                    className={`flex items-center gap-1.5 px-4 py-1.5 text-sm font-black transition-colors ${
-                      isPresent || isFullscreen ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-white hover:bg-emerald-600'
-                    }`}
-                  >
-                    <Play size={14} fill="white" /> Play Game
-                  </button>
-                </div>
-              </>
+              <button
+                onClick={() => setAppModeWithGame('present')}
+                className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-black rounded-xl shadow-lg transition-colors bg-emerald-500 text-white hover:bg-emerald-600"
+              >
+                <Play size={14} fill="white" /> Play Game
+              </button>
             ) : (
               <div className="flex bg-white/5 rounded-lg p-0.5">
                 <button
