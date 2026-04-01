@@ -518,16 +518,48 @@ export const AdminDataProvider = ({ children }) => {
       const details = [];
       const pilotData = pilotSnapshot.val();
 
+      // Pre-load all classes so we can look up class sessions by code
+      const classesRef = ref(database, 'classes');
+      const classesSnapshot = await get(classesRef);
+      const classesData = classesSnapshot.exists() ? classesSnapshot.val() : {};
+      // Build a map from classCode → classId for quick lookup
+      const classCodeToId = {};
+      for (const [cId, cData] of Object.entries(classesData)) {
+        if (cData.classCode) classCodeToId[cData.classCode] = cId;
+      }
+
       for (const sessionCode of Object.keys(pilotData)) {
         const pilotSession = pilotData[sessionCode];
         const currentCount = pilotSession.studentsJoined || 0;
         try {
+          let actualCount = 0;
+          let found = false;
+
+          // Try quick-join session first
           const liveSessionRef = ref(database, `sessions/${sessionCode}`);
           const liveSnapshot = await get(liveSessionRef);
-          if (!liveSnapshot.exists()) { notFound++; details.push({ code: sessionCode, status: 'not_found', oldCount: currentCount }); continue; }
-          const liveSession = liveSnapshot.val();
-          const actualCount = liveSession.studentsJoined ? Object.keys(liveSession.studentsJoined).length : 0;
-          if (actualCount === currentCount) { alreadyCorrect++; continue; }
+          if (liveSnapshot.exists()) {
+            const liveSession = liveSnapshot.val();
+            actualCount = liveSession.studentsJoined ? Object.keys(liveSession.studentsJoined).length : 0;
+            found = true;
+          }
+
+          // Try class-based session (sessionCode may be a class code)
+          if (!found || actualCount === 0) {
+            const matchedClassId = classCodeToId[sessionCode];
+            if (matchedClassId) {
+              const classStudentsRef = ref(database, `classes/${matchedClassId}/currentSession/studentsJoined`);
+              const classSnap = await get(classStudentsRef);
+              if (classSnap.exists()) {
+                const classCount = Object.keys(classSnap.val()).length;
+                actualCount = Math.max(actualCount, classCount);
+                found = true;
+              }
+            }
+          }
+
+          if (!found) { notFound++; details.push({ code: sessionCode, status: 'not_found', oldCount: currentCount }); continue; }
+          if (actualCount <= currentCount) { alreadyCorrect++; continue; }
           const updateRef = ref(database, `pilotSessions/${sessionCode}`);
           await update(updateRef, { studentsJoined: actualCount });
           updated++;

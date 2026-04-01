@@ -101,8 +101,12 @@ export const logSessionCreated = async (teacherUid, teacherEmail, sessionData) =
 
 /**
  * Update session when it ends
+ * @param {string} sessionCode - session or class code
+ * @param {string} lastStage
+ * @param {number} studentsJoined - count from caller (may be 0)
+ * @param {string|null} classId - if class-based, the Firebase class key
  */
-export const logSessionEnded = async (sessionCode, lastStage, studentsJoined) => {
+export const logSessionEnded = async (sessionCode, lastStage, studentsJoined, classId) => {
   if (!sessionCode) return;
 
   const sessionRef = ref(database, `pilotSessions/${sessionCode}`);
@@ -115,16 +119,33 @@ export const logSessionEnded = async (sessionCode, lastStage, studentsJoined) =>
   const endTime = Date.now();
   const duration = endTime - startTime;
 
-  // Update session record — don't overwrite studentsJoined if already set by atomic increments
+  // Determine the best student count: use the highest of pilotSessions value,
+  // caller-provided count, and (for class sessions) actual class data
+  let bestCount = Math.max(sessionData.studentsJoined || 0, studentsJoined || 0);
+
+  // For class-based sessions, look up the actual student count from the class data
+  if (classId && bestCount === 0) {
+    try {
+      const classStudentsRef = ref(database, `classes/${classId}/currentSession/studentsJoined`);
+      const classSnap = await get(classStudentsRef);
+      if (classSnap.exists()) {
+        const actualCount = Object.keys(classSnap.val()).length;
+        bestCount = Math.max(bestCount, actualCount);
+        console.log(`📊 Synced class student count: ${actualCount} from classes/${classId}`);
+      }
+    } catch (err) {
+      console.warn('Could not read class student count:', err.message);
+    }
+  }
+
   const updateData = {
     endTime,
     duration,
     lastStage,
     completed: lastStage === 'conclusion' || lastStage === 'ended'
   };
-  // Only write studentsJoined if the current value is 0 and the caller has a count
-  if (studentsJoined && (!sessionData.studentsJoined || sessionData.studentsJoined === 0)) {
-    updateData.studentsJoined = studentsJoined;
+  if (bestCount > (sessionData.studentsJoined || 0)) {
+    updateData.studentsJoined = bestCount;
   }
   await update(sessionRef, updateData);
 

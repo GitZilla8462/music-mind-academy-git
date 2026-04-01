@@ -842,7 +842,7 @@ export const SessionProvider = ({ children }) => {
       const students = sessionData?.studentsJoined ? Object.keys(sessionData.studentsJoined).length : 0;
 
       try {
-        await logSessionEnded(sessionIdentifier, lastStage, students);
+        await logSessionEnded(sessionIdentifier, lastStage, students, classId || null);
         console.log('📊 Logged session end analytics');
       } catch (analyticsError) {
         console.warn('Analytics logging failed (non-critical):', analyticsError);
