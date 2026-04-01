@@ -19,7 +19,7 @@ import useParallaxScroll, { getScrollOffsetAtTime } from './hooks/useParallaxScr
 import { MOVEMENT_TYPES } from './characterAnimations';
 import { AUDIO_PATH, TOTAL_DURATION, CHARACTER_OPTIONS, SCENE_SKY_MAP, SECTION_COLORS } from './journeyDefaults';
 import { SCENE_GROUND_MAP } from './config/groundTypes';
-import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo, getStudentId } from '../../../../utils/studentWorkStorage';
 import { useSession } from '../../../../context/SessionContext';
 import { useStudentAuth } from '../../../../context/StudentAuthContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
@@ -168,18 +168,19 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   useEffect(() => {
     if (viewMode || savedDataOverride) return;
     const authInfo = getClassAuthInfo(pinSession);
-    if (!authInfo?.uid) return;
+    const studentUid = authInfo?.uid || getStudentId(pinSession);
+    const displayName = authInfo?.displayName || 'Student';
 
     const lessonId = pieceConfig?.lessonId || 'default';
     const activityId = storageKey.replace(/^.*?-/, '') || 'listening-journey';
     const workKey = `${lessonId}-${activityId}`;
 
-    getOrCreateShareCode(authInfo.uid, workKey, authInfo.displayName)
+    getOrCreateShareCode(studentUid, workKey, displayName)
       .then(code => setShareCode(code))
       .catch(err => console.error('Failed to get share code:', err));
 
     // Also load peer play scores (who played my game)
-    loadPeerPlayScores(authInfo.uid, workKey)
+    loadPeerPlayScores(studentUid, workKey)
       .then(scores => setPeerPlayScores(scores))
       .catch(err => console.error('Failed to load peer play scores:', err));
   }, [storageKey, viewMode, savedDataOverride, pieceConfig?.lessonId, pinSession]);
@@ -298,10 +299,10 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       // For peer play: save score to creator's record and return to own journey
       if (peerPlayData) {
         const authInfo = getClassAuthInfo(pinSession);
-        if (authInfo?.uid) {
-          savePeerPlayScore(peerPlayData.studentUid, peerPlayData.workKey, authInfo.uid, authInfo.displayName || name, gameScore)
-            .catch(err => console.error('Failed to save peer play score:', err));
-        }
+        const playerUid = authInfo?.uid || getStudentId(pinSession);
+        const playerDisplayName = authInfo?.displayName || name;
+        savePeerPlayScore(peerPlayData.studentUid, peerPlayData.workKey, playerUid, playerDisplayName, gameScore)
+          .catch(err => console.error('Failed to save peer play score:', err));
         // Return to own journey after showing score
         setTimeout(() => {
           setPeerPlayData(null);
