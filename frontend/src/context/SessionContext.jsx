@@ -244,11 +244,11 @@ export const SessionProvider = ({ children }) => {
     const teacherUid = sessionData?.teacherId || safeStorage.getItem('classroom-user-id');
 
     // Initial heartbeat
-    updateSessionHeartbeat(analyticsKey, teacherUid).catch(() => {});
+    updateSessionHeartbeat(analyticsKey, teacherUid, classId || null).catch(() => {});
 
     // Set up interval for every 60 seconds
     const heartbeatInterval = setInterval(() => {
-      updateSessionHeartbeat(analyticsKey, teacherUid).catch(() => {});
+      updateSessionHeartbeat(analyticsKey, teacherUid, classId || null).catch(() => {});
     }, 60000); // 60 seconds
 
     console.log('💓 Started session heartbeat for:', analyticsKey);

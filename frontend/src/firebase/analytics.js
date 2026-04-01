@@ -578,7 +578,7 @@ export const subscribeToAnalytics = (callback) => {
  * Update session activity (heartbeat) - call every minute
  * This ensures we capture time even if user forgets to end session
  */
-export const updateSessionHeartbeat = async (sessionCode, teacherUid) => {
+export const updateSessionHeartbeat = async (sessionCode, teacherUid, classId) => {
   if (!sessionCode) return;
 
   const now = Date.now();
@@ -593,10 +593,26 @@ export const updateSessionHeartbeat = async (sessionCode, teacherUid) => {
       const startTime = sessionData.startTime;
       const duration = now - startTime;
 
-      await update(sessionRef, {
+      const heartbeatData = {
         lastHeartbeat: now,
         duration: duration // Update duration based on heartbeat
-      });
+      };
+
+      // Sync student count from class data (the source of truth for class sessions)
+      if (classId) {
+        try {
+          const classStudentsRef = ref(database, `classes/${classId}/currentSession/studentsJoined`);
+          const classSnap = await get(classStudentsRef);
+          if (classSnap.exists()) {
+            const actualCount = Object.keys(classSnap.val()).length;
+            if (actualCount > (sessionData.studentsJoined || 0)) {
+              heartbeatData.studentsJoined = actualCount;
+            }
+          }
+        } catch { /* class read may fail for non-class sessions */ }
+      }
+
+      await update(sessionRef, heartbeatData);
 
       // Also write heartbeat to live session so students can detect teacher absence
       const liveSessionRef = ref(database, `sessions/${sessionCode}`);
