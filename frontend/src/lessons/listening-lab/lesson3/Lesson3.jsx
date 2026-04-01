@@ -150,6 +150,11 @@ const Lesson3 = () => {
   // Student directions modal
   const activityDirections = useDirectionsModal(currentStage);
 
+  // Trigger directions on first entry to stages that have them
+  useEffect(() => {
+    if (currentStageData?.studentDirections) activityDirections.triggerIfUnseen();
+  }, [currentStage]);
+
   // Mute audio in preview mode
   React.useEffect(() => {
     if (isPreviewMode || isMuted) {
@@ -287,7 +292,7 @@ const Lesson3 = () => {
       const activityType = getActivityForStage(currentStage);
 
       // Show directions on first entry if stage has studentDirections
-      if (currentStageData.studentDirections) activityDirections.triggerIfUnseen();
+      // Directions triggered via useEffect, not during render
 
       return (
         <>

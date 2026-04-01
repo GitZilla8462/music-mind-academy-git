@@ -147,6 +147,14 @@ const Lesson5 = () => {
   // Decoy directions modal for students
   const decoyDirections = useDirectionsModal(currentStage);
 
+  // Trigger directions on first entry to stages that have them
+  const currentStageDataForEffect = useMemo(() => lessonStages.find(s => s.id === currentStage), [currentStage]);
+  useEffect(() => {
+    if (currentStageDataForEffect?.presentationView?.directions || currentStageDataForEffect?.studentDirections) {
+      decoyDirections.triggerIfUnseen();
+    }
+  }, [currentStage]);
+
   // Listen for teacher's "Save & Continue" command from Firebase
   // Use classCode for class-based sessions where sessionCode is null
   const effectiveSessionCode = sessionCode || sessionMode.urlClassCode;
@@ -242,8 +250,7 @@ const Lesson5 = () => {
     if (currentStageData?.type === 'activity') {
       const activityType = getActivityForStage(currentStage);
 
-      // Show decoy directions on first entry to decoy-time
-      if (currentStage === 'decoy-time') decoyDirections.triggerIfUnseen();
+      // Show decoy directions on first entry to decoy-time (via effect, not during render)
 
       // Get directions from stage config
       const stageDirectionsPages = currentStageData?.presentationView?.directions || null;
