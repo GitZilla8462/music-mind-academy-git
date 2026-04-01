@@ -352,11 +352,13 @@ const StickerItem = React.memo(StickerItemInner);
 
 const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem, onUpdateItem, onAddItem, onSwitchToSelect, rawScrollOffset = 0, selectedItemIds = new Set(), onSelectItem, isBuildMode = false, gameMode = false, collectedIds = new Set() }) => {
   const singleSelected = selectedItemIds.size === 1;
+  // Track when stickers were collected so we can stop rendering after animation (1s)
+  const collectedTimesRef = useRef(new Map());
+  const now = performance.now();
+
   return (
     <>
       {items.map((item) => {
-        const visible = true;
-
         // Compute drift since sticker was placed (negative = scrolls left with background)
         const drift = item.placedAtOffset != null
           ? -(rawScrollOffset - item.placedAtOffset)
@@ -365,16 +367,25 @@ const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem,
         const adjustedX = item.position.x + drift;
 
         // Cull off-screen stickers — skip rendering entirely
-        if (!selectedItemIds.has(item.id) && (adjustedX < -0.3 || adjustedX > 1.3)) return null;
+        if (!selectedItemIds.has(item.id) && (adjustedX < -0.15 || adjustedX > 1.15)) return null;
 
         // In game mode (not build): collected stickers get a flash + disappear
-        const collected = gameMode && !isBuildMode && collectedIds.has(item.id);
+        const isCollected = gameMode && !isBuildMode && collectedIds.has(item.id);
+
+        // Skip rendering collected stickers after their animation finishes (1s)
+        if (isCollected) {
+          if (!collectedTimesRef.current.has(item.id)) {
+            collectedTimesRef.current.set(item.id, now);
+          } else if (now - collectedTimesRef.current.get(item.id) > 1000) {
+            return null; // animation done, skip entirely
+          }
+        }
 
         return (
           <StickerItem
             key={item.id}
-            item={collected ? { ...item, _collected: true } : item}
-            visible={visible}
+            item={isCollected ? { ...item, _collected: true } : item}
+            visible={true}
             scrollOffsetX={drift}
             isSelected={selectedItemIds.has(item.id)}
             isSingleSelected={singleSelected}

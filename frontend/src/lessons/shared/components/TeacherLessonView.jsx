@@ -1454,23 +1454,19 @@ const PresentationContent = ({
                   <ol className="space-y-3 text-gray-700">
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">1</span>
-                      <span>Find a partner.</span>
+                      <span>Click <strong>Play Game</strong> — your <strong>5-digit code</strong> is at the top.</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">2</span>
-                      <span>Have one student play first while the other watches.</span>
+                      <span>Tell your partner your code.</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">3</span>
-                      <span>Press <strong>"Play Game"</strong> on the top bar.</span>
+                      <span>Type their code in <strong>Play a Friend's Journey</strong> and play!</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">4</span>
-                      <span>Give feedback to the game maker — do the stickers and markings match the music?</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">5</span>
-                      <span>Make corrections to the markings if needed and switch games!</span>
+                      <span>Try to get <strong>5 people</strong> to play your game — check your <strong>Scores</strong> button!</span>
                     </li>
                   </ol>
                 </div>
@@ -1866,97 +1862,37 @@ const PresentationContent = ({
 
     // Peer Play Teacher Board (Listening Lab Lesson 5)
     if (type === 'peer-play-teacher') {
-      const PeerPlayTeacherBoard = () => {
-        const [peerPlayData, setPeerPlayData] = React.useState({ pool: [], matches: [] });
-
-        React.useEffect(() => {
-          const effectiveCode = sessionCode || classCode;
-          if (!effectiveCode) return;
-
-          let unsub;
-          import('../../../firebase/peerPlay').then(({ subscribeToPeerPlay, activatePeerPlay }) => {
-            // Activate peer play when teacher reaches this slide
-            activatePeerPlay(effectiveCode);
-            unsub = subscribeToPeerPlay(effectiveCode, (data) => {
-              setPeerPlayData(data);
-            });
-          });
-          return () => { if (unsub) unsub(); };
-        }, []);
-
-        const activeMatches = peerPlayData.matches.filter(m => m.status === 'playing');
-        const finishedMatches = peerPlayData.matches.filter(m => m.status === 'finished');
-        const totalGames = peerPlayData.matches.reduce((sum, m) => sum + (m.gamesPlayed || 0), 0);
-
-        return (
-          <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-gray-900 via-emerald-950 to-gray-900 p-8 overflow-auto">
-            {/* Header */}
-            <div className="text-center mb-8 flex-shrink-0">
-              <div className="text-6xl mb-3">🎮</div>
-              <h1 className="text-5xl font-black text-white mb-2">Peer Play</h1>
-              <div className="flex items-center justify-center gap-8 text-lg">
-                <span className="text-emerald-300 font-bold">{activeMatches.length} playing now</span>
-                <span className="text-white/40">|</span>
-                <span className="text-indigo-300 font-bold">{peerPlayData.pool.length} waiting</span>
-                <span className="text-white/40">|</span>
-                <span className="text-yellow-300 font-bold">{totalGames} games played</span>
-              </div>
-            </div>
-
-            {/* Active Matches */}
-            <div className="flex-1 min-h-0">
-              {activeMatches.length > 0 && (
-                <div className="mb-6">
-                  <h2 className="text-xl font-bold text-white/70 mb-3 uppercase tracking-wider">Playing Now</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {activeMatches.map((match) => (
-                      <div key={match.id} className="bg-white/10 rounded-xl p-4 border border-emerald-500/30">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="text-lg font-bold text-white">{match.studentA.name}</span>
-                            <span className="text-white/30">↔</span>
-                            <span className="text-lg font-bold text-white">{match.studentB.name}</span>
-                          </div>
-                          <span className="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">
-                            Turn {match.turn}/2
-                          </span>
-                        </div>
-                        {match.observer && (
-                          <div className="mt-2 text-sm text-amber-300/80 flex items-center gap-1.5">
-                            <span>👁</span> <span className="font-bold">{match.observer.name}</span> observing
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Waiting Pool */}
-              {peerPlayData.pool.length > 0 && (
-                <div className="mb-6">
-                  <h2 className="text-xl font-bold text-white/70 mb-3 uppercase tracking-wider">Waiting for Match</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {peerPlayData.pool.map((student) => (
-                      <div key={student.id} className="bg-white/10 rounded-lg px-4 py-2 border border-indigo-500/30">
-                        <span className="text-white font-bold">{student.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* No activity yet */}
-              {activeMatches.length === 0 && peerPlayData.pool.length === 0 && (
-                <div className="text-center text-white/40 text-xl mt-8">
-                  Waiting for students to join...
-                </div>
-              )}
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-emerald-950 to-gray-900 p-8">
+          <div className="text-8xl mb-4">🎮</div>
+          <h1 className="text-7xl font-black text-white mb-3">Peer Play Time!</h1>
+          <p className="text-2xl text-white/60 mb-8">Play each other's Listening Journey games</p>
+          <div className="bg-white/10 backdrop-blur rounded-2xl p-8 max-w-3xl">
+            <div className="space-y-5 text-xl text-white/90">
+              <p className="flex items-center gap-4">
+                <span className="text-3xl">1️⃣</span>
+                <span>Click <span className="font-black text-emerald-400">Play Game</span> — your code is at the top of the screen</span>
+              </p>
+              <p className="flex items-center gap-4">
+                <span className="text-3xl">2️⃣</span>
+                <span>Tell your partner your <span className="font-black text-amber-400">5-digit code</span></span>
+              </p>
+              <p className="flex items-center gap-4">
+                <span className="text-3xl">3️⃣</span>
+                <span>Type their code in <span className="font-black text-purple-400">Play a Friend's Journey</span></span>
+              </p>
+              <p className="flex items-center gap-4">
+                <span className="text-3xl">4️⃣</span>
+                <span>Play their game, then try <span className="font-black text-white">another classmate's</span></span>
+              </p>
+              <p className="flex items-center gap-4">
+                <span className="text-3xl">🏆</span>
+                <span>Goal: get <span className="font-black text-yellow-400">5 people</span> to play YOUR game — check your <span className="font-black text-yellow-400">Scores</span> button!</span>
+              </p>
             </div>
           </div>
-        );
-      };
-      return <PeerPlayTeacherBoard />;
+        </div>
+      );
     }
 
     // Gallery Circle Teacher View (Listening Lab Lesson 5)

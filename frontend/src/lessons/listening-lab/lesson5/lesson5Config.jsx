@@ -258,7 +258,7 @@ export const lessonStages = [
   {
     id: 'peer-play',
     label: 'Peer Play',
-    description: 'Auto-matched pairs play each other\'s journey games with turn-based play.',
+    description: 'Students share codes and play each other\'s Listening Journey games.',
     type: 'activity',
     hasTimer: true,
     duration: 15,
