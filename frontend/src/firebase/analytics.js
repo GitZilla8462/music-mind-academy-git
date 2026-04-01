@@ -53,7 +53,7 @@ export const logLessonVisit = async (teacherUid, teacherEmail, lessonId) => {
 export const logSessionCreated = async (teacherUid, teacherEmail, sessionData) => {
   if (!teacherUid) return;
 
-  const { sessionCode, lessonId, lessonRoute } = sessionData;
+  const { sessionCode, lessonId, lessonRoute, classId, isClassSession } = sessionData;
 
   // Log to teacher's session history
   const sessionLogRef = push(ref(database, `teacherAnalytics/${teacherUid}/sessions`));
@@ -66,7 +66,9 @@ export const logSessionCreated = async (teacherUid, teacherEmail, sessionData) =
     duration: null,
     studentsJoined: 0,
     lastStage: 'join-code',
-    completed: false
+    completed: false,
+    ...(classId ? { classId } : {}),
+    ...(isClassSession ? { isClassSession: true } : {}),
   });
 
   // Update teacher stats
@@ -92,7 +94,9 @@ export const logSessionCreated = async (teacherUid, teacherEmail, sessionData) =
     duration: null,
     studentsJoined: 0,
     lastStage: 'join-code',
-    completed: false
+    completed: false,
+    ...(classId ? { classId } : {}),
+    ...(isClassSession ? { isClassSession: true } : {}),
   });
 
   console.log(`📊 Logged session created: ${sessionCode} by ${teacherEmail}`);

@@ -544,9 +544,9 @@ export const AdminDataProvider = ({ children }) => {
             found = true;
           }
 
-          // Try class-based session (sessionCode may be a class code)
+          // Try class-based session (use stored classId or look up by class code)
           if (!found || actualCount === 0) {
-            const matchedClassId = classCodeToId[sessionCode];
+            const matchedClassId = pilotSession.classId || classCodeToId[sessionCode];
             if (matchedClassId) {
               const classStudentsRef = ref(database, `classes/${matchedClassId}/currentSession/studentsJoined`);
               const classSnap = await get(classStudentsRef);
@@ -554,6 +554,10 @@ export const AdminDataProvider = ({ children }) => {
                 const classCount = Object.keys(classSnap.val()).length;
                 actualCount = Math.max(actualCount, classCount);
                 found = true;
+              }
+              // Also store classId on the pilotSession for future lookups
+              if (!pilotSession.classId) {
+                await update(ref(database, `pilotSessions/${sessionCode}`), { classId: matchedClassId, isClassSession: true });
               }
             }
           }
