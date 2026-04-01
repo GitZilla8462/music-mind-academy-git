@@ -3,7 +3,7 @@
 // Stickers are time-pinned: only visible when the playhead is at their timestamp
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { Save, RotateCcw, Sticker, Type, Moon, Sun, CloudRain, CloudSnow, Wind, CloudOff, Hammer, Presentation, Maximize, Minimize, Play, Pause, SkipBack, HelpCircle, Trophy, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Save, RotateCcw, Sticker, Type, Moon, Sun, CloudRain, CloudSnow, Wind, CloudOff, Hammer, Presentation, Maximize, Minimize, Play, Pause, SkipBack, HelpCircle, Trophy, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Users, Loader2 } from 'lucide-react';
 import PlanningGuide from './PlanningGuide';
 import EssayPanel from './EssayPanel';
 
@@ -23,6 +23,7 @@ import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInf
 import { useSession } from '../../../../context/SessionContext';
 import { useStudentAuth } from '../../../../context/StudentAuthContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
+import { getOrCreateShareCode, loadJourneyByShareCode, savePeerPlayScore, loadPeerPlayScores } from '../../../../firebase/shareCodes';
 
 let _nextSectionId = Date.now();
 
@@ -163,6 +164,26 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     })();
   }, [storageKey, viewMode, presetMode]);
 
+  // ── Share code generation (for peer play) ──────────────────────────
+  useEffect(() => {
+    if (viewMode || savedDataOverride) return;
+    const authInfo = getClassAuthInfo(pinSession);
+    if (!authInfo?.uid) return;
+
+    const lessonId = pieceConfig?.lessonId || 'default';
+    const activityId = storageKey.replace(/^.*?-/, '') || 'listening-journey';
+    const workKey = `${lessonId}-${activityId}`;
+
+    getOrCreateShareCode(authInfo.uid, workKey, authInfo.displayName)
+      .then(code => setShareCode(code))
+      .catch(err => console.error('Failed to get share code:', err));
+
+    // Also load peer play scores (who played my game)
+    loadPeerPlayScores(authInfo.uid, workKey)
+      .then(scores => setPeerPlayScores(scores))
+      .catch(err => console.error('Failed to load peer play scores:', err));
+  }, [storageKey, viewMode, savedDataOverride, pieceConfig?.lessonId, pinSession]);
+
   // Drawing tool state
   const [drawingTool, setDrawingTool] = useState(null); // null | 'brush' | 'pencil' | 'eraser'
   const [brushColor, setBrushColor] = useState('#ffffff');
@@ -215,6 +236,16 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     } catch { return []; }
   });
 
+  // ── Peer Play state ────────────────────────────────────────────────
+  const [shareCode, setShareCode] = useState(null);
+  const [showPeerPlayModal, setShowPeerPlayModal] = useState(false);
+  const [peerCodeInput, setPeerCodeInput] = useState('');
+  const [peerPlayError, setPeerPlayError] = useState('');
+  const [peerPlayLoading, setPeerPlayLoading] = useState(false);
+  const [peerPlayData, setPeerPlayData] = useState(null); // { data, displayName, studentUid, workKey }
+  const [peerPlayScores, setPeerPlayScores] = useState([]); // scores from people who played my game
+  const [showPeerScores, setShowPeerScores] = useState(false);
+
   // Teacher save command listener
   const { sessionCode } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
@@ -264,13 +295,25 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         localStorage.setItem(highScoresKey, JSON.stringify(updated));
         return updated;
       });
-      // For peer play: notify parent that game is done (after a brief delay to show score)
-      if (savedDataOverride && onComplete) {
+      // For peer play: save score to creator's record and return to own journey
+      if (peerPlayData) {
+        const authInfo = getClassAuthInfo(pinSession);
+        if (authInfo?.uid) {
+          savePeerPlayScore(peerPlayData.studentUid, peerPlayData.workKey, authInfo.uid, authInfo.displayName || name, gameScore)
+            .catch(err => console.error('Failed to save peer play score:', err));
+        }
+        // Return to own journey after showing score
+        setTimeout(() => {
+          setPeerPlayData(null);
+          setGamePhase('idle');
+          setAppMode('build');
+        }, 3000);
+      } else if (savedDataOverride && onComplete) {
         setTimeout(() => onComplete(), 3000);
       }
     }
     prevIsPlayingRef.current = isPlaying;
-  }, [isPlaying, currentTime, gameMode, gamePhase, gameScore, playerName, highScoresKey, savedDataOverride, onComplete]);
+  }, [isPlaying, currentTime, gameMode, gamePhase, gameScore, playerName, highScoresKey, savedDataOverride, onComplete, peerPlayData, pinSession]);
 
   // When switching to present/fullscreen in game mode, show start screen
   const setAppModeWithGame = useCallback((mode) => {
@@ -304,6 +347,77 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     // Small delay so rewind settles before play
     setTimeout(() => togglePlay(), 100);
   }, [rewind, togglePlay]);
+
+  // Load a friend's journey by share code
+  const handleLoadPeerJourney = useCallback(async () => {
+    if (!peerCodeInput.trim()) return;
+    setPeerPlayError('');
+    setPeerPlayLoading(true);
+    try {
+      // Don't let them play their own game
+      if (peerCodeInput.trim() === shareCode) {
+        setPeerPlayError("That's your own game!");
+        setPeerPlayLoading(false);
+        return;
+      }
+      const result = await loadJourneyByShareCode(peerCodeInput.trim());
+      if (!result) {
+        setPeerPlayError('No game found for that code');
+        setPeerPlayLoading(false);
+        return;
+      }
+      // Load peer's journey data into game mode
+      setPeerPlayData(result);
+      setShowPeerPlayModal(false);
+      setPeerCodeInput('');
+      // Set up sections & items from peer data
+      const peerSections = result.data.sections || [];
+      const defaultSections = pieceConfig?.defaultSections || [];
+      setSections(peerSections.map((s, i) => {
+        const fallbackSection = defaultSections[i] || {};
+        return {
+          ...s,
+          sky: s.sky || fallbackSection.sky || 'clear-day',
+          scene: s.scene || fallbackSection.scene || 'forest',
+          ground: s.ground ?? fallbackSection.ground ?? 'grass',
+        };
+      }));
+      if (result.data.items) {
+        setItems(result.data.items.map(item => ({
+          ...item,
+          _collected: false,
+          placedAtOffset: item.timestamp != null && peerSections.length > 0
+            ? getScrollOffsetAtTime(item.timestamp, peerSections) : item.placedAtOffset
+        })));
+      }
+      if (result.data.character) setCharacter(result.data.character);
+      // Switch to game mode
+      setAppMode('fullscreen');
+      setGamePhase('ready');
+      rewind();
+      setBirdY(0.35);
+      setBirdX(0.12);
+      setGameScore(0);
+      collectedIdsRef.current = new Set();
+      setCollectedIds(new Set());
+      setBirdHurt(false);
+      setPlayerName('');
+    } catch (err) {
+      console.error('Failed to load peer journey:', err);
+      setPeerPlayError('Something went wrong. Try again.');
+    } finally {
+      setPeerPlayLoading(false);
+    }
+  }, [peerCodeInput, shareCode, pieceConfig, rewind]);
+
+  // Return to own journey after peer play
+  const handleExitPeerPlay = useCallback(() => {
+    setPeerPlayData(null);
+    setGamePhase('idle');
+    setAppMode('build');
+    // Reload own data — trigger a re-mount by reloading from storage
+    window.location.reload();
+  }, []);
 
   // Pause / Resume / Restart for game mode
   const pauseGame = useCallback(() => {
@@ -941,6 +1055,31 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   return (
     <div className="h-screen flex flex-col bg-gray-900 text-white overflow-hidden">
+      {/* Game code pill — always visible top-left */}
+      {shareCode && !viewMode && !savedDataOverride && (
+        <div className="absolute top-2 left-2 z-[250] bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/15 flex items-center gap-2">
+          <span className="text-[11px] sm:text-xs text-white/70 font-medium">
+            {(getClassAuthInfo(pinSession)?.displayName || 'My')}&#39;s Game Code:
+          </span>
+          <span className="text-sm sm:text-base font-black text-amber-400 tracking-wider">{shareCode}</span>
+        </div>
+      )}
+
+      {/* Peer play: show whose game you're playing */}
+      {peerPlayData && (
+        <div className="absolute top-2 left-2 z-[250] bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-purple-400/30 flex items-center gap-2">
+          <span className="text-[11px] sm:text-xs text-purple-300 font-medium">
+            Playing {peerPlayData.displayName}&#39;s Journey
+          </span>
+          <button
+            onClick={handleExitPeerPlay}
+            className="text-[10px] text-white/50 hover:text-white underline ml-1"
+          >
+            Exit
+          </button>
+        </div>
+      )}
+
       {/* Header — hidden in fullscreen and game mode */}
       {!isFullscreen && !isGamePlaying && (
         <div className="flex items-center justify-between px-2 sm:px-4 py-1 sm:py-1.5 bg-black/30 border-b border-white/10 flex-shrink-0 flex-nowrap overflow-hidden">
@@ -1091,6 +1230,15 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             >
               <Trophy size={14} /> <span className="hidden sm:inline">Scores</span>
             </button>
+            {peerPlayScores.length > 0 && !savedDataOverride && (
+              <button
+                onClick={() => setShowPeerScores(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] sm:text-sm font-bold bg-purple-500/20 text-purple-300 hover:bg-purple-500/40 transition-colors"
+                title="Who played my game"
+              >
+                <Users size={14} /> <span className="hidden sm:inline">{peerPlayScores.length} Played</span><span className="sm:hidden">{peerPlayScores.length}</span>
+              </button>
+            )}
 
             <div className="w-px h-5 sm:h-6 bg-white/20 mx-0.5 sm:mx-1" />
 
@@ -1225,14 +1373,23 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       {/* Game Start overlay */}
       {gameMode && (isPresent || isFullscreen) && gamePhase === 'ready' && (
         <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-gray-900/90 rounded-3xl border border-white/10 shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
+          <div className="bg-gray-900/90 rounded-3xl border border-white/10 shadow-2xl max-w-lg w-full mx-4 overflow-hidden max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-center">
               <div className="text-4xl mb-1">🎮</div>
-              <h2 className="text-3xl font-black text-white">Play This Journey!</h2>
+              <h2 className="text-3xl font-black text-white">{peerPlayData ? `${peerPlayData.displayName}'s Journey` : 'Play This Journey!'}</h2>
             </div>
 
             <div className="px-6 py-5 space-y-4">
+              {/* My Code — prominent section */}
+              {shareCode && !peerPlayData && !savedDataOverride && (
+                <div className="bg-amber-500/10 border-2 border-amber-500/40 rounded-xl p-4 text-center">
+                  <p className="text-sm font-black text-amber-300 uppercase tracking-wider mb-2">My Code</p>
+                  <p className="text-5xl font-black text-amber-400 tracking-[0.3em]">{shareCode}</p>
+                  <p className="text-xs text-white/40 mt-2">Show this to your partner so they can play your game</p>
+                </div>
+              )}
+
               {/* Name entry */}
               <div>
                 <label className="text-sm font-bold text-white/70 block mb-1">Your Name</label>
@@ -1301,6 +1458,36 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               >
                 <Play size={24} fill="white" /> START
               </button>
+
+              {/* Play a Friend's Journey — only when not already in peer play */}
+              {!peerPlayData && !savedDataOverride && (
+                <div className="border-t border-white/10 pt-4">
+                  <p className="text-xs font-bold text-purple-300/70 uppercase tracking-wider mb-2 text-center">Play a Friend's Journey</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={peerCodeInput}
+                      onChange={(e) => { setPeerCodeInput(e.target.value.replace(/\D/g, '').slice(0, 5)); setPeerPlayError(''); }}
+                      placeholder="Enter 5-digit code"
+                      maxLength={5}
+                      className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-purple-400/30 text-white text-lg font-black text-center tracking-[0.2em] placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+                      onKeyDown={(e) => { if (e.key === 'Enter' && peerCodeInput.length === 5) handleLoadPeerJourney(); }}
+                    />
+                    <button
+                      onClick={handleLoadPeerJourney}
+                      disabled={peerCodeInput.length !== 5 || peerPlayLoading}
+                      className="px-5 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-black rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {peerPlayLoading ? <Loader2 size={18} className="animate-spin" /> : <Users size={18} />}
+                      Go
+                    </button>
+                  </div>
+                  {peerPlayError && (
+                    <p className="text-red-400 text-sm text-center font-medium mt-2">{peerPlayError}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1403,6 +1590,39 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               )}
               <button
                 onClick={() => setShowScoreboard(false)}
+                className="w-full mt-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Peer Scores overlay — who played my game */}
+      {showPeerScores && (
+        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowPeerScores(false)}>
+          <div className="bg-gray-900/90 rounded-3xl border border-white/10 shadow-2xl max-w-sm w-full mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 text-center">
+              <Users size={32} className="text-white mx-auto mb-1" />
+              <h2 className="text-2xl font-black text-white">Who Played My Game</h2>
+            </div>
+            <div className="px-6 py-5">
+              {peerPlayScores.length > 0 ? (
+                <div className="space-y-1.5">
+                  {peerPlayScores.map((entry, i) => (
+                    <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg ${i === 0 ? 'bg-purple-500/15' : 'bg-white/5'}`}>
+                      <span className="w-6 text-center font-bold text-white/50">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
+                      <span className="flex-1 font-bold text-white truncate">{entry.playerName}</span>
+                      <span className={`font-black tabular-nums ${entry.score >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{entry.score}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-white/40 py-4">No one has played your game yet — share your code!</p>
+              )}
+              <button
+                onClick={() => setShowPeerScores(false)}
                 className="w-full mt-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors"
               >
                 Close

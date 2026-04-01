@@ -216,61 +216,12 @@ function JoinWithCode() {
       {/* Main Card */}
       <div className="w-full max-w-sm">
         <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-          {isPinAuth && activeSession ? (
-            /* Logged in + active session → Join Lesson */
+          {isPinAuth && (activeSession || (!checkingSession && !activeSession)) ? (
+            /* Logged in → always go to dashboard */
             <>
               <div className="text-center mb-4">
                 <h2 className="text-lg font-semibold text-gray-800 mb-1">Welcome back, {currentStudentInfo?.displayName}</h2>
                 <p className="text-gray-500 text-sm">{pinSession?.className}</p>
-              </div>
-
-              <button
-                onClick={handleJoinActiveSession}
-                disabled={isJoining}
-                className="w-full bg-blue-700 hover:bg-blue-800 text-white font-semibold py-3.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md text-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isJoining ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    Joining...
-                  </>
-                ) : (
-                  <>
-                    <LogIn size={18} />
-                    Join Lesson
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={() => navigate('/student/home')}
-                className="w-full mt-3 bg-white hover:bg-gray-50 text-gray-600 font-medium py-2.5 px-4 rounded-lg border border-gray-300 transition-colors text-sm"
-              >
-                Go to Dashboard
-              </button>
-
-              <button
-                onClick={() => signOut()}
-                className="w-full mt-2 text-gray-400 hover:text-gray-600 text-xs py-1 transition-colors"
-              >
-                Not you? Sign out
-              </button>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm text-center mt-3">
-                  {error}
-                </div>
-              )}
-            </>
-          ) : isPinAuth && !checkingSession && !activeSession ? (
-            /* Logged in but no active session */
-            <>
-              <div className="text-center mb-4">
-                <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Clock className="w-6 h-6 text-amber-500" />
-                </div>
-                <h2 className="text-lg font-semibold text-gray-800 mb-1">Hi, {currentStudentInfo?.displayName}</h2>
-                <p className="text-gray-500 text-sm">No lesson is running right now</p>
               </div>
 
               <button
@@ -283,10 +234,18 @@ function JoinWithCode() {
 
               <button
                 onClick={() => signOut()}
-                className="w-full mt-2 text-gray-400 hover:text-gray-600 text-xs py-1 transition-colors"
+                className="w-full mt-3 text-red-400 hover:text-red-600 text-sm font-medium py-2 transition-colors"
               >
                 Not you? Sign out
               </button>
+            </>
+          ) : isPinAuth && checkingSession ? (
+            /* Still checking for active session */
+            <>
+              <div className="text-center py-4">
+                <Loader2 size={24} className="animate-spin text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">Loading...</p>
+              </div>
             </>
           ) : (
             /* Not authenticated — username + password form */
