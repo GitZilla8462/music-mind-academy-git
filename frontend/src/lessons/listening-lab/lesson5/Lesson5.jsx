@@ -267,17 +267,12 @@ const Lesson5 = () => {
           />
           {/* Directions modal for current stage */}
           {stageDirectionsPages && (
-            <>
-              <DirectionsModal
-                title={stageDirectionsPages[0]?.title || 'Directions'}
-                isOpen={decoyDirections.isOpen}
-                onClose={decoyDirections.close}
-                pages={stageDirectionsPages}
-              />
-              {!decoyDirections.isOpen && (
-                <DirectionsReopenButton onClick={decoyDirections.open} label="Directions" />
-              )}
-            </>
+            <DirectionsModal
+              title={stageDirectionsPages[0]?.title || 'Directions'}
+              isOpen={decoyDirections.isOpen}
+              onClose={decoyDirections.close}
+              pages={stageDirectionsPages}
+            />
           )}}
           <TransitionOverlay isVisible={showTransition} />
         </>

@@ -302,18 +302,13 @@ const Lesson3 = () => {
           />
           {/* Student directions modal */}
           {currentStageData.studentDirections && (
-            <>
-              <DirectionsModal
-                title={currentStageData.label || 'Directions'}
-                isOpen={activityDirections.isOpen}
-                onClose={activityDirections.close}
-                steps={currentStageData.studentDirections}
-                bonusText={currentStageData.studentDirectionsBonusText}
-              />
-              {!activityDirections.isOpen && (
-                <DirectionsReopenButton onClick={activityDirections.open} />
-              )}
-            </>
+            <DirectionsModal
+              title={currentStageData.label || 'Directions'}
+              isOpen={activityDirections.isOpen}
+              onClose={activityDirections.close}
+              steps={currentStageData.studentDirections}
+              bonusText={currentStageData.studentDirectionsBonusText}
+            />
           )}
           {/* Pair and Share modal overlay on student screen */}
           {currentStage === 'pair-and-share' && (
