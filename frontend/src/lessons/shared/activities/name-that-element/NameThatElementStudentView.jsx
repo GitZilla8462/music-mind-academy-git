@@ -200,7 +200,6 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
     const unsubscribe = onValue(ref(db, studentsPath), (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
           id,
           name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
@@ -208,6 +207,16 @@ const NameThatElementStudentView = ({ onComplete, isSessionMode = true }) => {
           playerColor: s.playerColor || '#3B82F6',
           playerEmoji: s.playerEmoji || '🎵'
         }));
+      // Disambiguate duplicate display names by appending a number
+      const nameCounts = {};
+      list.forEach(s => { nameCounts[s.name] = (nameCounts[s.name] || 0) + 1; });
+      const namesSeen = {};
+      list.forEach(s => {
+        if (nameCounts[s.name] > 1) {
+          namesSeen[s.name] = (namesSeen[s.name] || 0) + 1;
+          s.name = `${s.name} (${namesSeen[s.name]})`;
+        }
+      });
       const sorted = [...list].sort((a, b) => b.score - a.score);
       setLeaderboard(sorted);
       const myIndex = sorted.findIndex(s => s.id === userId);

@@ -21,6 +21,7 @@ import { AUDIO_PATH, TOTAL_DURATION, CHARACTER_OPTIONS, SCENE_SKY_MAP, SECTION_C
 import { SCENE_GROUND_MAP } from './config/groundTypes';
 import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
 import { useSession } from '../../../../context/SessionContext';
+import { useStudentAuth } from '../../../../context/StudentAuthContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 let _nextSectionId = Date.now();
@@ -29,6 +30,9 @@ const DRAW_COLORS = ['#ffffff', '#000000', '#ef4444', '#f97316', '#eab308', '#22
 const DRAW_SIZES = [4, 8, 16, 24, 32];
 
 const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null, allowedEnvironments = null, allowedCharacters = null, hideDrawingTools = false, gameMode = false, hideDecoys = false, defaultScene = null, defaultCharacter: defaultCharacterProp = null, skipSavedData = false, onDirectionsClick = null, savedDataOverride = null }) => {
+  // In-memory auth fallback for managed Chromebooks where localStorage is broken
+  const { pinSession } = useStudentAuth();
+
   // If pieceConfig is provided, use it instead of defaults
   const audioPath = pieceConfig?.audioPath || AUDIO_PATH;
   const audioVolume = pieceConfig?.volume || 1.0;
@@ -112,7 +116,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   // This ensures data saved by teacher's "Save All" is loaded even if localStorage has stale data
   useEffect(() => {
     if (skipSavedData || savedDataOverride) return;
-    const authInfo = getClassAuthInfo();
+    const authInfo = getClassAuthInfo(pinSession);
     if (!authInfo?.uid) return;
 
     (async () => {
@@ -465,7 +469,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   // ── Save / Reset ───────────────────────────────────────────────────
 
   const handleSave = useCallback(() => {
-    const authInfo = getClassAuthInfo();
+    const authInfo = getClassAuthInfo(pinSession);
     // Strip ephemeral _placedWallTime so loaded stickers get entry animation on replay
     const cleanItems = items.map(({ _placedWallTime, ...rest }) => rest);
     const drawingData = drawingCanvasRef.current?.getDataURL() || null;
@@ -480,7 +484,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     }, null, authInfo);
     setSaveStatus('saved');
     setTimeout(() => setSaveStatus(null), 2000);
-  }, [sections, character, items, guideData, essayData, audioPath, audioVolume, storageKey, pieceConfig]);
+  }, [sections, character, items, guideData, essayData, audioPath, audioVolume, storageKey, pieceConfig, pinSession]);
 
   // Track if teacher save already fired — prevents unmount save from overwriting
   const teacherSaveTriggeredRef = useRef(false);
@@ -516,7 +520,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
       console.log('💾 Auto-saving listening journey on unmount...');
       try {
-        const authInfo = getClassAuthInfo();
+        const authInfo = getClassAuthInfo(pinSession);
         const cleanItems = unmountItemsRef.current.map(({ _placedWallTime, ...rest }) => rest);
         const drawingData = drawingCanvasRef.current?.getDataURL() || null;
         saveStudentWork(storageKey, {

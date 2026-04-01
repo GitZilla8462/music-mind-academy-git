@@ -20,8 +20,10 @@ const PIN_SESSION_KEY = 'student-pin-session';
  * Get the current student ID.
  * If student is logged in via PIN, returns a seat-based ID so saves are per-student
  * (important on shared Chromebooks). Otherwise falls back to a persistent anonymous ID.
+ *
+ * @param {object} [fallbackSession] - Optional in-memory session from useStudentAuth()
  */
-export const getStudentId = () => {
+export const getStudentId = (fallbackSession) => {
   // Prefer seat-based ID from PIN session (even if expired) so localStorage
   // lookups always resolve to the same key on shared Chromebooks.
   // Expiry only matters for Firebase auth (checked in getClassAuthInfo), not storage keys.
@@ -34,6 +36,11 @@ export const getStudentId = () => {
       }
     }
   } catch { /* fall through */ }
+
+  // In-memory fallback from React context (managed Chromebooks with broken localStorage)
+  if (fallbackSession?.classId && fallbackSession?.seatNumber != null) {
+    return `seat-${fallbackSession.classId}-${fallbackSession.seatNumber}`;
+  }
 
   // Fallback: anonymous ID
   let id = safeStorage.getItem('anonymous-student-id');
@@ -55,27 +62,37 @@ const getAnonymousStudentId = () => {
 /**
  * Auto-detect class auth info from PIN session in localStorage.
  * Returns { uid, classId } if student is in an active class session, null otherwise.
+ *
+ * @param {object} [fallbackSession] - Optional in-memory session from useStudentAuth().
+ *   Used when localStorage is unavailable on managed Chromebooks.
  */
-export const getClassAuthInfo = () => {
+export const getClassAuthInfo = (fallbackSession) => {
   try {
     const saved = safeStorage.getItem(PIN_SESSION_KEY);
-    if (!saved) return null;
+    if (saved) {
+      const session = JSON.parse(saved);
+      if (session.expiresAt && session.expiresAt < Date.now()) return null;
+      if (!session.classId || session.seatNumber == null) return null;
+      return {
+        uid: `seat-${session.classId}-${session.seatNumber}`,
+        classId: session.classId,
+        displayName: session.displayName || `Seat ${session.seatNumber}`
+      };
+    }
+  } catch { /* fall through to fallback */ }
 
-    const session = JSON.parse(saved);
-
-    // Check if session is expired
-    if (session.expiresAt && session.expiresAt < Date.now()) return null;
-
-    if (!session.classId || session.seatNumber == null) return null;
-
-    return {
-      uid: `seat-${session.classId}-${session.seatNumber}`,
-      classId: session.classId,
-      displayName: session.displayName || `Seat ${session.seatNumber}`
-    };
-  } catch {
-    return null;
+  // Fallback: use in-memory session from React context (covers managed Chromebooks
+  // where localStorage is blocked and safeStorage silently no-ops)
+  if (fallbackSession?.classId && fallbackSession?.seatNumber != null) {
+    if (!fallbackSession.expiresAt || fallbackSession.expiresAt >= Date.now()) {
+      return {
+        uid: `seat-${fallbackSession.classId}-${fallbackSession.seatNumber}`,
+        classId: fallbackSession.classId,
+        displayName: fallbackSession.displayName || `Seat ${fallbackSession.seatNumber}`
+      };
+    }
   }
+  return null;
 };
 
 /**

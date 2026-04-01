@@ -332,18 +332,18 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
       }
       audio.play().then(() => {
         setIsAudioPlaying(true);
-        setHasPlayedOnce(true);
         if (hasTimeRange) {
           const duration = (currentQuestion.audio.endTime - currentQuestion.audio.startTime) * 1000;
           stopTimerRef.current = setTimeout(() => {
             audio.pause();
             setIsAudioPlaying(false);
+            setHasPlayedOnce(true);
           }, duration);
         }
       }).catch(() => setIsAudioPlaying(false));
     }, { once: true });
 
-    audio.addEventListener('ended', () => setIsAudioPlaying(false));
+    audio.addEventListener('ended', () => { setIsAudioPlaying(false); setHasPlayedOnce(true); });
     audio.addEventListener('error', () => setIsAudioPlaying(false));
     audio.load();
   }, [currentQuestion]);
@@ -376,7 +376,6 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
           id,
           name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
@@ -386,6 +385,16 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
           playerColor: s.playerColor || '#3B82F6',
           playerEmoji: s.playerEmoji || '🎵'
         }));
+      // Disambiguate duplicate display names by appending a number
+      const nameCounts = {};
+      list.forEach(s => { nameCounts[s.name] = (nameCounts[s.name] || 0) + 1; });
+      const namesSeen = {};
+      list.forEach(s => {
+        if (nameCounts[s.name] > 1) {
+          namesSeen[s.name] = (namesSeen[s.name] || 0) + 1;
+          s.name = `${s.name} (${namesSeen[s.name]})`;
+        }
+      });
 
       setStudents(list);
       setLockedCount(list.filter(s => s.answer).length);
@@ -607,88 +616,79 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
 
             {/* ==================== QUESTION ==================== */}
             {gamePhase === 'question' && currentQuestion && (
-              <div className="flex flex-col h-full w-full">
+              <div className="text-center">
                 {/* Question prompt */}
-                <div className="text-center mb-4 flex-shrink-0">
-                  <p className="text-3xl font-bold text-teal-200">{currentQuestion.prompt}</p>
+                <div className="text-5xl font-black mb-2">
+                  <Volume2 size={48} className="inline mr-3" />
+                  {currentQuestion.audio ? 'LISTEN!' : 'THINK!'}
                 </div>
+                <p className="text-2xl text-teal-200 mb-4">Q{currentQuestionIndex + 1} — {currentQuestion.prompt}</p>
 
-                {/* A/B/C/D grid */}
-                <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 max-w-4xl mx-auto w-full">
-                  {Object.entries(CORNERS).map(([key, corner]) => {
-                    const count = answerCounts[key] || 0;
-                    return (
-                      <div
-                        key={key}
-                        className="rounded-2xl flex flex-col items-center justify-center text-center transition-all relative p-4"
-                        style={{
-                          backgroundColor: `${corner.color}25`,
-                          borderColor: corner.color,
-                          borderWidth: '3px'
-                        }}
-                      >
-                        <div className="text-2xl font-black mb-1" style={{ color: corner.color }}>{key}</div>
-                        <div className="text-2xl font-bold text-white">{currentQuestion.answers[key]}</div>
-                        <div className="absolute bottom-2 right-3 bg-black/30 rounded-xl px-3 py-1">
-                          <span className="text-xl font-bold" style={{ color: corner.color }}>{count}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Bottom control bar */}
-                <div className="flex flex-col items-center mt-4 flex-shrink-0 gap-3">
-                  {/* Answer count */}
-                  <div className="bg-white/10 rounded-2xl px-5 py-1.5">
-                    <span className="text-2xl font-black text-green-400">{lockedCount}</span>
-                    <span className="text-base text-white/70"> / {students.length} answered</span>
-                  </div>
-
-                  {/* Centered controls */}
-                  <div className="flex items-center justify-center gap-4">
-                    {currentQuestion.audio ? (
-                      <>
-                        {/* Play / Pause button */}
-                        <button
-                          onClick={isAudioPlaying ? stopAudio : playAudio}
-                          className={`w-16 h-16 rounded-full flex items-center justify-center text-white transition-all hover:scale-105 active:scale-95 shadow-lg ${
-                            isAudioPlaying
-                              ? 'bg-gradient-to-r from-orange-500 to-red-500 animate-pulse shadow-orange-500/30'
-                              : hasPlayedOnce
-                                ? 'bg-gradient-to-r from-slate-600 to-slate-500 shadow-slate-500/30'
-                                : 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-emerald-500/30'
-                          }`}
-                        >
-                          {isAudioPlaying ? (
-                            <Pause size={28} />
-                          ) : hasPlayedOnce ? (
-                            <RotateCcw size={24} />
-                          ) : (
-                            <Play size={28} className="ml-1" />
-                          )}
-                        </button>
-
-                        {/* Reveal button — appears after first play */}
-                        {hasPlayedOnce && (
-                          <button
-                            onClick={reveal}
-                            className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl text-xl font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-orange-500/30"
+                {/* Answer options — single horizontal row */}
+                {(() => {
+                  const answerKeys = Object.keys(currentQuestion.answers);
+                  return (
+                    <div className={`grid grid-cols-${answerKeys.length} gap-3 max-w-3xl mx-auto mb-4`} style={{ gridTemplateColumns: `repeat(${answerKeys.length}, minmax(0, 1fr))` }}>
+                      {answerKeys.map(key => {
+                        const corner = CORNERS[key];
+                        const count = answerCounts[key] || 0;
+                        return (
+                          <div
+                            key={key}
+                            className="p-3 rounded-xl text-center"
+                            style={{ backgroundColor: `${corner.color}40`, borderColor: corner.color, borderWidth: '2px' }}
                           >
-                            <Eye size={24} /> Reveal Answer
-                          </button>
-                        )}
-                      </>
-                    ) : (
-                      /* Knowledge question — no audio, just reveal */
-                      <button
-                        onClick={reveal}
-                        className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl text-xl font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-orange-500/30"
-                      >
-                        <Eye size={24} /> Reveal Answer
-                      </button>
-                    )}
-                  </div>
+                            <div className="text-2xl font-black mb-1" style={{ color: corner.color }}>{key}</div>
+                            <div className="text-lg font-bold text-white">{currentQuestion.answers[key]}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
+                {/* Answer count */}
+                <div className="bg-white/10 rounded-2xl px-6 py-3 inline-block mb-4">
+                  <span className="text-4xl font-black text-green-400">{lockedCount}</span>
+                  <span className="text-xl text-white/70"> / {students.length} answered</span>
+                </div>
+
+                {/* Controls — big buttons like Tempo Detective */}
+                <div className="flex gap-4 justify-center">
+                  {currentQuestion.audio ? (
+                    <>
+                      {isAudioPlaying ? (
+                        <button
+                          onClick={stopAudio}
+                          className="px-6 py-3 rounded-2xl text-xl font-bold flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 hover:scale-105 transition-all"
+                        >
+                          <Pause size={24} /> Stop
+                        </button>
+                      ) : (
+                        <button
+                          onClick={playAudio}
+                          className="px-6 py-3 rounded-2xl text-xl font-bold flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 hover:scale-105 transition-all"
+                        >
+                          <Play size={24} /> {hasPlayedOnce ? 'Replay Clip' : 'Play Clip'}
+                        </button>
+                      )}
+                      {hasPlayedOnce && (
+                        <button
+                          onClick={reveal}
+                          className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
+                        >
+                          <Eye size={28} /> Reveal Answer
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <button
+                      onClick={reveal}
+                      className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-2xl text-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
+                    >
+                      <Eye size={28} /> Reveal Answer
+                    </button>
+                  )}
                 </div>
               </div>
             )}
