@@ -59,20 +59,13 @@ export const lessonSections = [
     estimatedTime: 10,
     stages: [
       {
-        id: 'play-intro',
-        type: 'summary',
-        label: 'How Peer Play Works',
-        description: 'Explain the automatic matchmaking system and turn-based play.',
-        duration: 2
-      },
-      {
         id: 'peer-play',
         type: 'activity',
         label: 'Peer Play',
         duration: 15,
         hasTimer: true,
         trackProgress: false,
-        description: 'Auto-matched pairs play each other\'s journeys. Students meet up, take turns, and watch each other play.'
+        description: 'Students share codes and play each other\'s Listening Journey games.'
       }
     ]
   },
@@ -223,47 +216,37 @@ export const lessonStages = [
     }
   },
   {
-    id: 'play-intro',
-    label: 'How Peer Play Works',
-    description: 'Explain the automatic matchmaking and turn-based play.',
-    type: 'summary',
-    duration: 2,
-    presentationView: {
-      type: 'summary',
-      title: 'Peer Play',
-      subtitle: 'Play Each Other\'s Journeys',
-      sections: [
-        {
-          heading: 'How It Works',
-          bullets: [
-            '1. You\'ll be automatically matched with a partner',
-            '2. Your Chromebook loads THEIR journey — their Chromebook loads YOURS',
-            '3. Meet up — one person watches while the other plays',
-            '4. Then switch — now YOU watch them play YOUR journey',
-            '5. When both turns are done, you get a new partner automatically'
-          ]
-        },
-        {
-          heading: 'Controls',
-          bullets: [
-            'Use arrow keys to fly the bird and collect stickers',
-            'Real stickers = +10 points',
-            'Decoys = -5 points',
-            'Try to get the highest score on your partner\'s game'
-          ]
-        }
-      ]
-    }
-  },
-  {
     id: 'peer-play',
     label: 'Peer Play',
     description: 'Students share codes and play each other\'s Listening Journey games.',
     type: 'activity',
     hasTimer: true,
     duration: 15,
+    showDirectionsOnStudent: true,
     presentationView: {
       type: 'peer-play-teacher',
+      pieceConfig: buildPieceConfig(getPieceById('mountain-king')),
+      journeyProps: { gameMode: true },
+      directions: [
+        {
+          title: 'Peer Play Time!',
+          items: [
+            'Click "Play Game" — your 5-digit code is at the top',
+            'Tell your partner your code',
+            'Type their code in "Play a Friend\'s Journey" and play!',
+            'Try to get 5 people to play YOUR game'
+          ]
+        },
+        {
+          title: 'How to Play',
+          items: [
+            'Use arrow keys or WASD to fly the bird',
+            'Collect real stickers for +10 points',
+            'Dodge decoys — they cost -5 points',
+            'Check your Scores button to see who played your game!'
+          ]
+        }
+      ]
     }
   },
   {
@@ -306,8 +289,7 @@ export const getActivityForStage = (stage) => {
   const stageMap = {
     'welcome-back': 'summary',
     'decoy-time': 'listening-journey',
-    'play-intro': 'summary',
-    'peer-play': 'peer-play',
+    'peer-play': 'listening-journey',
     'exit-ticket-intro': 'summary',
     'exit-ticket': 'exit-ticket'
   };

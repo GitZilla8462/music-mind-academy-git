@@ -508,15 +508,18 @@ const PresentationContent = ({
   const [compositionDuration, setCompositionDuration] = useState(60);
   const [compositionVolume, setCompositionVolume] = useState(0.7);
 
-  // Reset present mode when stage changes
+  // Reset present mode and directions modals when stage changes
+  const animatorDirDismissedRef = useRef(false);
+  const peerPlayDirDismissedRef = useRef(false);
+
   useEffect(() => {
     setCompositionPresentMode(false);
     setCompositionPlaying(false);
     setCompositionTime(0);
+    // Reset directions modals so they auto-open on each new stage
+    animatorDirDismissedRef.current = false;
+    peerPlayDirDismissedRef.current = false;
   }, [currentStage]);
-
-  // Persist animator directions dismissed state across re-renders
-  const animatorDirDismissedRef = useRef(false);
   const stringsDynamicsDirDismissedRef = useRef(false);
   const tempoDetectiveDirDismissedRef = useRef(false);
 
@@ -1862,35 +1865,24 @@ const PresentationContent = ({
 
     // Peer Play Teacher Board (Listening Lab Lesson 5)
     if (type === 'peer-play-teacher') {
+      const configJourneyProps = currentStageData.presentationView.journeyProps || {};
+      const customDirections = currentStageData.presentationView.directions || null;
       return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-emerald-950 to-gray-900 p-8">
-          <div className="text-8xl mb-4">🎮</div>
-          <h1 className="text-7xl font-black text-white mb-3">Peer Play Time!</h1>
-          <p className="text-2xl text-white/60 mb-8">Play each other's Listening Journey games</p>
-          <div className="bg-white/10 backdrop-blur rounded-2xl p-8 max-w-3xl">
-            <div className="space-y-5 text-xl text-white/90">
-              <p className="flex items-center gap-4">
-                <span className="text-3xl">1️⃣</span>
-                <span>Click <span className="font-black text-emerald-400">Play Game</span> — your code is at the top of the screen</span>
-              </p>
-              <p className="flex items-center gap-4">
-                <span className="text-3xl">2️⃣</span>
-                <span>Tell your partner your <span className="font-black text-amber-400">5-digit code</span></span>
-              </p>
-              <p className="flex items-center gap-4">
-                <span className="text-3xl">3️⃣</span>
-                <span>Type their code in <span className="font-black text-purple-400">Play a Friend's Journey</span></span>
-              </p>
-              <p className="flex items-center gap-4">
-                <span className="text-3xl">4️⃣</span>
-                <span>Play their game, then try <span className="font-black text-white">another classmate's</span></span>
-              </p>
-              <p className="flex items-center gap-4">
-                <span className="text-3xl">🏆</span>
-                <span>Goal: get <span className="font-black text-yellow-400">5 people</span> to play YOUR game — check your <span className="font-black text-yellow-400">Scores</span> button!</span>
-              </p>
-            </div>
-          </div>
+        <div className="absolute inset-0">
+          <AnimatorDirectionsOverlay
+            ListeningJourneyComponent={ListeningJourney}
+            pieceConfig={pieceConfig}
+            dismissedRef={peerPlayDirDismissedRef}
+            customDirections={customDirections}
+            journeyProps={{
+              skipSavedData: true,
+              hideDrawingTools: true,
+              allowedCharacters: ['yellow-bird', 'crow', 'pigeon'],
+              allowedEnvironments: ['clouds-day', 'clouds-lavender', 'clouds-sunset', 'clouds-night'],
+              defaultScene: 'clouds-day',
+              ...configJourneyProps,
+            }}
+          />
         </div>
       );
     }
@@ -1928,22 +1920,40 @@ const PresentationContent = ({
     }
 
     if (type === 'exit-ticket-teacher') {
-      return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-8">
-          <h1 className="text-6xl font-black text-white mb-4">Exit Ticket</h1>
-          <p className="text-2xl text-white/70 mb-8">Students are answering on their Chromebooks</p>
-          <div className="bg-white/10 backdrop-blur rounded-2xl p-8 max-w-2xl w-full">
-            <div className="space-y-4 text-lg text-white/90">
-              <p className="font-bold text-white text-xl mb-2">Questions:</p>
-              <p>1. Which musical element describes how LOUD or SOFT the music is?</p>
-              <p>2. What does "Allegro" tell you about the music?</p>
-              <p className="mt-4 font-bold text-white text-xl">Reflections:</p>
-              <p>3. What was the most interesting thing you learned?</p>
-              <p>4. How has your listening changed since Lesson 1?</p>
+      const ExitTicketTeacherView = () => {
+        const [showAnswers, setShowAnswers] = React.useState(false);
+        return (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 p-8">
+            <h1 className="text-6xl font-black text-white mb-2">Exit Ticket</h1>
+            <p className="text-2xl text-white/70 mb-8">Students are answering on their Chromebooks</p>
+            <div className="bg-white/10 backdrop-blur rounded-2xl p-8 max-w-2xl w-full space-y-5">
+              <div className="space-y-4 text-lg text-white/90">
+                <p className="font-bold text-white text-xl">Questions:</p>
+                <p>1. Which musical element describes how LOUD or SOFT the music is?</p>
+                <p>2. What does "Allegro" tell you about the music?</p>
+                <p className="mt-4 font-bold text-white text-xl">Reflections:</p>
+                <p>3. What was the most interesting thing you learned about listening to music in this unit?</p>
+                <p>4. How has the way you listen to music changed since Lesson 1?</p>
+              </div>
+              <button
+                onClick={() => setShowAnswers(!showAnswers)}
+                className="px-4 py-2 rounded-xl text-sm font-bold bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors"
+              >
+                {showAnswers ? 'Hide Answer Key' : 'Show Answer Key'}
+              </button>
+              {showAnswers && (
+                <div className="bg-emerald-500/10 border border-emerald-400/30 rounded-xl p-5 space-y-3">
+                  <p className="font-bold text-emerald-300 text-lg">Answer Key</p>
+                  <p className="text-white/90">1. <span className="font-bold text-emerald-300">Dynamics</span> — describes how loud or soft the music is</p>
+                  <p className="text-white/90">2. <span className="font-bold text-emerald-300">It's fast</span> — Allegro means fast and lively</p>
+                  <p className="text-white/50 text-sm mt-2">Reflections 3 and 4 are open-ended — no right or wrong answer.</p>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      );
+        );
+      };
+      return <ExitTicketTeacherView />;
     }
 
     // Active Listening Audio Player (Listening Lab Lesson 2) - Hungarian Dance No. 5
