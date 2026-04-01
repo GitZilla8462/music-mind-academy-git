@@ -91,7 +91,7 @@ const renderStickerContent = (item, scale = 1) => {
       return (
         <div
           className="rounded-full flex items-center justify-center shadow-lg"
-          style={{ width: `${40 * s}px`, height: `${40 * s}px`, backgroundColor: c }}
+          style={{ width: `${40 * s}px`, height: `${40 * s}px`, backgroundColor: item.color || '#3B82F6' }}
         >
           <span className="text-white font-bold" style={{ fontSize: `${18 * s}px` }}>{item.icon}</span>
         </div>
@@ -99,7 +99,7 @@ const renderStickerContent = (item, scale = 1) => {
 
     case 'form-text':
       return (
-        <div className="rounded-lg shadow-lg" style={{ padding: `${4 * s}px ${12 * s}px`, backgroundColor: c }}>
+        <div className="rounded-lg shadow-lg" style={{ padding: `${4 * s}px ${12 * s}px`, backgroundColor: item.color || '#6B7280' }}>
           <span className="text-white font-bold" style={{ fontSize: `${14 * s}px` }}>{item.icon}</span>
         </div>
       );
