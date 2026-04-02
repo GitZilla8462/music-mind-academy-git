@@ -99,27 +99,30 @@ export const AdminDataProvider = ({ children }) => {
       setLoading(false);
     });
 
-    // Count unique student accounts per teacher by reading class rosters
-    // First get teacherClasses to know which classes belong to which teacher,
-    // then count roster entries in classRosters for each class
-    const teacherClassesRef = ref(database, 'teacherClasses');
-    const classRostersRef = ref(database, 'classRosters');
-    const unsubTeacherClasses = onValue(teacherClassesRef, (tcSnapshot) => {
-      // Build map of classId → teacherUid
-      const classToTeacher = {};
-      if (tcSnapshot.exists()) {
-        tcSnapshot.forEach((teacherChild) => {
-          const uid = teacherChild.key;
-          teacherChild.forEach((classChild) => {
-            classToTeacher[classChild.key] = uid;
+    // Count unique student accounts per teacher
+    // Read both teacherClasses and classRosters, then match them up
+    const loadStudentCounts = async () => {
+      try {
+        const [tcSnap, rostersSnap] = await Promise.all([
+          get(ref(database, 'teacherClasses')),
+          get(ref(database, 'classRosters'))
+        ]);
+
+        // Build map of classId → teacherUid
+        const classToTeacher = {};
+        if (tcSnap.exists()) {
+          tcSnap.forEach((teacherChild) => {
+            const uid = teacherChild.key;
+            teacherChild.forEach((classChild) => {
+              classToTeacher[classChild.key] = uid;
+            });
           });
-        });
-      }
-      // Now read rosters and count students per teacher
-      onValue(classRostersRef, (rostersSnapshot) => {
+        }
+
+        // Count roster entries per teacher
         const counts = {};
-        if (rostersSnapshot.exists()) {
-          rostersSnapshot.forEach((classChild) => {
+        if (rostersSnap.exists()) {
+          rostersSnap.forEach((classChild) => {
             const classId = classChild.key;
             const teacherUid = classToTeacher[classId];
             if (teacherUid) {
@@ -130,8 +133,12 @@ export const AdminDataProvider = ({ children }) => {
           });
         }
         setStudentCountByUid(counts);
-      }, { onlyOnce: true });
-    });
+      } catch (err) {
+        console.error('Error loading student counts:', err);
+      }
+    };
+    loadStudentCounts();
+    const unsubTeacherClasses = () => {}; // no-op for cleanup compatibility
 
     const unsubAnalytics = subscribeToAnalytics(({ stats, teachers, sessions }) => {
       setSummaryStats(stats);
