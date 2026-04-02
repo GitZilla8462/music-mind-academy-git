@@ -15,6 +15,7 @@ import { useSession } from '../../../context/SessionContext';
 import { saveStudentWork, loadStudentWork, clearAllCompositionSaves, getStudentId, getClassAuthInfo } from '../../../utils/studentWorkStorage';
 import { loadStudentWork as loadFromFirebase } from '../../../firebase/studentWork';
 import { getDatabase, ref, onValue } from 'firebase/database';
+import DirectionsModal, { DirectionsReopenButton } from '../components/DirectionsModal';
 
 const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes
 
@@ -51,6 +52,9 @@ const SchoolBeneathActivity = ({
   const effectiveSessionCode = sessionCode || classCode;
   const currentStage = isSessionMode ? getCurrentStage() : null;
   const isReflectionStage = currentStage === 'reflection' || currentStage === 'reflection-activity';
+
+  // Directions modal — show on first mount (not in view mode or session mode)
+  const [showDirections, setShowDirections] = useState(!viewMode && !isSessionMode);
 
   // Track last save command timestamp to detect new commands
   const lastSaveCommandRef = useRef(null);
@@ -618,6 +622,23 @@ const SchoolBeneathActivity = ({
           </div>
         </div>
       )}
+
+      {/* Directions modal + reopen button */}
+      {!viewMode && !isSessionMode && !showDirections && (
+        <DirectionsReopenButton onClick={() => setShowDirections(true)} />
+      )}
+      <DirectionsModal
+        title={title}
+        isOpen={showDirections}
+        onClose={() => setShowDirections(false)}
+        steps={[
+          { text: <>Watch the video and pick a <strong>mood</strong> for your music</> },
+          { text: <>Drag loops from the library onto the timeline</> },
+          { text: <>Layer at least <strong>5 loops</strong> to build your score</> },
+          { text: <>Press play to hear your music with the video</> },
+        ]}
+        bonusText="Try different moods — same video, totally different feeling!"
+      />
 
       {/* Header */}
       <div className="bg-gray-800 text-white border-b border-gray-700 flex-shrink-0">

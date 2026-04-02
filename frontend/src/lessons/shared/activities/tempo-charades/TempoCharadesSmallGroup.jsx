@@ -10,6 +10,7 @@ import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get, set } from 'firebase/database';
 import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji, formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import { TEMPO_OPTIONS, AUDIO_CLIPS, CLIP_DURATION, shuffleArray, calculateSpeedBonus, getTempoBySymbol } from './tempoCharadesConfig';
+import DirectionsModal, { DirectionsReopenButton } from '../../components/DirectionsModal';
 
 const TOTAL_ROUNDS = 10;
 const AUTO_ADVANCE_DELAY = 3000;
@@ -54,6 +55,9 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
   const [error, setError] = useState('');
   const [guessedCount, setGuessedCount] = useState(0);
   const [countdown, setCountdown] = useState(null);
+
+  // Directions modal
+  const [showDirections, setShowDirections] = useState(true);
 
   // Track used clips per tempo so we cycle through all 4 before repeating
   const usedClipsRef = useRef({});
@@ -635,6 +639,19 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
     return (
       <div className="h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <audio ref={audioRef} preload="auto" />
+        {!showDirections && <DirectionsReopenButton onClick={() => setShowDirections(true)} />}
+        <DirectionsModal
+          title="Tempo Detective"
+          isOpen={showDirections}
+          onClose={() => setShowDirections(false)}
+          steps={[
+            { text: <>Get into groups of <strong>2–5</strong> (you can start with just 2 — others can join later!)</> },
+            { text: <>One person taps <strong>Create New Group</strong> and shares the 4-digit code</> },
+            { text: <>Others tap <strong>Join</strong> and enter the code</> },
+            { text: <>Take turns being the <strong>Picker</strong> — choose a tempo, everyone listens, then guessers pick the tempo</> },
+            { text: <><strong>10 rounds</strong> — the picker rotates each round, highest score wins!</> },
+          ]}
+        />
         <div className="max-w-md w-full">
           <div className="text-center mb-6">
             <span className="text-5xl block mb-3">{'\u{1F50D}'}</span>
