@@ -181,10 +181,10 @@ const ListeningLabHub = () => {
       activities: [
         { title: 'Meet the String Family', description: 'See and hear violin, viola, cello, double bass', time: 5 },
         { title: 'Dynamic Markings', description: 'Learn pp, p, mp, mf, f, ff + crescendo & decrescendo', time: 5 },
-        { title: 'Dynamics Dash', description: 'Class game: Identify dynamics in Vivaldi\'s Spring!', time: 12, activityType: 'dynamics-dash' },
-        { title: 'Dynamics Listening Map', description: 'Map the dynamics you hear in Spring', time: 15, activityType: 'dynamics-listening-map' },
-        { title: 'Reflection', description: 'What dynamics were easiest/hardest to hear?', time: 5, activityType: 'listening-lab-reflection' },
-        { title: 'Strings & Dynamics Lab', description: 'Partner game: Pick sounds, guess dynamics', time: 12, activityType: 'strings-dynamics-lab', isBonus: true, isPartnerActivity: true }
+        { title: 'Dynamics Dash', description: 'Class game: Identify dynamics in Vivaldi\'s Spring!', time: 12 },
+        { title: 'Dynamics Listening Map', description: 'Map the dynamics you hear in Spring', time: 15 },
+        { title: 'Reflection', description: 'What dynamics were easiest/hardest to hear?', time: 5 },
+        { title: 'Strings & Dynamics Lab', description: 'Partner game: Pick sounds, guess dynamics', time: 12, isBonus: true, isPartnerActivity: true }
       ]
     },
     // Lesson 2: Woodwinds & Tempo
@@ -209,10 +209,10 @@ const ListeningLabHub = () => {
       activities: [
         { title: 'Meet the Woodwinds', description: 'See and hear flute, oboe, clarinet, bassoon', time: 5 },
         { title: 'Tempo Markings', description: 'Learn Largo, Adagio, Andante, Allegro, Presto + accelerando & ritardando', time: 5 },
-        { title: 'Tempo Detective (Whole Class)', description: 'Class game: Listen to clips and guess the tempo!', time: 8, activityType: 'tempo-charades' },
-        { title: 'Tempo Listening Map', description: 'Map the tempo changes in Hungarian Dance No. 5', time: 8, activityType: 'tempo-listening-map' },
-        { title: 'Reflection', description: 'What tempo terms will you remember?', time: 3, activityType: 'listening-lab-reflection' },
-        { title: 'Tempo Detective (Small Groups)', description: 'Everyone gets a turn to pick and guess!', time: 10, activityType: 'tempo-charades-small-group', isBonus: true }
+        { title: 'Tempo Detective (Whole Class)', description: 'Class game: Listen to clips and guess the tempo!', time: 8 },
+        { title: 'Tempo Listening Map', description: 'Map the tempo changes in Hungarian Dance No. 5', time: 15 },
+        { title: 'Reflection', description: 'What tempo terms will you remember?', time: 3 },
+        { title: 'Tempo Detective (Small Groups)', description: 'Everyone gets a turn to pick and guess!', time: 10, isBonus: true }
       ]
     },
     // Lesson 3: Brass & Form
@@ -227,19 +227,19 @@ const ListeningLabHub = () => {
       route: '/lessons/listening-lab/lesson3',
       available: true,
       hasLessonPlan: true,
-      inThisLesson: 'Students meet the brass family (trumpet, French horn, trombone, tuba), learn about musical form and how sections are labeled with letters, discover ternary form (ABA) in Grieg\'s In the Hall of the Mountain King, and listen to each section identifying dynamics, instruments, and tempo.',
+      inThisLesson: 'Students meet the brass family (trumpet, French horn, trombone, tuba), learn about musical form and ternary form (ABA) in Grieg\'s In the Hall of the Mountain King, plan their capstone project, and begin building a Listening Journey game.',
       studentsWill: [
         'Identify brass instruments by sight and sound (trumpet, French horn, trombone, tuba)',
         'Define musical form and label sections using letters (A, B)',
         'Recognize ternary form (ABA) in Grieg\'s Mountain King',
-        'Identify dynamics, instruments, and tempo in each section of Mountain King'
+        'Begin building a Listening Journey game with dynamics stickers'
       ],
       activities: [
         { title: 'Meet the Brass Family', description: 'See and hear trumpet, French horn, trombone, tuba', time: 6 },
         { title: 'What is Form?', description: 'Sections, letters, and ternary form (ABA)', time: 4 },
-        { title: 'Section Spotter', description: 'Listen to each section — identify dynamics, instruments, and tempo', time: 10 },
-        { title: 'Reflection', description: 'What form patterns did you discover?', time: 2, activityType: 'listening-lab-lesson3-reflection' },
-        { title: 'Four Corners', description: 'Move to corners to answer review questions!', time: 10, activityType: 'four-corners', isBonus: true }
+        { title: 'Plan Your Journey', description: 'Fill in your Capstone Plan — dynamics, tempo, and instruments for each section', time: 5 },
+        { title: 'Build Your Listening Journey', description: 'Start building your Listening Journey game — focus on dynamics', time: 12 },
+        { title: 'Pair & Share', description: 'Play each other\'s games and give feedback', time: 7 }
       ]
     },
     // Lesson 4: Percussion & Review
@@ -261,33 +261,37 @@ const ListeningLabHub = () => {
         'Continue building a Listening Journey that shows dynamics, tempo, and form'
       ],
       activities: [
-        { title: 'Meet the Percussion Family', description: 'Pitched vs. unpitched percussion instruments', time: 4 },
-        { title: 'Quick Review', description: 'Recap dynamics, tempo, and form from L1-L3', time: 4 },
-        { title: 'Listening Journey Worktime', description: 'Continue building your Listening Journey', time: 20, activityType: 'listening-journey' },
-        { title: 'Name That Element', description: 'Bonus: Rapid-fire review game!', time: 8, activityType: 'name-that-element', isBonus: true }
+        { title: 'Meet the Percussion Family', description: 'Pitched (timpani) vs. unpitched (snare, bass drum, cymbals)', time: 6 },
+        { title: 'Today\'s Focus', description: 'What to add today — tempo, instruments, and form', time: 2 },
+        { title: 'Build Your Listening Journey', description: 'Continue building — add tempo, instruments, and form stickers', time: 15 },
+        { title: 'Pair & Share', description: 'Play each other\'s games and give feedback', time: 7 },
+        { title: 'Name That Element', description: 'Rapid-fire review game — dynamics, tempo, or form?', time: 8, isBonus: true }
       ]
     },
     // Lesson 5: Worktime + Presentation
     {
       id: 'll-lesson5',
       number: 5,
-      icon: '🎪',
-      title: 'Worktime + Presentation',
-      concept: 'Finish & Share',
-      essentialQuestion: 'How do dynamics, tempo, and form work together to create meaning in music?',
+      icon: '🎮',
+      title: 'Finish & Play',
+      concept: 'Decoys, Peer Play & Exit Ticket',
+      essentialQuestion: 'How can I use what I\'ve learned about music elements to create and evaluate a listening experience?',
       color: 'from-pink-500 to-rose-600',
       route: '/lessons/listening-lab/lesson5',
       available: true,
       hasLessonPlan: true,
-      inThisLesson: 'Students finish building their Listening Journey and share their work in a Gallery Circle presentation.',
+      inThisLesson: 'Students finish their Listening Journey, add decoys to create a challenging game, play each other\'s games, and complete an exit ticket.',
       studentsWill: [
-        'Finish building a Listening Journey that demonstrates dynamics, tempo, and form',
-        'Share your journey with classmates and explain your musical choices'
+        'Add decoys to create a challenging game for classmates',
+        'Play each other\'s Listening Journey games',
+        'Reflect on what you learned about dynamics, tempo, form, and instruments'
       ],
       activities: [
         { title: 'Welcome Back', description: 'Quick check-in on progress', time: 2 },
-        { title: 'Listening Journey Worktime', description: 'Finish and polish your Listening Journey', time: 23, activityType: 'listening-journey' },
-        { title: 'Gallery Circle', description: 'Share journeys with the class', time: 11, activityType: 'gallery-circle' }
+        { title: 'Add Decoys', description: 'Finish your journey and add fake stickers to trick players', time: 7 },
+        { title: 'Peer Play', description: 'Share codes and play each other\'s Listening Journey games', time: 15 },
+        { title: 'Exit Ticket', description: '2 multiple-choice questions + 2 reflections', time: 5 },
+        { title: 'Answer Key', description: 'Review correct answers with the class', time: 2 }
       ]
     }
   ];
@@ -609,23 +613,6 @@ const ListeningLabHub = () => {
                                       {activity.time} min
                                     </span>
 
-                                    {/* Preview Button */}
-                                    <div className="text-right">
-                                      {activity.activityType ? (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDemoActivity(activity.activityType, activity.title);
-                                          }}
-                                          className="inline-flex items-center gap-1 text-sm text-violet-600 hover:text-violet-700 font-medium"
-                                        >
-                                          <Play className="w-4 h-4" />
-                                          <span className="hidden sm:inline">Preview</span>
-                                        </button>
-                                      ) : (
-                                        <span className="text-sm text-slate-400 hidden sm:inline">—</span>
-                                      )}
-                                    </div>
                                   </div>
 
                                   {/* Description - shown on mobile below title */}
@@ -642,7 +629,7 @@ const ListeningLabHub = () => {
                                 Total (excluding bonus):
                               </span>
                               <span className="text-base font-semibold text-slate-800 ml-2">
-                                ~40 min
+                                ~{getTotalTime(lesson.activities)} min
                               </span>
                             </div>
                           </div>
