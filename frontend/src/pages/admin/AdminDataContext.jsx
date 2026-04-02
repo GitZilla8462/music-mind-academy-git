@@ -41,6 +41,7 @@ export const AdminDataProvider = ({ children }) => {
   const [teacherAnalytics, setTeacherAnalytics] = useState([]);
   const [pilotSessions, setPilotSessions] = useState([]);
   const [summaryStats, setSummaryStats] = useState(null);
+  const [studentCountByUid, setStudentCountByUid] = useState({});
 
   const [quickSurveys, setQuickSurveys] = useState([]);
   const [midPilotSurveys, setMidPilotSurveys] = useState([]);
@@ -96,6 +97,23 @@ export const AdminDataProvider = ({ children }) => {
         setRegisteredUsers(users);
       } else { setRegisteredUsers([]); }
       setLoading(false);
+    });
+
+    // Fetch teacherClasses to count unique student accounts per teacher
+    const teacherClassesRef = ref(database, 'teacherClasses');
+    const unsubTeacherClasses = onValue(teacherClassesRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const counts = {};
+        snapshot.forEach((teacherChild) => {
+          const uid = teacherChild.key;
+          let total = 0;
+          teacherChild.forEach((classChild) => {
+            total += classChild.val()?.studentCount || 0;
+          });
+          counts[uid] = total;
+        });
+        setStudentCountByUid(counts);
+      }
     });
 
     const unsubAnalytics = subscribeToAnalytics(({ stats, teachers, sessions }) => {
@@ -164,7 +182,7 @@ export const AdminDataProvider = ({ children }) => {
     });
 
     return () => {
-      unsubAcademy(); unsubEdu(); unsubUsers(); unsubAnalytics();
+      unsubAcademy(); unsubEdu(); unsubUsers(); unsubAnalytics(); unsubTeacherClasses();
       unsubQuickSurveys(); unsubMidPilot(); unsubFinalPilot();
       unsubOutreach(); unsubEmailsSent(); unsubApplications();
     };
@@ -924,7 +942,7 @@ export const AdminDataProvider = ({ children }) => {
     user, authLoading, isAdmin, loading,
     error, setError, success, setSuccess,
     selectedSite, setSelectedSite, approvedEmails,
-    academyEmails, eduEmails, registeredUsers,
+    academyEmails, eduEmails, registeredUsers, studentCountByUid,
     teacherAnalytics, pilotSessions, summaryStats,
     quickSurveys, midPilotSurveys, finalPilotSurveys,
     teacherOutreach, emailsSent, applications,

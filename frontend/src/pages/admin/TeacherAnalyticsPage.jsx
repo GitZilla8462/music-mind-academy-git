@@ -50,6 +50,7 @@ const TeacherAnalyticsPage = () => {
   const {
     academyEmails, registeredUsers, pilotSessions, teacherOutreach,
     midPilotSurveys, finalPilotSurveys, applications, emailsSent,
+    studentCountByUid,
     toggleOutreach, setSuccess, formatDuration, formatDate,
     removeTeacherCompletely, mergeTeacherEntries,
     nameFixing, nameFixResult, setNameFixResult, fixTeacherNames
@@ -236,13 +237,17 @@ const TeacherAnalyticsPage = () => {
       const personalEmail = approved.personalEmail?.toLowerCase().trim() || app?.personalEmail?.toLowerCase().trim() || '';
       const hasPersonalEmail = personalEmail && personalEmail !== email;
 
+      // Get unique student account count from teacherClasses data
+      const teacherUid = reg?.id;
+      const uniqueStudents = teacherUid ? (studentCountByUid[teacherUid] || 0) : 0;
+
       result.push({
         email, teacherName, school, stage,
         personalEmail: hasPersonalEmail ? personalEmail : '',
         unitProgress,
         unitsComplete, unitsStarted, totalLessonsDone,
         units: sessions?.units || {},
-        totalStudents: sessions?.totalStudents || 0,
+        totalStudents: uniqueStudents,
         totalSessions: sessions?.totalSessions || 0,
         lastActive,
         approvedAt: approved.approvedAt || 0,
@@ -255,7 +260,7 @@ const TeacherAnalyticsPage = () => {
     });
 
     return result;
-  }, [academyEmails, registeredByEmail, sessionsByTeacher, teacherOutreach, applicationsByEmail, midPilotSurveys, finalPilotSurveys, pilotSessions, emailHistoryByTeacher]);
+  }, [academyEmails, registeredByEmail, sessionsByTeacher, teacherOutreach, applicationsByEmail, midPilotSurveys, finalPilotSurveys, pilotSessions, emailHistoryByTeacher, studentCountByUid]);
 
   // Detect duplicate teachers: same name OR same email prefix
   const { duplicateNames, duplicatePairs } = useMemo(() => {
@@ -1010,7 +1015,7 @@ const TeacherAnalyticsPage = () => {
                                             <div className="font-medium text-gray-700 mb-1">L{lessonNum}: {lessonNames[lessonNum]}</div>
                                             {sessions.length > 0 ? (
                                               <div className="text-gray-500">
-                                                {sessions.length} session{sessions.length > 1 ? 's' : ''} | {totalStudents} stu
+                                                {sessions.length} session{sessions.length > 1 ? 's' : ''}
                                                 <div className="mt-1 space-y-0.5">
                                                   {sessions.sort((a, b) => (b.date || 0) - (a.date || 0)).slice(0, 3).map((s, i) => (
                                                     <div key={i} className="flex justify-between">
