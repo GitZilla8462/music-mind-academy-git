@@ -132,6 +132,11 @@ const LessonPlan2PDF = lazyWithRetry(() => import('./lessons/film-music-project/
 const LessonPlan3PDF = lazyWithRetry(() => import('./lessons/film-music-project/lesson3/LessonPlan3PDF'));
 const LessonPlan4PDF = lazyWithRetry(() => import('./lessons/film-music-project/lesson4/LessonPlan4PDF'));
 const LessonPlan5PDF = lazyWithRetry(() => import('./lessons/film-music-project/lesson5/LessonPlan5PDF'));
+const LLLessonPlan1PDF = lazyWithRetry(() => import('./lessons/listening-lab/lesson1/LessonPlanPDF'));
+const LLLessonPlan2PDF = lazyWithRetry(() => import('./lessons/listening-lab/lesson2/LessonPlanPDF'));
+const LLLessonPlan3PDF = lazyWithRetry(() => import('./lessons/listening-lab/lesson3/LessonPlanPDF'));
+const LLLessonPlan4PDF = lazyWithRetry(() => import('./lessons/listening-lab/lesson4/LessonPlanPDF'));
+const LLLessonPlan5PDF = lazyWithRetry(() => import('./lessons/listening-lab/lesson5/LessonPlanPDF'));
 
 // Presentation and session pages
 const PresentationView = lazyWithRetry(() => import('./components/PresentationView'));
@@ -403,6 +408,11 @@ const AppContent = () => {
         <Route path="/lesson-plan/lesson3" element={<LessonPlan3PDF />} />
         <Route path="/lesson-plan/lesson4" element={<LessonPlan4PDF />} />
         <Route path="/lesson-plan/lesson5" element={<LessonPlan5PDF />} />
+        <Route path="/lesson-plan/listening-lab-lesson1" element={<LLLessonPlan1PDF />} />
+        <Route path="/lesson-plan/listening-lab-lesson2" element={<LLLessonPlan2PDF />} />
+        <Route path="/lesson-plan/listening-lab-lesson3" element={<LLLessonPlan3PDF />} />
+        <Route path="/lesson-plan/listening-lab-lesson4" element={<LLLessonPlan4PDF />} />
+        <Route path="/lesson-plan/listening-lab-lesson5" element={<LLLessonPlan5PDF />} />
 
         {/* Join Page - NO AUTHENTICATION REQUIRED */}
         <Route path="/join" element={<JoinWithCode />} />
@@ -567,10 +577,15 @@ const AppContent = () => {
         <Route path="/lesson-plan/lesson3" element={<LessonPlan3PDF />} />
         <Route path="/lesson-plan/lesson4" element={<LessonPlan4PDF />} />
         <Route path="/lesson-plan/lesson5" element={<LessonPlan5PDF />} />
+        <Route path="/lesson-plan/listening-lab-lesson1" element={<LLLessonPlan1PDF />} />
+        <Route path="/lesson-plan/listening-lab-lesson2" element={<LLLessonPlan2PDF />} />
+        <Route path="/lesson-plan/listening-lab-lesson3" element={<LLLessonPlan3PDF />} />
+        <Route path="/lesson-plan/listening-lab-lesson4" element={<LLLessonPlan4PDF />} />
+        <Route path="/lesson-plan/listening-lab-lesson5" element={<LLLessonPlan5PDF />} />
 
         {/* ✅ ADDED: View saved listening map */}
         <Route path="/view/listening-map" element={<ListeningMapViewer />} />
-        
+
         {/* Composition Viewer */}
         <Route path="/view-composition/:shareCode" element={<CompositionViewer />} />
 

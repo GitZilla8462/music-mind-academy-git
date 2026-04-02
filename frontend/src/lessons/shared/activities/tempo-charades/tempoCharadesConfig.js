@@ -15,16 +15,16 @@ export const TEMPO_OPTIONS = [
 // Each song's naturalBpm matches one tempo category — clips always play at natural speed
 export const AUDIO_CLIPS = [
   // Handel — Largo from Xerxes, HWV 40 (~50 BPM)
-  { audio: '/audio/classical/handel-largo-1.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Handel' },
-  { audio: '/audio/classical/handel-largo-2.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Handel' },
-  { audio: '/audio/classical/handel-largo-3.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Handel' },
-  { audio: '/audio/classical/handel-largo-4.mp3', naturalBpm: 50, startTime: 0, volume: 2.0, label: 'Handel' },
+  { audio: '/audio/classical/handel-largo-1.mp3', naturalBpm: 50, startTime: 0, volume: 1.0, label: 'Handel' },
+  { audio: '/audio/classical/handel-largo-2.mp3', naturalBpm: 50, startTime: 0, volume: 1.0, label: 'Handel' },
+  { audio: '/audio/classical/handel-largo-3.mp3', naturalBpm: 50, startTime: 0, volume: 1.0, label: 'Handel' },
+  { audio: '/audio/classical/handel-largo-4.mp3', naturalBpm: 50, startTime: 0, volume: 1.0, label: 'Handel' },
 
   // Beethoven — Moonlight Sonata, 1st mvt (~72 BPM)
-  { audio: '/audio/classical/beethoven-moonlight-1.mp3', naturalBpm: 72, startTime: 0, volume: 2.0, label: 'Beethoven' },
-  { audio: '/audio/classical/beethoven-moonlight-2.mp3', naturalBpm: 72, startTime: 0, volume: 2.0, label: 'Beethoven' },
-  { audio: '/audio/classical/beethoven-moonlight-3.mp3', naturalBpm: 72, startTime: 0, volume: 2.0, label: 'Beethoven' },
-  { audio: '/audio/classical/beethoven-moonlight-4.mp3', naturalBpm: 72, startTime: 0, volume: 2.0, label: 'Beethoven' },
+  { audio: '/audio/classical/beethoven-moonlight-1.mp3', naturalBpm: 72, startTime: 0, volume: 1.0, label: 'Beethoven' },
+  { audio: '/audio/classical/beethoven-moonlight-2.mp3', naturalBpm: 72, startTime: 0, volume: 1.0, label: 'Beethoven' },
+  { audio: '/audio/classical/beethoven-moonlight-3.mp3', naturalBpm: 72, startTime: 0, volume: 1.0, label: 'Beethoven' },
+  { audio: '/audio/classical/beethoven-moonlight-4.mp3', naturalBpm: 72, startTime: 0, volume: 1.0, label: 'Beethoven' },
 
   // Grieg — Morning Mood (~92 BPM)
   { audio: '/audio/classical/grieg-morning-1.mp3', naturalBpm: 92, startTime: 0, volume: 0.7, label: 'Grieg' },

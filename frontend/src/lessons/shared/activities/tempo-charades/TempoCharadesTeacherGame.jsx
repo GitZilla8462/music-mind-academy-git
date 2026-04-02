@@ -39,9 +39,6 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
   const audioRef = useRef(null);
-  const audioCtxRef = useRef(null);
-  const gainNodeRef = useRef(null);
-  const sourceNodeRef = useRef(null);
   const clipEndTimer = useRef(null);
 
   // Students
@@ -67,18 +64,24 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
   }, []);
 
   // Cleanup on unmount
-  useEffect(() => () => {
-    stopAudio();
-    if (audioCtxRef.current) {
-      audioCtxRef.current.close().catch(() => {});
-    }
-  }, [stopAudio]);
+  useEffect(() => () => stopAudio(), [stopAudio]);
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
     if (!sessionCode) return;
     const db = getDatabase();
     update(ref(db, `sessions/${sessionCode}/tempoCharades`), data);
+  }, [sessionCode]);
+
+  // On mount, reset Firebase game state so students see "Waiting" (clears stale data from previous run)
+  useEffect(() => {
+    if (!sessionCode) return;
+    const db = getDatabase();
+    update(ref(db, `sessions/${sessionCode}/tempoCharades`), {
+      phase: 'setup',
+      audioPlayed: false,
+      correctAnswer: null
+    });
   }, [sessionCode]);
 
   // Firebase: Subscribe to students
@@ -109,48 +112,50 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     return () => unsubscribe();
   }, [sessionCode]);
 
-  // Play audio clip at target tempo
+  // Play audio clip — plain HTML5 Audio, no Web Audio API
+  // Calls play() synchronously within the user gesture to satisfy Chrome autoplay policy
   const playClip = useCallback(async (question) => {
-    if (!audioRef.current || !question) return;
+    if (!question) return;
 
-    stopAudio();
-    ensureAudioContext();
-
-    // Ensure AudioContext is active (Chrome suspends it after inactivity)
-    if (audioCtxRef.current?.state === 'suspended') {
-      await audioCtxRef.current.resume();
+    // Stop previous
+    if (clipEndTimer.current) clearTimeout(clipEndTimer.current);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
     }
 
-    // Setting src triggers load automatically — no need for separate load() call
-    audioRef.current.src = question.clipAudio;
-    audioRef.current.currentTime = question.clipStartTime;
-    audioRef.current.playbackRate = question.playbackRate;
-    audioRef.current.volume = 1.0;
+    const audio = new Audio(question.clipAudio);
+    audio.volume = Math.min(question.clipVolume ?? 0.7, 1.0);
+    audioRef.current = audio;
 
-    if (gainNodeRef.current) {
-      gainNodeRef.current.gain.value = question.clipVolume ?? 0.7;
-    }
-
+    // Call play() immediately in the click handler — don't wait for canplay.
+    // Chrome requires play() to be in the same call stack as the user gesture.
+    // The browser will buffer automatically and start when ready.
     try {
-      // play() returns a promise that resolves once playback starts (waits for data)
-      await audioRef.current.play();
-      setIsPlaying(true);
-      // Tell students audio has played so they can answer
-      updateGame({ audioPlayed: true });
-
-      // Stop after clip duration
-      clipEndTimer.current = setTimeout(() => {
-        if (audioRef.current) {
-          audioRef.current.pause();
-        }
-        setIsPlaying(false);
-        setHasPlayed(true);
-      }, CLIP_DURATION * 1000);
+      await audio.play();
     } catch (err) {
-      console.error('Audio play error:', err);
-      setIsPlaying(false);
+      if (err.name !== 'AbortError') {
+        console.error('Audio play error:', err);
+      }
+      return;
     }
-  }, [stopAudio, ensureAudioContext]);
+
+    // Set currentTime and playbackRate after play starts (some browsers need this order)
+    audio.currentTime = question.clipStartTime;
+    audio.playbackRate = question.playbackRate;
+
+    setIsPlaying(true);
+    updateGame({ audioPlayed: true });
+
+    clipEndTimer.current = setTimeout(() => {
+      if (audioRef.current === audio) {
+        audio.pause();
+        audioRef.current = null;
+      }
+      setIsPlaying(false);
+      setHasPlayed(true);
+    }, CLIP_DURATION * 1000);
+  }, [updateGame]);
 
   // Start game
   const startGame = useCallback(() => {
@@ -266,8 +271,6 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
       {/* Student Activity Banner */}
       <ActivityBanner />
 
-      {/* Hidden audio element */}
-      <audio ref={audioRef} preload="auto" />
 
       {/* Main content */}
       <div className="flex-1 p-4 overflow-hidden flex flex-col min-h-0">

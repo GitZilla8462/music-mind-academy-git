@@ -153,7 +153,9 @@ const ListeningLabHub = () => {
   };
 
   const handleOpenLessonPlan = (lessonId) => {
-    const route = `/lesson-plan/listening-lab-${lessonId}`;
+    // lessonId is like "ll-lesson1" — strip "ll-" prefix to match route pattern
+    const cleanId = lessonId.replace('ll-', '');
+    const route = `/lesson-plan/listening-lab-${cleanId}`;
     window.open(route, '_blank');
   };
 
@@ -169,7 +171,7 @@ const ListeningLabHub = () => {
       color: 'from-violet-500 to-purple-600',
       route: '/lessons/listening-lab/lesson1',
       available: true,
-      hasLessonPlan: false,
+      hasLessonPlan: true,
       inThisLesson: 'Students meet the string family (violin, viola, cello, double bass), learn dynamic markings (pp to ff, crescendo, decrescendo), play Dynamics Dash with Vivaldi\'s Spring, and create a Dynamics Listening Map.',
       studentsWill: [
         'Identify string instruments by sight and sound (violin, viola, cello, double bass)',
@@ -196,7 +198,7 @@ const ListeningLabHub = () => {
       color: 'from-blue-500 to-cyan-600',
       route: '/lessons/listening-lab/lesson2',
       available: true,
-      hasLessonPlan: false,
+      hasLessonPlan: true,
       inThisLesson: 'Students meet the woodwind family (flute, oboe, clarinet, bassoon), learn tempo markings (Largo to Presto) and tempo changes (accelerando, ritardando), play Tempo Detective with the whole class, and create a Tempo Listening Map for Brahms\'s Hungarian Dance No. 5.',
       studentsWill: [
         'Identify woodwind instruments by sight and sound (flute, oboe, clarinet, bassoon)',
@@ -224,7 +226,7 @@ const ListeningLabHub = () => {
       color: 'from-emerald-500 to-green-600',
       route: '/lessons/listening-lab/lesson3',
       available: true,
-      hasLessonPlan: false,
+      hasLessonPlan: true,
       inThisLesson: 'Students meet the brass family (trumpet, French horn, trombone, tuba), learn about musical form and how sections are labeled with letters, discover ternary form (ABA) in Grieg\'s In the Hall of the Mountain King, and listen to each section identifying dynamics, instruments, and tempo.',
       studentsWill: [
         'Identify brass instruments by sight and sound (trumpet, French horn, trombone, tuba)',
@@ -251,7 +253,7 @@ const ListeningLabHub = () => {
       color: 'from-orange-500 to-amber-600',
       route: '/lessons/listening-lab/lesson4',
       available: true,
-      hasLessonPlan: false,
+      hasLessonPlan: true,
       inThisLesson: 'Students meet the percussion family (pitched vs. unpitched), review dynamics, tempo, and form from Lessons 1-3, continue building their Listening Journey, and play Name That Element as a bonus game.',
       studentsWill: [
         'Identify percussion instruments and distinguish pitched from unpitched',
@@ -276,7 +278,7 @@ const ListeningLabHub = () => {
       color: 'from-pink-500 to-rose-600',
       route: '/lessons/listening-lab/lesson5',
       available: true,
-      hasLessonPlan: false,
+      hasLessonPlan: true,
       inThisLesson: 'Students finish building their Listening Journey and share their work in a Gallery Circle presentation.',
       studentsWill: [
         'Finish building a Listening Journey that demonstrates dynamics, tempo, and form',

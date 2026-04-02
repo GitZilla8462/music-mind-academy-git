@@ -32,6 +32,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
   // Student's answer
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
+  const [audioPlayed, setAudioPlayed] = useState(false);
 
   // Results
   const [wasCorrect, setWasCorrect] = useState(null);
@@ -150,7 +151,11 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
           setWasCorrect(null);
           setEarnedPoints(0);
           setCorrectAnswer(null);
+          setAudioPlayed(false);
         }
+
+        // Track whether teacher has played audio yet
+        setAudioPlayed(!!data.audioPlayed);
 
         if (data.phase === 'guessing' && data.playStartTime) {
           playStartTimeRef.current = data.playStartTime;
@@ -396,7 +401,16 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
         </div>
 
         {/* Tempo answer buttons - 5 options with BPM */}
-        {gamePhase === 'guessing' && !answerSubmitted && (
+        {gamePhase === 'guessing' && !answerSubmitted && !audioPlayed && (
+          <div className="text-center">
+            <div className="bg-white/10 rounded-2xl p-8 inline-block">
+              <span className="text-5xl block mb-4">{'\u{1F3A7}'}</span>
+              <p className="text-xl text-white font-bold mb-2">Listen to the clip!</p>
+              <p className="text-purple-200">Wait for your teacher to play the audio...</p>
+            </div>
+          </div>
+        )}
+        {gamePhase === 'guessing' && !answerSubmitted && audioPlayed && (
           <>
             <p className="text-purple-200 text-sm mb-4">Tap your answer:</p>
             <div className="grid grid-cols-5 gap-2 w-full max-w-lg">
