@@ -100,39 +100,34 @@ export const AdminDataProvider = ({ children }) => {
     });
 
     // Count unique student accounts per teacher (keyed by email)
-    // Read classes (has teacherEmail) and classRosters (has actual students)
+    // Uses teacherClasses (uid → classIds) + classRosters (classId → seats)
+    // Maps UIDs to emails via the users node (already loaded as registeredUsers)
     const loadStudentCounts = async () => {
       try {
-        const [classesSnap, rostersSnap] = await Promise.all([
-          get(ref(database, 'classes')),
-          get(ref(database, 'classRosters'))
+        const [tcSnap, rostersSnap, usersSnap] = await Promise.all([
+          get(ref(database, 'teacherClasses')),
+          get(ref(database, 'classRosters')),
+          get(ref(database, 'users'))
         ]);
 
-        // Build map of classId → teacher email
-        const classToEmail = {};
-        if (classesSnap.exists()) {
-          classesSnap.forEach((child) => {
-            const data = child.val();
-            // Try teacherEmail field first, fall back to looking up from users
-            if (data.teacherEmail) {
-              classToEmail[child.key] = data.teacherEmail.toLowerCase();
-            }
+        // Build UID → email map from users
+        const uidToEmail = {};
+        if (usersSnap.exists()) {
+          usersSnap.forEach((u) => {
+            if (u.val()?.email) uidToEmail[u.key] = u.val().email.toLowerCase();
           });
         }
 
-        // For classes without teacherEmail, look up via teacherUid → users
-        if (classesSnap.exists()) {
-          const usersSnap = await get(ref(database, 'users'));
-          const uidToEmail = {};
-          if (usersSnap.exists()) {
-            usersSnap.forEach((u) => {
-              if (u.val()?.email) uidToEmail[u.key] = u.val().email.toLowerCase();
-            });
-          }
-          classesSnap.forEach((child) => {
-            if (!classToEmail[child.key] && child.val()?.teacherUid) {
-              const email = uidToEmail[child.val().teacherUid];
-              if (email) classToEmail[child.key] = email;
+        // Build classId → teacher email map from teacherClasses
+        const classToEmail = {};
+        if (tcSnap.exists()) {
+          tcSnap.forEach((teacherChild) => {
+            const uid = teacherChild.key;
+            const email = uidToEmail[uid];
+            if (email) {
+              teacherChild.forEach((classChild) => {
+                classToEmail[classChild.key] = email;
+              });
             }
           });
         }
