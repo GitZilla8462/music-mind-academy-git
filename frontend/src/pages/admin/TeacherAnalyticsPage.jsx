@@ -50,7 +50,7 @@ const TeacherAnalyticsPage = () => {
   const {
     academyEmails, registeredUsers, pilotSessions, teacherOutreach,
     midPilotSurveys, finalPilotSurveys, applications, emailsSent,
-    studentCountByUid,
+    studentCountByEmail,
     toggleOutreach, setSuccess, formatDuration, formatDate,
     removeTeacherCompletely, mergeTeacherEntries,
     nameFixing, nameFixResult, setNameFixResult, fixTeacherNames
@@ -237,9 +237,8 @@ const TeacherAnalyticsPage = () => {
       const personalEmail = approved.personalEmail?.toLowerCase().trim() || app?.personalEmail?.toLowerCase().trim() || '';
       const hasPersonalEmail = personalEmail && personalEmail !== email;
 
-      // Get unique student account count from teacherClasses data
-      const teacherUid = reg?.id;
-      const uniqueStudents = teacherUid ? (studentCountByUid[teacherUid] || 0) : 0;
+      // Get unique student account count from class rosters
+      const uniqueStudents = studentCountByEmail[email] || 0;
 
       result.push({
         email, teacherName, school, stage,
@@ -260,7 +259,7 @@ const TeacherAnalyticsPage = () => {
     });
 
     return result;
-  }, [academyEmails, registeredByEmail, sessionsByTeacher, teacherOutreach, applicationsByEmail, midPilotSurveys, finalPilotSurveys, pilotSessions, emailHistoryByTeacher, studentCountByUid]);
+  }, [academyEmails, registeredByEmail, sessionsByTeacher, teacherOutreach, applicationsByEmail, midPilotSurveys, finalPilotSurveys, pilotSessions, emailHistoryByTeacher, studentCountByEmail]);
 
   // Detect duplicate teachers: same name OR same email prefix
   const { duplicateNames, duplicatePairs } = useMemo(() => {

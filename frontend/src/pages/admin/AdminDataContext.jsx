@@ -41,7 +41,7 @@ export const AdminDataProvider = ({ children }) => {
   const [teacherAnalytics, setTeacherAnalytics] = useState([]);
   const [pilotSessions, setPilotSessions] = useState([]);
   const [summaryStats, setSummaryStats] = useState(null);
-  const [studentCountByUid, setStudentCountByUid] = useState({});
+  const [studentCountByEmail, setStudentCountByEmail] = useState({});
 
   const [quickSurveys, setQuickSurveys] = useState([]);
   const [midPilotSurveys, setMidPilotSurveys] = useState([]);
@@ -99,40 +99,59 @@ export const AdminDataProvider = ({ children }) => {
       setLoading(false);
     });
 
-    // Count unique student accounts per teacher
-    // Read both teacherClasses and classRosters, then match them up
+    // Count unique student accounts per teacher (keyed by email)
+    // Read classes (has teacherEmail) and classRosters (has actual students)
     const loadStudentCounts = async () => {
       try {
-        const [tcSnap, rostersSnap] = await Promise.all([
-          get(ref(database, 'teacherClasses')),
+        const [classesSnap, rostersSnap] = await Promise.all([
+          get(ref(database, 'classes')),
           get(ref(database, 'classRosters'))
         ]);
 
-        // Build map of classId → teacherUid
-        const classToTeacher = {};
-        if (tcSnap.exists()) {
-          tcSnap.forEach((teacherChild) => {
-            const uid = teacherChild.key;
-            teacherChild.forEach((classChild) => {
-              classToTeacher[classChild.key] = uid;
-            });
+        // Build map of classId → teacher email
+        const classToEmail = {};
+        if (classesSnap.exists()) {
+          classesSnap.forEach((child) => {
+            const data = child.val();
+            // Try teacherEmail field first, fall back to looking up from users
+            if (data.teacherEmail) {
+              classToEmail[child.key] = data.teacherEmail.toLowerCase();
+            }
           });
         }
 
-        // Count roster entries per teacher
+        // For classes without teacherEmail, look up via teacherUid → users
+        if (classesSnap.exists()) {
+          const usersSnap = await get(ref(database, 'users'));
+          const uidToEmail = {};
+          if (usersSnap.exists()) {
+            usersSnap.forEach((u) => {
+              if (u.val()?.email) uidToEmail[u.key] = u.val().email.toLowerCase();
+            });
+          }
+          classesSnap.forEach((child) => {
+            if (!classToEmail[child.key] && child.val()?.teacherUid) {
+              const email = uidToEmail[child.val().teacherUid];
+              if (email) classToEmail[child.key] = email;
+            }
+          });
+        }
+
+        // Count roster entries per teacher email
         const counts = {};
         if (rostersSnap.exists()) {
           rostersSnap.forEach((classChild) => {
             const classId = classChild.key;
-            const teacherUid = classToTeacher[classId];
-            if (teacherUid) {
+            const email = classToEmail[classId];
+            if (email) {
               let rosterSize = 0;
               classChild.forEach(() => { rosterSize++; });
-              counts[teacherUid] = (counts[teacherUid] || 0) + rosterSize;
+              counts[email] = (counts[email] || 0) + rosterSize;
             }
           });
         }
-        setStudentCountByUid(counts);
+        console.log('📊 Student counts:', counts);
+        setStudentCountByEmail(counts);
       } catch (err) {
         console.error('Error loading student counts:', err);
       }
@@ -966,7 +985,7 @@ export const AdminDataProvider = ({ children }) => {
     user, authLoading, isAdmin, loading,
     error, setError, success, setSuccess,
     selectedSite, setSelectedSite, approvedEmails,
-    academyEmails, eduEmails, registeredUsers, studentCountByUid,
+    academyEmails, eduEmails, registeredUsers, studentCountByEmail,
     teacherAnalytics, pilotSessions, summaryStats,
     quickSurveys, midPilotSurveys, finalPilotSurveys,
     teacherOutreach, emailsSent, applications,
