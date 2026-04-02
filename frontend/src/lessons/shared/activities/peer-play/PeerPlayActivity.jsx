@@ -5,8 +5,10 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Gamepad2, Users, ArrowRight, Eye, Trophy, Loader } from 'lucide-react';
+import { getDatabase, ref, onValue } from 'firebase/database';
 import { useSession } from '../../../../context/SessionContext';
-import { getClassAuthInfo } from '../../../../utils/studentWorkStorage';
+import { useStudentAuth } from '../../../../context/StudentAuthContext';
+import { getClassAuthInfo, saveStudentWork } from '../../../../utils/studentWorkStorage';
 import { loadStudentWork as loadFromFirebase } from '../../../../firebase/studentWork';
 import {
   joinPool,
@@ -25,6 +27,7 @@ let ListeningJourney = null;
 
 const PeerPlayActivity = ({ pieceConfig, journeyExtras = {} }) => {
   const { sessionCode, userId, classCode: contextClassCode } = useSession();
+  const { pinSession } = useStudentAuth();
   const urlClassCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || contextClassCode || urlClassCode;
 
@@ -282,12 +285,106 @@ const PeerPlayActivity = ({ pieceConfig, journeyExtras = {} }) => {
     completeTurn(effectiveSessionCode, matchId, studentId);
   }, [effectiveSessionCode, matchId, studentId]);
 
+  // Listen for teacher's "Save All" command — load own journey from Firebase, re-save to trigger submission + confirmation
+  const [teacherSaveToast, setTeacherSaveToast] = useState(false);
+  const lastSaveCommandRef = useRef(null);
+  const componentMountTimeRef = useRef(Date.now());
+  useEffect(() => {
+    if (!effectiveSessionCode) return;
+
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
+
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+      if (!saveCommand) return;
+
+      if (saveCommand <= componentMountTimeRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('💾 Teacher save command received during peer play!');
+
+        setTeacherSaveToast(true);
+        setTimeout(() => setTeacherSaveToast(false), 3000);
+
+        // Load own journey from Firebase and re-save to trigger submission + confirmation
+        const auth = getClassAuthInfo(pinSession);
+        if (!auth?.uid) return;
+
+        (async () => {
+          try {
+            // Load from Firebase (source of truth — works even if localStorage is blocked)
+            const lessonId = pieceConfig?.lessonId || 'll-lesson5';
+            const data = await loadFromFirebase(auth.uid, lessonId, 'listening-journey');
+            if (!data?.data) {
+              // Fallback: try ll-lesson4
+              const data4 = await loadFromFirebase(auth.uid, 'll-lesson4', 'listening-journey');
+              if (!data4?.data) {
+                console.warn('⚠️ No journey data found to re-save during peer play');
+                return;
+              }
+              // Re-save under correct lesson
+              const storageKey = pieceConfig?.storageKey || 'listening-journey-mountain-king';
+              saveStudentWork(storageKey, {
+                title: data4.title || 'Listening Journey',
+                emoji: data4.emoji || '🎭',
+                viewRoute: pieceConfig?.viewRoute,
+                subtitle: data4.subtitle,
+                category: data4.category || 'Listening Lab',
+                lessonId,
+                data: data4.data
+              }, null, auth);
+              console.log('✅ Re-saved journey data (from L4) during peer play');
+              return;
+            }
+
+            const storageKey = pieceConfig?.storageKey || 'listening-journey-mountain-king';
+            saveStudentWork(storageKey, {
+              title: data.title || 'Listening Journey',
+              emoji: data.emoji || '🎭',
+              viewRoute: pieceConfig?.viewRoute,
+              subtitle: data.subtitle,
+              category: data.category || 'Listening Lab',
+              lessonId,
+              data: data.data
+            }, null, auth);
+            console.log('✅ Re-saved journey data during peer play');
+          } catch (err) {
+            console.error('❌ Failed to re-save during peer play:', err);
+          }
+        })();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [effectiveSessionCode, pieceConfig, pinSession]);
+
   // ─── Render ────────────────────────────────────────────────────────
+
+  const saveToastModal = teacherSaveToast && (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden text-center">
+        <div className="bg-green-600 px-6 py-4">
+          <h3 className="text-xl font-bold text-white">Saving Your Work</h3>
+        </div>
+        <div className="p-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-700 text-lg font-semibold">Your work is being saved!</p>
+          <p className="text-gray-500 text-sm mt-2">You can view it anytime from your dashboard.</p>
+        </div>
+      </div>
+    </div>
+  );
 
   // Waiting for match
   if (phase === 'loading' || phase === 'waiting') {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-indigo-950 to-gray-900 text-white p-8">
+        {saveToastModal}
         <div className="max-w-md w-full text-center space-y-6">
           <div className="relative">
             <div className="w-24 h-24 mx-auto rounded-full bg-indigo-500/20 flex items-center justify-center animate-pulse">
@@ -325,6 +422,7 @@ const PeerPlayActivity = ({ pieceConfig, journeyExtras = {} }) => {
     const partner = getPartner(matchData);
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-purple-950 to-gray-900 text-white p-8">
+        {saveToastModal}
         <div className="max-w-md w-full text-center space-y-6">
           <div className="w-24 h-24 mx-auto rounded-full bg-purple-500/20 flex items-center justify-center">
             <Eye size={48} className="text-purple-400" />
@@ -366,6 +464,7 @@ const PeerPlayActivity = ({ pieceConfig, journeyExtras = {} }) => {
   if (phase === 'observing' && matchData) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-amber-950 to-gray-900 text-white p-8">
+        {saveToastModal}
         <div className="max-w-md w-full text-center space-y-6">
           <div className="w-24 h-24 mx-auto rounded-full bg-amber-500/20 flex items-center justify-center">
             <Eye size={48} className="text-amber-400" />
@@ -407,6 +506,7 @@ const PeerPlayActivity = ({ pieceConfig, journeyExtras = {} }) => {
     if (!partnerJourney && !loadError) {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
+          {saveToastModal}
           <Loader size={48} className="animate-spin text-emerald-400 mb-4" />
           <p className="text-xl font-bold">Loading {partner?.name}'s Journey...</p>
         </div>
@@ -417,6 +517,7 @@ const PeerPlayActivity = ({ pieceConfig, journeyExtras = {} }) => {
     if (loadError) {
       return (
         <div className="h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-8">
+          {saveToastModal}
           <div className="text-6xl mb-4">😕</div>
           <h1 className="text-2xl font-bold mb-2">Couldn't Load Journey</h1>
           <p className="text-white/60 mb-4">{loadError}</p>
@@ -434,6 +535,7 @@ const PeerPlayActivity = ({ pieceConfig, journeyExtras = {} }) => {
     if (JourneyComponent && partnerJourney) {
       return (
         <div className="h-screen relative">
+          {saveToastModal}
           {/* Partner name banner */}
           <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[100] bg-black/70 backdrop-blur-sm rounded-full px-4 py-1.5 flex items-center gap-2 border border-white/20">
             <Gamepad2 size={14} className="text-emerald-400" />
@@ -459,6 +561,7 @@ const PeerPlayActivity = ({ pieceConfig, journeyExtras = {} }) => {
   if (phase === 'done') {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-emerald-950 to-gray-900 text-white p-8">
+        {saveToastModal}
         <div className="max-w-md w-full text-center space-y-6">
           <div className="w-24 h-24 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center">
             <Trophy size={48} className="text-emerald-400" />
@@ -476,6 +579,7 @@ const PeerPlayActivity = ({ pieceConfig, journeyExtras = {} }) => {
   // Fallback
   return (
     <div className="h-screen flex items-center justify-center bg-gray-900 text-white">
+      {saveToastModal}
       <Loader size={32} className="animate-spin" />
     </div>
   );

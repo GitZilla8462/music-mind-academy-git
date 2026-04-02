@@ -49,6 +49,7 @@ const getActivityIcon = (type) => {
     case 'game': return Gamepad2;
     case 'composition': return Music;
     case 'reflection': return FileText;
+    case 'exit-ticket': return ClipboardList;
     default: return FileText;
   }
 };

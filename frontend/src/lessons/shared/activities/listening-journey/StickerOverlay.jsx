@@ -122,7 +122,7 @@ const cleanupDrag = (ref) => {
   }
 };
 
-const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSelected, onSelect, onUpdateItem, isBuildMode }) => {
+const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSelected, onSelect, onUpdateItem, onUpdateItems, isBuildMode, selectedItemIds, allItems }) => {
   const { position, type } = item;
   const scale = item.scale || 1;
   const rotation = item.rotation || 0;
@@ -142,19 +142,27 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
     e.stopPropagation();
     e.preventDefault(); // prevent browser text-selection / image-drag
 
-    onSelect(item.id);
+    // If this item is already part of a multi-selection, keep the group selected;
+    // otherwise select just this item.
+    const isPartOfMultiSelect = isSelected && selectedItemIds && selectedItemIds.size > 1;
+    if (!isPartOfMultiSelect) {
+      onSelect(item.id);
+    }
 
     // Safety: clear any leftover drag from a previous interaction
     cleanupDrag(dragRef);
 
     const startMouseX = e.clientX;
     const startMouseY = e.clientY;
-    const startPosX = position.x;
-    const startPosY = position.y;
     const viewport = e.currentTarget.closest('[data-viewport="true"]');
     if (!viewport) return;
     const rect = viewport.getBoundingClientRect();
     let dragging = false;
+
+    // Capture start positions for all selected items (group drag)
+    const dragGroup = isPartOfMultiSelect && allItems && onUpdateItems
+      ? allItems.filter(i => selectedItemIds.has(i.id)).map(i => ({ id: i.id, startX: i.position.x, startY: i.position.y }))
+      : [{ id: item.id, startX: position.x, startY: position.y }];
 
     const onMove = (me) => {
       me.preventDefault();
@@ -164,7 +172,16 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
       if (dragging) {
         const dx = (me.clientX - startMouseX) / rect.width;
         const dy = (me.clientY - startMouseY) / rect.height;
-        onUpdateItem(item.id, { position: { x: startPosX + dx, y: startPosY + dy } });
+        if (dragGroup.length > 1 && onUpdateItems) {
+          // Group drag: move all selected stickers together
+          const updates = dragGroup.map(g => ({
+            id: g.id,
+            updates: { position: { x: g.startX + dx, y: g.startY + dy } }
+          }));
+          onUpdateItems(updates);
+        } else {
+          onUpdateItem(dragGroup[0].id, { position: { x: dragGroup[0].startX + dx, y: dragGroup[0].startY + dy } });
+        }
       }
     };
 
@@ -350,7 +367,7 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
 // Memoize StickerItem — only re-renders when its own props change
 const StickerItem = React.memo(StickerItemInner);
 
-const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem, onUpdateItem, onAddItem, onSwitchToSelect, rawScrollOffset = 0, selectedItemIds = new Set(), onSelectItem, isBuildMode = false, gameMode = false, collectedIds = new Set() }) => {
+const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem, onUpdateItem, onUpdateItems, onAddItem, onSwitchToSelect, rawScrollOffset = 0, selectedItemIds = new Set(), onSelectItem, isBuildMode = false, gameMode = false, collectedIds = new Set() }) => {
   const singleSelected = selectedItemIds.size === 1;
   // Track when stickers were collected so we can stop rendering after animation (1s)
   const collectedTimesRef = useRef(new Map());
@@ -391,7 +408,10 @@ const StickerOverlay = ({ items, currentTime, isPlaying, editMode, onRemoveItem,
             isSingleSelected={singleSelected}
             onSelect={onSelectItem}
             onUpdateItem={onUpdateItem}
+            onUpdateItems={onUpdateItems}
             isBuildMode={isBuildMode}
+            selectedItemIds={selectedItemIds}
+            allItems={items}
           />
         );
       })}

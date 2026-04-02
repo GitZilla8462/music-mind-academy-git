@@ -4360,11 +4360,13 @@ const TeacherLessonView = ({
     return () => clearInterval(interval);
   }, [classroomTimer.isRunning, playTimerEndSound]);
 
-  // Check if current stage is a saveable activity (composition, listening map, listening journey, capstone planning, or reflection)
+  // Check if current stage is a saveable activity (composition, listening map, listening journey, capstone planning, decoys, peer play, exit ticket, or reflection)
   const isSaveableActivity = currentStageData?.type === 'activity' &&
     (currentStageData?.id?.includes('composition') || currentStageData?.id?.includes('listening-map') ||
      currentStageData?.id === 'animator-directions' || currentStageData?.id === 'build-time' ||
-     currentStageData?.id === 'planning-intro' ||
+     currentStageData?.id === 'planning-intro' || currentStageData?.id === 'decoy-time' ||
+     currentStageData?.id === 'peer-play' || currentStageData?.id === 'pair-and-share' ||
+     currentStageData?.id === 'exit-ticket' ||
      currentStageData?.id?.includes('reflection'));
 
   // Send save command to all students via Firebase

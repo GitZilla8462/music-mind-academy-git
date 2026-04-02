@@ -164,7 +164,7 @@ const EduLandingPage = () => {
           </button>
 
           <p className="text-slate-500 text-sm mt-4">
-            Teachers sign in with Google. Students join with a class code or student account.
+            Teachers sign in with Google. Students log in with a username and password.
           </p>
         </div>
       </section>
@@ -216,29 +216,27 @@ const EduLandingPage = () => {
           
           <div className="space-y-4">
             {[
-              { emoji: '🏀', title: 'Sports Highlight Reel', desc: 'Intro to the DAW', available: true },
-              { emoji: '🏙️', title: 'City Soundscapes', desc: 'Texture & Layering', available: true },
-              { emoji: '🌍', title: 'Epic Wildlife', desc: 'Sectional Form', available: false },
-              { emoji: '🎮', title: 'Video Game Montage', desc: 'Musical Storytelling', available: false },
+              { emoji: '🏀', title: 'Sports Highlight Reel', desc: 'Intro to the DAW' },
+              { emoji: '🏙️', title: 'City Soundscapes', desc: 'Texture & Layering' },
+              { emoji: '🌍', title: 'Epic Wildlife', desc: 'Sectional Form' },
+              { emoji: '🎮', title: 'Video Game Montage', desc: 'Musical Storytelling' },
+              { emoji: '🎻', title: 'Strings & Dynamics', desc: 'Active Listening' },
+              { emoji: '🎺', title: 'Woodwinds & Tempo', desc: 'Tempo & Timbre' },
+              { emoji: '🥁', title: 'Brass, Percussion & Form', desc: 'Rondo Form' },
+              { emoji: '🎹', title: 'Form & Structure', desc: 'Sectional Listening' },
+              { emoji: '🎤', title: 'Music Journalist', desc: 'Music Criticism' },
+              { emoji: '🎧', title: 'Artist Discovery', desc: 'Genre & Style' },
             ].map((lesson, i) => (
-              <div 
-                key={i} 
-                className={`flex items-center gap-4 p-4 rounded-xl border ${
-                  lesson.available 
-                    ? 'bg-white border-slate-200' 
-                    : 'bg-slate-50 border-slate-100 opacity-60'
-                }`}
+              <div
+                key={i}
+                className="flex items-center gap-4 p-4 rounded-xl border bg-white border-slate-200"
               >
                 <span className="text-3xl">{lesson.emoji}</span>
                 <div className="flex-1">
                   <div className="font-semibold text-slate-800">{lesson.title}</div>
                   <div className="text-sm text-slate-500">{lesson.desc}</div>
                 </div>
-                {lesson.available ? (
-                  <span className="text-green-600 text-sm font-medium">✓ Available</span>
-                ) : (
-                  <span className="text-slate-400 text-sm">Coming Soon</span>
-                )}
+                <span className="text-green-600 text-sm font-medium">✓ Available</span>
               </div>
             ))}
           </div>

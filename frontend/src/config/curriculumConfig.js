@@ -136,7 +136,8 @@ export const CURRICULUM = [
         concept: 'All families together — capstone project',
         route: '/lessons/listening-lab/lesson5',
         activities: [
-          { id: 'listening-journey', name: 'Listening Journey (Capstone)', type: 'composition' }
+          { id: 'listening-journey', name: 'Listening Journey (Capstone)', type: 'composition' },
+          { id: 'exit-ticket', name: 'Exit Ticket', type: 'exit-ticket' }
         ]
       }
     ]

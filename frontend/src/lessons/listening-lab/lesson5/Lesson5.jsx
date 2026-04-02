@@ -263,7 +263,7 @@ const Lesson5 = () => {
               id: currentStage,
               ...(activityType === 'listening-journey' ? { pieceConfig: getSelectedPieceConfig(), ...JOURNEY_L5_EXTRAS } : {}),
               ...(activityType === 'peer-play' ? { pieceConfig: getSelectedPieceConfig(), journeyExtras: JOURNEY_L5_EXTRAS } : {}),
-              ...(activityType === 'exit-ticket' ? { questions: exitTicketQuestions, storageKey: 'listening-lab-exit-ticket' } : {})
+              ...(activityType === 'exit-ticket' ? { questions: exitTicketQuestions, storageKey: 'exit-ticket', lessonId: 'll-lesson5' } : {})
             }}
             onComplete={handleSessionActivityComplete}
             sessionCode={sessionCode}
@@ -355,6 +355,21 @@ const Lesson5 = () => {
   // ========================================
   // NORMAL MODE (NO SESSION)
   // ========================================
+
+  // Direct exit ticket mode (from student dashboard)
+  const directActivity = searchParams.get('activity');
+  if (directActivity === 'exit-ticket') {
+    return (
+      <ActivityRenderer
+        activity={{ type: 'exit-ticket', id: 'exit-ticket', questions: exitTicketQuestions, storageKey: 'exit-ticket', lessonId: 'll-lesson5' }}
+        onComplete={() => navigate('/student/home')}
+        viewMode={false}
+        isSessionMode={false}
+        lessonConfig={lessonConfig}
+        currentStage="exit-ticket"
+      />
+    );
+  }
 
   // View saved work mode
   if (viewSavedMode || viewReflectionMode) {

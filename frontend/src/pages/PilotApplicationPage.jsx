@@ -104,7 +104,7 @@ const PilotApplicationPage = () => {
             Join the Pilot Program
           </h1>
           <p className="text-sky-100 text-sm mt-1">
-            Free access March 15 – June 30, 2026
+            Free access now through June 20, 2026
           </p>
         </div>
 

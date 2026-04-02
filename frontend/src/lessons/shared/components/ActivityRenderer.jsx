@@ -870,6 +870,7 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           isSessionMode={isSessionMode}
           storageKey={activity.storageKey || 'exit-ticket'}
+          lessonId={activity.lessonId || null}
         />
       );
 

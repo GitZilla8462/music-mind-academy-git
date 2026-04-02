@@ -795,7 +795,11 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   // ── Sticker / text placement ───────────────────────────────────────
 
   const selectItem = useCallback((id) => {
-    setSelectedItemIds(new Set(id != null ? [id] : []));
+    setSelectedItemIds(prev => {
+      // If clicking an item that's already part of a multi-selection, keep the group
+      if (id != null && prev.size > 1 && prev.has(id)) return prev;
+      return new Set(id != null ? [id] : []);
+    });
     // In decoy mode, clicking a placed sticker toggles its decoy status
     if (id != null && decoyMode && gameMode) {
       setItems(prev => {
@@ -956,6 +960,22 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       }
       return updated;
     }));
+  }, [sections]);
+
+  // Batch update multiple items at once (used for group drag)
+  const handleUpdateItems = useCallback((itemUpdates) => {
+    setItems(prev => {
+      const updateMap = new Map(itemUpdates.map(u => [u.id, u.updates]));
+      return prev.map(i => {
+        const updates = updateMap.get(i.id);
+        if (!updates) return i;
+        const updated = { ...i, ...updates };
+        if ('timestamp' in updates && updates.timestamp !== i.timestamp) {
+          updated.placedAtOffset = getScrollOffsetAtTime(updates.timestamp, sections);
+        }
+        return updated;
+      });
+    });
   }, [sections]);
 
   const handleAddItem = useCallback((item) => {
@@ -1806,6 +1826,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                 editMode={isBuild && !drawingTool ? editMode : 'select'}
                 onRemoveItem={handleRemoveItem}
                 onUpdateItem={handleUpdateItem}
+                onUpdateItems={handleUpdateItems}
                 onAddItem={handleAddItem}
                 onSwitchToSelect={() => setEditMode('select')}
                 rawScrollOffset={rawMidgroundOffset}

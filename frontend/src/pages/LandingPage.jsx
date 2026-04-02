@@ -826,7 +826,7 @@ const LandingPage = () => {
           <div className="hero-content">
             <div className="hero-badge">
               <span className="hero-badge-dot"></span>
-              March–June pilot — Spots available
+              Free pilot — Now until June 20th
             </div>
             <h1>
               No-Prep Music Lessons That <span className="hero-highlight">Actually Engage</span> Middle Schoolers
@@ -837,7 +837,7 @@ const LandingPage = () => {
 
             <ul className="hero-bullets">
               <li><span className="check">✓</span> Works on Chromebooks - no downloads</li>
-              <li><span className="check">✓</span> Students join by class code - no accounts needed</li>
+              <li><span className="check">✓</span> Students log in with username & password - no emails needed</li>
               <li><span className="check">✓</span> Ready to teach tomorrow - no planning</li>
             </ul>
 
@@ -845,7 +845,7 @@ const LandingPage = () => {
               <button onClick={handleJoinPilot} className="btn-hero">
                 Join the Pilot
               </button>
-              <span className="hero-note">Free pilot: March – June 2026</span>
+              <span className="hero-note">Free pilot: Now until June 20, 2026</span>
             </div>
           </div>
 
@@ -859,7 +859,7 @@ const LandingPage = () => {
       <section className="stats">
         <div className="stats-inner">
           <div className="stat">
-            <div className="stat-number">5</div>
+            <div className="stat-number">10</div>
             <div className="stat-label">Complete Lessons</div>
           </div>
           <div className="stat">
@@ -967,7 +967,7 @@ const LandingPage = () => {
                 <div className="step-number">1</div>
                 <div className="step-content">
                   <h3>Start a Session</h3>
-                  <p>One click generates a class code. Share it and students join.</p>
+                  <p>One click starts the lesson. Students log in with their username and password.</p>
                 </div>
               </div>
               <div className="how-step">
@@ -1009,15 +1009,15 @@ const LandingPage = () => {
               <div className="privacy-item">
                 <div className="privacy-check">✓</div>
                 <div className="privacy-item-text">
-                  <h4>No Student Accounts Required</h4>
-                  <p>Students join by class code — no sign-ups or real names needed</p>
+                  <h4>Simple Student Accounts</h4>
+                  <p>Students log in with a username and password — no emails or real names needed</p>
                 </div>
               </div>
               <div className="privacy-item">
                 <div className="privacy-check">✓</div>
                 <div className="privacy-item-text">
                   <h4>Minimal Data Collection</h4>
-                  <p>Only a nickname is needed to participate in class</p>
+                  <p>Only a username and password — no personal information collected</p>
                 </div>
               </div>
               <div className="privacy-item">
@@ -1048,9 +1048,9 @@ const LandingPage = () => {
 
       {/* Final CTA */}
       <section className="final-cta">
-        <h2>Join the March–June Pilot</h2>
+        <h2>Join the Pilot — Free Until June 20th</h2>
         <p>
-          Try Music Mind Academy free with your classes this spring.
+          Try Music Mind Academy free with your classes now through June 20, 2026.
           <br />
           Spots are limited — apply now to get started.
         </p>

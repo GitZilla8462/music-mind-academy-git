@@ -385,6 +385,70 @@ const ActivityGradingView = ({
         </div>
       );
     }
+    if (workData.data?.answers) {
+      const { answers, questions: qs, mcCorrect, mcTotal } = workData.data;
+      return (
+        <div className="flex-1 overflow-auto p-6">
+          <div className="max-w-2xl mx-auto space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-bold text-gray-900">Exit Ticket Responses</h3>
+              {mcTotal > 0 && (
+                <span className={`text-sm font-bold px-3 py-1 rounded-full ${mcCorrect === mcTotal ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {mcCorrect}/{mcTotal} correct
+                </span>
+              )}
+            </div>
+            {qs ? qs.map((q, i) => {
+              const answer = answers[q.id];
+              const isMC = q.type === 'multiple-choice';
+              return (
+                <div key={q.id} className="bg-white border border-gray-200 rounded-xl p-4">
+                  <div className="text-xs font-semibold text-gray-400 uppercase mb-1">
+                    {isMC ? `Question ${i + 1}` : 'Reflection'}
+                  </div>
+                  <div className="text-sm font-medium text-gray-900 mb-3">{q.question}</div>
+                  {isMC ? (
+                    <div className="space-y-1.5">
+                      {q.options?.map(opt => {
+                        const isSelected = answer === opt;
+                        const isRight = opt === q.correctAnswer;
+                        return (
+                          <div key={opt} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
+                            isSelected && isRight ? 'bg-green-50 border border-green-300 text-green-800 font-semibold' :
+                            isSelected && !isRight ? 'bg-red-50 border border-red-300 text-red-800 font-semibold' :
+                            isRight ? 'bg-green-50/50 border border-green-200 text-green-700' :
+                            'bg-gray-50 text-gray-500'
+                          }`}>
+                            {isSelected && isRight && <span>✓</span>}
+                            {isSelected && !isRight && <span>✗</span>}
+                            {!isSelected && isRight && <span className="text-green-500">✓</span>}
+                            <span>{opt}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-800 whitespace-pre-wrap">
+                      {answer || <span className="text-gray-400 italic">No response</span>}
+                    </div>
+                  )}
+                </div>
+              );
+            }) : (
+              /* Old format — no questions saved, just show raw answers */
+              Object.entries(answers).map(([qId, answer]) => (
+                <div key={qId} className="bg-white border border-gray-200 rounded-xl p-4">
+                  <div className="text-xs font-semibold text-gray-400 uppercase mb-1">Question {qId}</div>
+                  <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-800 whitespace-pre-wrap">
+                    {answer || <span className="text-gray-400 italic">No response</span>}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      );
+    }
     if (workData.data?.placedLoops) {
       return (
         <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 text-gray-400 animate-spin" /></div>}>
@@ -765,6 +829,8 @@ const ActivityGradingView = ({
                 submittedAt={currentStudent.submission?.submittedAt}
               />
             </Suspense>
+          ) : currentWork?.data?.answers ? (
+            renderWorkContent(currentWork)
           ) : currentWork ? (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8">
               <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full text-center">
