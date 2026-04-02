@@ -766,25 +766,25 @@ export const AdminDataProvider = ({ children }) => {
       });
     });
 
-    const teacherRows = [['Teacher Email', 'L1 Real Classes', 'L1 Students', 'L1 Active Time (min)', 'L1 Taught',
-      'L2 Real Classes', 'L2 Students', 'L2 Active Time (min)', 'L2 Taught',
-      'L3 Real Classes', 'L3 Students', 'L3 Active Time (min)', 'L3 Taught',
-      'L4 Real Classes', 'L4 Students', 'L4 Active Time (min)', 'L4 Taught',
-      'L5 Real Classes', 'L5 Students', 'L5 Active Time (min)', 'L5 Taught',
-      'Total Real Classes', 'Total Students', 'Total Active Time (min)']];
+    const teacherRows = [['Teacher Email', 'L1 Real Classes', 'L1 Active Time (min)', 'L1 Taught',
+      'L2 Real Classes', 'L2 Active Time (min)', 'L2 Taught',
+      'L3 Real Classes', 'L3 Active Time (min)', 'L3 Taught',
+      'L4 Real Classes', 'L4 Active Time (min)', 'L4 Taught',
+      'L5 Real Classes', 'L5 Active Time (min)', 'L5 Taught',
+      'Total Real Classes', 'Student Accounts', 'Total Active Time (min)']];
 
     Object.values(teacherLessonData).forEach(teacher => {
       const row = [teacher.email];
-      let totalRealClasses = 0, totalStudents = 0, totalActiveTime = 0;
+      let totalRealClasses = 0, totalActiveTime = 0;
       [1, 2, 3, 4, 5].forEach(lessonNum => {
         const sessions = teacher.lessons[lessonNum];
         const realClasses = sessions.filter(s => s.realClass).length;
-        const students = sessions.reduce((sum, s) => sum + s.students, 0);
         const activeTime = sessions.reduce((sum, s) => sum + s.activeTime, 0);
-        row.push(realClasses, students, activeTime, realClasses > 0 ? 'Yes' : 'No');
-        totalRealClasses += realClasses; totalStudents += students; totalActiveTime += activeTime;
+        row.push(realClasses, activeTime, realClasses > 0 ? 'Yes' : 'No');
+        totalRealClasses += realClasses; totalActiveTime += activeTime;
       });
-      row.push(totalRealClasses, totalStudents, totalActiveTime);
+      const uniqueStudents = studentCountByEmail[teacher.email?.toLowerCase()] || 0;
+      row.push(totalRealClasses, uniqueStudents, totalActiveTime);
       teacherRows.push(row);
     });
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(teacherRows), 'Teacher Progress');
