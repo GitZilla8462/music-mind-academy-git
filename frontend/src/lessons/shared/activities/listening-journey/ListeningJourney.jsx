@@ -596,8 +596,9 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       viewRoute: pieceConfig?.viewRoute || '/lessons/listening-lab/lesson4?view=saved',
       subtitle: `${sections.length} sections`,
       category: 'Listening Lab',
-      lessonId: pieceConfig?.lessonId || null,
-      data: { sections, character, items: cleanItems, guideData, essayData, drawingData, audioPath, audioVolume, pieceTitle: pieceConfig?.title || null }
+      // Don't override lessonId — let parseActivityId normalize to ll-lesson5
+      // so L3/L4/L5 all save to the same Firebase path and data persists across lessons
+      data: { sections, character, items: cleanItems, guideData, essayData, drawingData, audioPath, audioVolume, pieceTitle: pieceConfig?.title || null, sourceLessonId: pieceConfig?.lessonId || null }
     }, null, authInfo);
     setSaveStatus('saved');
     setTimeout(() => setSaveStatus(null), 2000);
@@ -646,7 +647,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           viewRoute: pieceConfig?.viewRoute || '/lessons/listening-lab/lesson4?view=saved',
           subtitle: `${unmountSectionsRef.current.length} sections`,
           category: 'Listening Lab',
-          lessonId: pieceConfig?.lessonId || null,
+          // Don't override lessonId — let parseActivityId normalize to ll-lesson5
           data: {
             sections: unmountSectionsRef.current,
             character: unmountCharacterRef.current,
@@ -656,7 +657,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             drawingData,
             audioPath,
             audioVolume,
-            pieceTitle: pieceConfig?.title || null
+            pieceTitle: pieceConfig?.title || null,
+            sourceLessonId: pieceConfig?.lessonId || null
           }
         }, null, authInfo);
         console.log('✅ Listening journey saved on unmount');

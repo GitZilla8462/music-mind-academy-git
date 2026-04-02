@@ -317,12 +317,12 @@ const PeerPlayActivity = ({ pieceConfig, journeyExtras = {} }) => {
 
         (async () => {
           try {
-            // Load from Firebase (source of truth — works even if localStorage is blocked)
-            const lessonId = pieceConfig?.lessonId || 'll-lesson5';
-            const data = await loadFromFirebase(auth.uid, lessonId, 'listening-journey');
+            // Load from Firebase — all lessons save under ll-lesson5 (normalized by parseActivityId)
+            const data = await loadFromFirebase(auth.uid, 'll-lesson5', 'listening-journey');
             if (!data?.data) {
-              // Fallback: try ll-lesson4
-              const data4 = await loadFromFirebase(auth.uid, 'll-lesson4', 'listening-journey');
+              // Fallback: try ll-lesson4 and ll-lesson3 for data saved before normalization fix
+              const data4 = await loadFromFirebase(auth.uid, 'll-lesson4', 'listening-journey') ||
+                             await loadFromFirebase(auth.uid, 'll-lesson3', 'listening-journey');
               if (!data4?.data) {
                 console.warn('⚠️ No journey data found to re-save during peer play');
                 return;
