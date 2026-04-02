@@ -99,21 +99,38 @@ export const AdminDataProvider = ({ children }) => {
       setLoading(false);
     });
 
-    // Fetch teacherClasses to count unique student accounts per teacher
+    // Count unique student accounts per teacher by reading class rosters
+    // First get teacherClasses to know which classes belong to which teacher,
+    // then count roster entries in classRosters for each class
     const teacherClassesRef = ref(database, 'teacherClasses');
-    const unsubTeacherClasses = onValue(teacherClassesRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const counts = {};
-        snapshot.forEach((teacherChild) => {
+    const classRostersRef = ref(database, 'classRosters');
+    const unsubTeacherClasses = onValue(teacherClassesRef, (tcSnapshot) => {
+      // Build map of classId → teacherUid
+      const classToTeacher = {};
+      if (tcSnapshot.exists()) {
+        tcSnapshot.forEach((teacherChild) => {
           const uid = teacherChild.key;
-          let total = 0;
           teacherChild.forEach((classChild) => {
-            total += classChild.val()?.studentCount || 0;
+            classToTeacher[classChild.key] = uid;
           });
-          counts[uid] = total;
         });
-        setStudentCountByUid(counts);
       }
+      // Now read rosters and count students per teacher
+      onValue(classRostersRef, (rostersSnapshot) => {
+        const counts = {};
+        if (rostersSnapshot.exists()) {
+          rostersSnapshot.forEach((classChild) => {
+            const classId = classChild.key;
+            const teacherUid = classToTeacher[classId];
+            if (teacherUid) {
+              let rosterSize = 0;
+              classChild.forEach(() => { rosterSize++; });
+              counts[teacherUid] = (counts[teacherUid] || 0) + rosterSize;
+            }
+          });
+        }
+        setStudentCountByUid(counts);
+      }, { onlyOnce: true });
     });
 
     const unsubAnalytics = subscribeToAnalytics(({ stats, teachers, sessions }) => {
