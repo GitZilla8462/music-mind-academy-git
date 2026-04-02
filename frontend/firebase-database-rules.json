@@ -78,6 +78,7 @@
     },
 
     "teacherClasses": {
+      ".read": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')",
       "$uid": {
         ".read": "auth != null && auth.uid == $uid",
         ".write": "auth != null && auth.uid == $uid"
@@ -160,6 +161,7 @@
     },
 
     "classRosters": {
+      ".read": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')",
       "$classId": {
         ".read": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",
         ".write": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",

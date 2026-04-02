@@ -145,7 +145,6 @@ export const AdminDataProvider = ({ children }) => {
             }
           });
         }
-        console.log('📊 Student counts:', counts);
         setStudentCountByEmail(counts);
       } catch (err) {
         console.error('Error loading student counts:', err);
