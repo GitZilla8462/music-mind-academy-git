@@ -18,196 +18,200 @@ import { useSession } from '../../../../context/SessionContext';
 // ============================================================
 // AUDIO PATHS
 // ============================================================
-const VIVALDI_SPRING = '/lessons/film-music-project/lesson2/mp3/Classicals.de-Vivaldi-The-Four-Seasons-01-John-Harrison-with-the-Wichita-State-University-Chamber-Players-Spring-Mvt-1-Allegro.mp3';
+const BRAHMS_HUNGARIAN = '/audio/classical/brahms-hungarian-dance-5.mp3';
+const DVORAK_LARGO = '/audio/classical/dvorak-new-world-largo.mp3';
+const HANDEL_LARGO = '/audio/classical/handel-xerxes-largo.mp3';
+const MOUNTAIN_KING = '/audio/classical/grieg-mountain-king.mp3';
 
 // ============================================================
 // QUESTIONS — Round 1
 // Categories: dynamics, tempo, instruments, form
-// Correct answers distributed: A=3, B=3, C=3, D=2
+// Uses different audio clips than Four Corners (L3 bonus game)
+// Correct answers distributed: A=3, B=3, C=2, D=3
 // ============================================================
 const QUESTIONS = [
   {
     id: 'q1', category: 'dynamics',
     prompt: 'Listen! What dynamic level is this?',
-    audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 16, volume: 0.85 },
+    audio: { path: BRAHMS_HUNGARIAN, startTime: 0, endTime: 15, volume: 0.85 },
     answers: { A: 'Piano', B: 'Mezzo Forte', C: 'Forte', D: 'Fortissimo' },
-    correct: 'C',
-    explanation: 'That was forte — loud and strong, but not as extreme as fortissimo!'
+    correct: 'D',
+    explanation: 'That was fortissimo — very loud and powerful! Brahms opens with a bang.'
   },
   {
     id: 'q2', category: 'dynamics',
     prompt: 'Listen! What dynamic level is this?',
-    audio: { path: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', startTime: 4.5, endTime: 23.5, volume: 0.5 },
-    answers: { A: 'Pianissimo', B: 'Piano', C: 'Mezzo Piano', D: 'Mezzo Forte' },
+    audio: { path: DVORAK_LARGO, startTime: 0, endTime: 20, volume: 0.6 },
+    answers: { A: 'Piano', B: 'Mezzo Piano', C: 'Mezzo Forte', D: 'Forte' },
     correct: 'A',
-    explanation: 'That was pianissimo — very soft! Even softer than piano.'
+    explanation: 'That was piano — soft and gentle. Dvořák\'s Largo opens with a quiet, peaceful mood.'
   },
   {
     id: 'q3', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
-    audio: { path: '/audio/classical/grieg-morning-mood.mp3', startTime: 0, endTime: 20, volume: 0.7 },
-    answers: { A: 'Adagio', B: 'Andante', C: 'Allegro', D: 'Presto' },
-    correct: 'B',
-    explanation: 'That was Andante — walking speed! Adagio is slower, Allegro is faster.'
+    audio: { path: HANDEL_LARGO, startTime: 0, endTime: 20, volume: 0.7 },
+    answers: { A: 'Largo', B: 'Andante', C: 'Allegro', D: 'Presto' },
+    correct: 'A',
+    explanation: 'That was Largo — very slow and broad! Even slower than Adagio.'
   },
   {
     id: 'q4', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
-    audio: { path: '/audio/classical/vivaldi-summer-presto-1.mp3', volume: 0.7 },
-    answers: { A: 'Adagio', B: 'Allegro', C: 'Andante', D: 'Presto' },
-    correct: 'D',
-    explanation: 'That was Presto — very fast! Allegro is fast but Presto is even faster.'
+    audio: { path: BRAHMS_HUNGARIAN, startTime: 0, endTime: 15, volume: 0.7 },
+    answers: { A: 'Adagio', B: 'Andante', C: 'Allegro', D: 'Presto' },
+    correct: 'C',
+    explanation: 'That was Allegro — fast and lively! Brahms\'s Hungarian Dance is energetic but not as wild as Presto.'
   },
   {
     id: 'q5', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
-    audio: { path: '/audio/classical/beethoven-moonlight-sonata-adagio.mp3', startTime: 4.5, endTime: 23.5, volume: 0.7 },
-    answers: { A: 'Adagio', B: 'Andante', C: 'Allegro', D: 'Presto' },
-    correct: 'A',
-    explanation: 'That was Adagio — slow and relaxed! Andante is a bit faster (walking speed).'
+    audio: { path: MOUNTAIN_KING, startTime: 130, endTime: 154, volume: 0.5 },
+    answers: { A: 'Largo', B: 'Andante', C: 'Allegro', D: 'Presto' },
+    correct: 'D',
+    explanation: 'That was Presto — extremely fast! The Mountain King ends in a wild frenzy.'
   },
   {
     id: 'q6', category: 'strings',
     prompt: 'Listen! What string instrument is this?',
-    audio: { path: '/audio/orchestra-samples/strings/viola.mp3', volume: 0.8 },
+    audio: { path: '/audio/orchestra-samples/strings/violin.mp3', volume: 0.8 },
     answers: { A: 'Violin', B: 'Viola', C: 'Cello', D: 'Double Bass' },
-    correct: 'B',
-    explanation: 'That was the viola! Slightly larger and deeper than the violin, but higher than the cello.'
+    correct: 'A',
+    explanation: 'That was the violin — the highest and brightest string instrument!'
   },
   {
     id: 'q7', category: 'woodwinds',
     prompt: 'Listen! What woodwind instrument is this?',
-    audio: { path: '/audio/orchestra-samples/woodwinds/oboe.mp3', volume: 1.0 },
-    answers: { A: 'Flute', B: 'Clarinet', C: 'Oboe', D: 'Bassoon' },
-    correct: 'C',
-    explanation: 'That was the oboe — nasal tone, uses a double reed, tunes the orchestra!'
+    audio: { path: '/audio/orchestra-samples/woodwinds/bassoon.mp3', volume: 1.0 },
+    answers: { A: 'Flute', B: 'Bassoon', C: 'Oboe', D: 'Clarinet' },
+    correct: 'B',
+    explanation: 'That was the bassoon — the deepest woodwind! Uses a double reed like the oboe.'
   },
   {
     id: 'q8', category: 'brass',
     prompt: 'Listen! What brass instrument is this?',
-    audio: { path: '/audio/orchestra-samples/brass/french-horn.mp3', volume: 1.0 },
+    audio: { path: '/audio/orchestra-samples/brass/tuba.mp3', volume: 1.0 },
     answers: { A: 'Trumpet', B: 'Trombone', C: 'Tuba', D: 'French Horn' },
-    correct: 'D',
-    explanation: 'That was the French horn — warm and mellow, with a huge coiled tube!'
+    correct: 'C',
+    explanation: 'That was the tuba — the lowest brass instrument with up to 16 feet of tubing!'
   },
   {
     id: 'q9', category: 'percussion',
-    prompt: 'Listen! What percussion instrument is this?',
-    audio: { path: '/audio/orchestra-samples/percussion/timpani.mp3', volume: 1.0 },
-    answers: { A: 'Snare Drum', B: 'Timpani', C: 'Xylophone', D: 'Bass Drum' },
+    prompt: 'Listen! Is this instrument pitched or unpitched?',
+    audio: { path: '/audio/orchestra-samples/percussion/snare-drum.mp3', volume: 1.0 },
+    answers: { A: 'Pitched', B: 'Unpitched', C: 'Both', D: 'Neither' },
     correct: 'B',
-    explanation: 'Those were timpani — large copper drums that can play different pitches!'
+    explanation: 'The snare drum is unpitched — it makes rhythm but doesn\'t play specific notes!'
   },
   {
     id: 'q10', category: 'form',
-    prompt: 'What form is In the Hall of the Mountain King?',
+    prompt: 'A piece with two sections that never repeat is what form?',
     audio: null,
-    answers: { A: 'Rondo (ABACADA)', B: 'Binary (AB)', C: 'Ternary (ABA)', D: 'Strophic (AAA)' },
-    correct: 'C',
-    explanation: 'Mountain King is ternary form (ABA) — the sneaky theme returns after the wild middle!'
+    answers: { A: 'Rondo', B: 'Ternary (ABA)', C: 'Strophic (AAA)', D: 'Binary (AB)' },
+    correct: 'D',
+    explanation: 'Binary form has just two contrasting sections — A then B, no repeats!'
   },
   {
     id: 'q11', category: 'dynamics',
     prompt: 'Listen! What\'s happening to the volume?',
-    audio: { path: '/audio/classical/grieg-mountain-king.mp3', startTime: 0, endTime: 45, volume: 0.6 },
-    answers: { A: 'Crescendo', B: 'Decrescendo', C: 'Staying at forte', D: 'Staying at piano' },
-    correct: 'A',
-    explanation: 'That was a crescendo — gradually getting louder! Mountain King builds from pp to ff.'
+    audio: { path: MOUNTAIN_KING, startTime: 0, endTime: 50, volume: 0.6 },
+    answers: { A: 'Staying at forte', B: 'Decrescendo', C: 'Staying at piano', D: 'Crescendo' },
+    correct: 'D',
+    explanation: 'That was a crescendo — gradually getting louder! Mountain King builds from pianissimo to fortissimo.'
   }
 ];
 
 // ============================================================
 // QUESTIONS — Round 2 (different questions, different answers)
-// Correct answers distributed: A=3, B=3, C=2, D=3
+// Correct answers distributed: A=3, B=3, C=3, D=2
 // ============================================================
 const QUESTIONS_ROUND2 = [
   {
     id: 'r2-q1', category: 'dynamics',
     prompt: 'Listen! What dynamic level is this?',
-    audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 16, volume: 1.0 },
-    answers: { A: 'Forte', B: 'Fortissimo', C: 'Mezzo Forte', D: 'Mezzo Piano' },
-    correct: 'B',
-    explanation: 'That was fortissimo — very loud! Even louder than forte.'
+    audio: { path: HANDEL_LARGO, startTime: 0, endTime: 20, volume: 0.45 },
+    answers: { A: 'Fortissimo', B: 'Forte', C: 'Mezzo Piano', D: 'Pianissimo' },
+    correct: 'C',
+    explanation: 'That was mezzo piano — medium soft. Not as quiet as piano, but still gentle.'
   },
   {
     id: 'r2-q2', category: 'dynamics',
     prompt: 'Listen! What dynamic level is this?',
-    audio: { path: VIVALDI_SPRING, startTime: 36, endTime: 56, volume: 0.4 },
-    answers: { A: 'Pianissimo', B: 'Piano', C: 'Mezzo Piano', D: 'Mezzo Forte' },
+    audio: { path: BRAHMS_HUNGARIAN, startTime: 30, endTime: 50, volume: 0.9 },
+    answers: { A: 'Piano', B: 'Mezzo Forte', C: 'Forte', D: 'Pianissimo' },
     correct: 'B',
-    explanation: 'That was piano — soft! Pianissimo is even softer, and mezzo piano is medium-soft.'
+    explanation: 'That was mezzo forte — medium loud. Strong but not blasting!'
   },
   {
     id: 'r2-q3', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
-    audio: { path: VIVALDI_SPRING, startTime: 0, endTime: 20, volume: 0.7 },
-    answers: { A: 'Andante', B: 'Presto', C: 'Allegro', D: 'Adagio' },
-    correct: 'C',
-    explanation: 'That was Allegro — fast and lively! Not quite as fast as Presto.'
+    audio: { path: DVORAK_LARGO, startTime: 0, endTime: 20, volume: 0.7 },
+    answers: { A: 'Presto', B: 'Allegro', C: 'Andante', D: 'Largo' },
+    correct: 'D',
+    explanation: 'That was Largo — very slow and broad. Dvořák\'s "New World" Largo is one of the most famous slow movements.'
   },
   {
     id: 'r2-q4', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
-    audio: { path: '/audio/classical/grieg-mountain-king.mp3', startTime: 0, endTime: 24, volume: 0.6 },
-    answers: { A: 'Andante', B: 'Adagio', C: 'Allegro', D: 'Presto' },
+    audio: { path: MOUNTAIN_KING, startTime: 0, endTime: 25, volume: 0.6 },
+    answers: { A: 'Andante', B: 'Presto', C: 'Allegro', D: 'Adagio' },
     correct: 'A',
-    explanation: 'That was Andante — walking speed! The Mountain King starts slow before speeding up.'
+    explanation: 'That was Andante — walking speed! The Mountain King starts sneaky and slow.'
   },
   {
     id: 'r2-q5', category: 'tempo',
     prompt: 'Listen! What tempo is this?',
-    audio: { path: '/audio/classical/grieg-mountain-king.mp3', startTime: 130, endTime: 155, volume: 0.5 },
-    answers: { A: 'Adagio', B: 'Andante', C: 'Allegro', D: 'Presto' },
-    correct: 'D',
-    explanation: 'That was Presto — the Mountain King ends in a wild frenzy!'
+    audio: { path: BRAHMS_HUNGARIAN, startTime: 60, endTime: 80, volume: 0.7 },
+    answers: { A: 'Largo', B: 'Adagio', C: 'Allegro', D: 'Andante' },
+    correct: 'C',
+    explanation: 'That was Allegro — fast and energetic! Brahms keeps the energy high.'
   },
   {
     id: 'r2-q6', category: 'strings',
     prompt: 'Listen! What string instrument is this?',
-    audio: { path: '/audio/orchestra-samples/strings/cello.mp3', volume: 0.8 },
-    answers: { A: 'Violin', B: 'Viola', C: 'Cello', D: 'Double Bass' },
-    correct: 'C',
-    explanation: 'That was the cello — warm and rich, played sitting down between your knees!'
+    audio: { path: '/audio/orchestra-samples/strings/bass.mp3', volume: 0.8 },
+    answers: { A: 'Cello', B: 'Viola', C: 'Violin', D: 'Double Bass' },
+    correct: 'D',
+    explanation: 'That was the double bass — the biggest and lowest string instrument!'
   },
   {
     id: 'r2-q7', category: 'woodwinds',
     prompt: 'Listen! What woodwind instrument is this?',
-    audio: { path: '/audio/orchestra-samples/woodwinds/clarinet.mp3', volume: 1.0 },
-    answers: { A: 'Clarinet', B: 'Oboe', C: 'Bassoon', D: 'Flute' },
-    correct: 'A',
-    explanation: 'That was the clarinet — warm and versatile, uses a single reed!'
+    audio: { path: '/audio/orchestra-samples/woodwinds/flute.mp3', volume: 1.0 },
+    answers: { A: 'Oboe', B: 'Flute', C: 'Clarinet', D: 'Bassoon' },
+    correct: 'B',
+    explanation: 'That was the flute — bright and airy! The only woodwind that doesn\'t use a reed.'
   },
   {
     id: 'r2-q8', category: 'brass',
     prompt: 'Listen! What brass instrument is this?',
-    audio: { path: '/audio/orchestra-samples/brass/trombone.mp3', volume: 1.0 },
-    answers: { A: 'Trumpet', B: 'French Horn', C: 'Tuba', D: 'Trombone' },
-    correct: 'D',
-    explanation: 'That was the trombone — uses a slide instead of valves to change pitch!'
+    audio: { path: '/audio/orchestra-samples/brass/trumpet.mp3', volume: 1.0 },
+    answers: { A: 'Tuba', B: 'French Horn', C: 'Trumpet', D: 'Trombone' },
+    correct: 'C',
+    explanation: 'That was the trumpet — the highest and brightest brass instrument!'
   },
   {
     id: 'r2-q9', category: 'percussion',
-    prompt: 'Listen! What percussion instrument is this?',
-    audio: { path: '/audio/orchestra-samples/percussion/xylophone.mp3', volume: 1.0 },
-    answers: { A: 'Xylophone', B: 'Timpani', C: 'Snare Drum', D: 'Glockenspiel' },
-    correct: 'A',
-    explanation: 'That was the xylophone — you strike wooden bars with mallets!'
+    prompt: 'Listen! Is this instrument pitched or unpitched?',
+    audio: { path: '/audio/orchestra-samples/percussion/timpani.mp3', volume: 1.0 },
+    answers: { A: 'Unpitched', B: 'Neither', C: 'Both', D: 'Pitched' },
+    correct: 'D',
+    explanation: 'Timpani are pitched — a pedal changes the tension to play different notes!'
   },
   {
     id: 'r2-q10', category: 'form',
-    prompt: 'A piece that goes A-B-A-C-A-D-A is what form?',
+    prompt: 'In rondo form, which section keeps coming back?',
     audio: null,
-    answers: { A: 'Binary', B: 'Ternary', C: 'Strophic', D: 'Rondo' },
-    correct: 'D',
-    explanation: 'ABACADA is rondo form — the A section keeps coming back between new sections!'
+    answers: { A: 'The A section', B: 'The B section', C: 'The C section', D: 'A new section each time' },
+    correct: 'A',
+    explanation: 'In rondo form (ABACADA), the A section is the refrain — it keeps returning between new episodes!'
   },
   {
     id: 'r2-q11', category: 'dynamics',
-    prompt: 'Listen! What\'s happening to the volume?',
-    audio: { path: VIVALDI_SPRING, startTime: 15, endTime: 45, volume: 0.7 },
-    answers: { A: 'Crescendo', B: 'Decrescendo', C: 'Staying at forte', D: 'Staying at piano' },
-    correct: 'B',
-    explanation: 'That was a decrescendo — gradually getting softer!'
+    prompt: 'Listen to these two clips. Which one is louder?',
+    audio: { path: DVORAK_LARGO, startTime: 0, endTime: 15, volume: 0.5 },
+    answers: { A: 'This clip', B: 'They\'re the same', C: 'Can\'t tell', D: 'Neither is loud' },
+    correct: 'D',
+    explanation: 'Neither clip is loud — Dvořák\'s Largo stays at piano throughout. Both are soft and gentle.'
   }
 ];
 

@@ -271,26 +271,65 @@ const ExitTicketActivity = ({ questions = [], onComplete, isSessionMode = false,
       {saveToastModal}
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-3 flex items-center justify-between flex-shrink-0">
-        <h1 className="text-lg font-black text-white">Exit Ticket</h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-black text-white">Exit Ticket</h1>
           {/* Progress dots */}
-          <div className="flex gap-1.5">
-            {questions.map((q, i) => {
-              const answered = q.type === 'multiple-choice'
-                ? answers[q.id] != null
-                : (answers[q.id] || '').trim().length > 0;
-              return (
-                <div
-                  key={q.id}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    i === currentIndex ? 'bg-white scale-125 ring-2 ring-white/30' :
-                    answered ? 'bg-white/80' : 'bg-white/25'
-                  }`}
-                />
-              );
-            })}
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1.5">
+              {questions.map((q, i) => {
+                const answered = q.type === 'multiple-choice'
+                  ? answers[q.id] != null
+                  : (answers[q.id] || '').trim().length > 0;
+                return (
+                  <div
+                    key={q.id}
+                    className={`w-3 h-3 rounded-full transition-all ${
+                      i === currentIndex ? 'bg-white scale-125 ring-2 ring-white/30' :
+                      answered ? 'bg-white/80' : 'bg-white/25'
+                    }`}
+                  />
+                );
+              })}
+            </div>
+            <span className="text-white/60 text-sm font-medium">{questionNumber} of {questions.length}</span>
           </div>
-          <span className="text-white/60 text-sm font-medium">{questionNumber} of {questions.length}</span>
+        </div>
+
+        {/* Navigation buttons */}
+        <div className="flex items-center gap-2">
+          {!isFirst && (
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-1 px-4 py-2 rounded-xl text-sm font-bold text-white/50 hover:text-white hover:bg-white/10 transition-all"
+            >
+              <ChevronLeft size={18} /> Back
+            </button>
+          )}
+          {isLast ? (
+            <button
+              onClick={handleSubmit}
+              disabled={!allAnswered}
+              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-base font-black transition-all ${
+                allAnswered
+                  ? 'bg-white text-purple-700 hover:bg-white/90 shadow-lg'
+                  : 'bg-white/10 text-white/30 cursor-not-allowed'
+              }`}
+            >
+              <Send size={18} /> Submit
+            </button>
+          ) : (
+            <button
+              onClick={handleNext}
+              disabled={!currentAnswered}
+              className={`flex items-center gap-1 px-5 py-2 rounded-xl text-base font-bold transition-all ${
+                currentAnswered
+                  ? 'bg-white text-purple-700 hover:bg-white/90'
+                  : 'bg-white/10 text-white/30 cursor-not-allowed'
+              }`}
+            >
+              Next <ChevronRight size={18} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -350,43 +389,6 @@ const ExitTicketActivity = ({ questions = [], onComplete, isSessionMode = false,
         </div>
       </div>
 
-      {/* Navigation footer */}
-      <div className="px-6 py-4 flex items-center justify-between flex-shrink-0 border-t border-white/5">
-        <button
-          onClick={handleBack}
-          className={`flex items-center gap-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white/50 hover:text-white hover:bg-white/10 transition-all ${
-            isFirst ? 'opacity-0 pointer-events-none' : ''
-          }`}
-        >
-          <ChevronLeft size={18} /> Back
-        </button>
-
-        {isLast ? (
-          <button
-            onClick={handleSubmit}
-            disabled={!allAnswered}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-base font-black transition-all ${
-              allAnswered
-                ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg'
-                : 'bg-white/10 text-white/30 cursor-not-allowed'
-            }`}
-          >
-            <Send size={18} /> Submit
-          </button>
-        ) : (
-          <button
-            onClick={handleNext}
-            disabled={!currentAnswered}
-            className={`flex items-center gap-1 px-5 py-2.5 rounded-xl text-base font-bold transition-all ${
-              currentAnswered
-                ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                : 'bg-white/10 text-white/30 cursor-not-allowed'
-            }`}
-          >
-            Next <ChevronRight size={18} />
-          </button>
-        )}
-      </div>
     </div>
   );
 };

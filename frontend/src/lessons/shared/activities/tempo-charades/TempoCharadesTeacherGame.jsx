@@ -53,19 +53,6 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
   const [correctCount, setCorrectCount] = useState(0);
   const [scoreChanges, setScoreChanges] = useState({});
 
-  // Web Audio API setup for volume > 1.0
-  const ensureAudioContext = useCallback(() => {
-    if (audioCtxRef.current) return;
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    audioCtxRef.current = ctx;
-    gainNodeRef.current = ctx.createGain();
-    gainNodeRef.current.connect(ctx.destination);
-    if (audioRef.current) {
-      sourceNodeRef.current = ctx.createMediaElementSource(audioRef.current);
-      sourceNodeRef.current.connect(gainNodeRef.current);
-    }
-  }, []);
-
   // Stop audio
   const stopAudio = useCallback(() => {
     if (clipEndTimer.current) {
@@ -74,12 +61,18 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     }
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current = null;
     }
     setIsPlaying(false);
   }, []);
 
   // Cleanup on unmount
-  useEffect(() => () => stopAudio(), [stopAudio]);
+  useEffect(() => () => {
+    stopAudio();
+    if (audioCtxRef.current) {
+      audioCtxRef.current.close().catch(() => {});
+    }
+  }, [stopAudio]);
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
@@ -117,22 +110,19 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
   }, [sessionCode]);
 
   // Play audio clip at target tempo
-  const playClip = useCallback((question) => {
+  const playClip = useCallback(async (question) => {
     if (!audioRef.current || !question) return;
 
     stopAudio();
     ensureAudioContext();
 
+    // Ensure AudioContext is active (Chrome suspends it after inactivity)
     if (audioCtxRef.current?.state === 'suspended') {
-      audioCtxRef.current.resume();
+      await audioCtxRef.current.resume();
     }
 
-    const currentSrc = audioRef.current.getAttribute('src');
-    if (currentSrc !== question.clipAudio) {
-      audioRef.current.src = question.clipAudio;
-      audioRef.current.load();
-    }
-
+    // Setting src triggers load automatically — no need for separate load() call
+    audioRef.current.src = question.clipAudio;
     audioRef.current.currentTime = question.clipStartTime;
     audioRef.current.playbackRate = question.playbackRate;
     audioRef.current.volume = 1.0;
@@ -141,17 +131,25 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
       gainNodeRef.current.gain.value = question.clipVolume ?? 0.7;
     }
 
-    audioRef.current.play().catch(err => console.error('Audio play error:', err));
-    setIsPlaying(true);
+    try {
+      // play() returns a promise that resolves once playback starts (waits for data)
+      await audioRef.current.play();
+      setIsPlaying(true);
+      // Tell students audio has played so they can answer
+      updateGame({ audioPlayed: true });
 
-    // Stop after clip duration
-    clipEndTimer.current = setTimeout(() => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      // Stop after clip duration
+      clipEndTimer.current = setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
+        setIsPlaying(false);
+        setHasPlayed(true);
+      }, CLIP_DURATION * 1000);
+    } catch (err) {
+      console.error('Audio play error:', err);
       setIsPlaying(false);
-      setHasPlayed(true);
-    }, CLIP_DURATION * 1000);
+    }
   }, [stopAudio, ensureAudioContext]);
 
   // Start game
@@ -179,7 +177,8 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
       currentQuestion: 0,
       totalQuestions: newQuestions.length,
       correctAnswer: null,
-      playStartTime: Date.now()
+      playStartTime: Date.now(),
+      audioPlayed: false
     });
 
   }, [sessionCode, students, updateGame]);
@@ -252,7 +251,8 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
         phase: 'guessing',
         currentQuestion: nextIdx,
         correctAnswer: null,
-        playStartTime: Date.now()
+        playStartTime: Date.now(),
+        audioPlayed: false
       });
 
     }
