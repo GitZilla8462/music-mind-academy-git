@@ -81,15 +81,7 @@ const PairAndShareOverlay = () => {
           </div>
         </div>
       )}
-      {dismissed && (
-        <button
-          onClick={() => setDismissed(false)}
-          className="fixed bottom-4 right-4 z-[400] flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-colors"
-        >
-          <Info size={18} />
-          Directions
-        </button>
-      )}
+      {/* Reopen button removed — students use the white Directions button on the top bar */}
     </>
   );
 };
@@ -305,8 +297,8 @@ const Lesson3 = () => {
             lessonConfig={lessonConfig}
             currentStage={currentStage}
           />
-          {/* Student directions modal */}
-          {currentStageData.studentDirections && (
+          {/* Student directions modal — skip for listening-journey (has its own built-in directions) */}
+          {currentStageData.studentDirections && activityType !== 'listening-journey' && (
             <DirectionsModal
               title={currentStageData.label || 'Directions'}
               isOpen={activityDirections.isOpen}

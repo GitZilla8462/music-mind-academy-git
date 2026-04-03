@@ -1409,73 +1409,57 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       {/* Game Start overlay */}
       {gameMode && (isPresent || isFullscreen) && gamePhase === 'ready' && (
         <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-gray-900/90 rounded-3xl border border-white/10 shadow-2xl max-w-lg w-full mx-4 overflow-hidden max-h-[90vh] overflow-y-auto">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 text-center">
-              <div className="text-4xl mb-1">🎮</div>
-              <h2 className="text-3xl font-black text-white">{peerPlayData ? `${peerPlayData.displayName}'s Journey` : 'Play This Journey!'}</h2>
+          <div className="bg-gray-900/90 rounded-2xl border border-white/10 shadow-2xl max-w-md w-full mx-4 overflow-hidden max-h-[85vh] overflow-y-auto">
+            {/* Header — compact */}
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-center">
+              <h2 className="text-xl font-black text-white">{peerPlayData ? `${peerPlayData.displayName}'s Journey` : '🎮 Play This Journey!'}</h2>
             </div>
 
-            <div className="px-6 py-5 space-y-4">
-              {/* My Code — prominent section */}
+            <div className="px-4 py-3 space-y-3">
+              {/* My Code — compact */}
               {shareCode && !peerPlayData && !savedDataOverride && (
-                <div className="bg-amber-500/10 border-2 border-amber-500/40 rounded-xl p-4 text-center">
-                  <p className="text-sm font-black text-amber-300 uppercase tracking-wider mb-2">My Code</p>
-                  <p className="text-5xl font-black text-amber-400 tracking-[0.3em]">{shareCode}</p>
-                  <p className="text-xs text-white/40 mt-2">Show this to your partner so they can play your game</p>
+                <div className="bg-amber-500/10 border-2 border-amber-500/40 rounded-xl p-3 text-center">
+                  <p className="text-xs font-black text-amber-300 uppercase tracking-wider mb-1">My Code</p>
+                  <p className="text-4xl font-black text-amber-400 tracking-[0.3em]">{shareCode}</p>
+                  <p className="text-[10px] text-white/40 mt-1">Share this with your partner</p>
                 </div>
               )}
 
               {/* Name entry */}
               <div>
-                <label className="text-sm font-bold text-white/70 block mb-1">Your Name</label>
+                <label className="text-xs font-bold text-white/70 block mb-1">Your Name</label>
                 <input
                   type="text"
                   value={playerName}
                   onChange={(e) => setPlayerName(e.target.value)}
                   placeholder="Type your name..."
                   maxLength={20}
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white text-lg font-bold placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+                  className="w-full px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white text-sm font-bold placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
                   autoFocus
                   onKeyDown={(e) => { if (e.key === 'Enter' && playerName.trim()) startGame(); }}
                 />
               </div>
 
-              {/* Controls */}
-              <div className="bg-white/5 rounded-xl p-3">
-                <p className="text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Controls</p>
-                <div className="flex items-center justify-center gap-6">
-                  <div className="flex flex-col items-center gap-1">
-                    <div className="flex gap-1">
-                      <kbd className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/80"><ArrowUp size={14} /></kbd>
-                    </div>
-                    <div className="flex gap-1">
-                      <kbd className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/80"><ArrowLeft size={14} /></kbd>
-                      <kbd className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/80"><ArrowDown size={14} /></kbd>
-                      <kbd className="w-8 h-8 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-white/80"><ArrowRight size={14} /></kbd>
-                    </div>
-                  </div>
-                  <div className="text-sm text-white/70">
-                    <p className="font-bold text-white">Fly your bird!</p>
-                    <p>Collect stickers for <span className="text-emerald-400 font-bold">+10 pts</span></p>
-                    <p>Dodge decoys for <span className="text-red-400 font-bold">-5 pts</span></p>
-                  </div>
-                </div>
+              {/* Controls — inline compact */}
+              <div className="flex items-center justify-center gap-4 bg-white/5 rounded-lg p-2 text-xs text-white/60">
+                <span>Arrow keys to fly</span>
+                <span className="text-emerald-400 font-bold">Stickers +10</span>
+                <span className="text-red-400 font-bold">Decoys -5</span>
               </div>
 
-              {/* High Scores */}
+              {/* High Scores — compact, max 3 shown */}
               {highScores.length > 0 && (
-                <div className="bg-white/5 rounded-xl p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Trophy size={14} className="text-yellow-400" />
-                    <p className="text-xs font-bold text-white/50 uppercase tracking-wider">High Scores</p>
+                <div className="bg-white/5 rounded-lg p-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Trophy size={12} className="text-yellow-400" />
+                    <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider">High Scores</p>
                   </div>
-                  <div className="space-y-1">
-                    {highScores.map((entry, i) => (
-                      <div key={i} className={`flex items-center gap-2 px-2 py-1 rounded-lg ${i === 0 ? 'bg-yellow-500/10' : ''}`}>
-                        <span className="w-5 text-center font-bold text-sm text-white/50">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</span>
-                        <span className="flex-1 text-sm font-bold text-white truncate">{entry.name}</span>
-                        <span className={`text-sm font-black tabular-nums ${entry.score >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{entry.score}</span>
+                  <div className="space-y-0.5">
+                    {highScores.slice(0, 3).map((entry, i) => (
+                      <div key={i} className="flex items-center gap-2 px-2 py-0.5 rounded">
+                        <span className="w-4 text-center font-bold text-xs text-white/50">{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</span>
+                        <span className="flex-1 text-xs font-bold text-white truncate">{entry.name}</span>
+                        <span className={`text-xs font-black tabular-nums ${entry.score >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{entry.score}</span>
                       </div>
                     ))}
                   </div>
@@ -1486,13 +1470,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               <button
                 onClick={startGame}
                 disabled={!playerName.trim()}
-                className={`w-full py-4 rounded-xl text-2xl font-black transition-all flex items-center justify-center gap-3 ${
+                className={`w-full py-3 rounded-xl text-lg font-black transition-all flex items-center justify-center gap-2 ${
                   playerName.trim()
-                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 hover:scale-[1.02]'
+                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
                     : 'bg-white/10 text-white/30 cursor-not-allowed'
                 }`}
               >
-                <Play size={24} fill="white" /> START
+                <Play size={20} fill="white" /> START
               </button>
 
               {/* Play a Friend's Journey — only when not already in peer play */}

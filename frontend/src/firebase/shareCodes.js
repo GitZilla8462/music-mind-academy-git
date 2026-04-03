@@ -77,25 +77,33 @@ export const getOrCreateShareCode = async (studentUid, workKey, displayName) => 
  */
 export const loadJourneyByShareCode = async (code, classId, workKey) => {
   const db = getDatabase();
+  console.log(`🔍 Share code lookup: code=${code}, classId=${classId}, workKey=${workKey}`);
 
   // Get all students in this class session
   const studentsRef = ref(db, `classes/${classId}/currentSession/studentsJoined`);
   const studentsSnap = await get(studentsRef);
   if (!studentsSnap.exists()) {
+    console.log('⚠️ No students at classes/ path, trying sessions/ path...');
     // Fallback: try sessions/{classId}/studentsJoined
     const altRef = ref(db, `sessions/${classId}/studentsJoined`);
     const altSnap = await get(altRef);
-    if (!altSnap.exists()) return null;
-    return _searchStudents(db, code, Object.keys(altSnap.val()), altSnap.val(), workKey);
+    if (!altSnap.exists()) {
+      console.log('❌ No students found at either path');
+      return null;
+    }
+    const altStudents = altSnap.val();
+    console.log(`✅ Found ${Object.keys(altStudents).length} students at sessions/ path`);
+    return _searchStudents(db, code, Object.keys(altStudents), altStudents, workKey, classId);
   }
 
   const students = studentsSnap.val();
-  return _searchStudents(db, code, Object.keys(students), students, workKey);
+  console.log(`✅ Found ${Object.keys(students).length} students at classes/ path`);
+  return _searchStudents(db, code, Object.keys(students), students, workKey, classId);
 };
 
 // Search students' work records for a matching share code
 // Tries multiple work key variants (L3/L4/L5) since students may have saved under different lessons
-async function _searchStudents(db, code, studentIds, students, workKey) {
+async function _searchStudents(db, code, studentIds, students, workKey, classId) {
   // Build list of work keys to try — the requested one plus L3/L4/L5 variants
   const keysToTry = [workKey];
   if (workKey.includes('listening-journey')) {
@@ -106,29 +114,48 @@ async function _searchStudents(db, code, studentIds, students, workKey) {
   }
 
   for (const sid of studentIds) {
-    for (const wk of keysToTry) {
-      try {
-        const workRef = ref(db, `studentWork/${sid}/${wk}`);
-        const workSnap = await get(workRef);
-        if (!workSnap.exists()) continue;
+    // Try both the raw student ID and the full seat-{classId}-{num} format
+    const uidVariants = [sid];
+    if (classId && !sid.includes(classId)) {
+      // studentsJoined might have short IDs like "seat-1" but Firebase work uses "seat-{classId}-1"
+      const seatMatch = sid.match(/^seat-(\d+)$/);
+      if (seatMatch) {
+        uidVariants.push(`seat-${classId}-${seatMatch[1]}`);
+      }
+    }
 
-        const work = workSnap.val();
-        if (work.shareCode === code) {
-          if (!work.data?.sections?.length) return null; // game not built yet
+    for (const uid of uidVariants) {
+      for (const wk of keysToTry) {
+        try {
+          const workRef = ref(db, `studentWork/${uid}/${wk}`);
+          const workSnap = await get(workRef);
+          if (!workSnap.exists()) continue;
 
-          return {
-            data: work.data,
-            displayName: work.shareCodeName || students[sid]?.name || students[sid]?.displayName || 'Student',
-            workKey: wk,
-            studentUid: sid
-          };
+          const work = workSnap.val();
+          console.log(`  📋 ${uid} / ${wk}: shareCode=${work.shareCode}, hasSections=${!!work.data?.sections?.length}`);
+          if (work.shareCode === code) {
+            if (!work.data?.sections?.length) {
+              console.log(`  ⚠️ Code matched but no sections built yet`);
+              return null;
+            }
+
+            console.log(`  ✅ Match found! Loading journey from ${uid}`);
+            return {
+              data: work.data,
+              displayName: work.shareCodeName || students[sid]?.name || students[sid]?.displayName || 'Student',
+              workKey: wk,
+              studentUid: uid
+            };
+          }
+        } catch (err) {
+          console.log(`  ❌ Error checking ${uid}/${wk}: ${err.message}`);
+          continue;
         }
-      } catch {
-        continue;
       }
     }
   }
 
+  console.log('❌ No matching share code found across all students and work keys');
   return null;
 }
 

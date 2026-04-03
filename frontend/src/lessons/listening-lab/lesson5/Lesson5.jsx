@@ -272,8 +272,8 @@ const Lesson5 = () => {
             lessonConfig={lessonConfig}
             currentStage={currentStage}
           />
-          {/* Directions modal for current stage */}
-          {stageDirectionsPages && (
+          {/* Directions modal for current stage — skip for listening-journey (has its own) */}
+          {stageDirectionsPages && activityType !== 'listening-journey' && (
             <DirectionsModal
               title={stageDirectionsPages[0]?.title || 'Directions'}
               isOpen={decoyDirections.isOpen}
