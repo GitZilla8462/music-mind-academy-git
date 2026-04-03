@@ -134,38 +134,37 @@ async function _searchStudents(db, code, studentIds, students, workKey, classId)
           const work = workSnap.val();
           console.log(`  📋 ${uid} / ${wk}: shareCode=${work.shareCode}, hasSections=${!!work.data?.sections?.length}`);
           if (work.shareCode === code) {
-            // Found the code — now find the actual journey data (may be under a different work key)
-            if (work.data?.sections?.length) {
-              console.log(`  ✅ Match found! Loading journey from ${uid}/${wk}`);
-              return {
-                data: work.data,
-                displayName: work.shareCodeName || students[sid]?.name || students[sid]?.displayName || 'Student',
-                workKey: wk,
-                studentUid: uid
-              };
-            }
-
-            // Code matched but no sections here — check other work keys for this student's data
-            console.log(`  ⚠️ Code matched at ${uid}/${wk} but no sections — checking other keys...`);
+            // Found the code — now find the NEWEST journey data across all work keys for this student
+            console.log(`  🔑 Code matched at ${uid}/${wk} — finding newest data...`);
             const displayName = work.shareCodeName || students[sid]?.name || students[sid]?.displayName || 'Student';
-            for (const altWk of keysToTry) {
-              if (altWk === wk) continue;
+
+            let bestData = null;
+            let bestWk = null;
+            let bestTimestamp = 0;
+
+            for (const checkWk of keysToTry) {
               try {
-                const altRef = ref(db, `studentWork/${uid}/${altWk}`);
-                const altSnap = await get(altRef);
-                if (!altSnap.exists()) continue;
-                const altWork = altSnap.val();
-                if (altWork.data?.sections?.length) {
-                  console.log(`  ✅ Found sections at ${uid}/${altWk}`);
-                  return {
-                    data: altWork.data,
-                    displayName,
-                    workKey: altWk,
-                    studentUid: uid
-                  };
+                const checkRef = ref(db, `studentWork/${uid}/${checkWk}`);
+                const checkSnap = await get(checkRef);
+                if (!checkSnap.exists()) continue;
+                const checkWork = checkSnap.val();
+                if (!checkWork.data?.sections?.length) continue;
+
+                const ts = checkWork.updatedAt || 0;
+                console.log(`    📋 ${checkWk}: sections=${checkWork.data.sections.length}, updatedAt=${ts}`);
+                if (ts > bestTimestamp || !bestData) {
+                  bestData = checkWork.data;
+                  bestWk = checkWk;
+                  bestTimestamp = ts;
                 }
               } catch { continue; }
             }
+
+            if (bestData) {
+              console.log(`  ✅ Loading newest journey from ${uid}/${bestWk}`);
+              return { data: bestData, displayName, workKey: bestWk, studentUid: uid };
+            }
+
             console.log(`  ❌ Code matched but no sections found under any work key for ${uid}`);
             return null;
           }
