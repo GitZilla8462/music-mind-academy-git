@@ -416,7 +416,7 @@ function FixedToolbar({
   return (
     <div
       ref={dropdownRef}
-      className="flex items-center gap-0.5 px-2 py-1.5 bg-[#1a1f2e] border-b border-white/10 rounded-t-lg flex-wrap"
+      className="flex items-center gap-0.5 px-2 py-1.5 bg-[#1a1f2e] border-b border-white/10 rounded-t-lg overflow-x-auto"
       onMouseDown={e => e.stopPropagation()}
     >
       {/* Undo / Redo */}
@@ -573,13 +573,6 @@ function FixedToolbar({
       {/* Object actions — right side */}
       {selectedObj && (
         <div className="flex items-center gap-0.5">
-          <button onClick={() => onBringForward(selectedObj.id)} className={btnInactive} title="Bring Forward">
-            <ChevronUp size={14} />
-          </button>
-          <button onClick={() => onSendBack(selectedObj.id)} className={btnInactive} title="Send Back">
-            <ChevronDown size={14} />
-          </button>
-          {sep}
           <button onClick={() => onDuplicate(selectedObj.id)} className={btnInactive} title="Duplicate">
             <Copy size={13} />
           </button>
@@ -954,6 +947,23 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
     // Push undo before drag begins
     pushUndo(objects);
 
+    // Measure actual rendered size if width isn't explicitly set (text auto-sizes)
+    let measuredWidth = obj.width;
+    let measuredHeight = obj.height;
+    if (!measuredWidth || !measuredHeight) {
+      const el = e.currentTarget;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const container = containerRef.current;
+        const containerRect = container?.getBoundingClientRect();
+        if (containerRect && containerRect.width > 0) {
+          const currentScale = containerRect.width / CANVAS_W;
+          if (!measuredWidth) measuredWidth = rect.width / currentScale;
+          if (!measuredHeight) measuredHeight = rect.height / currentScale;
+        }
+      }
+    }
+
     dragRef.current = {
       mode,
       handleId,
@@ -963,8 +973,8 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
       initialX: obj.x,
       initialY: obj.y,
       initialFontSize: obj.fontSize || 24,
-      initialWidth: obj.width || 200,
-      initialHeight: obj.height || 150,
+      initialWidth: measuredWidth || 200,
+      initialHeight: measuredHeight || 150,
       // Store initial positions of all other selected objects for group move
       otherInitials: Object.fromEntries(
         objects.filter(o => selectedIds.has(o.id) && o.id !== objId).map(o => [o.id, { x: o.x, y: o.y }])
