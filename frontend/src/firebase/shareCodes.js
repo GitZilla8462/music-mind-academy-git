@@ -98,7 +98,19 @@ export const loadJourneyByShareCode = async (code, classId, workKey) => {
 
   const students = studentsSnap.val();
   console.log(`✅ Found ${Object.keys(students).length} students at classes/ path`);
-  return _searchStudents(db, code, Object.keys(students), students, workKey, classId);
+  const result = await _searchStudents(db, code, Object.keys(students), students, workKey, classId);
+  if (result) return result;
+
+  // Fallback: if not found via studentsJoined, try scanning all seat-{classId}-N UIDs directly
+  // This catches cases where studentsJoined has anonymous/auth IDs but work is under seat IDs
+  if (classId) {
+    console.log('🔄 Trying direct seat ID scan...');
+    const seatIds = [];
+    for (let i = 1; i <= 50; i++) seatIds.push(`seat-${classId}-${i}`);
+    const dummyStudents = Object.fromEntries(seatIds.map(id => [id, { name: `Seat ${id.split('-').pop()}` }]));
+    return _searchStudents(db, code, seatIds, dummyStudents, workKey, classId);
+  }
+  return null;
 };
 
 // Search students' work records for a matching share code
