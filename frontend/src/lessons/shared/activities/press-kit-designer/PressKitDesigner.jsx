@@ -51,26 +51,26 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
       kit = getOrCreatePressKit(artistId);
     }
 
-    if (artistId) {
-      const autoFields = autoPopulateFields(artistId, kit.slides);
-      kit.slides = kit.slides.map((slide, i) => {
-        const auto = autoFields[i];
-        const merged = { ...auto };
-        Object.keys(slide.fields || {}).forEach(key => {
-          if (slide.customOverrides?.[key] || (slide.fields[key] && slide.fields[key] !== '')) {
-            merged[key] = slide.fields[key];
-          }
-        });
-        const updated = { ...slide, fields: merged };
-        if (!updated.objects || updated.objects.length === 0) {
-          updated.objects = generateTemplateObjects(
-            i + 1, merged, slide.image?.url || artistData?.imageUrl || null
-          );
+    // Auto-populate fields from artist data if available, then generate template objects
+    const autoFields = artistId ? autoPopulateFields(artistId, kit.slides) : kit.slides.map(() => ({}));
+    kit.slides = kit.slides.map((slide, i) => {
+      const auto = autoFields[i];
+      const merged = { ...auto };
+      Object.keys(slide.fields || {}).forEach(key => {
+        if (slide.customOverrides?.[key] || (slide.fields[key] && slide.fields[key] !== '')) {
+          merged[key] = slide.fields[key];
         }
-        return updated;
       });
-      savePressKit(kit);
-    }
+      const updated = { ...slide, fields: merged };
+      // Always generate template objects if slide is empty — shows sentence starters even without artist
+      if (!updated.objects || updated.objects.length === 0) {
+        updated.objects = generateTemplateObjects(
+          i + 1, merged, slide.image?.url || artistData?.imageUrl || null
+        );
+      }
+      return updated;
+    });
+    savePressKit(kit);
     setPressKit(kit);
   }, []);
 

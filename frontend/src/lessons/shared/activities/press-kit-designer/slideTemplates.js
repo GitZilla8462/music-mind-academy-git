@@ -1,7 +1,8 @@
 // Slide templates — generate starter objects from template layouts.
 // When a student starts a slide, these functions place pre-positioned
-// text and image objects on the canvas with clear placeholder prompts.
+// text and image objects on the canvas with guiding question prompts.
 // Students double-click to edit, then move/resize to customize.
+// Empty fields show sentence starters to reduce blank-page paralysis.
 
 import { CANVAS_W, CANVAS_H } from './components/SlideCanvas';
 
@@ -39,29 +40,29 @@ function img(x, y, w, h, url = null) {
 }
 
 // ---------------------------------------------------------------------------
-// Slide 1: This Is [Artist]
+// Slide 1: Meet the Artist
 // ---------------------------------------------------------------------------
 
 export function generateSlide1Objects(fields = {}, imageUrl = null) {
   const objects = [];
 
   objects.push(text(60, 100,
-    fields.artistName || 'Who is your artist?',
+    fields.artistName || 'Artist Name',
     56, { bold: true }
   ));
 
   objects.push(text(60, 185,
-    fields.genre || 'What genre do they make?',
+    fields.genre || 'Genre / Subgenre',
     18, { color: '#fbbf24', bold: true }
   ));
 
   objects.push(text(60, 225,
-    fields.location || 'Where are they from?',
+    fields.location || 'City, State or Country',
     16, { color: '#ffffffaa', italic: true }
   ));
 
   objects.push(text(60, 310,
-    fields.hookLine || 'What makes them stand out in one sentence?',
+    fields.hookLine || 'This artist stands out because...',
     20, { color: '#ffffffcc' }
   ));
 
@@ -85,7 +86,7 @@ export function generateSlide2Objects(fields = {}) {
   ));
 
   objects.push(text(80, 120,
-    fields.soundStatement || 'Describe their sound so someone can hear it through your words.',
+    fields.soundStatement || 'Their music sounds like... because...',
     22, { italic: true, color: '#ffffffdd' }
   ));
 
@@ -96,18 +97,18 @@ export function generateSlide2Objects(fields = {}) {
     });
   } else {
     objects.push(text(80, 260,
-      'What 3 words describe the mood of their music?',
+      'Add 3 mood words (e.g. Chill, Dreamy, Powerful)',
       16, { color: '#fbbf24', bold: true }
     ));
   }
 
   objects.push(text(80, 320,
-    fields.influences ? `Influences: ${fields.influences}` : 'Who are their musical influences?',
+    fields.influences ? `Influences: ${fields.influences}` : 'They sound like a mix of... and...',
     16, { color: '#ffffff88' }
   ));
 
   objects.push(text(80, 390,
-    fields.ifYouLike || 'If you like _____, you\'ll love this artist because...',
+    fields.ifYouLike || 'If you like ___, you\'ll love this artist because...',
     18, { italic: true, color: '#fbbf24' }
   ));
 
@@ -127,9 +128,9 @@ export function generateSlide3Objects(fields = {}) {
   ));
 
   const reasons = [
-    { num: '1.', text: fields.reason1 || 'What is unique about their sound that no one else has?' },
-    { num: '2.', text: fields.reason2 || 'What is their story and why does it matter?' },
-    { num: '3.', text: fields.reason3 || 'What evidence shows they are growing right now?' },
+    { num: '1.', text: fields.reason1 || 'One thing that makes their sound unique is...' },
+    { num: '2.', text: fields.reason2 || 'You can tell they\'re on the rise because...' },
+    { num: '3.', text: fields.reason3 || 'This artist fits into a bigger trend because...' },
   ];
 
   reasons.forEach((r, i) => {
@@ -153,17 +154,17 @@ export function generateSlide4Objects(fields = {}, imageUrl = null) {
   ));
 
   objects.push(text(CANVAS_W / 2 - 150, 120,
-    fields.trackTitle || 'Which song should we listen to?',
+    fields.trackTitle || 'Song Title',
     42, { bold: true }
   ));
 
   objects.push(text(CANVAS_W / 2 - 100, 195,
-    fields.albumTitle || 'What album or EP is it from?',
+    fields.albumTitle || 'Album or EP Title',
     18, { color: '#ffffff88' }
   ));
 
   objects.push(text(80, 300,
-    fields.whatToListenFor || 'What should the audience listen for in this track?',
+    fields.whatToListenFor || 'Listen for the part where... because it shows...',
     18, { color: '#ffffffcc', italic: true }
   ));
 
@@ -187,17 +188,17 @@ export function generateSlide5Objects(fields = {}, imageUrl = null) {
   ));
 
   objects.push(text(80, 150,
-    fields.closingPitch || 'Why should anyone care about this artist right now?',
+    fields.closingPitch || 'This artist deserves to be signed because...',
     26, { color: '#ffffffee' }
   ));
 
   objects.push(text(CANVAS_W / 2 - 180, 310,
-    fields.callToAction || 'What do you want the audience to do after hearing your pitch?',
+    fields.callToAction || 'Don\'t miss your chance to...',
     22, { bold: true, color: '#fbbf24' }
   ));
 
   objects.push(text(80, 430,
-    fields.memorableFact || 'What is one surprising fact that will stick with people?',
+    fields.memorableFact || 'One thing most people don\'t know is...',
     16, { italic: true, color: '#ffffff77' }
   ));
 
