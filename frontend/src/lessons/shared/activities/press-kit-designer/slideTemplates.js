@@ -17,6 +17,7 @@ function text(x, y, txt, fontSize = 24, opts = {}) {
     id: uid(),
     type: 'text',
     x, y,
+    width: opts.width || 400,
     text: txt,
     fontSize,
     color: opts.color || '#ffffff',

@@ -947,23 +947,6 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
     // Push undo before drag begins
     pushUndo(objects);
 
-    // Measure actual rendered size if width isn't explicitly set (text auto-sizes)
-    let measuredWidth = obj.width;
-    let measuredHeight = obj.height;
-    if (!measuredWidth || !measuredHeight) {
-      const el = e.currentTarget;
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        const container = containerRef.current;
-        const containerRect = container?.getBoundingClientRect();
-        if (containerRect && containerRect.width > 0) {
-          const currentScale = containerRect.width / CANVAS_W;
-          if (!measuredWidth) measuredWidth = rect.width / currentScale;
-          if (!measuredHeight) measuredHeight = rect.height / currentScale;
-        }
-      }
-    }
-
     dragRef.current = {
       mode,
       handleId,
@@ -973,8 +956,8 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
       initialX: obj.x,
       initialY: obj.y,
       initialFontSize: obj.fontSize || 24,
-      initialWidth: measuredWidth || 200,
-      initialHeight: measuredHeight || 150,
+      initialWidth: obj.width || 200,
+      initialHeight: obj.height || 150,
       // Store initial positions of all other selected objects for group move
       otherInitials: Object.fromEntries(
         objects.filter(o => selectedIds.has(o.id) && o.id !== objId).map(o => [o.id, { x: o.x, y: o.y }])
@@ -1187,6 +1170,7 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
       type: 'text',
       x: CANVAS_W / 2 - 100,
       y: CANVAS_H / 2 - 20,
+      width: 200,
       text: 'New Text',
       fontSize: 24,
       color: '#ffffff',
