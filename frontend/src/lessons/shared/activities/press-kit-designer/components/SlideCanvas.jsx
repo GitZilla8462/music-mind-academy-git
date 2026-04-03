@@ -244,8 +244,10 @@ const HANDLE_POSITIONS = [
 ];
 
 function ResizeHandles({ onDragStart, objId, objType }) {
-  // All handles for all object types
-  const handles = HANDLE_POSITIONS;
+  // Text: no top/bottom center handles (text auto-fits height). All others: full 8 handles.
+  const handles = objType === 'text'
+    ? HANDLE_POSITIONS.filter(h => h.id !== 'tc' && h.id !== 'bc')
+    : HANDLE_POSITIONS;
 
   return handles.map(h => (
     <div
