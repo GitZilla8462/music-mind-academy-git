@@ -997,6 +997,10 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
             if (hid === 'ml' || hid === 'mr') {
               const newW = Math.max(60, drag.initialWidth + (hid === 'mr' ? dx : -dx));
               const newX = hid === 'ml' ? drag.initialX + dx : o.x;
+              if (!drag._logged) {
+                console.log(`📐 Resize start: handle=${hid}, initialWidth=${drag.initialWidth}, obj.width=${o.width}, dx=${dx.toFixed(1)}, newW=${newW.toFixed(1)}, scale=${scaleRef.current.toFixed(3)}`);
+                drag._logged = true;
+              }
               return { ...o, width: newW, x: newX };
             }
             // Top/bottom center: adjust font size smoothly
