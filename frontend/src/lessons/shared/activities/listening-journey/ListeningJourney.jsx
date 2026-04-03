@@ -1569,18 +1569,37 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
                   </div>
                 ) : (
                   <div className="flex gap-3">
-                    <button
-                      onClick={() => { setGamePhase('ready'); gameRewind(); }}
-                      className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-black rounded-xl shadow-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
-                    >
-                      <Play size={18} fill="white" /> Play Again
-                    </button>
-                    <button
-                      onClick={() => setAppModeWithGame('build')}
-                      className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white text-lg font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Hammer size={18} /> Back to Build
-                    </button>
+                    {peerPlayData ? (
+                      <>
+                        <button
+                          onClick={() => { setGamePhase('ready'); gameRewind(); }}
+                          className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-black rounded-xl shadow-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+                        >
+                          <Play size={18} fill="white" /> Play Again
+                        </button>
+                        <button
+                          onClick={quitGame}
+                          className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white text-lg font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Hammer size={18} /> Back to My Game
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => { setGamePhase('ready'); gameRewind(); }}
+                          className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-black rounded-xl shadow-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+                        >
+                          <Play size={18} fill="white" /> Play Again
+                        </button>
+                        <button
+                          onClick={() => setAppModeWithGame('build')}
+                          className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white text-lg font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Hammer size={18} /> Back to Build
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
