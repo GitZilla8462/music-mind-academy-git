@@ -243,8 +243,13 @@ const HANDLE_POSITIONS = [
   { id: 'br', cursor: 'nwse-resize', style: { bottom: -4, right: -4 } },
 ];
 
-function ResizeHandles({ onDragStart, objId }) {
-  return HANDLE_POSITIONS.map(h => (
+function ResizeHandles({ onDragStart, objId, objType }) {
+  // Text boxes: only corner handles (side handles cause accidental width shrinking)
+  const handles = objType === 'text'
+    ? HANDLE_POSITIONS.filter(h => ['tl', 'tr', 'bl', 'br'].includes(h.id))
+    : HANDLE_POSITIONS;
+
+  return handles.map(h => (
     <div
       key={h.id}
       onMouseDown={(e) => { e.stopPropagation(); onDragStart(e, objId, 'resize', h.id); }}
@@ -298,10 +303,9 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
 
   return (
     <div
-      onMouseDown={(e) => { e.stopPropagation(); onSelect(obj.id); if (!isEditing) onDragStart(e, obj.id, 'move'); }}
-      onTouchStart={(e) => { e.stopPropagation(); onSelect(obj.id); if (!isEditing) onDragStart(e, obj.id, 'move'); }}
-      onClick={(e) => { e.stopPropagation(); if (isSelected && obj.type === 'text' && !isEditing) onEdit(obj.id); }}
-      onClick={(e) => { e.stopPropagation(); }}
+      onMouseDown={(e) => { e.stopPropagation(); wasSelectedRef.current = isSelected; onSelect(obj.id); if (!isEditing) onDragStart(e, obj.id, 'move'); }}
+      onTouchStart={(e) => { e.stopPropagation(); wasSelectedRef.current = isSelected; onSelect(obj.id); if (!isEditing) onDragStart(e, obj.id, 'move'); }}
+      onClick={(e) => { e.stopPropagation(); if (obj.type === 'text' && !isEditing) onEdit(obj.id); }}
       draggable={false}
       style={{
         position: 'absolute',
@@ -323,11 +327,16 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
           ref={editRef}
           contentEditable
           suppressContentEditableWarning
-          onBlur={handleSave}
+          onBlur={(e) => {
+            // Don't exit edit mode if focus moved to another element inside the same canvas object
+            // (e.g. toolbar button) — only save when focus truly leaves
+            const related = e.relatedTarget;
+            if (related && e.currentTarget.parentElement?.contains(related)) return;
+            handleSave();
+          }}
           onKeyDown={e => {
             e.stopPropagation();
-            if (e.key === 'Escape') { e.preventDefault(); onCancelEdit(); }
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSave(); }
+            if (e.key === 'Escape') { e.preventDefault(); handleSave(); }
           }}
           style={{
             fontSize: (obj.fontSize || 24) * s,
@@ -350,7 +359,7 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
       ) : (
         renderSlideObject(obj, s)
       )}
-      {isSelected && <ResizeHandles onDragStart={onDragStart} objId={obj.id} />}
+      {isSelected && <ResizeHandles onDragStart={onDragStart} objId={obj.id} objType={obj.type} />}
     </div>
   );
 }
@@ -1002,26 +1011,27 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
 
           if (o.type === 'image') {
             const hid = drag.handleId;
-            // Corner handles: proportional scale — dragging outward enlarges
-            if (['tl', 'tr', 'bl', 'br'].includes(hid)) {
+            const aspect = drag.initialWidth / drag.initialHeight;
+            let newW, newH;
+
+            if (hid === 'ml' || hid === 'mr') {
+              // Side: scale by width, keep aspect ratio
+              newW = Math.max(40, drag.initialWidth + (hid === 'mr' ? dx : -dx));
+              newH = newW / aspect;
+            } else if (hid === 'tc' || hid === 'bc') {
+              // Top/bottom: scale by height, keep aspect ratio
+              newH = Math.max(40, drag.initialHeight + (hid === 'bc' ? dy : -dy));
+              newW = newH * aspect;
+            } else {
+              // Corner: use both axes, keep aspect ratio
               const expandDx = hid.includes('r') ? dx : -dx;
               const expandDy = hid.includes('b') ? dy : -dy;
               const factor = Math.max(0.2, Math.min(4, 1 + (expandDx + expandDy) / 300));
-              return {
-                ...o,
-                width: Math.round(drag.initialWidth * factor),
-                height: Math.round(drag.initialHeight * factor),
-              };
+              newW = drag.initialWidth * factor;
+              newH = drag.initialHeight * factor;
             }
-            // Side handles: stretch one dimension
-            if (hid === 'ml' || hid === 'mr') {
-              const newW = Math.max(40, drag.initialWidth + (hid === 'mr' ? dx : -dx));
-              return { ...o, width: Math.round(newW) };
-            }
-            if (hid === 'tc' || hid === 'bc') {
-              const newH = Math.max(40, drag.initialHeight + (hid === 'bc' ? dy : -dy));
-              return { ...o, height: Math.round(newH) };
-            }
+
+            return { ...o, width: Math.round(newW), height: Math.round(newH) };
           }
           return o;
         });
