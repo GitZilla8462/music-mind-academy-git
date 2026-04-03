@@ -321,18 +321,16 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         const playerDisplayName = authInfo?.displayName || name;
         savePeerPlayScore(peerPlayData.studentUid, peerPlayData.workKey, playerUid, playerDisplayName, gameScore)
           .catch(err => console.error('Failed to save peer play score:', err));
-        // Return to own journey after showing score
+        // Return to own journey after showing score — reload to restore own data
         setTimeout(() => {
-          setPeerPlayData(null);
-          setGamePhase('idle');
-          setAppMode('build');
+          handleExitPeerPlay();
         }, 3000);
       } else if (savedDataOverride && onComplete) {
         setTimeout(() => onComplete(), 3000);
       }
     }
     prevIsPlayingRef.current = isPlaying;
-  }, [isPlaying, currentTime, gameMode, gamePhase, gameScore, playerName, highScoresKey, savedDataOverride, onComplete, peerPlayData, pinSession]);
+  }, [isPlaying, currentTime, gameMode, gamePhase, gameScore, playerName, highScoresKey, savedDataOverride, onComplete, peerPlayData, pinSession, handleExitPeerPlay]);
 
   // When switching to present/fullscreen in game mode, show start screen
   const setAppModeWithGame = useCallback((mode) => {
