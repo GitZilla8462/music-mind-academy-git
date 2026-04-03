@@ -114,13 +114,24 @@ async function _searchStudents(db, code, studentIds, students, workKey, classId)
   }
 
   for (const sid of studentIds) {
-    // Try both the raw student ID and the full seat-{classId}-{num} format
+    // Build all possible UID formats for this student's work records
     const uidVariants = [sid];
-    if (classId && !sid.includes(classId)) {
-      // studentsJoined might have short IDs like "seat-1" but Firebase work uses "seat-{classId}-1"
+    const studentData = students[sid];
+
+    if (classId) {
+      // Try seat-{classId}-{num} format (how PIN-auth students save work)
+      // Extract seat number from: "seat-N" ID, "Seat N" name, or seatNumber field
       const seatMatch = sid.match(/^seat-(\d+)$/);
       if (seatMatch) {
         uidVariants.push(`seat-${classId}-${seatMatch[1]}`);
+      }
+      // Also check the student data for seat number
+      const seatNum = studentData?.seatNumber
+        || studentData?.name?.match(/Seat\s*(\d+)/i)?.[1]
+        || studentData?.displayName?.match(/Seat\s*(\d+)/i)?.[1];
+      if (seatNum) {
+        const fullSeatId = `seat-${classId}-${seatNum}`;
+        if (!uidVariants.includes(fullSeatId)) uidVariants.push(fullSeatId);
       }
     }
 
