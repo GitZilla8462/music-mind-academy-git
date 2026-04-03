@@ -470,9 +470,17 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   const quitGame = useCallback(() => {
     pause();
+    // If playing a peer's game, exit back to own journey
+    if (peerPlayData) {
+      setPeerPlayData(null);
+      setGamePhase('idle');
+      setAppMode('build');
+      window.location.reload();
+      return;
+    }
     setGamePhase('idle');
     setAppMode('build');
-  }, [pause]);
+  }, [pause, peerPlayData]);
 
   // Escape key to pause/resume during gameplay
   useEffect(() => {
@@ -1129,16 +1137,10 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
       {/* Peer play: show whose game you're playing (below game code) */}
       {peerPlayData && (isGamePlaying) && (
-        <div className="absolute top-14 left-2 z-[250] bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-purple-400/30 flex items-center gap-2">
+        <div className="absolute top-14 left-2 z-[250] bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-purple-400/30">
           <span className="text-[11px] sm:text-xs text-purple-300 font-medium">
             Playing {peerPlayData.displayName}&#39;s Journey
           </span>
-          <button
-            onClick={handleExitPeerPlay}
-            className="text-[10px] text-white/50 hover:text-white underline ml-1"
-          >
-            Exit
-          </button>
         </div>
       )}
 
@@ -1410,7 +1412,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       {/* Game Start overlay */}
       {gameMode && (isPresent || isFullscreen) && gamePhase === 'ready' && (
         <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="bg-gray-900/90 rounded-2xl border border-white/10 shadow-2xl max-w-md w-full mx-4 overflow-hidden max-h-[85vh] overflow-y-auto">
+          <div className="bg-gray-900/90 rounded-2xl border border-white/10 shadow-2xl max-w-sm w-full mx-4 overflow-hidden max-h-[90vh] overflow-y-auto">
             {/* Header — compact */}
             <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-3 text-center">
               <h2 className="text-xl font-black text-white">{peerPlayData ? `${peerPlayData.displayName}'s Journey` : '🎮 Play This Journey!'}</h2>
@@ -1482,25 +1484,25 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
               {/* Play a Friend's Journey — only when not already in peer play */}
               {!peerPlayData && !savedDataOverride && (
-                <div className="border-t border-white/10 pt-4">
-                  <p className="text-xs font-bold text-purple-300/70 uppercase tracking-wider mb-2 text-center">Play a Friend's Journey</p>
+                <div className="border-t border-white/10 pt-3">
+                  <p className="text-[10px] font-bold text-purple-300/70 uppercase tracking-wider mb-1.5 text-center">Play a Friend's Journey</p>
                   <div className="flex gap-2">
                     <input
                       type="text"
                       inputMode="numeric"
                       value={peerCodeInput}
                       onChange={(e) => { setPeerCodeInput(e.target.value.replace(/\D/g, '').slice(0, 5)); setPeerPlayError(''); }}
-                      placeholder="Enter 5-digit code"
+                      placeholder="5-digit code"
                       maxLength={5}
-                      className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-purple-400/30 text-white text-lg font-black text-center tracking-[0.2em] placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+                      className="flex-1 px-3 py-2 rounded-lg bg-white/10 border border-purple-400/30 text-white text-sm font-black text-center tracking-[0.2em] placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
                       onKeyDown={(e) => { if (e.key === 'Enter' && peerCodeInput.length === 5) handleLoadPeerJourney(); }}
                     />
                     <button
                       onClick={handleLoadPeerJourney}
                       disabled={peerCodeInput.length !== 5 || peerPlayLoading}
-                      className="px-5 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-black rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white text-sm font-black rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
                     >
-                      {peerPlayLoading ? <Loader2 size={18} className="animate-spin" /> : <Users size={18} />}
+                      {peerPlayLoading ? <Loader2 size={14} className="animate-spin" /> : <Users size={14} />}
                       Go
                     </button>
                   </div>
