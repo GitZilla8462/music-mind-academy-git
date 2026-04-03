@@ -101,16 +101,33 @@ function migrateFromSlideBuilder() {
 // ---------------------------------------------------------------------------
 
 function loadPressKit() {
+  let kit = null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) kit = JSON.parse(raw);
   } catch { /* ignore */ }
 
   // Try migration
-  const migrated = migrateFromSlideBuilder();
-  if (migrated) return migrated;
+  if (!kit) kit = migrateFromSlideBuilder();
+  if (!kit) return null;
 
-  return null;
+  // Backfill: ensure all text objects have an explicit width (prevents resize jump)
+  let needsSave = false;
+  if (kit.slides) {
+    kit.slides.forEach(slide => {
+      (slide.objects || []).forEach(obj => {
+        if (obj.type === 'text' && !obj.width) {
+          obj.width = 400;
+          needsSave = true;
+        }
+      });
+    });
+    if (needsSave) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...kit, lastSaved: new Date().toISOString() })); } catch {}
+    }
+  }
+
+  return kit;
 }
 
 function savePressKit(data) {
