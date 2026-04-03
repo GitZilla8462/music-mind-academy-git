@@ -262,6 +262,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   const [peerPlayError, setPeerPlayError] = useState('');
   const [peerPlayLoading, setPeerPlayLoading] = useState(false);
   const [peerPlayData, setPeerPlayData] = useState(null); // { data, displayName, studentUid, workKey }
+  const ownDataRef = useRef(null); // saved before loading peer data, restored on exit
   const [peerPlayScores, setPeerPlayScores] = useState([]); // scores from people who played my game
   const [showPeerScores, setShowPeerScores] = useState(false);
 
@@ -325,19 +326,14 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         const playerDisplayName = authInfo?.displayName || name;
         savePeerPlayScore(peerPlayData.studentUid, peerPlayData.workKey, playerUid, playerDisplayName, gameScore)
           .catch(err => console.error('Failed to save peer play score:', err));
-        // Return to own journey after showing score — reload to restore own data
-        setTimeout(() => {
-          setPeerPlayData(null);
-          setGamePhase('idle');
-          setAppMode('build');
-          window.location.reload();
-        }, 3000);
+        // Return to own journey after showing score
+        setTimeout(() => restoreOwnJourney(), 3000);
       } else if (savedDataOverride && onComplete) {
         setTimeout(() => onComplete(), 3000);
       }
     }
     prevIsPlayingRef.current = isPlaying;
-  }, [isPlaying, currentTime, gameMode, gamePhase, gameScore, playerName, highScoresKey, savedDataOverride, onComplete, peerPlayData, pinSession]);
+  }, [isPlaying, currentTime, gameMode, gamePhase, gameScore, playerName, highScoresKey, savedDataOverride, onComplete, peerPlayData, pinSession, restoreOwnJourney]);
 
   // When switching to present/fullscreen in game mode, show start screen
   const setAppModeWithGame = useCallback((mode) => {
@@ -393,6 +389,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
         setPeerPlayLoading(false);
         return;
       }
+      // Save own data before loading peer's so we can restore later
+      ownDataRef.current = { sections: [...sections], items: [...items], character };
       // Load peer's journey data into game mode
       setPeerPlayData(result);
       setShowPeerPlayModal(false);
@@ -437,14 +435,21 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     }
   }, [peerCodeInput, shareCode, pieceConfig, rewind]);
 
-  // Return to own journey after peer play
-  const handleExitPeerPlay = useCallback(() => {
+  // Return to own journey after peer play — restore saved data without page reload
+  const restoreOwnJourney = useCallback(() => {
     setPeerPlayData(null);
     setGamePhase('idle');
     setAppMode('build');
-    // Reload own data — trigger a re-mount by reloading from storage
-    window.location.reload();
-  }, []);
+    pause();
+    rewind();
+    // Restore own data from ref
+    if (ownDataRef.current) {
+      setSections(ownDataRef.current.sections);
+      setItems(ownDataRef.current.items);
+      setCharacter(ownDataRef.current.character);
+      ownDataRef.current = null;
+    }
+  }, [pause, rewind]);
 
   // Pause / Resume / Restart for game mode
   const pauseGame = useCallback(() => {
@@ -474,17 +479,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   const quitGame = useCallback(() => {
     pause();
-    // If playing a peer's game, exit back to own journey
     if (peerPlayData) {
-      setPeerPlayData(null);
-      setGamePhase('idle');
-      setAppMode('build');
-      window.location.reload();
+      restoreOwnJourney();
       return;
     }
     setGamePhase('idle');
     setAppMode('build');
-  }, [pause, peerPlayData]);
+  }, [pause, peerPlayData, restoreOwnJourney]);
 
   // Escape key to pause/resume during gameplay
   useEffect(() => {
