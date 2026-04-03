@@ -302,9 +302,13 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
     }
   }, [rewind, gameMode]);
 
-  // Detect game over: isPlaying went from true → false while in 'playing' phase and audio reset to 0
+  // Detect game over: isPlaying went from true → false while in 'playing' phase and audio reached the end
   useEffect(() => {
-    if (gameMode && gamePhase === 'playing' && prevIsPlayingRef.current && !isPlaying && currentTime === 0) {
+    // Log state for debugging game-over detection
+    if (gameMode && prevIsPlayingRef.current && !isPlaying) {
+      console.log(`🎮 Playback stopped: gamePhase=${gamePhase}, currentTime=${currentTime}, peerPlay=${!!peerPlayData}`);
+    }
+    if (gameMode && gamePhase === 'playing' && prevIsPlayingRef.current && !isPlaying && currentTime < 1) {
       setGamePhase('finished');
       // Save high score
       const name = playerName.trim() || 'Anonymous';
