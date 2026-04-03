@@ -244,10 +244,8 @@ const HANDLE_POSITIONS = [
 ];
 
 function ResizeHandles({ onDragStart, objId, objType }) {
-  // Text boxes: only corner handles (side handles cause accidental width shrinking)
-  const handles = objType === 'text'
-    ? HANDLE_POSITIONS.filter(h => ['tl', 'tr', 'bl', 'br'].includes(h.id))
-    : HANDLE_POSITIONS;
+  // All handles for all object types
+  const handles = HANDLE_POSITIONS;
 
   return handles.map(h => (
     <div
@@ -995,18 +993,26 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
           if (o.id !== drag.objId) return o;
 
           if (o.type === 'text') {
-            // For text, corner handles scale fontSize, side handles adjust width
             const hid = drag.handleId;
+            // Side handles: adjust width only
             if (hid === 'ml' || hid === 'mr') {
               const newW = Math.max(60, drag.initialWidth + (hid === 'mr' ? dx : -dx));
-              return { ...o, width: Math.round(newW) };
+              const newX = hid === 'ml' ? drag.initialX + dx : o.x;
+              return { ...o, width: newW, x: newX };
             }
-            // Bottom handles: dy > 0 = bigger. Top handles: dy < 0 = bigger. Right: dx > 0 = bigger.
-            const expandDx = hid.includes('r') ? dx : hid.includes('l') ? -dx : 0;
-            const expandDy = hid.includes('b') ? dy : hid.includes('t') ? -dy : 0;
-            const delta = (expandDx + expandDy) * 0.15;
-            const newSize = Math.max(12, Math.min(96, drag.initialFontSize + delta));
-            return { ...o, fontSize: Math.round(newSize) };
+            // Top/bottom center: adjust font size smoothly
+            if (hid === 'tc' || hid === 'bc') {
+              const expandDy = hid === 'bc' ? dy : -dy;
+              const newSize = Math.max(12, Math.min(96, drag.initialFontSize + expandDy * 0.1));
+              return { ...o, fontSize: newSize };
+            }
+            // Corner handles: scale both width and font size proportionally
+            const expandDx = hid.includes('r') ? dx : -dx;
+            const expandDy = hid.includes('b') ? dy : -dy;
+            const scale = Math.max(0.3, 1 + (expandDx + expandDy) / 400);
+            const newW = Math.max(60, drag.initialWidth * scale);
+            const newSize = Math.max(12, Math.min(96, drag.initialFontSize * scale));
+            return { ...o, width: newW, fontSize: newSize };
           }
 
           if (o.type === 'image') {
