@@ -22,7 +22,7 @@ function ReasonCard({ number, text, palette, featured = false }) {
           {number}
         </span>
         <p className={`leading-relaxed ${featured ? 'text-base' : 'text-sm'}`} style={{ color: palette.text + 'dd' }}>
-          {text || 'Add your evidence-backed reason...'}
+          {text || ['One thing that makes their sound unique is...', 'You can tell they\'re on the rise because...', 'This artist fits into a bigger trend because...'][number - 1] || 'Write your reason here...'}
         </p>
       </div>
     </div>

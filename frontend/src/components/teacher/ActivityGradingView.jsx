@@ -24,6 +24,8 @@ import GradeForm from './GradeForm';
 const LazyLJPreview = lazy(() => import('./ListeningJourneyPreview'));
 // Lazy-load Composition preview (loop blocks + video split view)
 const LazyCompositionPreview = lazy(() => import('./CompositionPreview'));
+// Lazy-load Press Kit preview (5-slide presentation view)
+const LazyPressKitPreview = lazy(() => import('./PressKitGradingPreview'));
 
 // Must match GradeForm LEVELS pct values
 const LEVELS_PCT = [1.0, 0.75, 0.5, 0.25];
@@ -447,6 +449,13 @@ const ActivityGradingView = ({
             )}
           </div>
         </div>
+      );
+    }
+    if (workData.data?.slides && Array.isArray(workData.data.slides)) {
+      return (
+        <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 text-gray-400 animate-spin" /></div>}>
+          <LazyPressKitPreview workData={workData} />
+        </Suspense>
       );
     }
     if (workData.data?.placedLoops) {

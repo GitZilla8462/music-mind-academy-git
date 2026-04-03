@@ -123,7 +123,26 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
     (async () => {
       console.log('🔍 Checking Firebase for listening journey data...');
-      const fbWork = await loadStudentWorkAsync(storageKey, authInfo);
+      // Try loading from current lesson first, then fall back to other lessons
+      // (students build across L3→L4→L5, data may be saved under any lesson)
+      let fbWork = await loadStudentWorkAsync(storageKey, authInfo);
+      if (!fbWork?.data?.sections?.length && storageKey.startsWith('listening-journey-')) {
+        const { loadStudentWork: loadFromFB } = await import('../../../../firebase/studentWork');
+        const currentLessonId = pieceConfig?.lessonId;
+        const lessonIds = ['ll-lesson5', 'll-lesson4', 'll-lesson3'].filter(id => id !== currentLessonId);
+        // parseActivityId already checked one path; try the others
+        for (const fallbackLessonId of lessonIds) {
+          const fallbackData = await loadFromFB(authInfo.uid, fallbackLessonId, 'listening-journey');
+          if (fallbackData?.data?.sections?.length > 0) {
+            console.log(`☁️ Found listening journey data in ${fallbackLessonId} (fallback)`);
+            fbWork = {
+              data: fallbackData.data,
+              updatedAt: fallbackData.updatedAt || 0
+            };
+            break;
+          }
+        }
+      }
       const fbData = fbWork?.data;
       if (fbData?.sections?.length > 0) {
         // Compare timestamps — only replace if Firebase is newer than what we loaded from localStorage
@@ -596,9 +615,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       viewRoute: pieceConfig?.viewRoute || '/lessons/listening-lab/lesson4?view=saved',
       subtitle: `${sections.length} sections`,
       category: 'Listening Lab',
-      // Don't override lessonId — let parseActivityId normalize to ll-lesson5
-      // so L3/L4/L5 all save to the same Firebase path and data persists across lessons
-      data: { sections, character, items: cleanItems, guideData, essayData, drawingData, audioPath, audioVolume, pieceTitle: pieceConfig?.title || null, sourceLessonId: pieceConfig?.lessonId || null }
+      lessonId: pieceConfig?.lessonId || null,
+      data: { sections, character, items: cleanItems, guideData, essayData, drawingData, audioPath, audioVolume, pieceTitle: pieceConfig?.title || null }
     }, null, authInfo);
     setSaveStatus('saved');
     setTimeout(() => setSaveStatus(null), 2000);
@@ -647,7 +665,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
           viewRoute: pieceConfig?.viewRoute || '/lessons/listening-lab/lesson4?view=saved',
           subtitle: `${unmountSectionsRef.current.length} sections`,
           category: 'Listening Lab',
-          // Don't override lessonId — let parseActivityId normalize to ll-lesson5
+          lessonId: pieceConfig?.lessonId || null,
           data: {
             sections: unmountSectionsRef.current,
             character: unmountCharacterRef.current,
@@ -657,8 +675,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
             drawingData,
             audioPath,
             audioVolume,
-            pieceTitle: pieceConfig?.title || null,
-            sourceLessonId: pieceConfig?.lessonId || null
+            pieceTitle: pieceConfig?.title || null
           }
         }, null, authInfo);
         console.log('✅ Listening journey saved on unmount');

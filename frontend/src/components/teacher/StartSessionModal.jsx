@@ -249,7 +249,7 @@ const StartSessionModal = ({
                     onClick={() => {
                       localStorage.setItem('teacher-previewed-lesson', 'true');
                       onClose();
-                      navigate(`${lesson.route}?role=teacher&preview=true`);
+                      window.open(`${lesson.route}?role=teacher&preview=true`, '_blank');
                     }}
                     className="w-full px-4 py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                   >
@@ -398,7 +398,7 @@ const StartSessionModal = ({
                     onClick={() => {
                       localStorage.setItem('teacher-previewed-lesson', 'true');
                       onClose();
-                      navigate(`${lesson.route}?role=teacher&preview=true`);
+                      window.open(`${lesson.route}?role=teacher&preview=true`, '_blank');
                     }}
                     className="w-full mt-3 px-4 py-2.5 border-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
                   >

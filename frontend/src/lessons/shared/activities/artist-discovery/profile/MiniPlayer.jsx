@@ -113,7 +113,7 @@ const MiniPlayer = ({
         {/* Three-section layout */}
         <div className="flex items-center px-4 py-1.5">
 
-          {/* ── Left: Track info ── */}
+          {/* ── Left: Track info + volume ── */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
               onClick={onArtistClick}
@@ -134,6 +134,26 @@ const MiniPlayer = ({
                 {artistName || 'Unknown Artist'}
               </p>
             </button>
+            {/* Volume — right of track title */}
+            <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
+              <button
+                onClick={toggleMute}
+                className="p-1 text-white/40 hover:text-white/80 transition-colors"
+              >
+                {muted || volume === 0 ? <VolumeX size={14} /> : <Volume2 size={14} />}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={muted ? 0 : volume}
+                onChange={handleVolumeChange}
+                className="w-20 h-1 appearance-none bg-white/[0.15] rounded-full cursor-pointer accent-amber-400
+                  [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow
+                  [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0"
+              />
+            </div>
           </div>
 
           {/* ── Center: Controls ── */}
@@ -172,26 +192,8 @@ const MiniPlayer = ({
             </div>
           </div>
 
-          {/* ── Right: Volume ── */}
-          <div className="flex items-center justify-end gap-2 flex-1">
-            <button
-              onClick={toggleMute}
-              className="p-1.5 text-white/40 hover:text-white/80 transition-colors min-h-[32px] min-w-[32px] flex items-center justify-center"
-            >
-              {muted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={muted ? 0 : volume}
-              onChange={handleVolumeChange}
-              className="w-20 h-1 appearance-none bg-white/[0.15] rounded-full cursor-pointer accent-amber-400
-                [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow
-                [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0"
-            />
-          </div>
+          {/* ── Right: spacer for balance ── */}
+          <div className="flex-1" />
         </div>
       </div>
     </div>

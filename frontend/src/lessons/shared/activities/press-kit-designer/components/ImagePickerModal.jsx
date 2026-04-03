@@ -1,48 +1,48 @@
-// Image picker modal — lets students pick images from Research Board or search Unsplash.
+// Image picker modal — search free photos via backend proxy (Pexels API)
+// or pick from Research Board. All requests go through musicmindacademy.com
+// so schools don't need to whitelist any external domains.
 
-import React, { useState } from 'react';
-import { X, Image as ImageIcon, Search, BookOpen } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Image as ImageIcon, Search, Loader2 } from 'lucide-react';
 import { getResearchBoard } from '../../research-board/researchBoardStorage';
 
-const UNSPLASH_ACCESS_KEY = import.meta.env.VITE_UNSPLASH_ACCESS_KEY || '';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
-const searchUnsplash = async (query) => {
-  if (!UNSPLASH_ACCESS_KEY) {
-    console.warn('No Unsplash API key configured (VITE_UNSPLASH_ACCESS_KEY)');
-    return [];
-  }
-  const resp = await fetch(
-    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=12&content_filter=high&orientation=landscape`,
-    { headers: { Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}` } }
-  );
-  const data = await resp.json();
-  return (data.results || []).map(photo => ({
-    url: photo.urls.regular,
-    thumbnailUrl: photo.urls.small,
-    attribution: `${photo.user.name} / Unsplash`,
-    unsplashLink: photo.links.html,
-  }));
+const searchPhotos = async (query, page = 1) => {
+  const resp = await fetch(`${API_BASE}/api/images/search?q=${encodeURIComponent(query)}&page=${page}`);
+  if (!resp.ok) return { photos: [], totalResults: 0 };
+  return resp.json();
 };
 
 const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
-  const [tab, setTab] = useState('research'); // 'research' | 'search'
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
+  const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const inputRef = useRef(null);
 
   if (!isOpen) return null;
 
   const rb = getResearchBoard();
   const savedImages = rb.images || [];
 
-  const handleSearch = async () => {
+  const handleSearch = async (p = 1) => {
     if (!searchQuery.trim()) return;
     setSearching(true);
+    setHasSearched(true);
     try {
-      const results = await searchUnsplash(searchQuery);
-      setSearchResults(results);
+      const data = await searchPhotos(searchQuery, p);
+      if (p === 1) {
+        setResults(data.photos || []);
+      } else {
+        setResults(prev => [...prev, ...(data.photos || [])]);
+      }
+      setTotalResults(data.totalResults || 0);
+      setPage(p);
     } catch {
-      setSearchResults([]);
+      if (p === 1) setResults([]);
     }
     setSearching(false);
   };
@@ -52,9 +52,11 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
     onClose();
   };
 
+  const canLoadMore = results.length < totalResults;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-xl max-h-[70vh] rounded-xl overflow-hidden flex flex-col" style={{ background: '#141a24' }}>
+      <div className="w-full max-w-xl max-h-[75vh] rounded-xl overflow-hidden flex flex-col" style={{ background: '#141a24' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]">
           <div className="flex items-center gap-2">
@@ -66,101 +68,101 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-white/[0.06]">
-          <button
-            onClick={() => setTab('research')}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors ${
-              tab === 'research' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-white/50 hover:text-white/70'
-            }`}
-          >
-            <BookOpen size={13} /> Research Board ({savedImages.length})
-          </button>
-          <button
-            onClick={() => setTab('search')}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors ${
-              tab === 'search' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-white/50 hover:text-white/70'
-            }`}
-          >
-            <Search size={13} /> Search Photos
-          </button>
+        {/* Search bar */}
+        <div className="px-4 pt-3 pb-2">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleSearch(1); }}
+                placeholder="Search free photos... (e.g. concert, studio, guitar)"
+                autoFocus
+                className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-white/[0.06] border border-white/[0.08] text-sm text-white/90 placeholder:text-white/25 outline-none focus:border-amber-500/40"
+              />
+            </div>
+            <button
+              onClick={() => handleSearch(1)}
+              disabled={searching || !searchQuery.trim()}
+              className="px-4 py-2.5 rounded-lg bg-amber-500/20 text-amber-400 text-xs font-bold hover:bg-amber-500/30 disabled:opacity-40 transition-colors min-h-[36px]"
+            >
+              {searching ? <Loader2 size={14} className="animate-spin" /> : 'Search'}
+            </button>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {tab === 'research' && (
-            <div>
-              {savedImages.length === 0 ? (
-                <p className="text-center text-sm text-white/30 py-8">
-                  No images saved to Research Board yet.
-                </p>
-              ) : (
-                <div className="grid grid-cols-3 gap-2">
-                  {savedImages.map(img => (
-                    <button
-                      key={img.id}
-                      onClick={() => handleSelect(img)}
-                      className="aspect-square rounded-lg overflow-hidden hover:ring-2 hover:ring-amber-400/50 transition-all"
-                    >
-                      <img src={img.thumbnailUrl || img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
-                    </button>
-                  ))}
-                </div>
-              )}
+        {/* Results */}
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          {/* Research Board images (always shown at top if they exist) */}
+          {savedImages.length > 0 && !hasSearched && (
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-2">From Your Research Board</p>
+              <div className="grid grid-cols-3 gap-2">
+                {savedImages.map(img => (
+                  <button
+                    key={img.id}
+                    onClick={() => handleSelect(img)}
+                    className="aspect-[4/3] rounded-lg overflow-hidden hover:ring-2 hover:ring-amber-400/50 transition-all"
+                  >
+                    <img src={img.thumbnailUrl || img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
-          {tab === 'search' && (
+          {/* Search results */}
+          {hasSearched && results.length > 0 && (
             <div>
-              <div className="flex gap-2 mb-4">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') handleSearch(); }}
-                  placeholder="Search for photos..."
-                  className="flex-1 px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.08] text-sm text-white/90 placeholder:text-white/20 outline-none focus:border-amber-500/40"
-                />
-                <button
-                  onClick={handleSearch}
-                  disabled={searching}
-                  className="px-4 py-2 rounded-lg bg-amber-500/20 text-amber-400 text-xs font-bold hover:bg-amber-500/30 transition-colors min-h-[36px]"
-                >
-                  {searching ? '...' : 'Search'}
-                </button>
+              <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-2">
+                Free Photos ({totalResults.toLocaleString()} results)
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {results.map(photo => (
+                  <button
+                    key={photo.id}
+                    onClick={() => handleSelect({
+                      url: photo.url,
+                      thumbnailUrl: photo.thumbnail,
+                      attribution: `${photo.photographer} / Pexels`,
+                    })}
+                    className="group relative aspect-[4/3] rounded-lg overflow-hidden hover:ring-2 hover:ring-amber-400/50 transition-all"
+                  >
+                    <img src={photo.thumbnail} alt={photo.alt} className="w-full h-full object-cover" loading="lazy" />
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1.5 py-0.5 text-[9px] text-white/50 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                      {photo.photographer}
+                    </div>
+                  </button>
+                ))}
               </div>
-              {!UNSPLASH_ACCESS_KEY ? (
-                <p className="text-center text-sm text-white/30 py-8">
-                  Image search not configured. Use Research Board images instead.
-                </p>
-              ) : searchResults.length > 0 ? (
-                <>
-                  <div className="grid grid-cols-3 gap-2">
-                    {searchResults.map((img, i) => (
-                      <button
-                        key={i}
-                        onClick={() => handleSelect(img)}
-                        className="group relative aspect-square rounded-lg overflow-hidden hover:ring-2 hover:ring-amber-400/50 transition-all"
-                      >
-                        <img src={img.thumbnailUrl} alt="" className="w-full h-full object-cover" loading="lazy" />
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1.5 py-0.5 text-[9px] text-white/50 truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                          {img.attribution}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-center text-[10px] text-white/20 mt-3">
-                    Photos from Unsplash — free to use
-                  </p>
-                </>
-              ) : searching ? (
-                <p className="text-center text-sm text-white/30 py-8">Searching...</p>
-              ) : (
-                <p className="text-center text-sm text-white/30 py-8">
-                  Search for free photos — try "concert", "guitar", or "studio"
-                </p>
+              {canLoadMore && (
+                <button
+                  onClick={() => handleSearch(page + 1)}
+                  disabled={searching}
+                  className="w-full mt-3 py-2.5 rounded-lg bg-white/[0.06] text-white/50 text-xs font-medium hover:bg-white/10 transition-colors"
+                >
+                  {searching ? 'Loading...' : 'Load More'}
+                </button>
               )}
+              <p className="text-center text-[10px] text-white/15 mt-3">
+                Free photos from Pexels — no copyright, free for commercial use
+              </p>
             </div>
+          )}
+
+          {hasSearched && results.length === 0 && !searching && (
+            <p className="text-center text-sm text-white/30 py-8">
+              No photos found. Try a different search term.
+            </p>
+          )}
+
+          {!hasSearched && savedImages.length === 0 && (
+            <p className="text-center text-sm text-white/30 py-8">
+              Search for free photos — try "concert", "guitar", "studio", or "neon"
+            </p>
           )}
         </div>
 

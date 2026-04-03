@@ -124,8 +124,9 @@ function savePressKit(data) {
     saveStudentWork(ACTIVITY_ID, {
       title: 'Press Kit',
       emoji: '\uD83C\uDFA4',
-      viewRoute: null,
+      viewRoute: '/lessons/music-journalist/lesson4?view=saved',
       category: 'Music Journalist',
+      lessonId: LESSON_ID,
       type: 'press-kit',
       data,
     }, null, auth);

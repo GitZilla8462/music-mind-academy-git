@@ -10,7 +10,7 @@ import { useSession } from '../../../../context/SessionContext';
 const SENT_STORAGE_KEY = 'mma-peer-feedback-sent';
 const RECEIVED_STORAGE_KEY = 'mma-peer-feedback-received';
 const ACTIVITY_ID = 'mj-peer-feedback';
-const LESSON_ID = 'mj-lesson5';
+const LESSON_ID = 'mj-lesson4';
 const MAX_CHARS = 300;
 const MIN_CHARS = 10;
 

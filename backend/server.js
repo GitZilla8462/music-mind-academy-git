@@ -29,6 +29,7 @@ const emailRoutes = require('./routes/emailRoutes'); // Automated survey emails
 const applicationRoutes = require('./routes/applicationRoutes'); // Pilot application approve/decline
 const newsRoutes = require('./routes/newsRoutes'); // Music Journalist news feed
 const articleGenerationRoutes = require('./routes/articleGenerationRoutes'); // Article generation admin
+const imageRoutes = require('./routes/imageRoutes'); // Pexels image search proxy
 const { runDailyPipeline } = require('./services/articleGenerationService'); // Article generation cron
 const { runDripProcessor } = require('./services/dripCronService'); // Drip follow-up emails
 
@@ -87,6 +88,7 @@ app.use('/api/email', emailRoutes); // Automated survey emails
 app.use('/api/applications', applicationRoutes); // Pilot application approve/decline
 app.use('/api/news', newsRoutes); // Music Journalist news feed
 app.use('/api/admin/news', articleGenerationRoutes); // Article generation admin
+app.use('/api/images', imageRoutes); // Pexels image search proxy (no school firewall issues)
 
 // Auto-generate articles every Sunday at 1:00 PM EST, email digest for approval
 cron.schedule('0 18 * * 0', async () => {

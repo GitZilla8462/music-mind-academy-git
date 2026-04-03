@@ -41,6 +41,7 @@ import { getDatabase, ref, onValue, update, remove } from 'firebase/database';
 import { useTimerSound } from '../hooks/useTimerSound';
 import ActivityRenderer from './ActivityRenderer';
 import DirectionsModal from './DirectionsModal';
+import LaunchDayTeacher from '../activities/launch-day/LaunchDayTeacher';
 
 // ============================================
 // SLIDE WITH AUDIO COMPONENT
@@ -2481,6 +2482,20 @@ const PresentationContent = ({
       }
 
       return <StringsDynamicsLabDirections StringsDynamicsLabComponent={StringsDynamicsLab} dismissedRef={stringsDynamicsDirDismissedRef} />;
+    }
+
+    // Launch Day Teacher — full presentation controller (Music Journalist Lesson 5)
+    if (type === 'launch-day-teacher') {
+      const launchSessionCode = classCode || sessionCode;
+      const urlClassId = new URLSearchParams(window.location.search).get('classId');
+      return (
+        <div className="absolute inset-0">
+          <LaunchDayTeacher
+            sessionCode={launchSessionCode}
+            classId={urlClassId}
+          />
+        </div>
+      );
     }
 
     // Activity Banner - shows a banner during student activities

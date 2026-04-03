@@ -20,7 +20,7 @@ export function StatementFocus({ fields, palette }) {
     <div className="flex flex-col items-center justify-center w-full h-full p-6 sm:p-8 rounded-lg" style={{ background: palette.bg }}>
       <Quote size={32} className="mb-4 opacity-30" style={{ color: palette.accent }} />
       <p className="text-xl sm:text-2xl text-center font-medium leading-relaxed max-w-lg mb-6" style={{ color: palette.text }}>
-        {soundStatement || 'Your Sound Statement will appear here...'}
+        {soundStatement || 'Their music sounds like...'}
       </p>
       {moodTags.length > 0 && (
         <div className="flex flex-wrap justify-center gap-2 mb-4">
@@ -49,7 +49,7 @@ export function SplitMood({ fields, palette }) {
       <div className="flex-1 flex flex-col justify-center p-6 sm:p-8">
         <Quote size={24} className="mb-3 opacity-30" style={{ color: palette.accent }} />
         <p className="text-lg sm:text-xl font-medium leading-relaxed" style={{ color: palette.text }}>
-          {soundStatement || 'Your Sound Statement will appear here...'}
+          {soundStatement || 'Their music sounds like...'}
         </p>
         {ifYouLike && (
           <p className="text-sm italic mt-4" style={{ color: palette.accent }}>
@@ -85,7 +85,7 @@ export function CardGrid({ fields, palette }) {
       <div className="mb-5">
         <Quote size={20} className="mb-2 opacity-30" style={{ color: palette.accent }} />
         <p className="text-lg sm:text-xl font-medium leading-relaxed" style={{ color: palette.text }}>
-          {soundStatement || 'Your Sound Statement will appear here...'}
+          {soundStatement || 'Their music sounds like...'}
         </p>
       </div>
       <div className="grid grid-cols-3 gap-3 flex-1">

@@ -299,7 +299,7 @@ const ResearchBoard = ({
 
   // ---- Expanded state ----
   return (
-    <div className="w-[300px] flex-shrink-0 bg-[#1a2744] border-l border-white/10 flex flex-col h-full overflow-hidden">
+    <div className="w-full flex-shrink-0 bg-[#1a2744] border-l border-white/10 flex flex-col h-full overflow-hidden">
       {/* Header */}
       <div className="px-3 pt-3 pb-2 flex-shrink-0">
         <div className="flex items-center justify-between mb-2">

@@ -128,6 +128,9 @@ import { PresentationMode } from '../activities/presentation-mode';
 // ✅ ADDED: Peer Feedback (Music Journalist Lesson 5)
 import { PeerFeedback } from '../activities/peer-feedback';
 
+// ✅ ADDED: Launch Day — combined presentations, feedback, voting, results (MJ Lesson 5)
+import { LaunchDayStudent } from '../activities/launch-day';
+
 // ✅ ADDED: Article Reader / News Feed (Music Journalist Unit 3)
 import { ArticleReader, NewsHub } from '../activities/news-feed';
 
@@ -1052,7 +1055,17 @@ const ActivityRenderer = ({
         </div>
       );
 
-    // ✅ ADDED: Artist Vote (Music Agent Unit 3 — Lesson 5)
+    // ✅ Launch Day — combined student view for presentations, feedback, voting (MJ Lesson 5)
+    case 'launch-day':
+      return (
+        <LaunchDayStudent
+          key={`launch-day-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Artist Vote (Music Agent Unit 3 — Lesson 5) — legacy placeholder
     case 'artist-vote':
       return (
         <div className="h-screen bg-[#0f1419] flex items-center justify-center">

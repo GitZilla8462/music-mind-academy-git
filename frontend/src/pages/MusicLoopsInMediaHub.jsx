@@ -80,8 +80,7 @@ const MusicLoopsInMediaHub = () => {
       }
 
       setShowStartModal(false);
-      // Navigate with classId - students will use the class code to join
-      navigate(`${selectedLesson.route}?classId=${selectedClass.id}&role=teacher&classCode=${classWithSession.classCode}`);
+      window.open(`${selectedLesson.route}?classId=${selectedClass.id}&role=teacher&classCode=${classWithSession.classCode}`, '_blank');
     } catch (error) {
       console.error('Error starting class session:', error);
       alert('Failed to start session. Please try again.');

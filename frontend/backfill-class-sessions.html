@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Backfill Class Session Analytics</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; background: #0f172a; color: #e2e8f0; }
+    h1 { color: #60a5fa; }
+    button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+    .btn-blue { background: #3b82f6; color: white; }
+    .btn-blue:hover { background: #2563eb; }
+    .btn-green { background: #22c55e; color: white; }
+    .btn-green:hover { background: #16a34a; }
+    .btn-red { background: #ef4444; color: white; }
+    .btn-red:hover { background: #dc2626; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #log { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 16px; font-family: monospace; font-size: 13px; white-space: pre-wrap; max-height: 600px; overflow-y: auto; margin-top: 16px; }
+    .log-info { color: #94a3b8; }
+    .log-ok { color: #4ade80; }
+    .log-warn { color: #fbbf24; }
+    .log-err { color: #f87171; }
+    .log-head { color: #60a5fa; font-weight: bold; }
+    .status { padding: 8px 16px; border-radius: 6px; display: inline-block; margin: 8px 0; }
+    .status-ok { background: #166534; color: #bbf7d0; }
+    .status-wait { background: #854d0e; color: #fef08a; }
+    table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #334155; }
+    th { color: #94a3b8; font-size: 12px; text-transform: uppercase; }
+    td { font-size: 13px; }
+    .highlight { background: #1e3a5f; }
+  </style>
+</head>
+<body>
+  <h1>Backfill Class Session Analytics</h1>
+  <p>This tool recovers student counts for class-based sessions that were not tracked due to the classCode bug.</p>
+
+  <div id="auth-section">
+    <button id="signin-btn" class="btn-blue" onclick="signIn()">Sign in with Google</button>
+    <span id="auth-status" class="status status-wait">Not signed in</span>
+  </div>
+
+  <div id="actions" style="margin-top: 16px; display: none;">
+    <button id="scan-btn" class="btn-blue" onclick="scanSessions()">1. Scan Broken Sessions</button>
+    <button id="apply-btn" class="btn-green" onclick="applyPatches()" disabled>2. Apply Patches</button>
+    <span id="action-status"></span>
+  </div>
+
+  <div id="log"></div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js';
+    import { getAuth, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js';
+    import { getDatabase, ref, get, update } from 'https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js';
+
+    const app = initializeApp({
+      apiKey: "AIzaSyAv0tH8VmKizydKhdHfFFgKES9Ir-PfXtA",
+      authDomain: "music-mind-academy.firebaseapp.com",
+      databaseURL: "https://music-mind-academy-default-rtdb.firebaseio.com",
+      projectId: "music-mind-academy",
+      storageBucket: "music-mind-academy.firebasestorage.app",
+      messagingSenderId: "236372079268",
+      appId: "1:236372079268:web:d943daec694d1f40342c31"
+    });
+
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+    const CLASS_CODE_RE = /^[A-Z]{2}\d{4}$/;
+    const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
+
+    let pendingPatches = [];
+
+    function log(msg, cls = 'log-info') {
+      const el = document.getElementById('log');
+      const span = document.createElement('span');
+      span.className = cls;
+      span.textContent = msg + '\n';
+      el.appendChild(span);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    window.signIn = async () => {
+      try {
+        const result = await signInWithPopup(auth, new GoogleAuthProvider());
+        const email = result.user.email;
+        if (!ADMIN_EMAILS.includes(email)) {
+          log(`Access denied: ${email} is not an admin account`, 'log-err');
+          return;
+        }
+        document.getElementById('auth-status').textContent = `Signed in as ${email}`;
+        document.getElementById('auth-status').className = 'status status-ok';
+        document.getElementById('actions').style.display = 'block';
+        document.getElementById('signin-btn').disabled = true;
+        log(`Authenticated as ${email}`, 'log-ok');
+      } catch (err) {
+        log(`Auth error: ${err.message}`, 'log-err');
+      }
+    };
+
+    window.scanSessions = async () => {
+      const scanBtn = document.getElementById('scan-btn');
+      scanBtn.disabled = true;
+      pendingPatches = [];
+
+      try {
+        log('\n=== Scanning for broken class sessions ===', 'log-head');
+
+        // Load all data sources in parallel
+        log('Loading data from Firebase...');
+        const [sessionsSnap, classCodesSnap, classesSnap, subsSnap, conductedSnap] = await Promise.all([
+          get(ref(db, 'pilotSessions')),
+          get(ref(db, 'classCodes')),
+          get(ref(db, 'classes')),
+          get(ref(db, 'submissions')),
+          get(ref(db, 'conductedLessons'))
+        ]);
+
+        const allSessions = sessionsSnap.exists() ? sessionsSnap.val() : {};
+        const classCodes = classCodesSnap.exists() ? classCodesSnap.val() : {};
+        const classes = classesSnap.exists() ? classesSnap.val() : {};
+        const submissions = subsSnap.exists() ? subsSnap.val() : {};
+        const conducted = conductedSnap.exists() ? conductedSnap.val() : {};
+
+        log(`Loaded: ${Object.keys(allSessions).length} sessions, ${Object.keys(classCodes).length} class codes, ${Object.keys(classes).length} classes`);
+
+        // Find broken class sessions
+        const broken = [];
+        for (const [code, data] of Object.entries(allSessions)) {
+          if (CLASS_CODE_RE.test(code) && data.lastStage === 'join-code' && !data.stageTimes) {
+            broken.push({ code, ...data });
+          }
+        }
+
+        // Also find class sessions where studentsJoined is 0 but might have real students
+        for (const [code, data] of Object.entries(allSessions)) {
+          if (CLASS_CODE_RE.test(code) && (data.studentsJoined === 0 || !data.studentsJoined) && !broken.find(b => b.code === code)) {
+            // Has stage data but no students — student counting was also broken
+            if (data.stageTimes) {
+              broken.push({ code, ...data, stageDataExists: true });
+            }
+          }
+        }
+
+        log(`\nFound ${broken.length} broken/incomplete class sessions\n`, 'log-warn');
+
+        // Process each broken session
+        let patchable = 0;
+        let noData = 0;
+
+        for (const session of broken) {
+          const { code, teacherEmail, lessonRoute, startTime, stageDataExists } = session;
+          const classId = classCodes[code];
+
+          if (!classId) {
+            log(`  skip  ${code} | no classId mapping`, 'log-warn');
+            noData++;
+            continue;
+          }
+
+          const classData = classes[classId];
+          if (!classData) {
+            log(`  skip  ${code} | class ${classId} not found`, 'log-warn');
+            noData++;
+            continue;
+          }
+
+          // --- Count students from currentSession ---
+          let currentSessionStudents = 0;
+          const cs = classData.currentSession;
+          if (cs && cs.studentsJoined && typeof cs.studentsJoined === 'object') {
+            // Check if this currentSession is for the same lesson
+            if (cs.lessonRoute === lessonRoute || !lessonRoute) {
+              currentSessionStudents = Object.keys(cs.studentsJoined).length;
+            }
+          }
+
+          // --- Count students from submissions ---
+          let submissionStudents = 0;
+          const classSubs = submissions[classId];
+          if (classSubs) {
+            const lessonMatch = lessonRoute?.match(/lesson(\d)/);
+            const lessonNum = lessonMatch ? lessonMatch[1] : null;
+
+            // Search all submission keys that might match this lesson
+            for (const [subKey, lessonSubs] of Object.entries(classSubs)) {
+              const keyMatchesLesson = lessonNum && (
+                subKey === `lesson${lessonNum}` ||
+                subKey.includes(`lesson${lessonNum}`) ||
+                subKey.includes(`lesson-${lessonNum}`)
+              );
+
+              if (keyMatchesLesson || !lessonNum) {
+                const studentIds = new Set();
+                if (typeof lessonSubs === 'object') {
+                  for (const activityOrStudent of Object.values(lessonSubs)) {
+                    if (typeof activityOrStudent === 'object') {
+                      for (const key of Object.keys(activityOrStudent)) {
+                        studentIds.add(key);
+                      }
+                    }
+                  }
+                }
+                submissionStudents = Math.max(submissionStudents, studentIds.size);
+              }
+            }
+          }
+
+          // --- Count from class roster as fallback ---
+          const rosterCount = classData.studentCount || 0;
+
+          // --- Build patch ---
+          const bestStudentCount = Math.max(currentSessionStudents, submissionStudents);
+          const patch = {};
+          let reasons = [];
+
+          if (bestStudentCount > 0 && (!session.studentsJoined || session.studentsJoined === 0)) {
+            patch.studentsJoined = bestStudentCount;
+            reasons.push(`${bestStudentCount} students (${currentSessionStudents} from session, ${submissionStudents} from submissions)`);
+          }
+
+          // Recover lastStage from currentSession if it matches
+          if (!stageDataExists && cs && cs.lessonRoute === lessonRoute && cs.currentStage && cs.currentStage !== 'join-code') {
+            patch.lastStage = cs.currentStage;
+            reasons.push(`stage: ${cs.currentStage}`);
+          }
+
+          // Recover duration from currentSession
+          if (cs && cs.lessonRoute === lessonRoute && cs.startedAt) {
+            const endTs = cs.endedAt || (cs.active ? null : Date.now());
+            if (endTs) {
+              patch.duration = endTs - cs.startedAt;
+              patch.endTime = endTs;
+              reasons.push(`duration: ${Math.round(patch.duration / 60000)}min`);
+            }
+          }
+
+          if (Object.keys(patch).length > 0) {
+            patch.backfilled = true;
+            patch.backfilledAt = Date.now();
+
+            const date = startTime ? new Date(startTime).toLocaleDateString() : '?';
+            log(`  patch ${code} | ${teacherEmail || '?'} | ${date} | ${reasons.join(', ')}`, 'log-ok');
+            pendingPatches.push({ code, patch, teacherEmail, date });
+            patchable++;
+          } else {
+            // Still no data — but if class has a roster, note it
+            if (rosterCount > 0) {
+              log(`  info  ${code} | ${teacherEmail || '?'} | class has ${rosterCount} roster students but no submissions for this lesson`, 'log-info');
+            }
+            noData++;
+          }
+        }
+
+        log(`\n=== Scan Complete ===`, 'log-head');
+        log(`  Patchable: ${patchable}`, patchable > 0 ? 'log-ok' : 'log-info');
+        log(`  No recoverable data: ${noData}`, 'log-info');
+
+        if (patchable > 0) {
+          document.getElementById('apply-btn').disabled = false;
+          log(`\nClick "Apply Patches" to write ${patchable} updates to Firebase.`, 'log-warn');
+        } else {
+          log('\nNothing to patch.', 'log-info');
+        }
+
+      } catch (err) {
+        log(`Error: ${err.message}`, 'log-err');
+        console.error(err);
+      } finally {
+        scanBtn.disabled = false;
+      }
+    };
+
+    window.applyPatches = async () => {
+      if (pendingPatches.length === 0) return;
+
+      const applyBtn = document.getElementById('apply-btn');
+      applyBtn.disabled = true;
+
+      log(`\n=== Applying ${pendingPatches.length} patches ===`, 'log-head');
+
+      let success = 0;
+      let failed = 0;
+
+      for (const { code, patch, teacherEmail } of pendingPatches) {
+        try {
+          await update(ref(db, `pilotSessions/${code}`), patch);
+          log(`  done  ${code} | ${teacherEmail || '?'}`, 'log-ok');
+          success++;
+        } catch (err) {
+          log(`  FAIL  ${code} | ${err.message}`, 'log-err');
+          failed++;
+        }
+      }
+
+      log(`\n=== Patches Applied ===`, 'log-head');
+      log(`  Success: ${success}`, 'log-ok');
+      if (failed > 0) log(`  Failed: ${failed}`, 'log-err');
+      log('\nRefresh your admin page to see updated data.', 'log-info');
+
+      pendingPatches = [];
+    };
+  </script>
+</body>
+</html>

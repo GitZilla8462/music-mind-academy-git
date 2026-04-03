@@ -189,7 +189,7 @@ export const CURRICULUM = [
         concept: 'Turn research into a 4-slide presentation',
         route: '/lessons/music-journalist/lesson4',
         activities: [
-          { id: 'mj-slide-builder', name: 'Slide Builder', type: 'composition' }
+          { id: 'mj-press-kit', name: 'Press Kit', type: 'composition' }
         ]
       },
       {

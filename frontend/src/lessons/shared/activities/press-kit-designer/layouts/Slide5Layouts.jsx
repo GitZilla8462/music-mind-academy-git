@@ -12,7 +12,7 @@ export function PitchBold({ fields, palette }) {
     <div className="flex flex-col items-center justify-center w-full h-full p-6 sm:p-8 rounded-lg" style={{ background: palette.bg }}>
       <Pen size={24} className="mb-4 opacity-30" style={{ color: palette.accent }} />
       <p className="text-xl sm:text-2xl font-medium text-center leading-relaxed max-w-lg mb-6" style={{ color: palette.text }}>
-        {closingPitch || 'Your closing pitch will appear here...'}
+        {closingPitch || 'This artist deserves to be signed because...'}
       </p>
       {callToAction && (
         <div
@@ -49,7 +49,7 @@ export function SplitPitch({ fields, palette, image }) {
       </div>
       <div className="flex-1 flex flex-col justify-center p-6 sm:p-8">
         <p className="text-lg sm:text-xl font-medium leading-relaxed mb-5" style={{ color: palette.text }}>
-          {closingPitch || 'Your closing pitch will appear here...'}
+          {closingPitch || 'This artist deserves to be signed because...'}
         </p>
         <div className="w-full h-px mb-5" style={{ background: palette.accent + '33' }} />
         {callToAction && (
@@ -90,7 +90,7 @@ export function FullImpact({ fields, palette }) {
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center">
         <p className="text-xl sm:text-2xl font-medium text-center leading-relaxed max-w-lg mb-6" style={{ color: palette.text }}>
-          {closingPitch || 'Your closing pitch will appear here...'}
+          {closingPitch || 'This artist deserves to be signed because...'}
         </p>
         {callToAction && (
           <div

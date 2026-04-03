@@ -7,12 +7,12 @@ import { SLIDE_CONFIGS, isSlideComplete } from '../slideConfigs';
 import { renderSlideObject, CANVAS_W, CANVAS_H } from './SlideCanvas';
 import { getPalette } from '../palettes';
 
-const THUMB_W = 120;
+const THUMB_W = 110;
 const THUMB_SCALE = THUMB_W / CANVAS_W;
 
 const SlideTabBar = ({ activeSlide, slides, genre, onSelect, availableSlides }) => {
   return (
-    <div className="flex flex-col gap-2 p-2 overflow-y-auto" style={{ width: 140 }}>
+    <div className="flex flex-col gap-1.5 p-1.5 overflow-y-auto" style={{ width: 130 }}>
       {SLIDE_CONFIGS.map((cfg, i) => {
         const slideNum = cfg.number;
         const slide = slides[i];

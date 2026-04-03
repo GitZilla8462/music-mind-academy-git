@@ -15,7 +15,7 @@ import ResearchBoard from '../research-board/ResearchBoard';
 import MiniPlayer from '../artist-discovery/profile/MiniPlayer';
 import PressKitTopBar from './components/PressKitTopBar';
 import SlideTabBar from './components/SlideTabBar';
-import SlideCanvas from './components/SlideCanvas';
+import SlideCanvas, { AudioTrimPanel } from './components/SlideCanvas';
 import ImagePickerModal from './components/ImagePickerModal';
 import { loadPressKit, savePressKit, getOrCreatePressKit } from './pressKitStorage';
 import { getSelectedArtistId, autoPopulateFields } from './pressKitAutoPopulate';
@@ -31,6 +31,7 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
   const [activeTab, setActiveTab] = useState('press-kit');
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [artist, setArtist] = useState(null);
+  const [selectedCanvasObj, setSelectedCanvasObj] = useState(null);
   const saveTimerRef = useRef(null);
   const pressKitRef = useRef(null);
   const imageCallbackRef = useRef(null);
@@ -123,6 +124,14 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
     handleUpdateSlide({ objects: newObjects });
   }, [handleUpdateSlide]);
 
+  const handleUpdateObject = useCallback((id, updates) => {
+    if (!pressKit) return;
+    const idx = activeSlide - 1;
+    const currentObjects = pressKit.slides[idx]?.objects || [];
+    const newObjects = currentObjects.map(o => o.id === id ? { ...o, ...updates } : o);
+    handleUpdateSlide({ objects: newObjects });
+  }, [pressKit, activeSlide, handleUpdateSlide]);
+
   const handleResetTemplate = useCallback(() => {
     if (!pressKit) return;
     const idx = activeSlide - 1;
@@ -165,16 +174,7 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
       <PressKitTopBar
         saveStatus={saveStatus}
         onSave={handleSave}
-        onComplete={viewMode ? null : handleComplete}
         artistName={artist?.name}
-        slideNumber={activeSlide}
-        currentLayout={currentSlide.layout}
-        currentPalette={currentSlide.palette}
-        genre={genre}
-        onLayoutChange={(l) => handleUpdateSlide({ layout: l })}
-        onPaletteChange={(p) => handleUpdateSlide({ palette: p })}
-        onImageClick={() => { imageCallbackRef.current = null; setImagePickerOpen(true); }}
-        hasImage={!!currentSlide.image}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
@@ -199,19 +199,22 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Press Kit canvas */}
           <div
-            className="flex-1 flex flex-col items-center justify-center p-3 overflow-hidden"
+            className="flex-1 flex flex-col items-center justify-center p-2 overflow-y-auto"
             style={{
               background: '#202530',
               display: activeTab === 'press-kit' ? 'flex' : 'none',
             }}
           >
-            <div className="w-full" style={{ maxWidth: 780 }}>
+            <div className="w-full" style={{ maxWidth: 720 }}>
               <SlideCanvas
                 objects={currentSlide.objects || []}
                 paletteId={currentSlide.palette}
                 genre={genre}
                 onChange={handleObjectsChange}
+                onPaletteChange={(p) => handleUpdateSlide({ palette: p })}
                 readOnly={viewMode}
+                artistTracks={artist?.tracks || []}
+                onSelectionChange={setSelectedCanvasObj}
               />
             </div>
             {!viewMode && (
@@ -238,12 +241,14 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
           </div>
         </div>
 
-        {/* ── Right: Research Board ── */}
+        {/* ── Right Panel: Audio Trim (when audio selected) or Research Board ── */}
         {showResearch ? (
-          <div className="flex-shrink-0 border-l border-white/[0.06] flex flex-col" style={{ width: 280, background: '#141820' }}>
-            {/* Research header with minimize button */}
+          <div className="flex-shrink-0 border-l border-white/[0.06] flex flex-col" style={{ width: 200, background: '#141820' }}>
+            {/* Header */}
             <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.06] flex-shrink-0">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">Research Board</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">
+                {selectedCanvasObj?.type === 'audio' ? 'Audio Clip' : 'Research Board'}
+              </span>
               <button
                 onClick={() => setShowResearch(false)}
                 className="p-1 text-white/30 hover:text-white/60 transition-colors"
@@ -253,7 +258,13 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <ResearchBoard collapsed={false} readOnly={viewMode} />
+              {selectedCanvasObj?.type === 'audio' ? (
+                <div className="p-2">
+                  <AudioTrimPanel obj={selectedCanvasObj} onUpdate={handleUpdateObject} />
+                </div>
+              ) : (
+                <ResearchBoard collapsed={false} readOnly={viewMode} />
+              )}
             </div>
           </div>
         ) : (

@@ -72,7 +72,7 @@ const MusicJournalistHub = () => {
         } catch (e) { console.warn('Analytics failed:', e); }
       }
       setShowStartModal(false);
-      navigate(`${selectedLesson.route}?classId=${selectedClass.id}&role=teacher&classCode=${classWithSession.classCode}`);
+      window.open(`${selectedLesson.route}?classId=${selectedClass.id}&role=teacher&classCode=${classWithSession.classCode}`, '_blank');
     } catch (error) {
       console.error('Error starting class session:', error);
       alert('Failed to start session. Please try again.');
