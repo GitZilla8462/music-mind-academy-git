@@ -1,62 +1,47 @@
-// Image picker modal — search free photos via backend proxy (Pexels API)
-// or pick from Research Board. All requests go through musicmindacademy.com
-// so schools don't need to whitelist any external domains.
+// Image picker modal — curated categories of free-to-use photos.
+// No API calls, no search bar, no content safety risk.
+// Photos hosted on R2 (media.musicmindacademy.com) or local public/.
 
-import React, { useState, useRef } from 'react';
-import { X, Image as ImageIcon, Search, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { getResearchBoard } from '../../research-board/researchBoardStorage';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
-
-const searchPhotos = async (query, page = 1) => {
-  const resp = await fetch(`${API_BASE}/api/images/search?q=${encodeURIComponent(query)}&page=${page}`);
-  if (!resp.ok) return { photos: [], totalResults: 0 };
-  return resp.json();
-};
+// Base URL — uses R2 in production, local in dev
+const IMAGE_BASE = '/images/press-kit';
 
 const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [searching, setSearching] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalResults, setTotalResults] = useState(0);
-  const inputRef = useRef(null);
+  const [manifest, setManifest] = useState(null);
+  const [activeCategory, setActiveCategory] = useState(null);
+
+  // Load manifest on first open
+  useEffect(() => {
+    if (!isOpen || manifest) return;
+    fetch(`${IMAGE_BASE}/manifest.json`)
+      .then(r => r.json())
+      .then(data => {
+        setManifest(data);
+        // Default to first category
+        const firstKey = Object.keys(data)[0];
+        if (firstKey) setActiveCategory(firstKey);
+      })
+      .catch(() => setManifest({}));
+  }, [isOpen, manifest]);
 
   if (!isOpen) return null;
 
   const rb = getResearchBoard();
   const savedImages = rb.images || [];
-
-  const handleSearch = async (p = 1) => {
-    if (!searchQuery.trim()) return;
-    setSearching(true);
-    setHasSearched(true);
-    try {
-      const data = await searchPhotos(searchQuery, p);
-      if (p === 1) {
-        setResults(data.photos || []);
-      } else {
-        setResults(prev => [...prev, ...(data.photos || [])]);
-      }
-      setTotalResults(data.totalResults || 0);
-      setPage(p);
-    } catch {
-      if (p === 1) setResults([]);
-    }
-    setSearching(false);
-  };
+  const categories = manifest ? Object.entries(manifest) : [];
+  const activeImages = activeCategory && manifest?.[activeCategory]?.images || [];
 
   const handleSelect = (image) => {
     onSelect(image);
     onClose();
   };
 
-  const canLoadMore = results.length < totalResults;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-xl max-h-[75vh] rounded-xl overflow-hidden flex flex-col" style={{ background: '#141a24' }}>
+      <div className="w-full max-w-2xl max-h-[80vh] rounded-xl overflow-hidden flex flex-col" style={{ background: '#141a24' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]">
           <div className="flex items-center gap-2">
@@ -68,112 +53,99 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
           </button>
         </div>
 
-        {/* Search bar */}
-        <div className="px-4 pt-3 pb-2">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleSearch(1); }}
-                placeholder="Search free photos... (e.g. concert, studio, guitar)"
-                autoFocus
-                className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-white/[0.06] border border-white/[0.08] text-sm text-white/90 placeholder:text-white/25 outline-none focus:border-amber-500/40"
-              />
-            </div>
+        {/* Category tabs */}
+        <div className="flex gap-1 px-3 py-2 border-b border-white/[0.06] overflow-x-auto">
+          {savedImages.length > 0 && (
             <button
-              onClick={() => handleSearch(1)}
-              disabled={searching || !searchQuery.trim()}
-              className="px-4 py-2.5 rounded-lg bg-amber-500/20 text-amber-400 text-xs font-bold hover:bg-amber-500/30 disabled:opacity-40 transition-colors min-h-[36px]"
+              onClick={() => setActiveCategory('research')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                activeCategory === 'research'
+                  ? 'bg-amber-500/20 text-amber-400'
+                  : 'text-white/40 hover:text-white/70 hover:bg-white/[0.06]'
+              }`}
             >
-              {searching ? <Loader2 size={14} className="animate-spin" /> : 'Search'}
+              📋 My Research
             </button>
-          </div>
+          )}
+          {categories.map(([key, cat]) => (
+            <button
+              key={key}
+              onClick={() => setActiveCategory(key)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                activeCategory === key
+                  ? 'bg-amber-500/20 text-amber-400'
+                  : 'text-white/40 hover:text-white/70 hover:bg-white/[0.06]'
+              }`}
+            >
+              {cat.emoji} {cat.label}
+            </button>
+          ))}
         </div>
 
-        {/* Results */}
-        <div className="flex-1 overflow-y-auto px-4 pb-4">
-          {/* Research Board images (always shown at top if they exist) */}
-          {savedImages.length > 0 && !hasSearched && (
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-2">From Your Research Board</p>
-              <div className="grid grid-cols-3 gap-2">
-                {savedImages.map(img => (
-                  <button
-                    key={img.id}
-                    onClick={() => handleSelect(img)}
-                    className="aspect-[4/3] rounded-lg overflow-hidden hover:ring-2 hover:ring-amber-400/50 transition-all"
-                  >
-                    <img src={img.thumbnailUrl || img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
-                  </button>
-                ))}
-              </div>
+        {/* Image grid */}
+        <div className="flex-1 overflow-y-auto p-3">
+          {!manifest && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 size={20} className="animate-spin text-white/30" />
             </div>
           )}
 
-          {/* Search results */}
-          {hasSearched && results.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-2">
-                Free Photos ({totalResults.toLocaleString()} results)
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {results.map(photo => (
-                  <button
-                    key={photo.id}
-                    onClick={() => handleSelect({
-                      url: photo.url,
-                      thumbnailUrl: photo.thumbnail,
-                      attribution: `${photo.photographer} / Pexels`,
-                    })}
-                    className="group relative aspect-[4/3] rounded-lg overflow-hidden hover:ring-2 hover:ring-amber-400/50 transition-all"
-                  >
-                    <img src={photo.thumbnail} alt={photo.alt} className="w-full h-full object-cover" loading="lazy" />
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1.5 py-0.5 text-[9px] text-white/50 truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                      {photo.photographer}
-                    </div>
-                  </button>
-                ))}
-              </div>
-              {canLoadMore && (
+          {/* Research Board images */}
+          {activeCategory === 'research' && (
+            <div className="grid grid-cols-4 gap-2">
+              {savedImages.map(img => (
                 <button
-                  onClick={() => handleSearch(page + 1)}
-                  disabled={searching}
-                  className="w-full mt-3 py-2.5 rounded-lg bg-white/[0.06] text-white/50 text-xs font-medium hover:bg-white/10 transition-colors"
+                  key={img.id}
+                  onClick={() => handleSelect(img)}
+                  className="aspect-[4/3] rounded-lg overflow-hidden hover:ring-2 hover:ring-amber-400/50 transition-all"
                 >
-                  {searching ? 'Loading...' : 'Load More'}
+                  <img src={img.thumbnailUrl || img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
                 </button>
-              )}
-              <p className="text-center text-[10px] text-white/15 mt-3">
-                Free photos from Pexels — no copyright, free for commercial use
-              </p>
+              ))}
             </div>
           )}
 
-          {hasSearched && results.length === 0 && !searching && (
-            <p className="text-center text-sm text-white/30 py-8">
-              No photos found. Try a different search term.
-            </p>
+          {/* Curated category images */}
+          {activeCategory && activeCategory !== 'research' && activeImages.length > 0 && (
+            <div className="grid grid-cols-4 gap-2">
+              {activeImages.map(img => (
+                <button
+                  key={img.id}
+                  onClick={() => handleSelect({
+                    url: `${IMAGE_BASE}/${activeCategory}/${img.file}`,
+                    thumbnailUrl: `${IMAGE_BASE}/${activeCategory}/${img.thumb}`,
+                    attribution: `${img.photographer} / Pexels`,
+                  })}
+                  className="group relative aspect-[4/3] rounded-lg overflow-hidden hover:ring-2 hover:ring-amber-400/50 transition-all"
+                >
+                  <img
+                    src={`${IMAGE_BASE}/${activeCategory}/${img.thumb}`}
+                    alt={img.alt}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1.5 py-0.5 text-[9px] text-white/50 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                    {img.photographer}
+                  </div>
+                </button>
+              ))}
+            </div>
           )}
 
-          {!hasSearched && savedImages.length === 0 && (
-            <p className="text-center text-sm text-white/30 py-8">
-              Search for free photos — try "concert", "guitar", "studio", or "neon"
-            </p>
+          {activeCategory && activeCategory !== 'research' && activeImages.length === 0 && manifest && (
+            <p className="text-center text-sm text-white/30 py-8">No images in this category</p>
           )}
         </div>
 
-        {/* Remove image option */}
-        <div className="px-4 py-2.5 border-t border-white/[0.06]">
+        {/* Footer */}
+        <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/[0.06]">
           <button
             onClick={() => { onSelect(null); onClose(); }}
             className="text-xs text-white/30 hover:text-white/50 transition-colors"
           >
             Remove current image
           </button>
+          <span className="text-[10px] text-white/15">Free photos · No copyright</span>
         </div>
       </div>
     </div>
