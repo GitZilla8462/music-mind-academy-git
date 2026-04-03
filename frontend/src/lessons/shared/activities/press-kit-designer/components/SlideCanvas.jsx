@@ -8,7 +8,6 @@ import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import {
   Plus, Type, Image as ImageIcon, Trash2, Copy,
   Undo2, Redo2, ChevronUp, ChevronDown,
-  AlignLeft, AlignCenter, AlignRight,
   Bold, Italic, ChevronDown as DropdownIcon,
   Music, Play, Pause, SkipBack, SkipForward, Search,
 } from 'lucide-react';
@@ -275,6 +274,7 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
   const x = obj.x * s;
   const y = obj.y * s;
   const editRef = useRef(null);
+  const wasSelectedRef = useRef(false); // track if already selected before this click
 
   // Focus and place cursor when entering edit mode
   useEffect(() => {
@@ -301,7 +301,7 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
       onMouseDown={(e) => { e.stopPropagation(); onSelect(obj.id); if (!isEditing) onDragStart(e, obj.id, 'move'); }}
       onTouchStart={(e) => { e.stopPropagation(); onSelect(obj.id); if (!isEditing) onDragStart(e, obj.id, 'move'); }}
       onClick={(e) => { e.stopPropagation(); if (isSelected && obj.type === 'text' && !isEditing) onEdit(obj.id); }}
-      onDoubleClick={(e) => { e.stopPropagation(); if (obj.type === 'text' && !isEditing) onEdit(obj.id); }}
+      onClick={(e) => { e.stopPropagation(); }}
       draggable={false}
       style={{
         position: 'absolute',
@@ -350,7 +350,7 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
       ) : (
         renderSlideObject(obj, s)
       )}
-      {isSelected && !isEditing && <ResizeHandles onDragStart={onDragStart} objId={obj.id} />}
+      {isSelected && <ResizeHandles onDragStart={onDragStart} objId={obj.id} />}
     </div>
   );
 }
@@ -516,17 +516,6 @@ function FixedToolbar({
           </button>
           <button onClick={() => onUpdate(selectedObj.id, { italic: !selectedObj.italic })} className={selectedObj?.italic ? btnActive : btnInactive} title="Italic">
             <Italic size={14} />
-          </button>
-
-          {/* Alignment */}
-          <button onClick={() => onUpdate(selectedObj.id, { textAlign: 'left' })} className={(selectedObj?.textAlign || 'left') === 'left' ? btnActive : btnInactive} title="Left">
-            <AlignLeft size={14} />
-          </button>
-          <button onClick={() => onUpdate(selectedObj.id, { textAlign: 'center' })} className={selectedObj?.textAlign === 'center' ? btnActive : btnInactive} title="Center">
-            <AlignCenter size={14} />
-          </button>
-          <button onClick={() => onUpdate(selectedObj.id, { textAlign: 'right' })} className={selectedObj?.textAlign === 'right' ? btnActive : btnInactive} title="Right">
-            <AlignRight size={14} />
           </button>
 
           {/* Text color — Google Slides style */}
@@ -1054,8 +1043,10 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
     window.addEventListener('touchend', handleEnd);
   }, [objects, onChange, readOnly, scale, pushUndo, selectedIds]);
 
-  // Deselect on canvas click — skip if a marquee just finished
-  const handleCanvasClick = () => {
+  // Deselect on canvas background click — only fires from the bg element itself
+  const handleCanvasClick = (e) => {
+    // Only deselect if clicking the canvas container or the explicit bg element
+    if (e.target !== containerRef.current && !e.target.dataset.canvasBg) return;
     if (justMarqueedRef.current) {
       justMarqueedRef.current = false;
       return;
