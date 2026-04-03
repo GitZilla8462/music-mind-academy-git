@@ -7,11 +7,11 @@
 // Optimized for 1366x768 Chromebook resolution.
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { RotateCcw, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { getArtistById } from '../artist-discovery/artistDatabase';
 import { AudioProvider, useGlobalAudio } from '../artist-discovery/AudioContext';
 import ArtistDiscovery from '../artist-discovery/ArtistDiscovery';
-import ResearchBoard from '../research-board/ResearchBoard';
+// ResearchBoard removed — students use artist auto-populate instead
 import MiniPlayer from '../artist-discovery/profile/MiniPlayer';
 import PressKitTopBar from './components/PressKitTopBar';
 import SlideTabBar from './components/SlideTabBar';
@@ -27,7 +27,7 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
   const [pressKit, setPressKit] = useState(null);
   const [activeSlide, setActiveSlide] = useState(1);
   const [saveStatus, setSaveStatus] = useState('idle');
-  const [showResearch, setShowResearch] = useState(true); // open by default
+  const [showAudioTrim, setShowAudioTrim] = useState(false);
   const [activeTab, setActiveTab] = useState('press-kit');
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [artist, setArtist] = useState(null);
@@ -241,41 +241,16 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
           </div>
         </div>
 
-        {/* ── Right Panel: Audio Trim (when audio selected) or Research Board ── */}
-        {showResearch ? (
+        {/* ── Right Panel: Audio Trim (only when audio object selected) ── */}
+        {selectedCanvasObj?.type === 'audio' && (
           <div className="flex-shrink-0 border-l border-white/[0.06] flex flex-col" style={{ width: 200, background: '#141820' }}>
-            {/* Header */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.06] flex-shrink-0">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">
-                {selectedCanvasObj?.type === 'audio' ? 'Audio Clip' : 'Research Board'}
-              </span>
-              <button
-                onClick={() => setShowResearch(false)}
-                className="p-1 text-white/30 hover:text-white/60 transition-colors"
-                title="Minimize"
-              >
-                <PanelRightClose size={14} />
-              </button>
+            <div className="flex items-center px-3 py-2 border-b border-white/[0.06] flex-shrink-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">Audio Clip</span>
             </div>
-            <div className="flex-1 overflow-y-auto">
-              {selectedCanvasObj?.type === 'audio' ? (
-                <div className="p-2">
-                  <AudioTrimPanel obj={selectedCanvasObj} onUpdate={handleUpdateObject} />
-                </div>
-              ) : (
-                <ResearchBoard collapsed={false} readOnly={viewMode} />
-              )}
+            <div className="flex-1 overflow-y-auto p-2">
+              <AudioTrimPanel obj={selectedCanvasObj} onUpdate={handleUpdateObject} />
             </div>
           </div>
-        ) : (
-          <button
-            onClick={() => setShowResearch(true)}
-            className="flex-shrink-0 flex items-center justify-center w-8 border-l border-white/[0.06] text-white/30 hover:text-white/60 hover:bg-white/[0.04] transition-colors"
-            style={{ background: '#141820' }}
-            title="Open Research Board"
-          >
-            <PanelRightOpen size={14} />
-          </button>
         )}
       </div>
 

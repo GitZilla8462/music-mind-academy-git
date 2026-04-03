@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { getResearchBoard } from '../../research-board/researchBoardStorage';
 
 // Base URL — uses R2 in production, local in dev
 const IMAGE_BASE = '/images/press-kit';
@@ -20,7 +19,6 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
       .then(r => r.json())
       .then(data => {
         setManifest(data);
-        // Default to first category
         const firstKey = Object.keys(data)[0];
         if (firstKey) setActiveCategory(firstKey);
       })
@@ -29,8 +27,6 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
 
   if (!isOpen) return null;
 
-  const rb = getResearchBoard();
-  const savedImages = rb.images || [];
   const categories = manifest ? Object.entries(manifest) : [];
   const activeImages = activeCategory && manifest?.[activeCategory]?.images || [];
 
@@ -55,18 +51,6 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
 
         {/* Category tabs */}
         <div className="flex gap-1 px-3 py-2 border-b border-white/[0.06] overflow-x-auto">
-          {savedImages.length > 0 && (
-            <button
-              onClick={() => setActiveCategory('research')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                activeCategory === 'research'
-                  ? 'bg-amber-500/20 text-amber-400'
-                  : 'text-white/40 hover:text-white/70 hover:bg-white/[0.06]'
-              }`}
-            >
-              📋 My Research
-            </button>
-          )}
           {categories.map(([key, cat]) => (
             <button
               key={key}
@@ -90,23 +74,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
             </div>
           )}
 
-          {/* Research Board images */}
-          {activeCategory === 'research' && (
-            <div className="grid grid-cols-4 gap-2">
-              {savedImages.map(img => (
-                <button
-                  key={img.id}
-                  onClick={() => handleSelect(img)}
-                  className="aspect-[4/3] rounded-lg overflow-hidden hover:ring-2 hover:ring-amber-400/50 transition-all"
-                >
-                  <img src={img.thumbnailUrl || img.url} alt="" className="w-full h-full object-cover" loading="lazy" />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Curated category images */}
-          {activeCategory && activeCategory !== 'research' && activeImages.length > 0 && (
+          {activeCategory && activeImages.length > 0 && (
             <div className="grid grid-cols-4 gap-2">
               {activeImages.map(img => (
                 <button
@@ -132,7 +100,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
             </div>
           )}
 
-          {activeCategory && activeCategory !== 'research' && activeImages.length === 0 && manifest && (
+          {activeCategory && activeImages.length === 0 && manifest && (
             <p className="text-center text-sm text-white/30 py-8">No images in this category</p>
           )}
         </div>
