@@ -45,7 +45,7 @@ const StudentHome = () => {
       // Treat sessions older than 4 hours as stale (teacher closed browser without ending)
       const MAX_SESSION_AGE_MS = 4 * 60 * 60 * 1000;
       const sessionAge = sessionData?.startedAt ? Date.now() - sessionData.startedAt : Infinity;
-      if (sessionData?.active && sessionAge < MAX_SESSION_AGE_MS) {
+      if (sessionData?.active && sessionAge < MAX_SESSION_AGE_MS && sessionData?.currentStage !== 'ended') {
         setActiveSession({
           classData: {
             id: pinSession.classId,
