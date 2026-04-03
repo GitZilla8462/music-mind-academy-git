@@ -928,15 +928,19 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
   // ---------------------------------------------------------------------------
   // Drag handling
   // ---------------------------------------------------------------------------
-  const getPointerPos = (e) => {
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
+
+  const getPointerPos = useCallback((e) => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return { x: 0, y: 0 };
     const touch = e.touches?.[0] || e;
+    const s = scaleRef.current;
     return {
-      x: (touch.clientX - rect.left) / scale,
-      y: (touch.clientY - rect.top) / scale,
+      x: (touch.clientX - rect.left) / s,
+      y: (touch.clientY - rect.top) / s,
     };
-  };
+  }, []);
 
   const handleDragStart = useCallback((e, objId, mode, handleId) => {
     if (readOnly) return;
