@@ -81,36 +81,56 @@ export const loadJourneyByShareCode = async (code, classId, workKey) => {
   // Get all students in this class session
   const studentsRef = ref(db, `classes/${classId}/currentSession/studentsJoined`);
   const studentsSnap = await get(studentsRef);
-  if (!studentsSnap.exists()) return null;
+  if (!studentsSnap.exists()) {
+    // Fallback: try sessions/{classId}/studentsJoined
+    const altRef = ref(db, `sessions/${classId}/studentsJoined`);
+    const altSnap = await get(altRef);
+    if (!altSnap.exists()) return null;
+    return _searchStudents(db, code, Object.keys(altSnap.val()), altSnap.val(), workKey);
+  }
 
   const students = studentsSnap.val();
-  const studentIds = Object.keys(students);
+  return _searchStudents(db, code, Object.keys(students), students, workKey);
+};
 
-  // Check each student's work record for matching share code
+// Search students' work records for a matching share code
+// Tries multiple work key variants (L3/L4/L5) since students may have saved under different lessons
+async function _searchStudents(db, code, studentIds, students, workKey) {
+  // Build list of work keys to try — the requested one plus L3/L4/L5 variants
+  const keysToTry = [workKey];
+  if (workKey.includes('listening-journey')) {
+    for (const lessonId of ['ll-lesson5', 'll-lesson4', 'll-lesson3']) {
+      const alt = `${lessonId}-listening-journey`;
+      if (!keysToTry.includes(alt)) keysToTry.push(alt);
+    }
+  }
+
   for (const sid of studentIds) {
-    try {
-      const workRef = ref(db, `studentWork/${sid}/${workKey}`);
-      const workSnap = await get(workRef);
-      if (!workSnap.exists()) continue;
+    for (const wk of keysToTry) {
+      try {
+        const workRef = ref(db, `studentWork/${sid}/${wk}`);
+        const workSnap = await get(workRef);
+        if (!workSnap.exists()) continue;
 
-      const work = workSnap.val();
-      if (work.shareCode === code) {
-        if (!work.data?.sections?.length) return null; // game not built yet
+        const work = workSnap.val();
+        if (work.shareCode === code) {
+          if (!work.data?.sections?.length) return null; // game not built yet
 
-        return {
-          data: work.data,
-          displayName: work.shareCodeName || students[sid]?.name || 'Student',
-          workKey,
-          studentUid: sid
-        };
+          return {
+            data: work.data,
+            displayName: work.shareCodeName || students[sid]?.name || students[sid]?.displayName || 'Student',
+            workKey: wk,
+            studentUid: sid
+          };
+        }
+      } catch {
+        continue;
       }
-    } catch {
-      continue;
     }
   }
 
   return null;
-};
+}
 
 /**
  * Save a peer play score to the creator's journey record.

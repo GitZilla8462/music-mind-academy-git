@@ -605,22 +605,24 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
                       <div className="text-2xl font-black text-center leading-tight mb-3">
                         {currentQuestion.prompt}
                       </div>
-                      {/* Audio play/replay button */}
-                      <div className="flex items-center justify-center gap-3">
-                        {isPlaying ? (
-                          <div className="flex items-center gap-2 text-purple-300 text-lg">
-                            <Volume2 size={28} className="animate-pulse" />
-                            <span className="font-medium">Playing...</span>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => playAudio(currentQuestion)}
-                            className="flex items-center gap-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-2xl text-lg font-bold transition-all hover:scale-105"
-                          >
-                            <RotateCcw size={22} /> Play Again
-                          </button>
-                        )}
-                      </div>
+                      {/* Audio play/replay button — only for questions with audio */}
+                      {currentQuestion.audio && (
+                        <div className="flex items-center justify-center gap-3">
+                          {isPlaying ? (
+                            <div className="flex items-center gap-2 text-purple-300 text-lg">
+                              <Volume2 size={28} className="animate-pulse" />
+                              <span className="font-medium">Playing...</span>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => playAudio(currentQuestion)}
+                              className="flex items-center gap-2 px-6 py-3 bg-purple-500 hover:bg-purple-600 rounded-2xl text-lg font-bold transition-all hover:scale-105"
+                            >
+                              <RotateCcw size={22} /> Play Again
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
