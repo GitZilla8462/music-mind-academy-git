@@ -134,18 +134,40 @@ async function _searchStudents(db, code, studentIds, students, workKey, classId)
           const work = workSnap.val();
           console.log(`  📋 ${uid} / ${wk}: shareCode=${work.shareCode}, hasSections=${!!work.data?.sections?.length}`);
           if (work.shareCode === code) {
-            if (!work.data?.sections?.length) {
-              console.log(`  ⚠️ Code matched but no sections built yet`);
-              return null;
+            // Found the code — now find the actual journey data (may be under a different work key)
+            if (work.data?.sections?.length) {
+              console.log(`  ✅ Match found! Loading journey from ${uid}/${wk}`);
+              return {
+                data: work.data,
+                displayName: work.shareCodeName || students[sid]?.name || students[sid]?.displayName || 'Student',
+                workKey: wk,
+                studentUid: uid
+              };
             }
 
-            console.log(`  ✅ Match found! Loading journey from ${uid}`);
-            return {
-              data: work.data,
-              displayName: work.shareCodeName || students[sid]?.name || students[sid]?.displayName || 'Student',
-              workKey: wk,
-              studentUid: uid
-            };
+            // Code matched but no sections here — check other work keys for this student's data
+            console.log(`  ⚠️ Code matched at ${uid}/${wk} but no sections — checking other keys...`);
+            const displayName = work.shareCodeName || students[sid]?.name || students[sid]?.displayName || 'Student';
+            for (const altWk of keysToTry) {
+              if (altWk === wk) continue;
+              try {
+                const altRef = ref(db, `studentWork/${uid}/${altWk}`);
+                const altSnap = await get(altRef);
+                if (!altSnap.exists()) continue;
+                const altWork = altSnap.val();
+                if (altWork.data?.sections?.length) {
+                  console.log(`  ✅ Found sections at ${uid}/${altWk}`);
+                  return {
+                    data: altWork.data,
+                    displayName,
+                    workKey: altWk,
+                    studentUid: uid
+                  };
+                }
+              } catch { continue; }
+            }
+            console.log(`  ❌ Code matched but no sections found under any work key for ${uid}`);
+            return null;
           }
         } catch (err) {
           console.log(`  ❌ Error checking ${uid}/${wk}: ${err.message}`);
