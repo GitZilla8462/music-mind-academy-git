@@ -33,7 +33,7 @@ const LessonPlanPDF = () => {
             Mood & Expression — Why does music affect how we feel?
           </p>
           <div className="flex gap-6 mt-3 text-sm">
-            <div><strong>Grade Level:</strong> 6-8</div>
+            <div><strong>Grade Level:</strong> 5-8</div>
             <div><strong>Duration:</strong> 40 minutes</div>
           </div>
         </div>

@@ -283,7 +283,7 @@ const FilmMusicHub = () => {
           </div>
         </div>
         <p className="text-base text-slate-500 mt-4 ml-0 sm:ml-[92px]">
-          5 Lessons  •  ~40 min each  •  Grades 6-8  •  Cumulative Project
+          5 Lessons  •  ~40 min each  •  Grades 5-8  •  Cumulative Project
         </p>
       </div>
 

@@ -33,7 +33,7 @@ const LessonPlan2PDF = () => {
             Texture & Layering — How many sounds play together?
           </p>
           <div className="flex gap-6 mt-3 text-sm">
-            <div><strong>Grade Level:</strong> 6-8</div>
+            <div><strong>Grade Level:</strong> 5-8</div>
             <div><strong>Duration:</strong> 28 minutes + bonus</div>
           </div>
         </div>

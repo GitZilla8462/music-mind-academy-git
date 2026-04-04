@@ -338,7 +338,7 @@ const ListeningLabHub = () => {
           </div>
         </div>
         <p className="text-base text-slate-500 mt-4 ml-0 sm:ml-[92px]">
-          5 Lessons  •  ~40 min each  •  Grades 6-8
+          5 Lessons  •  ~40 min each  •  Grades 5-8
         </p>
       </div>
 

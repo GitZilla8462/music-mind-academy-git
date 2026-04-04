@@ -33,7 +33,7 @@ const LessonPlan5PDF = () => {
             Melody & Contour — How do melodic phrases create memorable themes?
           </p>
           <div className="flex gap-6 mt-3 text-sm">
-            <div><strong>Grade Level:</strong> 6-8</div>
+            <div><strong>Grade Level:</strong> 5-8</div>
             <div><strong>Duration:</strong> 38 minutes</div>
           </div>
         </div>

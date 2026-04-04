@@ -33,7 +33,7 @@ const LessonPlanPDF = () => {
             Music Has a Blueprint — How do composers organize music into sections?
           </p>
           <div className="flex gap-6 mt-3 text-sm">
-            <div><strong>Grade Level:</strong> 6-8</div>
+            <div><strong>Grade Level:</strong> 5-8</div>
             <div><strong>Duration:</strong> ~35 minutes</div>
             <div><strong>Unit:</strong> The Listening Lab</div>
           </div>

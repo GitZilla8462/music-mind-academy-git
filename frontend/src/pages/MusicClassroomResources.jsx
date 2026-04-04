@@ -564,10 +564,10 @@ function MusicClassroomResources() {
         <div className="mcr-header">
           <div>
             <h1 className="mcr-header" style={{ fontSize: '22px', fontWeight: '700', color: '#1e293b', marginBottom: '1px' }}>
-              6-8 General Music Curriculum
+              5-8 General Music Curriculum
             </h1>
             <p style={{ fontSize: '13px', color: '#64748b' }}>
-              5 units &bull; 25 lessons &bull; Grades 6-8 &bull; Optimized for Chromebooks
+              5 units &bull; 25 lessons &bull; Grades 5-8 &bull; Optimized for Chromebooks
             </p>
           </div>
           <button

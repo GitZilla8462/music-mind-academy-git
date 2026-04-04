@@ -11,7 +11,7 @@ const CURRICULUM_DATA = {
   overview: {
     title: 'Music Mind Academy Curriculum',
     subtitle: 'A Complete Middle School General Music Curriculum',
-    grades: '6-8',
+    grades: '5-8',
     totalUnits: 6,
     totalLessons: 30,
     duration: '5 lessons per unit',
