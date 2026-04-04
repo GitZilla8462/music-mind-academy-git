@@ -83,9 +83,9 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
 
   const [items, setItems] = useState(() => {
     if (!savedData?.items?.length) return [];
-    // Recalculate placedAtOffset for every item using the current sections
-    // so stickers stay anchored even if section tempos changed after placement
-    const loadedSections = sections; // sections state is already initialized above
+    // Recalculate placedAtOffset for every item using the saved sections
+    // (can't reference `sections` state here — it's still in the temporal dead zone)
+    const loadedSections = savedData?.sections || pieceConfig?.defaultSections || [];
     return savedData.items.map(item => {
       if (item.timestamp != null && loadedSections.length > 0) {
         return { ...item, placedAtOffset: getScrollOffsetAtTime(item.timestamp, loadedSections) };
