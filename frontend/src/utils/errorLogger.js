@@ -365,6 +365,13 @@ export const initErrorLogging = () => {
       msg.includes('the node before which') || msg.includes('not a child of this node')) return true;
     // ResizeObserver loop limit — benign browser warning, not an actual error
     if (msg.includes('resizeobserver loop')) return true;
+    // Firebase Analytics auto-init failure — we don't use Firebase Analytics SDK
+    if (msg.includes('params are not set')) return true;
+    // Facebook in-app browser / browser extension injected script errors
+    if (msg.includes('webkit.messagehandlers') || msg.includes('__firefox__') ||
+      msg.includes('window.ethereum') || msg === 'script error.' ||
+      msg.includes('indexed database server lost') ||
+      msg.includes('object store cannot be found in the database')) return true;
     return false;
   };
 
