@@ -372,6 +372,8 @@ export const initErrorLogging = () => {
       msg.includes('window.ethereum') || msg === 'script error.' ||
       msg.includes('indexed database server lost') ||
       msg.includes('object store cannot be found in the database')) return true;
+    // Facebook autofill bridge errors (Android in-app browser)
+    if (err?.stack?.includes('setContactAutofillValuesFromBridge')) return true;
     return false;
   };
 
