@@ -2490,6 +2490,147 @@ const PresentationContent = ({
       );
     }
 
+    // Guided Listening Player — teacher plays 3 tracks for the class (~30s each)
+    if (type === 'guided-listening-player') {
+      const GUIDED_TRACKS = [
+        { id: 'guided-1', title: 'Any Single Thing', artist: 'Pierce Murphy', genre: 'Blues Rock', audioUrl: 'https://media.musicmindacademy.com/artists/pierce-murphy/any-single-thing.mp3', playDuration: 30 },
+        { id: 'guided-2', title: "Jenny's Theme", artist: 'Jason Shaw', genre: 'Country / Acoustic', audioUrl: 'https://media.musicmindacademy.com/artists/jason-shaw/jennys-theme.mp3', playDuration: 30 },
+        { id: 'guided-3', title: 'Horizon Ending', artist: 'Soft and Furious', genre: 'Synth Pop / Electronic', audioUrl: 'https://media.musicmindacademy.com/artists/soft-and-furious/horizon-ending.mp3', playDuration: 30 },
+      ];
+
+      const GuidedListeningPlayer = () => {
+        const [playingId, setPlayingId] = React.useState(null);
+        const [elapsed, setElapsed] = React.useState(0);
+        const audioRef = React.useRef(null);
+        const timerRef = React.useRef(null);
+        const animRef = React.useRef(null);
+
+        React.useEffect(() => {
+          return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            if (animRef.current) cancelAnimationFrame(animRef.current);
+            if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
+          };
+        }, []);
+
+        const playTrack = (track) => {
+          // Stop current
+          if (timerRef.current) clearTimeout(timerRef.current);
+          if (animRef.current) cancelAnimationFrame(animRef.current);
+          if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
+
+          if (playingId === track.id) {
+            setPlayingId(null);
+            setElapsed(0);
+            return;
+          }
+
+          const audio = new Audio(track.audioUrl);
+          audioRef.current = audio;
+          audio.play().catch(() => {});
+          setPlayingId(track.id);
+          setElapsed(0);
+
+          const startTime = Date.now();
+          const tick = () => {
+            const sec = (Date.now() - startTime) / 1000;
+            setElapsed(sec);
+            if (sec < track.playDuration) {
+              animRef.current = requestAnimationFrame(tick);
+            }
+          };
+          animRef.current = requestAnimationFrame(tick);
+
+          timerRef.current = setTimeout(() => {
+            audio.pause();
+            setPlayingId(null);
+            setElapsed(0);
+          }, track.playDuration * 1000);
+        };
+
+        const genreColors = { 'Blues Rock': '#ef4444', 'Country / Acoustic': '#f97316', 'Synth Pop / Electronic': '#8b5cf6' };
+
+        return (
+          <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+            {/* Header */}
+            <div className="w-full flex items-center justify-center py-5 bg-amber-600 flex-shrink-0">
+              <span className="text-white font-bold text-3xl lg:text-4xl tracking-wide">
+                GUIDED LISTENING
+              </span>
+            </div>
+
+            <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6">
+              <p className="text-white/50 text-xl lg:text-2xl mb-2">Play each track for the class. Students fill out their Listening Guide.</p>
+
+              {GUIDED_TRACKS.map((track, idx) => {
+                const isPlaying = playingId === track.id;
+                const progress = isPlaying ? Math.min(elapsed / track.playDuration, 1) : 0;
+                const color = genreColors[track.genre] || '#3b82f6';
+
+                return (
+                  <div
+                    key={track.id}
+                    className={`w-full max-w-3xl rounded-2xl border-2 transition-all ${
+                      isPlaying ? 'border-white/30 bg-white/[0.08]' : 'border-white/[0.08] bg-white/[0.03]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-5 p-5">
+                      {/* Track number */}
+                      <div
+                        className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-2xl flex-shrink-0"
+                        style={{ backgroundColor: color }}
+                      >
+                        {idx + 1}
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-bold text-2xl lg:text-3xl truncate">"{track.title}"</p>
+                        <p className="text-white/50 text-lg">{track.artist} &bull; {track.genre}</p>
+                      </div>
+
+                      {/* Play button */}
+                      <button
+                        onClick={() => playTrack(track)}
+                        className={`px-6 py-3 rounded-xl text-lg font-bold transition-all flex items-center gap-2 min-w-[140px] justify-center ${
+                          isPlaying
+                            ? 'bg-red-500 hover:bg-red-600 text-white'
+                            : 'bg-white/10 hover:bg-white/20 text-white'
+                        }`}
+                      >
+                        {isPlaying ? (
+                          <><span className="w-4 h-4 bg-white rounded-sm" /> Stop</>
+                        ) : (
+                          <><span className="w-0 h-0 border-l-[14px] border-l-white border-y-[8px] border-y-transparent ml-1" /> Play</>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Progress bar */}
+                    {isPlaying && (
+                      <div className="px-5 pb-4">
+                        <div className="h-2 bg-white/[0.1] rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-200"
+                            style={{ width: `${progress * 100}%`, backgroundColor: color }}
+                          />
+                        </div>
+                        <p className="text-white/30 text-sm mt-1 text-right">
+                          {Math.floor(elapsed)}s / {track.playDuration}s
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      };
+
+      return <GuidedListeningPlayer />;
+    }
+
     // Activity Banner - shows a banner during student activities
     if (type === 'activity-banner') {
       const { title, subtitle } = currentStageData.presentationView;
@@ -4374,6 +4515,7 @@ const TeacherLessonView = ({
      currentStageData?.id === 'planning-intro' || currentStageData?.id === 'decoy-time' ||
      currentStageData?.id === 'peer-play' || currentStageData?.id === 'pair-and-share' ||
      currentStageData?.id === 'exit-ticket' ||
+     currentStageData?.id === 'guided-listening' || currentStageData?.id === 'independent-listening' ||
      currentStageData?.id?.includes('reflection'));
 
   // Send save command to all students via Firebase

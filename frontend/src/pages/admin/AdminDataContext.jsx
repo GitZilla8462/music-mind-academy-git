@@ -895,6 +895,22 @@ export const AdminDataProvider = ({ children }) => {
     });
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(funnelRows), 'Activation Funnel');
 
+    // Applications
+    const appRows = [['First Name', 'Last Name', 'School Email', 'Personal Email', 'School', 'City', 'State',
+      'Grades', 'Devices', 'Class Size', 'Biggest Challenge', 'Why Pilot', 'Tools Used',
+      'Can Commit', 'Other', 'Status', 'Applied']];
+    applications.forEach(a => {
+      appRows.push([
+        a.firstName || '', a.lastName || '', a.schoolEmail || '', a.personalEmail || '',
+        a.schoolName || '', a.city || '', a.state || '',
+        (a.grades || []).join('; '), (a.devices || []).join('; '), a.classSize || '',
+        a.biggestChallenge || '', a.whyPilot || '', (a.toolsUsed || []).join('; '),
+        a.canCommit || '', a.anythingElse || '', a.status || '',
+        a.submittedAt ? excelDate(a.submittedAt) : ''
+      ]);
+    });
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet(appRows), 'Applications');
+
     const dateStr = new Date().toISOString().split('T')[0];
     XLSX.writeFile(workbook, `PilotProgram_Export_${dateStr}.xlsx`);
   };

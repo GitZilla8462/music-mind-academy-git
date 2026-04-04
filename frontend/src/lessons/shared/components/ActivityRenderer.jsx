@@ -144,7 +144,7 @@ import { GenreMatchStudentView } from '../activities/genre-match';
 import { ScoutingReport } from '../activities/scouting-report';
 
 // ✅ ADDED: Listening Guide + Sound Statement (Music Agent Unit 3 — Lesson 3)
-import { ListeningGuideActivity } from '../activities/listening-guide';
+import { ListeningGuideActivity, GuidedListeningActivity, IndependentListeningActivity } from '../activities/listening-guide';
 
 // ✅ ADDED: Capstone activities (Listening Lab Lesson 4)
 import CapstonePieceSelection from '../activities/capstone/CapstonePieceSelection';
@@ -1053,6 +1053,26 @@ const ActivityRenderer = ({
             isSessionMode={isSessionMode}
           />
         </div>
+      );
+
+    // ✅ ADDED: Guided Listening — teacher plays 3 tracks, students fill guide (MJ Lesson 3)
+    case 'guided-listening':
+      return (
+        <GuidedListeningActivity
+          key={`guided-listening-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Independent Listening — student picks 1 of 5 tracks (MJ Lesson 3)
+    case 'independent-listening':
+      return (
+        <IndependentListeningActivity
+          key={`independent-listening-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
       );
 
     // ✅ Launch Day — combined student view for presentations, feedback, voting (MJ Lesson 5)
