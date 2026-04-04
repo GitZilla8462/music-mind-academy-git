@@ -4,6 +4,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   sendSignInLinkToEmail,
@@ -24,6 +26,9 @@ import '../firebase/approvedEmails';
 // Key for storing email for magic link sign-in
 const EMAIL_FOR_SIGN_IN_KEY = 'emailForSignIn';
 
+// Mobile browsers block popups — use redirect flow instead
+const isMobileBrowser = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
 const FirebaseAuthContext = createContext(null);
 
 export const useFirebaseAuth = () => {
@@ -39,6 +44,28 @@ export const FirebaseAuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Handle redirect result (when user returns from Google/Microsoft sign-in on mobile)
+  useEffect(() => {
+    getRedirectResult(auth).then(async (result) => {
+      if (!result) return;
+      const firebaseUser = result.user;
+      const approved = await isEmailApproved(firebaseUser.email);
+      if (!approved) {
+        await firebaseSignOut(auth);
+        setUser(null);
+        setUserData(null);
+        setError("Your email hasn't been approved for the pilot yet. Please apply through our form and wait for approval.");
+        return;
+      }
+      const data = await getOrCreateUser(firebaseUser);
+      setUserData(data);
+      trackFirstLogin(firebaseUser.uid, firebaseUser.email).catch(() => {});
+    }).catch((err) => {
+      console.error('❌ Redirect sign-in error:', err);
+      setError(err.message);
+    });
+  }, []);
 
   // Listen to auth state changes
   useEffect(() => {
@@ -79,6 +106,11 @@ export const FirebaseAuthProvider = ({ children }) => {
   const signInWithGoogle = async () => {
     setError(null);
     try {
+      // Mobile browsers block popups — use redirect instead
+      if (isMobileBrowser()) {
+        await signInWithRedirect(auth, googleProvider);
+        return; // Page will redirect, then getRedirectResult handles the rest
+      }
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
 
@@ -119,6 +151,10 @@ export const FirebaseAuthProvider = ({ children }) => {
   const signInWithMicrosoft = async () => {
     setError(null);
     try {
+      if (isMobileBrowser()) {
+        await signInWithRedirect(auth, microsoftProvider);
+        return;
+      }
       const result = await signInWithPopup(auth, microsoftProvider);
       const firebaseUser = result.user;
 

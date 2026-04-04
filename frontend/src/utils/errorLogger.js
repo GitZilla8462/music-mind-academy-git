@@ -374,6 +374,9 @@ export const initErrorLogging = () => {
       msg.includes('object store cannot be found in the database')) return true;
     // Facebook autofill bridge errors (Android in-app browser)
     if (err?.stack?.includes('setContactAutofillValuesFromBridge')) return true;
+    // Firebase auth popup errors (expected on mobile — we use redirect instead)
+    if (msg.includes('popup-closed-by-user') || msg.includes('popup-blocked') ||
+      msg.includes('pending promise was never set')) return true;
     return false;
   };
 
