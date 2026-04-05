@@ -367,6 +367,39 @@ const ActivityGradingView = ({
     if (workData.data?.pieceId && workData.data?.sections) {
       return renderCapstonePreview(workData.data);
     }
+    if (workData.data?.entries && typeof workData.data.entries === 'object') {
+      return (
+        <div className="flex-1 overflow-auto p-4">
+          <div className="max-w-2xl mx-auto space-y-3">
+            <h3 className="text-lg font-bold text-gray-900 text-center mb-3">Guided Listening</h3>
+            {Object.entries(workData.data.entries).map(([trackId, e]) => {
+              if (!e) return null;
+              const trackNum = trackId.replace('guided-', '');
+              const hasAny = e.tempo || (Array.isArray(e.dynamics) ? e.dynamics.length > 0 : e.dynamics) || e.moods?.length > 0 || e.instruments?.length > 0 || e.texture || e.hook;
+              return (
+                <div key={trackId} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <h4 className="font-bold text-gray-800 text-sm mb-2">Track {trackNum}</h4>
+                  {!hasAny ? (
+                    <p className="text-gray-400 text-sm italic">No responses</p>
+                  ) : (
+                    <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+                      {e.tempo && <><span className="text-gray-500">Tempo:</span><span className="text-gray-900">{e.tempo}{e.tempoChange ? ` (${e.tempoChange})` : ''}</span></>}
+                      {(Array.isArray(e.dynamics) ? e.dynamics.length > 0 : e.dynamics) && <><span className="text-gray-500">Dynamics:</span><span className="text-gray-900">{Array.isArray(e.dynamics) ? e.dynamics.join(', ') : e.dynamics}{e.dynamicsChange ? ` (${e.dynamicsChange})` : ''}</span></>}
+                      {e.moods?.length > 0 && <><span className="text-gray-500">Mood:</span><span className="text-gray-900">{e.moods.join(', ')}</span></>}
+                      {e.instruments?.length > 0 && <><span className="text-gray-500">Instruments:</span><span className="text-gray-900">{e.instruments.join(', ')}</span></>}
+                      {e.texture && <><span className="text-gray-500">Texture:</span><span className="text-gray-900">{e.texture}</span></>}
+                      {e.hook && <><span className="text-gray-500">Hook:</span><span className="text-gray-900">{e.hook}</span></>}
+                      {e.influences && <><span className="text-gray-500">Influences:</span><span className="text-gray-900">{e.influences}</span></>}
+                      {e.notes && <><span className="text-gray-500">Notes:</span><span className="text-gray-900">{e.notes}</span></>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
     if (workData.data?.sections) {
       return (
         <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 text-gray-400 animate-spin" /></div>}>
@@ -838,7 +871,7 @@ const ActivityGradingView = ({
                 submittedAt={currentStudent.submission?.submittedAt}
               />
             </Suspense>
-          ) : currentWork?.data?.answers ? (
+          ) : currentWork?.data?.answers || currentWork?.data?.entries ? (
             renderWorkContent(currentWork)
           ) : currentWork ? (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8">

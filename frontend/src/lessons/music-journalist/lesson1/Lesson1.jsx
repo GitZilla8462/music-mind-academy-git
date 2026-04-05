@@ -355,10 +355,10 @@ const Lesson1 = () => {
         <h1 className="text-4xl font-bold mb-4">Lesson Complete!</h1>
         <p className="text-xl text-gray-400 mb-8">Great job learning to read like a journalist!</p>
         <button
-          onClick={() => navigate('/music-journalist')}
+          onClick={() => navigate('/music-agent-hub')}
           className="px-8 py-4 bg-purple-600 hover:bg-purple-700 rounded-xl text-xl font-semibold transition-colors"
         >
-          Back to Music Journalist
+          Back to Music Agent Hub
         </button>
       </div>
     );

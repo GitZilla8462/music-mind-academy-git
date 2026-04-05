@@ -1,42 +1,19 @@
 // File: /src/lessons/music-journalist/lesson2/lessonStorageUtils.js
-// Storage management for Lesson 2 - Find Your Beat
-// Topic selection, research board, and reflection data
+// Storage management for Lesson 2 - Listen Like an Agent
+// Listening guide, sound statement, and reflection data
 
 // Storage Keys
 export const STORAGE_KEYS = {
-  TOPIC: 'music-journalist-lesson2-topic',
   RESEARCH_BOARD: 'music-journalist-lesson2-research-board',
   REFLECTION: 'music-journalist-lesson2-reflection',
   LESSON_PROGRESS: 'music-journalist-lesson2-progress'
 };
 
-// Topic Data
-export const saveTopic = (topicText, checklist) => {
-  const topic = {
-    text: topicText,
-    checklist,
-    savedAt: new Date().toISOString()
-  };
-  localStorage.setItem(STORAGE_KEYS.TOPIC, JSON.stringify(topic));
-  console.log('Topic saved:', topic);
-  return topic;
-};
-
-export const getTopic = () => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEYS.TOPIC);
-    return data ? JSON.parse(data) : null;
-  } catch (error) {
-    console.error('Error loading topic:', error);
-    return null;
-  }
-};
-
 // Research Board Data
-export const saveResearchBoard = (highlights, articles) => {
+export const saveResearchBoard = (cards, themes) => {
   const board = {
-    highlights,
-    articles,
+    cards,
+    themes,
     savedAt: new Date().toISOString()
   };
   localStorage.setItem(STORAGE_KEYS.RESEARCH_BOARD, JSON.stringify(board));
@@ -55,11 +32,11 @@ export const getResearchBoard = () => {
 };
 
 // Reflection Data
-export const saveReflection = (topicReason, learnedToday, credibilityInsight) => {
+export const saveReflection = (strongestEvidence, organizationInsight, headlineIdea) => {
   const reflection = {
-    topicReason,
-    learnedToday,
-    credibilityInsight,
+    strongestEvidence,
+    organizationInsight,
+    headlineIdea,
     submittedAt: new Date().toISOString()
   };
   localStorage.setItem(STORAGE_KEYS.REFLECTION, JSON.stringify(reflection));
@@ -88,7 +65,6 @@ export const clearAllLesson2Data = () => {
 // Get complete lesson summary
 export const getLesson2Summary = () => {
   return {
-    topic: getTopic(),
     researchBoard: getResearchBoard(),
     reflection: getReflection()
   };

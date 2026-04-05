@@ -136,19 +136,42 @@ const MusicJournalistHub = () => {
         { title: 'Welcome to the Agency', description: 'How Billie Eilish, Chance, and BTS went from zero to fame', time: 5 },
         { title: 'Explore the Platform', description: 'Browse 20 emerging artists across 10 genres — star your favorites', time: 10, activityType: 'artist-discovery' },
         { title: 'Genre Match Game', description: 'Hear a clip, identify the genre — test your ear', time: 8, activityType: 'genre-match' },
-        { title: 'The Assignment', description: 'Learn the 5-lesson arc: discover, research, listen, build, pitch', time: 5 },
-        { title: 'Preview', description: 'Which genre surprised you? Who caught your ear?', time: 3 }
+        { title: 'The Assignment', description: 'Learn the 5-lesson arc: discover, research, listen, build, pitch', time: 5 }
       ]
     },
     {
       id: 'mj-lesson2',
       number: 2,
+      icon: '🎧',
+      title: 'Listen Like an Agent',
+      concept: 'Listen & Describe',
+      essentialQuestion: 'How do you describe music so other people can hear it through your words?',
+      color: 'from-indigo-800 to-blue-700',
+      route: '/lessons/music-journalist/lesson2',
+      available: true,
+      hasLessonPlan: false,
+      inThisLesson: 'Students learn to listen critically using 6 music descriptors (tempo, mood, instrumentation, hook, production, influence), practice with guided and independent listening sessions, write a Sound Statement, and play Source or Not to evaluate credibility.',
+      studentsWill: [
+        'Analyze music using 6 specific descriptors from the Music Description Toolkit',
+        'Practice critical listening with guided and independent tracks',
+        'Write a Sound Statement that captures an artist\'s unique sound in one sentence'
+      ],
+      activities: [
+        { title: 'Hook: Same Genre, Different Sound', description: 'Two "rock" clips that sound nothing alike — describe the difference', time: 3 },
+        { title: 'Music Description Toolkit', description: 'Learn 6 ways to describe music: tempo, mood, instrumentation, hook, production, influence', time: 5 },
+        { title: 'Critical Listening Session', description: 'Listen to tracks and fill out the Listening Guide', time: 15, activityType: 'listening-guide' },
+        { title: 'Source or Not?', description: 'Can you spot a credible music source vs random noise?', time: 7, activityType: 'source-or-not' }
+      ]
+    },
+    {
+      id: 'mj-lesson3',
+      number: 3,
       icon: '🎯',
       title: 'Claim Your Artist',
       concept: 'Choose & Research',
       essentialQuestion: 'What makes an artist worth believing in?',
-      color: 'from-indigo-800 to-blue-700',
-      route: '/lessons/music-journalist/lesson2',
+      color: 'from-blue-700 to-cyan-700',
+      route: '/lessons/music-journalist/lesson3',
       available: true,
       hasLessonPlan: false,
       inThisLesson: 'Students choose their emerging artist from the platform, research their story using the artist profile, learn to distinguish strong evidence from weak evidence, save facts to their Research Board, and play Fact or Opinion to sharpen their skills.',
@@ -163,31 +186,6 @@ const MusicJournalistHub = () => {
         { title: 'Strong vs Weak Evidence', description: 'Learn what would convince a label vs what falls flat', time: 4 },
         { title: 'Research Session', description: 'Dig into your artist\'s profile — save 5+ facts to Research Board', time: 12, activityType: 'artist-discovery' },
         { title: 'Fact or Opinion Game', description: 'Sort 10 statements — agents need evidence, not just vibes', time: 7, activityType: 'fact-opinion-sorter' }
-      ]
-    },
-    {
-      id: 'mj-lesson3',
-      number: 3,
-      icon: '🎧',
-      title: 'Build Your Case',
-      concept: 'Listen & Describe',
-      essentialQuestion: 'How do you describe music so other people can hear it through your words?',
-      color: 'from-blue-700 to-cyan-700',
-      route: '/lessons/music-journalist/lesson3',
-      available: true,
-      hasLessonPlan: false,
-      inThisLesson: 'Students listen critically to their artist\'s tracks using 6 music descriptors (tempo, mood, instrumentation, hook, production, influence), write a Sound Statement, form 3 evidence-backed reasons why their artist should go viral, and play Source or Not to evaluate credibility.',
-      studentsWill: [
-        'Analyze music using 6 specific descriptors from the Music Description Toolkit',
-        'Write a Sound Statement that captures their artist\'s unique sound in one sentence',
-        'Form 3 evidence-backed reasons why their artist deserves to go viral'
-      ],
-      activities: [
-        { title: 'Hook: Same Genre, Different Sound', description: 'Two "rock" clips that sound nothing alike — describe the difference', time: 3 },
-        { title: 'Music Description Toolkit', description: 'Learn 6 ways to describe music: tempo, mood, instrumentation, hook, production, influence', time: 5 },
-        { title: 'Critical Listening Session', description: 'Listen to your artist\'s tracks and fill out the Listening Guide', time: 15, activityType: 'listening-guide' },
-        { title: 'Source or Not?', description: 'Can you spot a credible music source vs random noise?', time: 7, activityType: 'source-or-not' },
-        { title: 'Preview', description: 'Bring your Research Board, Sound Statement, and 3 reasons to Lesson 4', time: 3 }
       ]
     },
     {

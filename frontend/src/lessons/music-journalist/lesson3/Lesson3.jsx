@@ -1,5 +1,5 @@
 // File: /lessons/music-journalist/lesson3/Lesson3.jsx
-// Music Journalist - Lesson 3: Deep Dive
+// Music Journalist - Lesson 3: Claim Your Artist
 // Uses TeacherLessonView for combined sidebar + presentation
 
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
@@ -319,7 +319,7 @@ const Lesson3 = () => {
   if (viewSavedMode || viewReflectionMode) {
     return (
       <ActivityRenderer
-        activity={{ type: viewReflectionMode ? 'discussion' : 'research-board', id: 'saved-view' }}
+        activity={{ type: viewReflectionMode ? 'discussion' : 'article-reader', id: 'saved-view' }}
         onComplete={() => navigate(-1)}
         viewMode={false}
         isSessionMode={false}
@@ -351,12 +351,12 @@ const Lesson3 = () => {
       <div className="h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
         <Trophy className="w-24 h-24 mb-6 text-yellow-400" />
         <h1 className="text-4xl font-bold mb-4">Lesson Complete!</h1>
-        <p className="text-xl text-gray-400 mb-8">Great job diving deep into your research!</p>
+        <p className="text-xl text-gray-400 mb-8">You've claimed your artist!</p>
         <button
-          onClick={() => navigate('/music-journalist')}
+          onClick={() => navigate('/music-agent-hub')}
           className="px-8 py-4 bg-purple-600 hover:bg-purple-700 rounded-xl text-xl font-semibold transition-colors"
         >
-          Back to Music Journalist
+          Back to Music Agent Hub
         </button>
       </div>
     );

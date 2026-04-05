@@ -1,5 +1,5 @@
 // File: /lessons/music-journalist/lesson2/Lesson2.jsx
-// Music Journalist - Lesson 2: Find Your Beat
+// Music Journalist - Lesson 2: Listen Like an Agent
 // Uses TeacherLessonView for combined sidebar + presentation
 
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
@@ -65,6 +65,8 @@ const Lesson2 = () => {
   const searchParams = new URLSearchParams(location.search);
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
+  const viewGuidedListeningMode = searchParams.get('view') === 'guided-listening' ||
+    (viewSavedMode && searchParams.get('activity') === 'guided-listening');
   const isPreviewMode = searchParams.get('preview') === 'true';
   const isMuted = searchParams.get('muted') === 'true';
 
@@ -317,11 +319,24 @@ const Lesson2 = () => {
   // NORMAL MODE (NO SESSION)
   // ========================================
 
-  // View saved work mode
-  if (viewSavedMode || viewReflectionMode) {
+  // View saved guided listening
+  if (viewGuidedListeningMode) {
     return (
       <ActivityRenderer
-        activity={{ type: viewReflectionMode ? 'discussion' : 'article-reader', id: 'saved-view' }}
+        activity={{ type: 'guided-listening', id: 'guided-listening-view' }}
+        onComplete={() => navigate(-1)}
+        viewMode={true}
+        isSessionMode={false}
+        lessonConfig={lessonConfig}
+      />
+    );
+  }
+
+  // View saved work mode (but not guided listening — handled above)
+  if ((viewSavedMode && !viewGuidedListeningMode) || viewReflectionMode) {
+    return (
+      <ActivityRenderer
+        activity={{ type: viewReflectionMode ? 'discussion' : 'research-board', id: 'saved-view' }}
         onComplete={() => navigate(-1)}
         viewMode={false}
         isSessionMode={false}
@@ -353,12 +368,12 @@ const Lesson2 = () => {
       <div className="h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
         <Trophy className="w-24 h-24 mb-6 text-yellow-400" />
         <h1 className="text-4xl font-bold mb-4">Lesson Complete!</h1>
-        <p className="text-xl text-gray-400 mb-8">Great job finding your beat!</p>
+        <p className="text-xl text-gray-400 mb-8">You're listening like an agent!</p>
         <button
-          onClick={() => navigate('/music-journalist')}
+          onClick={() => navigate('/music-agent-hub')}
           className="px-8 py-4 bg-purple-600 hover:bg-purple-700 rounded-xl text-xl font-semibold transition-colors"
         >
-          Back to Music Journalist
+          Back to Music Agent Hub
         </button>
       </div>
     );

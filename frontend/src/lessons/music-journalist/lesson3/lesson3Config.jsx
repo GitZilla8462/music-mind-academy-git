@@ -1,144 +1,76 @@
 // File: /lessons/music-journalist/lesson3/lesson3Config.jsx
-// Lesson 3: Listen Like a Critic
-// "How do you describe music so other people can hear it through your words?"
+// Lesson 3: Claim Your Artist
+// "What makes an artist worth believing in?"
+//
+// ========================================
+// CURRICULUM NOTES
+// ========================================
+// Students learn:
+// - How to choose an artist and commit to researching them
+// - The difference between strong and weak evidence
+// - How to use the Research Board to save key facts
+// - Fact vs opinion (game review from Lesson 1)
 //
 // Standards:
-// - MU:Re7.1.7 — Select and describe musical elements
-// - MU:Re8.1.7 — Interpret expressive intent, citing evidence from the music
-// - MU:Cn11.0.7 — Relationships between music, history, and culture
+// - MU:Cn10.0.7 — Personal interests influence musical selection
+// - CCSS.ELA-LITERACY.RI.7.1 — Cite textual evidence
+// - CCSS.ELA-LITERACY.W.7.7 — Short research using multiple sources
 // ========================================
 
 export const LESSON_PROGRESS_KEY = 'music-journalist-lesson3-progress';
 export const LESSON_TIMER_KEY = 'music-journalist-lesson3-timer';
 
-// ── TRACK POOLS ──────────────────────────────────────
-// Teacher plays these 3 tracks (~30s each) for the whole class
-export const GUIDED_TRACKS = [
-  {
-    id: 'guided-1',
-    title: 'Any Single Thing',
-    artist: 'Pierce Murphy',
-    artistId: 'pierce-murphy',
-    genre: 'Blues Rock',
-    audioUrl: 'https://media.musicmindacademy.com/artists/pierce-murphy/any-single-thing.mp3',
-    playDuration: 30,
-  },
-  {
-    id: 'guided-2',
-    title: "Jenny's Theme",
-    artist: 'Jason Shaw',
-    artistId: 'jason-shaw',
-    genre: 'Country / Acoustic',
-    audioUrl: 'https://media.musicmindacademy.com/artists/jason-shaw/jennys-theme.mp3',
-    playDuration: 30,
-  },
-  {
-    id: 'guided-3',
-    title: 'Horizon Ending',
-    artist: 'Soft and Furious',
-    artistId: 'soft-and-furious',
-    genre: 'Synth Pop / Electronic',
-    audioUrl: 'https://media.musicmindacademy.com/artists/soft-and-furious/horizon-ending.mp3',
-    playDuration: 30,
-  },
-];
-
-// Students pick 1 of these 5 tracks for independent listening
-export const INDEPENDENT_TRACKS = [
-  {
-    id: 'indie-1',
-    title: 'In Tune (Remix 2)',
-    artist: 'Kellee Maize',
-    artistId: 'kellee-maize',
-    genre: 'Hip-Hop',
-    audioUrl: 'https://media.musicmindacademy.com/artists/kellee-maize/in-tune-remix-2.mp3',
-  },
-  {
-    id: 'indie-2',
-    title: 'Foggy Headed',
-    artist: 'HoliznaCC0',
-    artistId: 'holiznacc0',
-    genre: 'Lo-fi Hip-Hop',
-    audioUrl: 'https://media.musicmindacademy.com/artists/holiznacc0/foggy-headed.mp3',
-  },
-  {
-    id: 'indie-3',
-    title: 'spectrogram',
-    artist: 'Fog Lake',
-    artistId: 'fog-lake',
-    genre: 'Indie Rock / Shoegaze',
-    audioUrl: 'https://media.musicmindacademy.com/artists/fog-lake/spectrogram.mp3',
-  },
-  {
-    id: 'indie-4',
-    title: 'Darling Corina',
-    artist: 'David Mumford',
-    artistId: 'david-mumford',
-    genre: 'Folk',
-    audioUrl: 'https://media.musicmindacademy.com/artists/david-mumford/darling-corina.mp3',
-  },
-  {
-    id: 'indie-5',
-    title: 'Follow',
-    artist: 'Pamela Yuen',
-    artistId: 'pamela-yuen',
-    genre: 'Pop / Cinematic',
-    audioUrl: 'https://media.musicmindacademy.com/artists/pamela-yuen/follow.mp3',
-  },
-];
-
 export const lessonSections = [
   {
     id: 'introduction',
     title: '1. Introduction',
-    subtitle: 'Hook + Music Description Toolkit',
+    subtitle: 'Hook + What Makes an Artist Worth Signing?',
     color: 'blue',
-    estimatedTime: 8,
+    estimatedTime: 7,
     stages: [
-      { id: 'hook', type: 'summary', label: 'Hook', description: 'Play two clips of "rock" that sound totally different.', duration: 3 },
-      { id: 'description-toolkit', type: 'summary', label: 'Description Toolkit', description: 'Teach: tempo, mood, instrumentation, hook, production, influence.', duration: 5 }
+      { id: 'hook', type: 'summary', label: 'Hook', description: '"Imagine scrolling and hearing something that stops you."', duration: 3 },
+      { id: 'worth-signing', type: 'summary', label: 'Worth Signing?', description: 'Teach the 4-point checklist: unique sound, story, growth, your gut.', duration: 4 }
     ]
   },
   {
-    id: 'critical-listening',
-    title: '2. Critical Listening',
-    subtitle: 'Guided + Independent',
+    id: 'choose-artist',
+    title: '2. Choose Your Artist',
+    subtitle: 'Browse, Listen, Commit',
     color: 'blue',
-    estimatedTime: 27,
+    estimatedTime: 12,
     stages: [
-      { id: 'guided-listening', type: 'activity', label: 'Guided Listening', description: 'Teacher plays 3 tracks. Students fill out Listening Guide together.', duration: 15, hasTimer: true, trackProgress: true },
-      { id: 'independent-listening', type: 'activity', label: 'Independent Listening', description: 'Students pick 1 of 5 tracks and analyze on their own.', duration: 7, hasTimer: true, trackProgress: true },
-      { id: 'listening-share', type: 'discussion', label: 'Share Out', description: 'Students share their analysis with the class.', duration: 5 }
+      { id: 'choose-your-artist', type: 'activity', label: 'Choose Your Artist', description: 'STUDENTS: Browse artists, listen to tracks, pick ONE and lock in.', duration: 12, hasTimer: true, trackProgress: true }
     ]
   },
   {
-    id: 'sound-statement',
-    title: '3. Sound Statement',
-    subtitle: 'Describe + Defend',
+    id: 'research',
+    title: '3. Research Session',
+    subtitle: 'Strong vs Weak Evidence + Research',
     color: 'blue',
-    estimatedTime: 5,
+    estimatedTime: 16,
     stages: [
-      { id: 'sound-statement-share', type: 'discussion', label: 'Sound Statement Share', description: '4-5 students read their Sound Statement aloud.', duration: 5 }
+      { id: 'strong-vs-weak', type: 'summary', label: 'Strong vs Weak Evidence', description: 'Teach: specific facts vs vague opinions.', duration: 4 },
+      { id: 'research-session', type: 'activity', label: 'Research Session', description: 'STUDENTS: Read artist profile, highlight key facts. Save 5+ to Research Board.', duration: 12, hasTimer: true, trackProgress: true }
     ]
   },
   {
     id: 'game',
-    title: '4. Source or Not?',
-    subtitle: 'Credibility Game',
+    title: '4. Fact or Opinion',
+    subtitle: 'Game Time',
     color: 'blue',
     estimatedTime: 7,
     stages: [
-      { id: 'source-or-not-game', type: 'activity', label: 'Source or Not?', description: 'STUDENTS PLAY: Judge source credibility!', duration: 7, hasTimer: true, trackProgress: true }
+      { id: 'fact-opinion-game', type: 'activity', label: 'Fact or Opinion', description: 'STUDENTS PLAY: Sort music statements!', duration: 7, hasTimer: true, trackProgress: true }
     ]
   },
   {
-    id: 'preview',
-    title: '5. Preview',
-    subtitle: 'Next Steps',
+    id: 'reflect',
+    title: '5. Checkpoint',
+    subtitle: 'Share + Preview',
     color: 'blue',
     estimatedTime: 3,
     stages: [
-      { id: 'preview-next', type: 'summary', label: 'Preview', description: '"Next class you build the press kit."', duration: 3 }
+      { id: 'checkpoint', type: 'discussion', label: 'Checkpoint', description: '"Tell your neighbor: Who did you pick and why?"', duration: 3 }
     ]
   }
 ];
@@ -146,22 +78,22 @@ export const lessonSections = [
 export const lesson3Config = {
   id: 'music-journalist-lesson3',
   lessonPath: '/lessons/music-journalist/lesson3',
-  title: 'Listen Like a Critic',
-  subtitle: 'How do you describe music so other people can hear it through your words?',
-  duration: 50,
+  title: 'Claim Your Artist',
+  subtitle: 'What makes an artist worth believing in?',
+  duration: 45,
   themeColor: '#1a2744',
   accentColor: '#f0b429',
   learningObjectives: [
-    'Listen critically and identify musical elements (tempo, mood, instrumentation)',
-    'Analyze music independently using the Description Toolkit',
-    'Share and defend observations with evidence from the music',
-    'Evaluate source credibility'
+    'Choose an emerging artist to represent as their agent',
+    'Distinguish between strong evidence and weak evidence',
+    'Use the Research Board to collect and organize key facts',
+    'Apply fact vs opinion skills to music research'
   ],
   lessonSections,
   activities: [
-    { id: 1, type: 'guided-listening', title: 'Guided Listening', estimatedTime: '15 min' },
-    { id: 2, type: 'independent-listening', title: 'Independent Listening', estimatedTime: '7 min' },
-    { id: 3, type: 'source-or-not', title: 'Source or Not?', estimatedTime: '7 min' }
+    { id: 1, type: 'artist-discovery', title: 'Choose Your Artist', estimatedTime: '12 min' },
+    { id: 2, type: 'artist-discovery', title: 'Research Session', estimatedTime: '12 min' },
+    { id: 3, type: 'fact-opinion-sorter', title: 'Fact or Opinion', estimatedTime: '7 min' }
   ]
 };
 
@@ -170,99 +102,86 @@ export const lessonStages = [
   {
     id: 'hook', label: 'Hook', type: 'summary', duration: 3,
     presentationView: {
-      type: 'summary', title: 'Listen Like a Critic', subtitle: 'Can You Hear the Difference?',
+      type: 'summary', title: 'Claim Your Artist', subtitle: 'Time to Find Your Next Star',
       sections: [
-        { heading: 'Listen to These Two Clips', bullets: [
-          'Both of these artists are labeled "rock"',
-          'But they sound COMPLETELY different',
-          'How would you explain that difference to someone who hasn\'t heard them?'
+        { heading: 'The Moment', bullets: [
+          'Imagine you\'re scrolling through music and you hear something that STOPS you',
+          'Something different. Something real. Something that makes you think "this person has IT"',
+          'That\'s what we\'re looking for today'
         ]},
-        { heading: 'Today\'s Challenge', bullets: [
-          'Learn the vocabulary to DESCRIBE what you hear',
-          'Listen to music together and analyze it as a class',
-          'Then pick a track and analyze it on your own'
+        { heading: 'Today\'s Goal', bullets: [
+          'Pick ONE emerging artist from the platform',
+          'Start researching their story',
+          'Save at least 5 strong facts to your Research Board'
         ]}
       ]
     }
   },
   {
-    id: 'description-toolkit', label: 'Description Toolkit', type: 'summary', duration: 5,
+    id: 'worth-signing', label: 'Worth Signing?', type: 'summary', duration: 4,
     presentationView: {
-      type: 'summary', title: 'The Music Description Toolkit', subtitle: '6 Ways to Describe What You Hear',
+      type: 'summary', title: 'What Makes an Artist Worth Signing?', subtitle: 'The Agent\'s Checklist',
       sections: [
-        { heading: 'The Toolkit', bullets: [
-          'TEMPO — How fast is the music? (Slow, Moderate, Fast, Changes)',
-          'MOOD — What feeling does it create? (Energetic, Chill, Mysterious, Powerful...)',
-          'INSTRUMENTATION — What instruments or sounds do you hear?',
-          'HOOK — What\'s the catchy part that grabs your attention?',
-          'PRODUCTION — How is the overall sound shaped? (Raw, Polished, Lo-fi, Layered)',
-          'INFLUENCE — Who do they remind you of? What genre traditions do they draw from?'
+        { heading: 'The 4-Point Checklist', bullets: [
+          '1. UNIQUE SOUND — Do they sound like everyone else, or do they have their own thing?',
+          '2. STORY — Where are they from? What drives them? Why do they make music?',
+          '3. GROWTH — Are they getting better? Are more people discovering them?',
+          '4. YOUR GUT — Do YOU believe in them? Would you stake your reputation on them?'
         ]},
-        { heading: 'How We\'ll Use It', bullets: [
-          'First: I\'ll play 3 tracks and we\'ll analyze them TOGETHER as a class',
-          'Then: You\'ll pick a track and analyze it ON YOUR OWN',
-          'Use ALL 6 categories for each track you listen to'
+        { heading: 'Remember', bullets: [
+          'Great agents don\'t just follow trends — they FIND talent others miss',
+          'No duplicates allowed — first come, first served!',
+          'Use what you learned in Lesson 2 — listen like an agent when choosing'
         ]}
       ]
     }
   },
   {
-    id: 'guided-listening', label: 'Guided Listening', type: 'activity', duration: 15, hasTimer: true, trackProgress: true,
-    presentationView: { type: 'guided-listening-player' }
+    id: 'choose-your-artist', label: 'Choose Your Artist', type: 'activity', duration: 12, hasTimer: true, trackProgress: true,
+    presentationView: { type: 'activity-banner', title: 'Choose Your Artist', subtitle: 'Browse. Listen. Pick ONE. Lock it in.' }
   },
   {
-    id: 'independent-listening', label: 'Independent Listening', type: 'activity', duration: 7, hasTimer: true, trackProgress: true,
+    id: 'strong-vs-weak', label: 'Strong vs Weak Evidence', type: 'summary', duration: 4,
     presentationView: {
-      type: 'activity-banner',
-      title: 'Your Turn: Independent Listening',
-      subtitle: 'Pick a track. Listen. Fill out your Listening Guide.'
-    }
-  },
-  {
-    id: 'listening-share', label: 'Share Out', type: 'discussion', duration: 5,
-    presentationView: {
-      type: 'summary', title: 'Share Your Analysis', subtitle: 'What Did You Hear?',
+      type: 'summary', title: 'Strong vs Weak Evidence', subtitle: 'Not All Facts Are Created Equal',
       sections: [
-        { heading: 'Share Out', bullets: [
-          'What track did you pick and why?',
-          'What instruments or sounds did you hear?',
-          'What mood did the music create?',
-          'What was the catchiest part (the hook)?'
+        { heading: 'STRONG Evidence', bullets: [
+          '"Their EP has 12,000 streams in 3 months" — specific, measurable',
+          '"They were featured on Bandcamp Daily in October 2025" — verifiable',
+          '"She started playing guitar at age 14" — concrete fact',
+          '"Their name means \'be strong\' in Urhobo" — specific, interesting'
         ]},
-        { heading: 'Listen to Each Other', bullets: [
-          'Did anyone pick the same track but hear different things?',
-          'What descriptions helped you "hear" the music through their words?'
-        ]}
+        { heading: 'WEAK Evidence', bullets: [
+          '"They\'re really good" — vague, no detail',
+          '"Their music is cool" — opinion, not evidence',
+          '"A lot of people like them" — how many? who?',
+          '"They\'ve been around for a while" — how long?'
+        ]},
+        { heading: 'Your Goal', bullets: ['Save at least 5 STRONG facts to your Research Board'] }
       ]
     }
   },
   {
-    id: 'sound-statement-share', label: 'Sound Statement Share', type: 'discussion', duration: 5,
-    presentationView: {
-      type: 'summary', title: 'Sound Statement Share', subtitle: 'Can We Hear the Music Through Your Words?',
-      sections: [
-        { heading: 'Share Out', bullets: [
-          '4-5 agents will read their Sound Statement aloud',
-          'Class: "Could you hear the music through their words?"',
-          'What made certain descriptions more vivid than others?'
-        ]}
-      ]
-    }
+    id: 'research-session', label: 'Research Session', type: 'activity', duration: 12, hasTimer: true, trackProgress: true,
+    presentationView: { type: 'activity-banner', title: 'Research Session', subtitle: 'Read the artist profile. Highlight key facts. Save 5+ to Research Board.' }
   },
   {
-    id: 'source-or-not-game', label: 'Source or Not?', type: 'activity', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true,
-    presentationView: { type: 'source-or-not-teacher-game' }
+    id: 'fact-opinion-game', label: 'Fact or Opinion', type: 'activity', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true,
+    presentationView: { type: 'fact-opinion-sorter-teacher-game' }
   },
   {
-    id: 'preview-next', label: 'Preview', type: 'summary', duration: 3,
+    id: 'checkpoint', label: 'Checkpoint', type: 'discussion', duration: 3,
     presentationView: {
-      type: 'summary', title: 'Next Class: Build the Press Kit', subtitle: 'Bring Your Research + Sound Statement',
+      type: 'summary', title: 'Checkpoint', subtitle: 'Share Your Pick',
       sections: [
-        { heading: 'What You Need for Lesson 4', bullets: [
-          'Your Research Board with 5+ strong facts',
-          'Your Sound Statement from today',
-          'Your listening analysis from today',
-          'Next class: turn all of this into a 5-slide PRESS KIT'
+        { heading: 'Turn to Your Neighbor', bullets: [
+          'Who did you pick and WHY?',
+          'What\'s one STRONG fact you found about them?',
+          'What makes their sound unique?'
+        ]},
+        { heading: 'Next Time', bullets: [
+          'Lesson 4: Design the Campaign',
+          'You\'ll take your research and listening notes and build a 5-slide press kit'
         ]}
       ]
     }
@@ -270,39 +189,41 @@ export const lessonStages = [
   {
     id: 'lesson-complete', label: 'Lesson Complete', type: 'summary', duration: 1,
     presentationView: {
-      type: 'summary', title: 'Lesson 3 Complete!', subtitle: 'You\'re Listening Like a Critic',
+      type: 'summary', title: 'Lesson 3 Complete!', subtitle: 'You\'ve Claimed Your Artist',
       sections: [
         { heading: 'What You Did Today', bullets: [
-          'Learned 6 ways to describe music (tempo, mood, instrumentation, hook, production, influence)',
-          'Analyzed 3 tracks together as a class',
-          'Independently analyzed a track on your own',
-          'Shared your analysis and heard how others described the same music'
-        ]}
+          'Evaluated artists using the 4-point checklist',
+          'Chose YOUR artist to represent',
+          'Researched their story with strong evidence',
+          'Practiced spotting fact vs opinion'
+        ]},
+        { heading: 'Come Ready for Lesson 4', bullets: ['Bring your Research Board and Sound Statement — you\'ll build the press kit'] }
       ]
     }
   }
 ];
 
-export const getActivityForStage = (stage) => ({
-  'join-code': 'waiting',
-  'hook': 'summary',
-  'description-toolkit': 'summary',
-  'guided-listening': 'guided-listening',
-  'independent-listening': 'independent-listening',
-  'listening-share': 'discussion',
-  'sound-statement-share': 'discussion',
-  'source-or-not-game': 'source-or-not',
-  'preview-next': 'summary',
-  'lesson-complete': 'summary'
-})[stage];
+export const getActivityForStage = (stage) => {
+  const stageMap = {
+    'join-code': 'waiting',
+    'hook': 'summary',
+    'worth-signing': 'summary',
+    'choose-your-artist': 'artist-discovery',
+    'strong-vs-weak': 'summary',
+    'research-session': 'artist-discovery',
+    'fact-opinion-game': 'fact-opinion-sorter',
+    'checkpoint': 'discussion',
+    'lesson-complete': 'summary'
+  };
+  return stageMap[stage];
+};
 
 export const VOCABULARY = [
-  { term: 'Tempo', definition: 'The speed of the music — slow, moderate, fast, or changing' },
-  { term: 'Mood', definition: 'The emotional feeling the music creates — energetic, melancholy, peaceful, intense' },
-  { term: 'Instrumentation', definition: 'The specific instruments and sounds used in a song' },
-  { term: 'Hook', definition: 'The catchy part of a song that grabs your attention and sticks in your head' },
-  { term: 'Production', definition: 'How a song is recorded, mixed, and arranged — the overall sound quality and style' },
-  { term: 'Influence', definition: 'Other artists, genres, or traditions that shaped an artist\'s sound' },
-  { term: 'Sound Statement', definition: 'A one-sentence description capturing an artist\'s unique sound and what makes them different' },
-  { term: 'EP', definition: 'Extended Play — a release with 4-6 songs, between a single and a full album' }
+  { term: 'Evidence', definition: 'Specific facts, quotes, numbers, or data that support your argument' },
+  { term: 'Strong Evidence', definition: 'Evidence that is specific, measurable, and verifiable — like dates, numbers, and named sources' },
+  { term: 'Weak Evidence', definition: 'Vague statements that don\'t include specific details — like "they\'re really good"' },
+  { term: 'Research Board', definition: 'Your collection of highlighted facts and evidence saved from artist profiles' },
+  { term: 'Credible Source', definition: 'A trustworthy, reliable place to find accurate information' },
+  { term: 'Fact', definition: 'A statement that can be proven true or false with evidence' },
+  { term: 'Opinion', definition: 'A statement that reflects someone\'s personal view, belief, or judgment' }
 ];

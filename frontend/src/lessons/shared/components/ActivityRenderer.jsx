@@ -1062,6 +1062,7 @@ const ActivityRenderer = ({
           key={`guided-listening-${activity.id}`}
           onComplete={onComplete}
           isSessionMode={isSessionMode}
+          viewMode={viewMode}
         />
       );
 

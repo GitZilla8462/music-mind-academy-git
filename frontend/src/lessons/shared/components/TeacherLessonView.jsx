@@ -500,6 +500,7 @@ const PresentationContent = ({
   const [HeadlineWriterGame, setHeadlineWriterGame] = useState(null);
   const [GenreMatchTeacherGame, setGenreMatchTeacherGame] = useState(null);
   const [GenreShowcase, setGenreShowcase] = useState(null);
+  const [GuidedListeningActivity, setGuidedListeningActivity] = useState(null);
 
   // Composition present mode (video + DAW tracks fullscreen)
   const [compositionPresentMode, setCompositionPresentMode] = useState(false);
@@ -718,6 +719,11 @@ const PresentationContent = ({
     import('../../shared/activities/genre-showcase/GenreShowcase')
       .then(module => setGenreShowcase(() => module.default))
       .catch(() => console.log('Genre Showcase not available'));
+
+    // Unit 3 Music Journalist Lesson 3: Guided Listening Activity
+    import('../../shared/activities/listening-guide/GuidedListeningActivity')
+      .then(module => setGuidedListeningActivity(() => module.default))
+      .catch(() => console.log('Guided Listening Activity not available'));
   }, []);
 
   // Join Code Screen — mirrors the student /join page styling
@@ -2490,145 +2496,19 @@ const PresentationContent = ({
       );
     }
 
-    // Guided Listening Player — teacher plays 3 tracks for the class (~30s each)
-    if (type === 'guided-listening-player') {
-      const GUIDED_TRACKS = [
-        { id: 'guided-1', title: 'Any Single Thing', artist: 'Pierce Murphy', genre: 'Blues Rock', audioUrl: 'https://media.musicmindacademy.com/artists/pierce-murphy/any-single-thing.mp3', playDuration: 30 },
-        { id: 'guided-2', title: "Jenny's Theme", artist: 'Jason Shaw', genre: 'Country / Acoustic', audioUrl: 'https://media.musicmindacademy.com/artists/jason-shaw/jennys-theme.mp3', playDuration: 30 },
-        { id: 'guided-3', title: 'Horizon Ending', artist: 'Soft and Furious', genre: 'Synth Pop / Electronic', audioUrl: 'https://media.musicmindacademy.com/artists/soft-and-furious/horizon-ending.mp3', playDuration: 30 },
-      ];
-
-      const GuidedListeningPlayer = () => {
-        const [playingId, setPlayingId] = React.useState(null);
-        const [elapsed, setElapsed] = React.useState(0);
-        const audioRef = React.useRef(null);
-        const timerRef = React.useRef(null);
-        const animRef = React.useRef(null);
-
-        React.useEffect(() => {
-          return () => {
-            if (timerRef.current) clearTimeout(timerRef.current);
-            if (animRef.current) cancelAnimationFrame(animRef.current);
-            if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
-          };
-        }, []);
-
-        const playTrack = (track) => {
-          // Stop current
-          if (timerRef.current) clearTimeout(timerRef.current);
-          if (animRef.current) cancelAnimationFrame(animRef.current);
-          if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
-
-          if (playingId === track.id) {
-            setPlayingId(null);
-            setElapsed(0);
-            return;
-          }
-
-          const audio = new Audio(track.audioUrl);
-          audioRef.current = audio;
-          audio.play().catch(() => {});
-          setPlayingId(track.id);
-          setElapsed(0);
-
-          const startTime = Date.now();
-          const tick = () => {
-            const sec = (Date.now() - startTime) / 1000;
-            setElapsed(sec);
-            if (sec < track.playDuration) {
-              animRef.current = requestAnimationFrame(tick);
-            }
-          };
-          animRef.current = requestAnimationFrame(tick);
-
-          timerRef.current = setTimeout(() => {
-            audio.pause();
-            setPlayingId(null);
-            setElapsed(0);
-          }, track.playDuration * 1000);
-        };
-
-        const genreColors = { 'Blues Rock': '#ef4444', 'Country / Acoustic': '#f97316', 'Synth Pop / Electronic': '#8b5cf6' };
-
-        return (
-          <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
-            {/* Header */}
-            <div className="w-full flex items-center justify-center py-5 bg-amber-600 flex-shrink-0">
-              <span className="text-white font-bold text-3xl lg:text-4xl tracking-wide">
-                GUIDED LISTENING
-              </span>
-            </div>
-
-            <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6">
-              <p className="text-white/50 text-xl lg:text-2xl mb-2">Play each track for the class. Students fill out their Listening Guide.</p>
-
-              {GUIDED_TRACKS.map((track, idx) => {
-                const isPlaying = playingId === track.id;
-                const progress = isPlaying ? Math.min(elapsed / track.playDuration, 1) : 0;
-                const color = genreColors[track.genre] || '#3b82f6';
-
-                return (
-                  <div
-                    key={track.id}
-                    className={`w-full max-w-3xl rounded-2xl border-2 transition-all ${
-                      isPlaying ? 'border-white/30 bg-white/[0.08]' : 'border-white/[0.08] bg-white/[0.03]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-5 p-5">
-                      {/* Track number */}
-                      <div
-                        className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold text-2xl flex-shrink-0"
-                        style={{ backgroundColor: color }}
-                      >
-                        {idx + 1}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-bold text-2xl lg:text-3xl truncate">"{track.title}"</p>
-                        <p className="text-white/50 text-lg">{track.artist} &bull; {track.genre}</p>
-                      </div>
-
-                      {/* Play button */}
-                      <button
-                        onClick={() => playTrack(track)}
-                        className={`px-6 py-3 rounded-xl text-lg font-bold transition-all flex items-center gap-2 min-w-[140px] justify-center ${
-                          isPlaying
-                            ? 'bg-red-500 hover:bg-red-600 text-white'
-                            : 'bg-white/10 hover:bg-white/20 text-white'
-                        }`}
-                      >
-                        {isPlaying ? (
-                          <><span className="w-4 h-4 bg-white rounded-sm" /> Stop</>
-                        ) : (
-                          <><span className="w-0 h-0 border-l-[14px] border-l-white border-y-[8px] border-y-transparent ml-1" /> Play</>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Progress bar */}
-                    {isPlaying && (
-                      <div className="px-5 pb-4">
-                        <div className="h-2 bg-white/[0.1] rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-200"
-                            style={{ width: `${progress * 100}%`, backgroundColor: color }}
-                          />
-                        </div>
-                        <p className="text-white/30 text-sm mt-1 text-right">
-                          {Math.floor(elapsed)}s / {track.playDuration}s
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      };
-
-      return <GuidedListeningPlayer />;
+    // Guided Listening — split-screen: teacher controls left, student worksheet right
+    if (type === 'guided-listening-split') {
+      const trackIndex = currentStageData.presentationView.trackIndex ?? 0;
+      return (
+        <div className="absolute inset-0">
+          <GuidedListeningSplit
+            trackIndex={trackIndex}
+            GuidedListeningComponent={GuidedListeningActivity}
+            onAdvanceToNext={trackIndex < 2 ? goToNextStage : null}
+            nextLabel={trackIndex < 2 ? `Go to Guided Listening ${trackIndex + 2}` : null}
+          />
+        </div>
+      );
     }
 
     // Activity Banner - shows a banner during student activities
@@ -3685,6 +3565,220 @@ const FinalPilotSurvey = ({
 };
 
 // ============================================
+// GUIDED LISTENING SPLIT (stable component to prevent remounting)
+// Teacher plays tracks on left, student worksheet on right
+// ============================================
+const GUIDED_LISTENING_TRACKS_DATA = [
+  { id: 'guided-1', title: 'Trench Work', artist: 'Ketsa', genre: 'Jazz / Soul / Trip-Hop', audioUrl: 'https://media.musicmindacademy.com/artists/ketsa/trench-work.mp3', color: '#3b82f6', playDuration: 60 },
+  { id: 'guided-2', title: "Jenny's Theme", artist: 'Jason Shaw', genre: 'Country / Acoustic', audioUrl: 'https://media.musicmindacademy.com/artists/jason-shaw/jennys-theme.mp3', color: '#f97316', playDuration: 60 },
+  { id: 'guided-3', title: 'Horizon Ending', artist: 'Soft and Furious', genre: 'Synth Pop / Electronic', audioUrl: 'https://media.musicmindacademy.com/artists/soft-and-furious/horizon-ending.mp3', color: '#8b5cf6', playDuration: 60 },
+];
+
+const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent, onAdvanceToNext, nextLabel }) => {
+  const track = GUIDED_LISTENING_TRACKS_DATA[trackIndex] || GUIDED_LISTENING_TRACKS_DATA[0];
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasPlayed, setHasPlayed] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef(null);
+
+  const maxDuration = track.playDuration || 60; // Play first 60 seconds
+  const fadeStart = maxDuration - 5; // Start fade-out 5 seconds before end
+
+  // Preload audio on mount
+  useEffect(() => {
+    const audio = new Audio(track.audioUrl);
+    audio.preload = 'auto';
+    audioRef.current = audio;
+
+    const onTimeUpdate = () => {
+      // Stop at playDuration limit
+      if (audio.currentTime >= maxDuration) {
+        audio.pause();
+        audio.volume = 1;
+        audio.currentTime = 0;
+        setIsPlaying(false);
+        setHasPlayed(true);
+        setElapsed(0);
+        return;
+      }
+      // Fade out over last 5 seconds
+      if (audio.currentTime >= fadeStart) {
+        const remaining = maxDuration - audio.currentTime;
+        audio.volume = Math.max(0, remaining / 5);
+      }
+      setElapsed(audio.currentTime);
+    };
+    const onLoadedMetadata = () => setDuration(Math.min(audio.duration, maxDuration));
+    const onEnded = () => { setIsPlaying(false); setHasPlayed(true); setElapsed(0); };
+
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('loadedmetadata', onLoadedMetadata);
+    audio.addEventListener('ended', onEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', onTimeUpdate);
+      audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+      audio.removeEventListener('ended', onEnded);
+      audio.pause();
+      audio.src = '';
+      audioRef.current = null;
+    };
+  }, [track.audioUrl, maxDuration, fadeStart]);
+
+  const togglePlay = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+      audio.volume = 1;
+      setIsPlaying(false);
+    } else {
+      // Always start from the beginning
+      audio.volume = 1;
+      audio.currentTime = 0;
+      setElapsed(0);
+      setIsLoading(true);
+      audio.play().then(() => {
+        setIsLoading(false);
+        setIsPlaying(true);
+      }).catch(err => {
+        console.error('Audio play error:', err);
+        setIsLoading(false);
+      });
+    }
+  }, [isPlaying]);
+
+  const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  const progress = maxDuration > 0 ? elapsed / maxDuration : 0;
+
+  return (
+    <div className="absolute inset-0 flex bg-white">
+      {/* Left — Single track player + directions */}
+      <div className="w-[340px] h-full bg-white border-r border-gray-200 flex flex-col">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-5 py-4 shrink-0">
+          <h2 className="font-bold text-lg">Guided Listening {trackIndex + 1} of 3</h2>
+          <p className="text-white/70 text-sm mt-0.5">Listen &amp; analyze as a class</p>
+        </div>
+
+        {/* Directions */}
+        <div className="bg-amber-50 border-b border-amber-200 px-5 py-3 shrink-0">
+          <p className="font-bold text-amber-900 text-sm mb-1">Directions:</p>
+          <ol className="list-decimal list-inside text-sm text-amber-800 space-y-0.5">
+            <li><strong>Play</strong> the track for the class</li>
+            <li>Fill out the Listening Guide <strong>together</strong></li>
+            <li><strong>Discuss</strong> what you heard</li>
+            <li>Click <strong>Next</strong> when ready</li>
+          </ol>
+        </div>
+
+        {/* Track card */}
+        <div className="flex-1 flex flex-col p-4">
+          <div
+            className="rounded-xl border-2 p-5 transition-all"
+            style={{ borderColor: track.color, backgroundColor: track.color + '12' }}
+          >
+            {/* Track number + info */}
+            <div className="flex items-center gap-4 mb-4">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-black text-white shrink-0"
+                style={{ backgroundColor: track.color }}
+              >
+                {trackIndex + 1}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-gray-900 text-lg">{track.title}</div>
+                <div className="text-sm text-gray-500">{track.artist}</div>
+                <div className="text-xs text-gray-400 mt-0.5">{track.genre}</div>
+              </div>
+            </div>
+
+            {/* Play/Stop button */}
+            <button
+              onClick={togglePlay}
+              disabled={isLoading}
+              className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl text-lg font-bold transition-all ${
+                isPlaying
+                  ? 'bg-red-500 hover:bg-red-600 text-white'
+                  : 'bg-white hover:bg-gray-50 text-gray-800 border border-gray-200'
+              }`}
+            >
+              {isLoading ? (
+                'Loading...'
+              ) : isPlaying ? (
+                <><Pause size={22} /> Stop</>
+              ) : (
+                <><Play size={22} className="ml-0.5" /> Play for Class</>
+              )}
+            </button>
+
+            {/* Progress bar */}
+            <div className="mt-3">
+              <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-200"
+                  style={{ width: `${progress * 100}%`, backgroundColor: track.color }}
+                />
+              </div>
+              <p className="text-gray-400 text-xs mt-1 text-right">
+                {fmt(elapsed)} / {fmt(maxDuration)}
+              </p>
+            </div>
+          </div>
+
+          {/* Playing indicator */}
+          {isPlaying && (
+            <div className="flex items-center justify-center gap-2 mt-4 text-red-500">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-sm font-semibold">Playing...</span>
+            </div>
+          )}
+
+          {/* Advance button — appears after track finishes */}
+          {hasPlayed && !isPlaying && onAdvanceToNext && nextLabel && (
+            <button
+              onClick={onAdvanceToNext}
+              className="mt-4 w-full py-3 px-4 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm transition-all flex items-center justify-center gap-2"
+            >
+              {nextLabel} <ChevronRight size={18} />
+            </button>
+          )}
+        </div>
+
+        {/* Tip at bottom */}
+        <div className="px-4 pb-4 shrink-0">
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+            <p className="text-xs text-gray-500 text-center">
+              {hasPlayed && !isPlaying
+                ? 'Discuss what you heard, then advance to the next track.'
+                : 'Fill out the worksheet on the right as a class.'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right — GuidedListeningActivity showing only this track */}
+      <div className="flex-1 h-full relative overflow-hidden">
+        {GuidedListeningComponent ? (
+          <GuidedListeningComponent
+            onComplete={() => {}}
+            isSessionMode={false}
+            singleTrackId={track.id}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full bg-gray-100">
+            <p className="text-gray-400">Loading listening guide...</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+// ============================================
 // PLANNER DIRECTIONS SPLIT (stable component to prevent remounting)
 // Extracted outside TeacherLessonView so React keeps the same component identity
 // ============================================
@@ -4515,7 +4609,8 @@ const TeacherLessonView = ({
      currentStageData?.id === 'planning-intro' || currentStageData?.id === 'decoy-time' ||
      currentStageData?.id === 'peer-play' || currentStageData?.id === 'pair-and-share' ||
      currentStageData?.id === 'exit-ticket' ||
-     currentStageData?.id === 'guided-listening' || currentStageData?.id === 'independent-listening' ||
+     currentStageData?.id === 'guided-listening-3' ||
+     currentStageData?.id === 'independent-listening' ||
      currentStageData?.id?.includes('reflection'));
 
   // Send save command to all students via Firebase

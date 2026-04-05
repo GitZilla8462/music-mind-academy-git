@@ -878,7 +878,7 @@ export const SessionProvider = ({ children }) => {
         } else if (lessonRoute.includes('/lessons/listening-lab/')) {
           window.location.href = '/listening-lab-hub';
         } else if (lessonRoute.includes('/lessons/music-journalist/')) {
-          window.location.href = '/music-journalist-hub';
+          window.location.href = '/music-agent-hub';
         } else {
           window.location.href = '/music-classroom-resources';
         }

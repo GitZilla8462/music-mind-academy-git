@@ -1,12 +1,12 @@
 // File: /src/lessons/music-journalist/lesson2/summarySlideContent.js
 // All instructional text and content for Music Agent Unit — Lesson 2
-// "Claim Your Artist"
-// Students choose their artist, research their story, learn strong vs weak evidence
+// "Listen Like an Agent"
+// Students listen critically, write a Sound Statement, form evidence-based opinions
 //
 // Standards:
-// - MU:Cn10.0.7 — Personal interests influence musical selection
-// - CCSS.ELA-LITERACY.RI.7.1 — Cite textual evidence to support analysis
-// - CCSS.ELA-LITERACY.W.7.7 — Short research projects using multiple sources
+// - MU:Re7.1.7 — Select and describe musical elements
+// - MU:Re8.1.7 — Interpret expressive intent, citing evidence
+// - MU:Cn11.0.7 — Relationships between music, history, culture
 
 // ========================================
 // 1. SLIDE CONTENT FOR PRESENTATION VIEW
@@ -14,157 +14,146 @@
 export const summarySlides = {
   // Welcome Hook
   welcomeHook: {
-    title: 'Claim Your Artist',
-    subtitle: 'Find the one nobody knows about yet',
-    essentialQuestion: 'What makes an artist worth believing in?',
-    iCan: 'I can select an emerging artist and identify strong evidence about why they deserve attention.',
+    title: 'Listen Like an Agent',
+    subtitle: 'Describe the music so well that someone HAS to press play',
+    essentialQuestion: 'How do you describe music so other people can hear it through your words?',
+    iCan: 'I can analyze music using specific descriptors and write a Sound Statement that captures an artist\'s unique sound.',
     agenda: [
-      'Review: What makes an artist worth signing?',
-      'CHOOSE your artist from the platform',
-      'Research their story — build your evidence',
-      'Play FACT OR OPINION to sharpen your skills'
+      'Hook: Two "rock" songs that sound NOTHING alike',
+      'Learn the MUSIC DESCRIPTION TOOLKIT (6 ways to describe music)',
+      'LISTEN critically to tracks from emerging artists',
+      'Write your SOUND STATEMENT',
+      'Play SOURCE OR NOT to test your credibility skills'
     ],
     hook: {
-      title: 'Imagine This...',
+      title: 'Same Genre, Totally Different',
       prompts: [
-        'You are scrolling through music and you hear something that stops you',
-        'Something about this artist is DIFFERENT — their sound, their story, their energy',
-        'Today you find that artist and make them YOURS'
+        'I am going to play two songs. Both are "rock."',
+        'Your challenge: describe the DIFFERENCE using words, not just feelings',
+        'If you cannot explain WHY the music is good, you cannot convince anyone else'
       ]
     },
-    teacherNote: 'Build urgency — this is the commitment moment. Once they choose, that artist is theirs for the rest of the unit. First come, first served means they need to be decisive.'
+    teacherNote: 'Play two contrasting rock clips (e.g., acoustic folk-rock vs heavy metal). The point: genre labels are not enough. Agents need precise vocabulary to describe what makes their artist unique.'
   },
 
-  // What Makes an Artist Worth It?
-  worthSigning: {
-    title: 'What Makes an Artist Worth It?',
-    subtitle: 'The 4-Point Checklist',
-    checklist: [
+  // Music Description Toolkit
+  descriptionToolkit: {
+    title: 'The Music Description Toolkit',
+    subtitle: '6 Ways to Describe Any Music',
+    tools: [
       {
-        label: 'Unique Sound',
-        icon: 'music',
-        description: 'Do they sound DIFFERENT from everyone else? Can you hear their voice in a crowd?',
-        question: 'If you played their song in a room of 100 songs, would it stand out?'
+        name: 'Tempo',
+        icon: 'clock',
+        color: '#3B82F6',
+        description: 'How fast or slow is the music?',
+        options: ['Slow', 'Moderate', 'Fast', 'Changes'],
+        example: 'The track starts slow and builds to a fast climax'
       },
       {
-        label: 'Story',
-        icon: 'bookOpen',
-        description: 'Where are they from? What drives them? Is there something about their background that makes you care?',
-        question: 'Could you tell someone their story in 30 seconds and make them interested?'
-      },
-      {
-        label: 'Growth',
-        icon: 'trendingUp',
-        description: 'Are they getting better? Are more people discovering them? Is there momentum?',
-        question: 'Is this artist on the way UP — or have they peaked?'
-      },
-      {
-        label: 'Your Gut',
+        name: 'Mood',
         icon: 'heart',
-        description: 'Do YOU believe in this artist? Would you stake your reputation on them?',
-        question: 'If you had one shot to make an artist blow up, would you pick THIS one?'
+        color: '#EC4899',
+        description: 'What feeling does the music create?',
+        options: ['Energetic', 'Chill', 'Mysterious', 'Powerful', 'Melancholic', 'Playful'],
+        example: 'The mood shifts from mysterious to triumphant when the drums enter'
+      },
+      {
+        name: 'Instrumentation',
+        icon: 'music',
+        color: '#F59E0B',
+        description: 'What sounds and instruments do you hear?',
+        options: ['Guitar', 'Synth', 'Drums', 'Vocals', 'Bass', 'Strings', 'Brass', 'Sampler'],
+        example: 'Built on turntables and drum machines — no traditional instruments'
+      },
+      {
+        name: 'Hook',
+        icon: 'zap',
+        color: '#EF4444',
+        description: 'What is the catchiest part? What grabs you?',
+        options: ['Melody', 'Beat', 'Lyric', 'Riff', 'Drop', 'Vocal run'],
+        example: 'The hook is a three-note piano riff that repeats throughout'
+      },
+      {
+        name: 'Production',
+        icon: 'sliders',
+        color: '#8B5CF6',
+        description: 'How is the music recorded and mixed?',
+        options: ['Raw', 'Polished', 'Lo-fi', 'Layered', 'Minimalist', 'Experimental'],
+        example: 'Lo-fi bedroom production gives it a raw, intimate feel'
+      },
+      {
+        name: 'Influence',
+        icon: 'link',
+        color: '#10B981',
+        description: 'What traditions, genres, or artists does this draw from?',
+        options: [],
+        example: 'Blends Mongolian folk with modern jazz improvisation'
       }
     ],
-    teacherNote: 'Walk through each point. Emphasize that agents use ALL FOUR — not just gut feeling. The research in this unit is about backing up your gut with evidence.'
+    teacherNote: 'Walk through each descriptor with a brief audio example if possible. These 6 tools give students the vocabulary to move from "it sounds cool" to specific, evidence-based descriptions. This directly supports MU:Re7.1.7 and MU:Re8.1.7.'
   },
 
-  // Strong vs Weak Evidence
-  strongVsWeak: {
-    title: 'Strong vs Weak Evidence',
-    subtitle: 'What Would Convince a Label?',
-    strong: [
+  // Sound Statement
+  soundStatement: {
+    title: 'Write Your Sound Statement',
+    subtitle: 'One Sentence That Makes Someone Press Play',
+    description: 'A Sound Statement captures an artist\'s unique sound in one sentence. It uses specific descriptors, not vague praise. If someone reads your Sound Statement, they should be able to HEAR the music in their head.',
+    formula: '[Artist] blends [genre/influence] with [genre/influence], featuring [key sound/instrument] and creating [mood] atmosphere that [what makes it unique].',
+    examples: [
       {
-        statement: 'Their EP has 12,000 streams in 3 months',
-        why: 'Specific number + specific timeframe = verifiable growth'
+        artist: 'Enji',
+        statement: 'Enji blends Mongolian folk with jazz improvisation, featuring haunting vocals in three languages and creating a meditative atmosphere that connects ancient traditions to modern music.'
       },
       {
-        statement: 'Featured on Bandcamp Daily in October 2025',
-        why: 'Named source + specific date = credible press mention'
+        artist: 'Theon Cross',
+        statement: 'Theon Cross blends Caribbean rhythms with London jazz, featuring the tuba as a lead instrument and creating an energetic atmosphere that proves any instrument can be a star.'
       },
       {
-        statement: 'Self-released debut at age 20, Pitchfork gave it Best New Music',
-        why: 'Specific achievement + recognized publication = strong credential'
+        artist: 'Ela Minus',
+        statement: 'Ela Minus blends Colombian synth-pop with techno, featuring all-analog hardware synthesizers and creating a pulsing atmosphere that challenges what electronic music can be.'
       }
     ],
-    weak: [
-      {
-        statement: 'They are really good',
-        why: 'Vague — what does "good" mean? No specifics.'
-      },
-      {
-        statement: 'A lot of people like them',
-        why: 'How many? Where? "A lot" means nothing without data.'
-      },
-      {
-        statement: 'They should be famous',
-        why: 'Opinion without evidence — WHY should they be famous?'
-      }
-    ],
-    rule: 'Strong evidence has NUMBERS, NAMES, DATES, and SOURCES. Weak evidence has VAGUE WORDS and NO PROOF.',
-    teacherNote: 'This is the most important slide for the unit. Every pitch in Lesson 5 will be judged on evidence quality. Plant the seed now that "I like them" is not enough — agents need proof.'
+    teacherNote: 'The Sound Statement is the centerpiece of Slide 2 in their press kit. It needs to be specific enough that someone who has never heard the artist can imagine the sound. Push students beyond "they sound good" to "they sound LIKE THIS."'
   },
 
-  // Research Session
-  researchIntro: {
-    title: 'Research Your Artist',
-    subtitle: 'Build Your Evidence Board',
-    description: 'You have your artist. Now dig into their profile and find the facts that will make your case. Save at least 5 strong pieces of evidence to your Research Board.',
-    tasks: [
-      {
-        label: 'Read the Bio',
-        description: 'Where are they from? When did they start? What is their story?'
-      },
-      {
-        label: 'Check the Numbers',
-        description: 'How many albums? What instruments? When did they form?'
-      },
-      {
-        label: 'Find the Hook',
-        description: 'What is the ONE thing about this artist that would make someone stop scrolling?'
-      },
-      {
-        label: 'Save to Research Board',
-        description: 'Highlight and save at least 5 facts that you can use in your pitch'
-      }
-    ],
-    teacherNote: 'Students should spend the full 12 minutes reading and saving. Walk around and check that they are finding SPECIFIC facts, not just reading casually.'
+  // Source or Not Game Intro
+  sourceOrNot: {
+    title: 'Source or Not?',
+    subtitle: 'Can You Spot a Credible Source?',
+    description: 'Agents need to know which information to trust. Not everything online is reliable. Can you tell the difference between a credible music source and random noise?',
+    credibleExamples: ['Billboard', 'NPR Music', 'Rolling Stone', 'Pitchfork', 'Bandcamp Daily'],
+    notCredibleExamples: ['Anonymous blog post', 'Random Reddit comment', 'YouTube comment section', 'Unverified social media post'],
+    teacherNote: 'Quick intro before the game. Students will evaluate 10 sources in the Firebase game. This builds media literacy skills that transfer beyond music.'
   },
 
-  // Checkpoint
-  checkpoint: {
-    title: 'Agent Checkpoint',
-    subtitle: 'Where Do You Stand?',
-    prompts: [
-      {
-        number: 1,
-        question: 'Tell your neighbor: Who did you pick and WHY?',
-        hint: 'Use at least one specific fact from your research, not just "I liked their sound."'
-      },
-      {
-        number: 2,
-        question: 'What is the strongest piece of evidence you found?',
-        hint: 'Think: would this convince a label executive?'
-      }
+  // Preview Next
+  previewNext: {
+    title: 'Next Up: Claim Your Artist',
+    subtitle: 'Now You Know How to Listen',
+    items: [
+      'You have the VOCABULARY to describe what you hear',
+      'You have the SKILLS to evaluate sources',
+      'Next class: you CHOOSE your artist and start building your case with evidence',
+      'Listen like an agent when choosing — use what you learned today'
     ],
-    lookingAhead: 'Next lesson, you will LISTEN to your artist\'s music like a critic. You will write a Sound Statement — one sentence that captures exactly what they sound like. Bring your research.',
-    teacherNote: 'Quick partner share. Listen for students using specific evidence vs vague opinions. Call out strong examples to the class.'
+    teacherNote: 'Emphasize that the listening skills from today will directly help them choose a better artist in Lesson 3.'
   },
 
   // Lesson Complete
   lessonComplete: {
     title: 'Lesson 2 Complete!',
-    subtitle: 'You Have Your Artist',
+    subtitle: 'You\'re Listening Like an Agent',
     summary: [
-      'You chose an emerging artist and committed to representing them',
-      'Strong evidence uses NUMBERS, NAMES, DATES, and SOURCES',
-      'Weak evidence uses vague words with no proof',
-      'Your Research Board has at least 5 facts to build your case'
+      'You analyzed music using 6 specific descriptors (Tempo, Mood, Instrumentation, Hook, Production, Influence)',
+      'You practiced critical listening with guided and independent tracks',
+      'You wrote a Sound Statement that captures an artist\'s unique sound in one sentence',
+      'You can distinguish credible sources from unreliable ones'
     ],
     nextLesson: {
-      title: 'Lesson 3: Build Your Case',
-      preview: 'You will listen critically, describe their sound, and write the words that make someone hit play.'
+      title: 'Lesson 3: Claim Your Artist',
+      preview: 'Pick your artist, research their story, and build your Research Board with strong evidence.'
     },
-    celebration: 'Your artist has an agent now. Do not let them down.'
+    celebration: 'You can describe music in a way that makes people want to listen. That is a real skill.'
   }
 };
 
@@ -172,11 +161,12 @@ export const summarySlides = {
 // 2. VOCABULARY FOR THIS LESSON
 // ========================================
 export const vocabulary = [
-  { term: 'Evidence', definition: 'Facts, data, quotes, or examples that support a claim — the proof behind your argument' },
-  { term: 'Strong Evidence', definition: 'Specific, verifiable information with numbers, dates, names, or sources' },
-  { term: 'Weak Evidence', definition: 'Vague statements without specifics — "a lot of people" or "really good" with no proof' },
-  { term: 'Research Board', definition: 'Your collection of saved facts, quotes, and images about your artist — the raw material for your pitch' },
-  { term: 'Credible Source', definition: 'A trustworthy place where information comes from — like a recognized publication or official record' },
-  { term: 'Fact', definition: 'A statement that can be proven true or false with evidence' },
-  { term: 'Opinion', definition: 'A statement that reflects someone\'s personal view — it cannot be proven, only agreed or disagreed with' }
+  { term: 'Tempo', definition: 'The speed of the music — slow, moderate, fast, or changing' },
+  { term: 'Mood', definition: 'The feeling or emotion the music creates — energetic, chill, mysterious, powerful' },
+  { term: 'Instrumentation', definition: 'The specific instruments and sounds used in a piece of music' },
+  { term: 'Hook', definition: 'The catchiest, most memorable part of a song — what grabs you and sticks in your head' },
+  { term: 'Production', definition: 'How the music was recorded and mixed — raw, polished, lo-fi, layered, experimental' },
+  { term: 'Influence', definition: 'The musical traditions, genres, or artists that shaped an artist\'s sound' },
+  { term: 'Sound Statement', definition: 'One sentence that captures an artist\'s unique sound using specific descriptors — the core of your pitch' },
+  { term: 'EP', definition: 'Extended Play — a release with more songs than a single but fewer than a full album, usually 4-6 tracks' }
 ];

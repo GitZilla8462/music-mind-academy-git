@@ -353,10 +353,10 @@ const Lesson5 = () => {
         <h1 className="text-4xl font-bold mb-4">Unit Complete!</h1>
         <p className="text-xl text-gray-400 mb-8">You are officially a Music Journalist!</p>
         <button
-          onClick={() => navigate('/music-journalist')}
+          onClick={() => navigate('/music-agent-hub')}
           className="px-8 py-4 bg-purple-600 hover:bg-purple-700 rounded-xl text-xl font-semibold transition-colors"
         >
-          Back to Music Journalist
+          Back to Music Agent Hub
         </button>
       </div>
     );

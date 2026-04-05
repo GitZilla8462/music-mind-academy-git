@@ -468,7 +468,8 @@ const AppContent = () => {
         <Route path="/lessons/listening-lab/lesson4" element={<ListeningLabLesson4 />} />
         <Route path="/lessons/listening-lab/lesson5" element={<ListeningLabLesson5 />} />
 
-        {/* Music Journalist Hub & Lessons (Unit 3) */}
+        {/* Music Agent Hub & Lessons (Unit 3) */}
+        <Route path="/music-agent-hub" element={<MusicJournalistHub />} />
         <Route path="/music-journalist" element={<MusicJournalistHub />} />
         <Route path="/music-journalist-hub" element={<MusicJournalistHub />} />
         <Route path="/lessons/music-journalist/lesson1" element={<MJLesson1 />} />
@@ -682,7 +683,8 @@ const AppContent = () => {
         <Route path="/lessons/listening-lab/lesson4" element={<ListeningLabLesson4 />} />
         <Route path="/lessons/listening-lab/lesson5" element={<ListeningLabLesson5 />} />
 
-        {/* Music Journalist Hub & Lessons (Unit 3) */}
+        {/* Music Agent Hub & Lessons (Unit 3) */}
+        <Route path="/music-agent-hub" element={<MusicJournalistHub />} />
         <Route path="/music-journalist" element={<MusicJournalistHub />} />
         <Route path="/music-journalist-hub" element={<MusicJournalistHub />} />
         <Route path="/lessons/music-journalist/lesson1" element={<MJLesson1 />} />

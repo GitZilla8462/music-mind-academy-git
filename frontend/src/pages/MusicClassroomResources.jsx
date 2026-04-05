@@ -33,7 +33,6 @@ const CURRICULUM_UNITS = [
       'Create beats and melodies'
     ],
     status: 'pilot',
-    releaseDate: 'March 15th',
     route: '/music-loops-in-media',
     routeCommercial: '/music-loops-in-media-hub'
   },
@@ -52,7 +51,6 @@ const CURRICULUM_UNITS = [
       'Recognize form and structure'
     ],
     status: 'pilot',
-    releaseDate: 'April 1st',
     route: '/listening-lab',
     routeCommercial: '/listening-lab-hub'
   },
@@ -72,8 +70,8 @@ const CURRICULUM_UNITS = [
     ],
     status: 'pilot',
     releaseDate: 'April 15th',
-    route: '/music-journalist',
-    routeCommercial: '/music-journalist-hub'
+    route: '/music-agent-hub',
+    routeCommercial: '/music-agent-hub'
   },
   {
     id: 4,
@@ -90,7 +88,7 @@ const CURRICULUM_UNITS = [
       'Produce an original beat'
     ],
     status: 'preview',
-    releaseDate: 'June 1st',
+    releaseDate: 'May 15th',
     route: null,
     routeCommercial: null
   },
@@ -109,7 +107,7 @@ const CURRICULUM_UNITS = [
       'Write an original song sketch'
     ],
     status: 'preview',
-    releaseDate: 'September 1st',
+    releaseDate: 'June 1st',
     route: null,
     routeCommercial: null
   },
@@ -676,7 +674,7 @@ function MusicClassroomResources() {
                           letterSpacing: '0.2px',
                           whiteSpace: 'nowrap'
                         }}>
-                          Pilot Now
+                          Now Available
                         </span>
                       )}
                       {isUpcomingPilot && (

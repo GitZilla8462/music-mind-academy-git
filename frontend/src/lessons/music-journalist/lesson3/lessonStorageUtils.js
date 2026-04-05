@@ -1,18 +1,42 @@
 // File: /src/lessons/music-journalist/lesson3/lessonStorageUtils.js
-// Storage management for Music Journalist Lesson 3 - Deep Dive
+// Storage management for Lesson 3 - Claim Your Artist
+// Topic selection, research board, and reflection data
 
 // Storage Keys
 export const STORAGE_KEYS = {
+  TOPIC: 'music-journalist-lesson3-topic',
   RESEARCH_BOARD: 'music-journalist-lesson3-research-board',
   REFLECTION: 'music-journalist-lesson3-reflection',
   LESSON_PROGRESS: 'music-journalist-lesson3-progress'
 };
 
+// Topic Data
+export const saveTopic = (topicText, checklist) => {
+  const topic = {
+    text: topicText,
+    checklist,
+    savedAt: new Date().toISOString()
+  };
+  localStorage.setItem(STORAGE_KEYS.TOPIC, JSON.stringify(topic));
+  console.log('Topic saved:', topic);
+  return topic;
+};
+
+export const getTopic = () => {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.TOPIC);
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    console.error('Error loading topic:', error);
+    return null;
+  }
+};
+
 // Research Board Data
-export const saveResearchBoard = (cards, themes) => {
+export const saveResearchBoard = (highlights, articles) => {
   const board = {
-    cards,
-    themes,
+    highlights,
+    articles,
     savedAt: new Date().toISOString()
   };
   localStorage.setItem(STORAGE_KEYS.RESEARCH_BOARD, JSON.stringify(board));
@@ -31,11 +55,11 @@ export const getResearchBoard = () => {
 };
 
 // Reflection Data
-export const saveReflection = (strongestEvidence, organizationInsight, headlineIdea) => {
+export const saveReflection = (topicReason, learnedToday, credibilityInsight) => {
   const reflection = {
-    strongestEvidence,
-    organizationInsight,
-    headlineIdea,
+    topicReason,
+    learnedToday,
+    credibilityInsight,
     submittedAt: new Date().toISOString()
   };
   localStorage.setItem(STORAGE_KEYS.REFLECTION, JSON.stringify(reflection));
@@ -64,6 +88,7 @@ export const clearAllLesson3Data = () => {
 // Get complete lesson summary
 export const getLesson3Summary = () => {
   return {
+    topic: getTopic(),
     researchBoard: getResearchBoard(),
     reflection: getReflection()
   };

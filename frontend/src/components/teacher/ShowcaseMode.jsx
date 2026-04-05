@@ -27,6 +27,8 @@ const hasDisplayableWork = (work) => {
   if (work.data.pieceId && work.data.sections) return true;
   // Listening journeys (sections array without pieceId)
   if (!work.data.pieceId && Array.isArray(work.data.sections) && work.data.sections.length > 0) return true;
+  // Guided listening (entries object with track analysis)
+  if (work.data.entries && typeof work.data.entries === 'object') return true;
   return false;
 };
 
@@ -136,6 +138,7 @@ const ShowcaseMode = ({
   const isComposition = currentWork?.data?.placedLoops?.length > 0;
   const isCapstone = !!(currentWork?.data?.pieceId && currentWork?.data?.sections);
   const isListeningJourney = !isCapstone && Array.isArray(currentWork?.data?.sections) && currentWork.data.sections.length > 0;
+  const isGuidedListening = !!(currentWork?.data?.entries && typeof currentWork.data.entries === 'object');
 
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
@@ -270,6 +273,42 @@ const ShowcaseMode = ({
               {Object.keys(currentWork.data.sections).length === 0 && (
                 <p className="text-gray-400 text-center">No sections planned yet.</p>
               )}
+            </div>
+          </div>
+        ) : isGuidedListening && currentWork ? (
+          <div className="flex-1 overflow-auto p-4">
+            <div className="max-w-2xl mx-auto space-y-4">
+              <h3 className="text-white text-lg font-bold text-center mb-4">Guided Listening</h3>
+              {Object.entries(currentWork.data.entries).map(([trackId, e]) => {
+                if (!e) return null;
+                const trackNum = trackId.replace('guided-', '');
+                const hasAnyData = e.tempo || (Array.isArray(e.dynamics) ? e.dynamics.length > 0 : e.dynamics) ||
+                  (e.moods?.length > 0) || (e.instruments?.length > 0) || e.texture || e.hook;
+                return (
+                  <div key={trackId} className="bg-white/10 rounded-lg p-4">
+                    <h4 className="text-white font-bold text-sm mb-2">Track {trackNum}</h4>
+                    {!hasAnyData ? (
+                      <p className="text-gray-500 text-sm italic">No responses yet</p>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                        <span className="text-gray-400">Tempo:</span>
+                        <span className="text-white">{e.tempo || '—'}{e.tempoChange ? ` (${e.tempoChange})` : ''}</span>
+                        <span className="text-gray-400">Dynamics:</span>
+                        <span className="text-white">{Array.isArray(e.dynamics) && e.dynamics.length > 0 ? e.dynamics.join(', ') : e.dynamics || '—'}{e.dynamicsChange ? ` (${e.dynamicsChange})` : ''}</span>
+                        <span className="text-gray-400">Mood:</span>
+                        <span className="text-white">{Array.isArray(e.moods) && e.moods.length > 0 ? e.moods.join(', ') : '—'}</span>
+                        <span className="text-gray-400">Instruments:</span>
+                        <span className="text-white">{Array.isArray(e.instruments) && e.instruments.length > 0 ? e.instruments.join(', ') : '—'}</span>
+                        <span className="text-gray-400">Texture:</span>
+                        <span className="text-white">{e.texture || '—'}</span>
+                        {e.hook && (<><span className="text-gray-400">Hook:</span><span className="text-white">{e.hook}</span></>)}
+                        {e.influences && (<><span className="text-gray-400">Influences:</span><span className="text-white">{e.influences}</span></>)}
+                        {e.notes && (<><span className="text-gray-400">Notes:</span><span className="text-white">{e.notes}</span></>)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ) : isListeningJourney && currentWork ? (

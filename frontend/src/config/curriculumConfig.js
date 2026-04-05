@@ -162,22 +162,24 @@ export const CURRICULUM = [
       },
       {
         id: 'mj-lesson2',
-        name: 'Lesson 2: Find Your Beat',
-        shortName: 'Topic',
-        concept: 'Choose a research topic and begin building a research board',
+        name: 'Lesson 2: Listen Like an Agent',
+        shortName: 'Listen',
+        concept: 'Listen critically and describe music using 6 descriptors',
         route: '/lessons/music-journalist/lesson2',
         activities: [
+          { id: 'guided-listening', name: 'Guided Listening', type: 'composition' },
           { id: 'source-or-not', name: 'Source or Not?', type: 'game' },
-          { id: 'mj-lesson2-reflection', name: 'Topic Reflection', type: 'reflection' }
+          { id: 'mj-lesson2-reflection', name: 'Listening Reflection', type: 'reflection' }
         ]
       },
       {
         id: 'mj-lesson3',
-        name: 'Lesson 3: Deep Dive',
+        name: 'Lesson 3: Claim Your Artist',
         shortName: 'Research',
-        concept: 'Read multiple sources, evaluate evidence, organize research',
+        concept: 'Choose an artist, research their story, build a research board',
         route: '/lessons/music-journalist/lesson3',
         activities: [
+          { id: 'fact-opinion-sorter', name: 'Fact or Opinion', type: 'game' },
           { id: 'headline-writer', name: 'Headline Writer', type: 'game' },
           { id: 'mj-lesson3-reflection', name: 'Research Reflection', type: 'reflection' }
         ]
