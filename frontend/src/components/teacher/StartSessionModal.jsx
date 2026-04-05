@@ -393,18 +393,20 @@ const StartSessionModal = ({
                     </>
                   )}
 
-                  {/* Preview option */}
-                  <button
-                    onClick={() => {
-                      localStorage.setItem('teacher-previewed-lesson', 'true');
-                      onClose();
-                      window.open(`${lesson.route}?role=teacher&preview=true`, '_blank');
-                    }}
-                    className="w-full mt-3 px-4 py-2.5 border-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
-                  >
-                    <Eye size={16} />
-                    Just preview (no students)
-                  </button>
+                  {/* Preview option - only for Unit 1 (Listening Lab) */}
+                  {lesson?.route && !lesson.route.includes('/film-music/') && !lesson.route.includes('/music-journalist/') && (
+                    <button
+                      onClick={() => {
+                        localStorage.setItem('teacher-previewed-lesson', 'true');
+                        onClose();
+                        window.open(`${lesson.route}?role=teacher&preview=true`, '_blank');
+                      }}
+                      className="w-full mt-3 px-4 py-2.5 border-2 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm"
+                    >
+                      <Eye size={16} />
+                      Just preview (no students)
+                    </button>
+                  )}
                 </>
               )}
             </div>

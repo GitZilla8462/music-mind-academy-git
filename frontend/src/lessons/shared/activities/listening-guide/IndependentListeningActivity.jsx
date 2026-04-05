@@ -125,6 +125,53 @@ const TrackPlayer = ({ track }) => {
   );
 };
 
+// ── Preview Player for Track Selection ───────────────
+const PreviewPlayer = ({ track, onSelect }) => {
+  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    const audio = new Audio(track.audioUrl);
+    audio.preload = 'none';
+    audioRef.current = audio;
+    audio.addEventListener('ended', () => setIsPlaying(false));
+    audio.addEventListener('pause', () => setIsPlaying(false));
+    audio.addEventListener('play', () => setIsPlaying(true));
+    return () => { audio.pause(); audio.src = ''; };
+  }, [track.audioUrl]);
+
+  const togglePlay = (e) => {
+    e.stopPropagation();
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPlaying) { audio.pause(); } else { audio.play().catch(() => {}); }
+  };
+
+  return (
+    <div className="w-full flex items-center gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all min-h-[72px]">
+      <button
+        onClick={togglePlay}
+        className="w-12 h-12 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center flex-shrink-0 transition-colors"
+      >
+        {isPlaying
+          ? <Pause size={20} className="text-black" fill="currentColor" />
+          : <Play size={20} className="text-black ml-0.5" fill="currentColor" />}
+      </button>
+      <div className="flex-1 min-w-0">
+        <p className="text-white font-semibold text-base truncate">"{track.title}"</p>
+        <p className="text-white/50 text-sm">{track.artist}</p>
+        <span className="text-xs text-white/30">{track.genre}</span>
+      </div>
+      <button
+        onClick={(e) => { e.stopPropagation(); if (audioRef.current) audioRef.current.pause(); onSelect(); }}
+        className="px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold transition-colors flex-shrink-0 min-h-[44px]"
+      >
+        Select Artist
+      </button>
+    </div>
+  );
+};
+
 // ── Main Component ───────────────────────────────────
 const IndependentListeningActivity = ({ onComplete, isSessionMode }) => {
   const saved = loadSaved();
@@ -226,28 +273,17 @@ const IndependentListeningActivity = ({ onComplete, isSessionMode }) => {
           <div className="max-w-2xl mx-auto text-center">
             <Headphones size={32} className="text-amber-400 mx-auto mb-2" />
             <h1 className="text-white font-bold text-xl">Pick a Track to Analyze</h1>
-            <p className="text-white/40 text-sm mt-1">Choose one track. Listen carefully. Fill out the Listening Guide.</p>
+            <p className="text-white/40 text-sm mt-1">Listen to each track. Select an artist to fill out the Listening Guide.</p>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-2xl mx-auto px-4 py-4 space-y-3">
             {INDEPENDENT_TRACKS.map((track) => (
-              <button
+              <PreviewPlayer
                 key={track.id}
-                onClick={() => setSelectedTrackId(track.id)}
-                className="w-full flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all text-left min-h-[72px]"
-              >
-                <div className="w-12 h-12 rounded-lg bg-white/[0.06] flex items-center justify-center flex-shrink-0">
-                  <Music size={20} className="text-white/40" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold text-base truncate">"{track.title}"</p>
-                  <p className="text-white/50 text-sm">{track.artist}</p>
-                </div>
-                <span className="text-xs text-white/30 bg-white/[0.06] px-3 py-1 rounded-full flex-shrink-0">
-                  {track.genre}
-                </span>
-              </button>
+                track={track}
+                onSelect={() => setSelectedTrackId(track.id)}
+              />
             ))}
           </div>
         </div>

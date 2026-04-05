@@ -264,7 +264,7 @@ const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, si
               </div>
               <div>
                 <h1 className="text-white font-bold text-lg">Guided Listening</h1>
-                <p className="text-white/40 text-xs">{viewMode ? 'Viewing saved work — 3 tracks analyzed' : 'Listen to the teacher\'s speakers. Fill out the guide for each track.'}</p>
+                <p className="text-white/40 text-xs">{viewMode ? 'Viewing saved work — 3 tracks analyzed' : 'Fill out the listening guide independently. Then discuss your findings as a class.'}</p>
               </div>
             </div>
             {!viewMode && (

@@ -829,7 +829,7 @@ const LandingPage = () => {
               Free pilot — Now until June 20th
             </div>
             <h1>
-              No-Prep Music Lessons That <span className="hero-highlight">Actually Engage</span> Middle Schoolers
+              No-Prep Music Lessons That <span className="hero-highlight">Actually Engage</span> Students in Grades 5-8
             </h1>
             <p className="hero-subtitle">
               Interactive composition projects. Click through slides. Students create music.

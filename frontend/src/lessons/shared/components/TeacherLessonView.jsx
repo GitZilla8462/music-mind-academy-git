@@ -3703,7 +3703,7 @@ const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent,
               className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl text-lg font-bold transition-all ${
                 isPlaying
                   ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-white hover:bg-gray-50 text-gray-800 border border-gray-200'
+                  : 'bg-green-500 hover:bg-green-600 text-white'
               }`}
             >
               {isLoading ? (

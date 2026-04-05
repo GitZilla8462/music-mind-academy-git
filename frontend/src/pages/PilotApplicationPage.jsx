@@ -24,7 +24,7 @@ const PilotApplicationPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  const gradeOptions = ['6th', '7th', '8th', 'Other'];
+  const gradeOptions = ['5th', '6th', '7th', '8th', 'Other'];
   const deviceOptions = ['Chromebooks', 'iPads', 'Windows', 'Mac', 'Mixed', 'Other'];
   const toolOptions = ['Soundtrap', 'BandLab', 'Chrome Music Lab', 'Flat.io', 'Noteflight', 'GarageBand', 'Other', 'None'];
 
