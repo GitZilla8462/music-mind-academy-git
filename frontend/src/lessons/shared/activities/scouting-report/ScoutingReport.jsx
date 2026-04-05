@@ -11,13 +11,19 @@ import SlideCanvas from '../press-kit-designer/components/SlideCanvas';
 import { getPalette } from '../press-kit-designer/palettes';
 import { renderSlideObject, CANVAS_W, CANVAS_H } from '../press-kit-designer/components/SlideCanvas';
 import { SCOUTING_SLIDE_CONFIGS, generateScoutingTemplateObjects } from './scoutingReportConfig';
+import { GENRE_SCOUTS_SLIDE_CONFIGS, generateGenreScoutsTemplateObjects } from './genreScoutsConfig';
 import { loadScoutingReport, saveScoutingReport, getOrCreateScoutingReport } from './scoutingReportStorage';
 
 const AUTOSAVE_INTERVAL = 30000;
 const THUMB_W = 110;
 const THUMB_SCALE = THUMB_W / CANVAS_W;
 
-function ScoutingReportInner({ onComplete, viewMode, isSessionMode }) {
+function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 'scouting-report' }) {
+  const isGenreScouts = variant === 'genre-scouts';
+  const slideConfigs = isGenreScouts ? GENRE_SCOUTS_SLIDE_CONFIGS : SCOUTING_SLIDE_CONFIGS;
+  const generateTemplateObjects = isGenreScouts ? generateGenreScoutsTemplateObjects : generateScoutingTemplateObjects;
+  const storageKey = isGenreScouts ? 'mma-genre-scouts-data' : 'mma-scouting-report-data';
+  const activityTitle = isGenreScouts ? 'Genre Scouts' : 'Scouting Report';
   const [report, setReport] = useState(null);
   const [activeSlide, setActiveSlide] = useState(1);
   const [saveStatus, setSaveStatus] = useState('idle');
@@ -31,44 +37,44 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode }) {
 
   // Init
   useEffect(() => {
-    let r = loadScoutingReport();
-    if (!r) r = getOrCreateScoutingReport();
+    let r = loadScoutingReport(storageKey, slideConfigs);
+    if (!r) r = getOrCreateScoutingReport(storageKey, slideConfigs);
 
     // Generate template objects for any empty slides
     r.slides = r.slides.map((slide, i) => {
       if (!slide.objects || slide.objects.length === 0) {
-        return { ...slide, objects: generateScoutingTemplateObjects(i + 1, slide.fields || {}) };
+        return { ...slide, objects: generateTemplateObjects(i + 1, slide.fields || {}) };
       }
       return slide;
     });
 
     setReport(r);
-  }, []);
+  }, [storageKey, slideConfigs, generateTemplateObjects]);
 
   // Autosave
   useEffect(() => {
     saveTimerRef.current = setInterval(() => {
       if (reportRef.current) {
         setSaveStatus('saving');
-        saveScoutingReport(reportRef.current);
+        saveScoutingReport(reportRef.current, storageKey, isGenreScouts ? 'mj-genre-scouts' : undefined, isGenreScouts ? 'mj-lesson1' : undefined);
         setTimeout(() => setSaveStatus('saved'), 600);
         setTimeout(() => setSaveStatus('idle'), 2500);
       }
     }, AUTOSAVE_INTERVAL);
     return () => clearInterval(saveTimerRef.current);
-  }, []);
+  }, [storageKey, isGenreScouts]);
 
   useEffect(() => {
-    return () => { if (reportRef.current) saveScoutingReport(reportRef.current); };
-  }, []);
+    return () => { if (reportRef.current) saveScoutingReport(reportRef.current, storageKey, isGenreScouts ? 'mj-genre-scouts' : undefined, isGenreScouts ? 'mj-lesson1' : undefined); };
+  }, [storageKey, isGenreScouts]);
 
   const handleSave = useCallback(() => {
     if (!report) return;
     setSaveStatus('saving');
-    saveScoutingReport(report);
+    saveScoutingReport(report, storageKey, isGenreScouts ? 'mj-genre-scouts' : undefined, isGenreScouts ? 'mj-lesson1' : undefined);
     setTimeout(() => setSaveStatus('saved'), 400);
     setTimeout(() => setSaveStatus('idle'), 2000);
-  }, [report]);
+  }, [report, storageKey, isGenreScouts]);
 
   const handleUpdateSlide = useCallback((updates) => {
     setReport(prev => {
@@ -88,19 +94,19 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode }) {
     if (!report) return;
     const idx = activeSlide - 1;
     const slide = report.slides[idx];
-    const newObjects = generateScoutingTemplateObjects(activeSlide, slide.fields || {});
+    const newObjects = generateTemplateObjects(activeSlide, slide.fields || {});
     handleUpdateSlide({ objects: newObjects });
-  }, [activeSlide, report, handleUpdateSlide]);
+  }, [activeSlide, report, handleUpdateSlide, generateTemplateObjects]);
 
   const handleComplete = useCallback(() => {
-    if (report) saveScoutingReport(report);
+    if (report) saveScoutingReport(report, storageKey, isGenreScouts ? 'mj-genre-scouts' : undefined, isGenreScouts ? 'mj-lesson1' : undefined);
     if (onComplete) onComplete();
-  }, [report, onComplete]);
+  }, [report, onComplete, storageKey, isGenreScouts]);
 
   if (!report) {
     return (
       <div className="h-screen flex items-center justify-center" style={{ background: '#0f1419' }}>
-        <p className="text-white/40 text-sm">Loading Scouting Report...</p>
+        <p className="text-white/40 text-sm">Loading {activityTitle}...</p>
       </div>
     );
   }
@@ -116,7 +122,7 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode }) {
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-bold text-white flex items-center gap-2">
             <BookOpen size={18} className="text-amber-400" />
-            Scouting Report
+            {activityTitle}
           </h1>
           {/* Tab buttons */}
           <div className="flex bg-white/5 rounded-lg p-0.5 ml-3">
@@ -184,7 +190,7 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode }) {
         >
           {/* Slide thumbnails */}
           <div className="flex-shrink-0 flex flex-col gap-2 p-2 overflow-y-auto border-r border-white/[0.06]" style={{ width: 140, background: '#0f1b2e' }}>
-            {SCOUTING_SLIDE_CONFIGS.map((cfg, i) => {
+            {slideConfigs.map((cfg, i) => {
               const slideNum = cfg.number;
               const slide = report.slides[i];
               const isActive = activeSlide === slideNum;
@@ -286,9 +292,9 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode }) {
   );
 }
 
-const ScoutingReport = (props) => (
+const ScoutingReport = ({ variant, ...props }) => (
   <AudioProvider>
-    <ScoutingReportInner {...props} />
+    <ScoutingReportInner {...props} variant={variant} />
   </AudioProvider>
 );
 

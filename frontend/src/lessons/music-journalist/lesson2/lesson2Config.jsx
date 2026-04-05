@@ -115,33 +115,13 @@ export const lessonSections = [
     ]
   },
   {
-    id: 'sound-statement',
-    title: '3. Sound Statement',
-    subtitle: 'Describe + Defend',
+    id: 'wrap-up',
+    title: '3. Wrap Up',
+    subtitle: 'Share + Complete',
     color: 'blue',
-    estimatedTime: 5,
+    estimatedTime: 1,
     stages: [
-      { id: 'sound-statement-share', type: 'discussion', label: 'Sound Statement Share', description: '4-5 students read their Sound Statement aloud.', duration: 5 }
-    ]
-  },
-  {
-    id: 'game',
-    title: '4. Source or Not?',
-    subtitle: 'Credibility Game',
-    color: 'blue',
-    estimatedTime: 7,
-    stages: [
-      { id: 'source-or-not-game', type: 'activity', label: 'Source or Not?', description: 'STUDENTS PLAY: Judge source credibility!', duration: 7, hasTimer: true, trackProgress: true }
-    ]
-  },
-  {
-    id: 'preview',
-    title: '5. Preview',
-    subtitle: 'Next Steps',
-    color: 'blue',
-    estimatedTime: 3,
-    stages: [
-      { id: 'preview-next', type: 'summary', label: 'Preview', description: '"Next class you\'ll pick your artist — now you know how to listen."', duration: 3 }
+      { id: 'lesson-complete', type: 'summary', label: 'Lesson Complete', description: 'Review what we learned today.', duration: 1 }
     ]
   }
 ];
@@ -157,14 +137,12 @@ export const lesson2Config = {
   learningObjectives: [
     'Listen critically and identify musical elements (tempo, mood, instrumentation)',
     'Analyze music independently using the Description Toolkit',
-    'Share and defend observations with evidence from the music',
-    'Evaluate source credibility'
+    'Share and defend observations with evidence from the music'
   ],
   lessonSections,
   activities: [
     { id: 1, type: 'guided-listening', title: 'Guided Listening (3 tracks)', estimatedTime: '15 min' },
-    { id: 2, type: 'independent-listening', title: 'Independent Listening', estimatedTime: '7 min' },
-    { id: 3, type: 'source-or-not', title: 'Source or Not?', estimatedTime: '7 min' }
+    { id: 2, type: 'independent-listening', title: 'Independent Listening', estimatedTime: '7 min' }
   ]
 };
 
@@ -244,7 +222,7 @@ export const lessonStages = [
   {
     id: 'independent-listening', label: 'Independent Listening', type: 'activity', duration: 7, hasTimer: true, trackProgress: true,
     presentationView: {
-      type: 'activity-banner',
+      type: 'independent-listening-teacher',
       title: 'Your Turn: Independent Listening',
       subtitle: 'Pick a track. Listen. Fill out your Listening Guide.'
     }
@@ -263,36 +241,6 @@ export const lessonStages = [
         { heading: 'Listen to Each Other', bullets: [
           'Did anyone pick the same track but hear different things?',
           'What descriptions helped you "hear" the music through their words?'
-        ]}
-      ]
-    }
-  },
-  {
-    id: 'sound-statement-share', label: 'Sound Statement Share', type: 'discussion', duration: 5,
-    presentationView: {
-      type: 'summary', title: 'Sound Statement Share', subtitle: 'Can We Hear the Music Through Your Words?',
-      sections: [
-        { heading: 'Share Out', bullets: [
-          '4-5 agents will read their Sound Statement aloud',
-          'Class: "Could you hear the music through their words?"',
-          'What made certain descriptions more vivid than others?'
-        ]}
-      ]
-    }
-  },
-  {
-    id: 'source-or-not-game', label: 'Source or Not?', type: 'activity', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true,
-    presentationView: { type: 'source-or-not-teacher-game' }
-  },
-  {
-    id: 'preview-next', label: 'Preview', type: 'summary', duration: 3,
-    presentationView: {
-      type: 'summary', title: 'Next Class: Claim Your Artist', subtitle: 'Now You Know How to Listen',
-      sections: [
-        { heading: 'What\'s Coming in Lesson 3', bullets: [
-          'You\'ll choose ONE emerging artist from the platform and commit to them',
-          'You\'ll research their story and save strong evidence to your Research Board',
-          'Now that you know HOW to listen, you\'ll pick WHO to represent'
         ]}
       ]
     }
@@ -324,9 +272,6 @@ export const getActivityForStage = (stage) => ({
   'guided-listening-3': 'guided-listening',
   'independent-listening': 'independent-listening',
   'listening-share': 'discussion',
-  'sound-statement-share': 'discussion',
-  'source-or-not-game': 'source-or-not',
-  'preview-next': 'summary',
   'lesson-complete': 'summary'
 })[stage];
 

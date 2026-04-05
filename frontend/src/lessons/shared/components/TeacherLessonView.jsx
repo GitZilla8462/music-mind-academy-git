@@ -1760,6 +1760,20 @@ const PresentationContent = ({
       );
     }
 
+    // Independent Listening (Music Journalist Lesson 2) — teacher sees same view as students
+    if (type === 'independent-listening-teacher') {
+      return (
+        <div className="absolute inset-0">
+          <ActivityRenderer
+            activity={{ type: 'independent-listening', id: 'teacher-preview' }}
+            onComplete={() => {}}
+            viewMode={false}
+            isSessionMode={false}
+          />
+        </div>
+      );
+    }
+
     // Headline Writer (Music Journalist Lesson 3)
     if (type === 'headline-writer-teacher-game') {
       if (!HeadlineWriterGame) {

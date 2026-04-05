@@ -1032,7 +1032,19 @@ const ActivityRenderer = ({
         </div>
       );
 
-    // ✅ ADDED: Scouting Report (Music Agent Unit 3 — Lesson 1)
+    // ✅ ADDED: Genre Scouts (Music Agent Unit 3 — Lesson 1)
+    case 'genre-scouts':
+      return (
+        <ScoutingReport
+          key={`genre-scouts-${activity.id}`}
+          variant="genre-scouts"
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Scouting Report (Music Agent Unit 3 — Lesson 3)
     case 'scouting-report':
       return (
         <ScoutingReport

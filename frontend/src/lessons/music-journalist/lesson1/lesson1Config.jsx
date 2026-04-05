@@ -12,7 +12,7 @@
 // - Music vocabulary: genre, subgenre, A&R, emerging artist, press kit, pitch
 //
 // FLOW: Welcome (5 min) → Genre Showcase (10 min) → Genre Match Game (8 min)
-//       → Scouting Report + Explore (15 min) → Share Top 5 (7 min)
+//       → Genre Scouts + Explore (15 min) → Share + Preview (5 min)
 //
 // Standards:
 // - MU:Re7.2.7 — Classify and compare music using musical vocabulary
@@ -88,24 +88,24 @@ export const lessonSections = [
     ]
   },
   {
-    id: 'scouting-report',
-    title: '4. Scouting Report',
-    subtitle: 'Explore + Build 3 Slides',
+    id: 'genre-scouts',
+    title: '4. Genre Scouts',
+    subtitle: 'Explore + Find One Artist Per Genre',
     color: 'blue',
     estimatedTime: 15,
     stages: [
       {
-        id: 'scouting-intro',
+        id: 'genre-scouts-intro',
         type: 'summary',
-        label: 'Scouting Instructions',
-        description: 'Explain: Browse artists, then build your 3-slide scouting report.',
+        label: 'Genre Scouts Instructions',
+        description: 'Explain: Browse artists and find one that represents each genre.',
         duration: 2
       },
       {
-        id: 'scouting-report',
+        id: 'genre-scouts',
         type: 'activity',
-        label: 'Scouting Report',
-        description: 'STUDENTS BUILD: Explore artists + complete 3 slides (Top 5, #1 Pick, What I Notice).',
+        label: 'Genre Scouts',
+        description: 'STUDENTS BUILD: Explore artists + complete 3 slides (Genre Lineup, Surprise Discovery, Sound Snapshot).',
         duration: 13,
         hasTimer: true,
         trackProgress: true
@@ -114,23 +114,23 @@ export const lessonSections = [
   },
   {
     id: 'share',
-    title: '5. Share Your Top 5',
-    subtitle: 'Partner Discussion',
+    title: '5. Share + Preview',
+    subtitle: 'Discussion + What\'s Next',
     color: 'blue',
-    estimatedTime: 7,
+    estimatedTime: 5,
     stages: [
       {
-        id: 'share-top-5',
+        id: 'share-discoveries',
         type: 'discussion',
-        label: 'Share Top 5',
-        description: 'STUDENTS: Show your top 5 artists to a partner. Discuss picks.',
-        duration: 5
+        label: 'Share Discoveries',
+        description: 'STUDENTS: Share your genre lineup and surprise discovery with a partner.',
+        duration: 3
       },
       {
         id: 'lesson-preview',
         type: 'summary',
         label: 'Next Time',
-        description: 'Preview Lesson 2: You\'ll lock in your artist and start researching.',
+        description: 'Preview Lesson 2: You\'ll learn to listen and describe music like an agent.',
         duration: 2
       }
     ]
@@ -149,7 +149,7 @@ export const lesson1Config = {
     'Understand what music agents and A&R reps do in the music industry',
     'Explore and identify characteristics of different musical genres',
     'Navigate the Artist Discovery platform and preview emerging artists',
-    'Create a scouting report identifying your top 5 artists and #1 pick'
+    'Find one artist that represents each genre and describe what you hear'
   ],
   lessonSections,
   activities: [
@@ -167,8 +167,8 @@ export const lesson1Config = {
     },
     {
       id: 3,
-      type: 'scouting-report',
-      title: 'Scouting Report',
+      type: 'genre-scouts',
+      title: 'Genre Scouts',
       estimatedTime: '13 min'
     }
   ]
@@ -238,8 +238,8 @@ export const lessonStages = [
           heading: 'Your 5-Lesson Mission',
           bullets: [
             'Lesson 1 (TODAY): Explore genres and artists, create your scouting report',
-            'Lesson 2: PICK your artist and start researching their story',
-            'Lesson 3: LISTEN like a critic \u2014 describe their sound',
+            'Lesson 2: LISTEN like an agent \u2014 learn to describe what you hear',
+            'Lesson 3: CLAIM your artist and start researching their story',
             'Lesson 4: BUILD your press kit \u2014 a 5-slide presentation',
             'Lesson 5: PITCH DAY \u2014 present to the class, class votes!'
           ]
@@ -272,30 +272,30 @@ export const lessonStages = [
     }
   },
   {
-    id: 'scouting-intro',
-    label: 'Scouting Instructions',
-    description: 'Explain: Browse artists, then build your 3-slide scouting report.',
+    id: 'genre-scouts-intro',
+    label: 'Genre Scouts Instructions',
+    description: 'Explain: Browse artists and find one that represents each genre.',
     type: 'summary',
     duration: 2,
     presentationView: {
       type: 'summary',
-      title: 'Your Scouting Report',
-      subtitle: 'Explore Artists + Build 3 Slides',
+      title: 'Genre Scouts',
+      subtitle: 'Find One Artist Per Genre',
       sections: [
         {
-          heading: 'What to Do',
+          heading: 'Your Mission',
           bullets: [
             'Browse the artist library \u2014 listen to tracks across different genres',
-            'Star artists that catch your ear',
+            'Find ONE artist that represents each genre',
             'Switch to "My Report" to build your 3 slides'
           ]
         },
         {
           heading: 'Your 3 Slides',
           bullets: [
-            'Slide 1: MY TOP 5 ARTISTS \u2014 list the 5 artists you like most',
-            'Slide 2: MY #1 PICK \u2014 who would you sign? Why?',
-            'Slide 3: WHAT I NOTICE \u2014 one interesting fact + what you hear in their music'
+            'Slide 1: GENRE LINEUP \u2014 one artist per genre you explored',
+            'Slide 2: SURPRISE DISCOVERY \u2014 which genre surprised you? Who changed your mind?',
+            'Slide 3: SOUND SNAPSHOT \u2014 pick one artist and describe what you hear'
           ]
         },
         {
@@ -308,45 +308,45 @@ export const lessonStages = [
     }
   },
   {
-    id: 'scouting-report',
-    label: 'Scouting Report',
-    description: 'STUDENTS BUILD: Explore artists + complete 3 slides.',
+    id: 'genre-scouts',
+    label: 'Genre Scouts',
+    description: 'STUDENTS BUILD: Explore artists + complete 3 slides (Genre Lineup, Surprise Discovery, Sound Snapshot).',
     type: 'activity',
     duration: 13,
     hasTimer: true,
     trackProgress: true,
     presentationView: {
       type: 'activity-banner',
-      title: 'Scouting Report',
-      subtitle: 'Explore artists and build your 3 slides: Top 5, #1 Pick, What I Notice'
+      title: 'Genre Scouts',
+      subtitle: 'Explore artists and build your 3 slides: Genre Lineup, Surprise Discovery, Sound Snapshot'
     }
   },
   {
-    id: 'share-top-5',
-    label: 'Share Top 5',
-    description: 'STUDENTS: Show your top 5 artists to a partner.',
+    id: 'share-discoveries',
+    label: 'Share Discoveries',
+    description: 'STUDENTS: Share your genre lineup and surprise discovery with a partner.',
     type: 'discussion',
-    duration: 5,
+    duration: 3,
     presentationView: {
       type: 'summary',
-      title: 'Share Your Top 5',
+      title: 'Share Your Discoveries',
       subtitle: 'Find a Partner',
       sections: [
         {
           heading: 'Instructions',
           bullets: [
             'Find a partner near you',
-            'Show them your Slide 1 \u2014 your Top 5 Artists',
-            'Tell them about your #1 pick and WHY you chose them',
-            'Listen to your partner\'s picks \u2014 did anyone pick the same artist?'
+            'Show them your Genre Lineup \u2014 who did you pick for each genre?',
+            'Share your Surprise Discovery \u2014 which genre caught you off guard?',
+            'Listen to your partner \u2014 did anyone pick the same artists?'
           ]
         },
         {
           heading: 'Discussion Questions',
           bullets: [
             'Which genre surprised you the most today?',
-            'Did you discover a genre you didn\'t expect to like?',
-            'What made your #1 pick stand out from the rest?'
+            'Did you and your partner pick different artists for the same genre?',
+            'What made certain artists stand out in their genre?'
           ]
         }
       ]
@@ -368,16 +368,16 @@ export const lessonStages = [
           bullets: [
             'Learned what music agents and A&R reps do',
             'Heard 6 genres with real emerging artists',
-            'Explored the artist library and built your scouting report',
-            'Shared your Top 5 with a partner'
+            'Explored the artist library with Genre Scouts',
+            'Shared your discoveries with a partner'
           ]
         },
         {
-          heading: 'Next Time: Lesson 2',
+          heading: 'Next Time: Lesson 2 \u2014 Listen Like an Agent',
           bullets: [
-            'You will LOCK IN your artist \u2014 once you choose, that\'s your artist for the unit',
-            'You\'ll start researching their story and gathering evidence',
-            'Come ready to commit to your #1 pick!'
+            'You\'ll learn 6 ways to DESCRIBE music (tempo, mood, instrumentation, hook, production, influence)',
+            'You\'ll listen to tracks and practice analyzing what you hear',
+            'These skills will help you choose the RIGHT artist in Lesson 3'
           ]
         }
       ]
@@ -392,13 +392,13 @@ export const lessonStages = [
     presentationView: {
       type: 'summary',
       title: 'See You Next Time!',
-      subtitle: 'Lesson 2: Scout Your Artist',
+      subtitle: 'Lesson 2: Listen Like an Agent',
       sections: [
         {
           heading: '',
           bullets: [
-            'Think about which artist you want to represent',
-            'Come ready to commit \u2014 once you choose, that\'s YOUR artist for the unit'
+            'Next class you\'ll learn to describe music like a real agent',
+            'Start thinking about what makes YOUR favorite music unique \u2014 what would you say about it?'
           ]
         }
       ]
@@ -414,9 +414,9 @@ export const getActivityForStage = (stage) => {
     'what-is-an-agent': 'summary',
     'genre-showcase': 'genre-showcase',
     'genre-match-game': 'genre-match',
-    'scouting-intro': 'summary',
-    'scouting-report': 'scouting-report',
-    'share-top-5': 'discussion',
+    'genre-scouts-intro': 'summary',
+    'genre-scouts': 'genre-scouts',
+    'share-discoveries': 'discussion',
     'lesson-preview': 'summary',
     'lesson-complete': 'summary'
   };
@@ -436,5 +436,5 @@ export const VOCABULARY = [
   { term: 'Pitch', definition: 'A short, persuasive presentation designed to convince someone to take action \u2014 like signing an artist' },
   { term: 'Genre', definition: 'A category of music defined by shared characteristics like instruments, rhythm, and style (hip-hop, jazz, rock, etc.)' },
   { term: 'Subgenre', definition: 'A more specific category within a genre \u2014 like "indie rock" within rock, or "trap" within hip-hop' },
-  { term: 'Scouting Report', definition: 'An agent\'s first assessment of potential talent \u2014 your initial picks and observations' }
+  { term: 'Genre Scouts', definition: 'An agent\'s first exploration \u2014 finding one artist that represents each genre' }
 ];

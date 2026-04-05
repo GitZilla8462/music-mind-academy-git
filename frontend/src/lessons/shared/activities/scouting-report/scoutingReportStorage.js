@@ -1,17 +1,18 @@
 // Scouting Report storage — separate from Press Kit (Lesson 4).
 // Uses same structure but different localStorage key.
+// Supports both Scouting Report (L3) and Genre Scouts (L1) via optional key/config params.
 
 import { saveStudentWork, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
 import { SCOUTING_SLIDE_CONFIGS } from './scoutingReportConfig';
 
-const STORAGE_KEY = 'mma-scouting-report-data';
-const ACTIVITY_ID = 'mj-scouting-report';
-const LESSON_ID = 'mj-lesson1';
+const DEFAULT_STORAGE_KEY = 'mma-scouting-report-data';
+const DEFAULT_ACTIVITY_ID = 'mj-scouting-report';
+const DEFAULT_LESSON_ID = 'mj-lesson3';
 
-function createEmptySlide(number) {
+function createEmptySlide(number, slideConfigs) {
   return {
     number,
-    layout: SCOUTING_SLIDE_CONFIGS[number - 1]?.layouts[0]?.id || 'centered',
+    layout: slideConfigs[number - 1]?.layouts[0]?.id || 'centered',
     palette: 'genre',
     image: null,
     fields: {},
@@ -20,34 +21,34 @@ function createEmptySlide(number) {
   };
 }
 
-function createDefaultScoutingReport() {
+function createDefaultScoutingReport(slideConfigs) {
   return {
     version: 1,
     artistId: null,
-    slides: SCOUTING_SLIDE_CONFIGS.map((_, i) => createEmptySlide(i + 1)),
+    slides: slideConfigs.map((_, i) => createEmptySlide(i + 1, slideConfigs)),
     lastSaved: new Date().toISOString(),
     createdAt: new Date().toISOString(),
   };
 }
 
-export function loadScoutingReport() {
+export function loadScoutingReport(key = DEFAULT_STORAGE_KEY, slideConfigs = SCOUTING_SLIDE_CONFIGS) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
-export function saveScoutingReport(report) {
+export function saveScoutingReport(report, key = DEFAULT_STORAGE_KEY, activityId = DEFAULT_ACTIVITY_ID, lessonId = DEFAULT_LESSON_ID) {
   try {
     report.lastSaved = new Date().toISOString();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(report));
+    localStorage.setItem(key, JSON.stringify(report));
 
     // Also sync to Firebase if in a class session
     const auth = getClassAuthInfo();
     if (auth?.studentUid) {
-      saveStudentWork(LESSON_ID, ACTIVITY_ID, {
+      saveStudentWork(lessonId, activityId, {
         slides: report.slides,
         lastSaved: report.lastSaved,
       }).catch(() => {});
@@ -57,11 +58,11 @@ export function saveScoutingReport(report) {
   }
 }
 
-export function getOrCreateScoutingReport() {
-  let report = loadScoutingReport();
+export function getOrCreateScoutingReport(key = DEFAULT_STORAGE_KEY, slideConfigs = SCOUTING_SLIDE_CONFIGS) {
+  let report = loadScoutingReport(key, slideConfigs);
   if (!report) {
-    report = createDefaultScoutingReport();
-    saveScoutingReport(report);
+    report = createDefaultScoutingReport(slideConfigs);
+    saveScoutingReport(report, key);
   }
   return report;
 }

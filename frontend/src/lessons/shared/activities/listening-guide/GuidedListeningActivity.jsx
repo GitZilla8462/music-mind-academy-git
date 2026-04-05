@@ -4,11 +4,14 @@
 // No audio player on student side — they listen to the teacher's speakers.
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Music, ChevronDown, ChevronUp, Save, CheckCircle, Headphones } from 'lucide-react';
+import { Music, ChevronDown, ChevronUp, Save, CheckCircle, Headphones, Search } from 'lucide-react';
 import { GUIDED_TRACKS } from '../../../music-journalist/lesson2/lesson2Config';
 import { saveStudentWork, getClassAuthInfo, getStudentId } from '../../../../utils/studentWorkStorage';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
+import { AudioProvider, useGlobalAudio } from '../artist-discovery/AudioContext';
+import ArtistDiscovery from '../artist-discovery/ArtistDiscovery';
+import MiniPlayer from '../artist-discovery/profile/MiniPlayer';
 
 // Instruments — common pop/rock instruments + orchestral families from Unit 2
 const INSTRUMENT_OPTIONS = [
@@ -99,7 +102,7 @@ function saveToDisk(entries) {
   localStorage.setItem(getStorageKey(), JSON.stringify({ entries, savedAt: new Date().toISOString() }));
 }
 
-const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, singleTrackId, viewMode, initialData }) => {
+const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, singleTrackId, viewMode, initialData, embedded }) => {
   // When singleTrackId is set, only show that one track (used in teacher split-screen view)
   const visibleTracks = singleTrackId
     ? GUIDED_TRACKS.filter(t => t.id === singleTrackId)
@@ -151,7 +154,7 @@ const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, si
           activityId: 'guided-listening',
           title: 'Guided Listening',
           emoji: '\uD83C\uDFA7',
-          viewRoute: '/lessons/music-journalist/lesson3?view=guided-listening',
+          viewRoute: '/lessons/music-journalist/lesson2?view=guided-listening',
           subtitle: `${GUIDED_TRACKS.length} tracks analyzed`,
           category: 'Music Journalist',
           lastSaved: new Date().toISOString(),
@@ -202,10 +205,10 @@ const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, si
     saveStudentWork('guided-listening', {
       title: 'Guided Listening',
       emoji: '\uD83C\uDFA7',
-      viewRoute: '/lessons/music-journalist/lesson3?view=guided-listening',
+      viewRoute: '/lessons/music-journalist/lesson2?view=guided-listening',
       subtitle: `${GUIDED_TRACKS.length} tracks analyzed`,
       category: 'Music Journalist',
-      lessonId: 'mj-lesson3',
+      lessonId: 'mj-lesson2',
       data: { entries }
     }, null, authInfo);
   }, [entries]);
@@ -245,7 +248,7 @@ const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, si
   }, [effectiveSessionCode, isSessionMode, fullSave]);
 
   return (
-    <div className="h-screen flex flex-col bg-[#0f1419]">
+    <div className={`${embedded ? 'h-full' : 'h-screen'} flex flex-col bg-[#0f1419]`}>
       {/* Header — hidden in single-track (teacher split) mode */}
       {!singleTrackId && (
         <div className="flex-shrink-0 border-b border-white/[0.08] bg-[#0f1419] px-4 py-3">
@@ -284,42 +287,50 @@ const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, si
         </div>
       )}
 
-      {/* Tab bar — hidden in single-track (teacher split) mode */}
+      {/* Track selector dropdowns — hidden in single-track (teacher split) mode */}
       {!singleTrackId && (
-        <div className="flex-shrink-0 bg-[#0f1419] border-b border-white/[0.08]">
-          <div className="max-w-4xl mx-auto flex">
-            {GUIDED_TRACKS.map((track, idx) => {
-              const isActive = selectedTab === track.id;
-              const isLocked = idx > maxUnlockedIndex;
-              const trackEntry = entries[track.id] || EMPTY_ENTRY();
-              const hasData = trackEntry.tempo || trackEntry.dynamics || trackEntry.moods.length > 0;
-              const colors = ['#ef4444', '#f97316', '#8b5cf6'];
-              return (
-                <button
-                  key={track.id}
-                  onClick={() => !isLocked && setSelectedTab(track.id)}
-                  disabled={isLocked}
-                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 min-h-[52px] text-sm font-semibold transition-all border-b-3 ${
-                    isActive
-                      ? 'text-white border-b-2'
-                      : isLocked
-                        ? 'text-white/15 cursor-not-allowed border-b-2 border-transparent'
-                        : 'text-white/40 hover:text-white/60 border-b-2 border-transparent hover:border-white/10'
-                  }`}
-                  style={isActive ? { borderBottomColor: colors[idx] } : {}}
-                >
-                  <span className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 ${
-                    isActive ? 'text-white' : isLocked ? 'bg-white/5 text-white/15' : 'bg-white/10 text-white/40'
-                  }`} style={isActive ? { backgroundColor: colors[idx] } : {}}>
-                    {isLocked ? '🔒' : idx + 1}
-                  </span>
-                  <span className="truncate hidden sm:inline">{track.artist.split(' ').pop()}</span>
-                  {hasData && !isLocked && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                  )}
-                </button>
-              );
-            })}
+        <div className="flex-shrink-0 bg-[#0f1419] border-b border-white/[0.08] px-4 py-3">
+          <div className="max-w-4xl mx-auto flex items-center gap-3">
+            <div className="flex-1">
+              <label className="block text-white/40 text-xs font-semibold uppercase tracking-wider mb-1">Artist</label>
+              <select
+                value={selectedTab}
+                onChange={(e) => {
+                  const idx = GUIDED_TRACKS.findIndex(t => t.id === e.target.value);
+                  if (idx <= maxUnlockedIndex) { setSelectedTab(e.target.value); setQPage(0); }
+                }}
+                className="w-full bg-white/[0.06] border border-white/[0.12] rounded-lg px-3 py-2.5 text-white text-sm font-medium appearance-none cursor-pointer min-h-[44px] focus:outline-none focus:border-amber-400/50"
+              >
+                {GUIDED_TRACKS.map((track, idx) => {
+                  const isLocked = idx > maxUnlockedIndex;
+                  return (
+                    <option key={track.id} value={track.id} disabled={isLocked} className="bg-[#1a2030] text-white">
+                      {isLocked ? '🔒 ' : ''}{track.artist}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-white/40 text-xs font-semibold uppercase tracking-wider mb-1">Track</label>
+              <select
+                value={selectedTab}
+                onChange={(e) => {
+                  const idx = GUIDED_TRACKS.findIndex(t => t.id === e.target.value);
+                  if (idx <= maxUnlockedIndex) { setSelectedTab(e.target.value); setQPage(0); }
+                }}
+                className="w-full bg-white/[0.06] border border-white/[0.12] rounded-lg px-3 py-2.5 text-white text-sm font-medium appearance-none cursor-pointer min-h-[44px] focus:outline-none focus:border-amber-400/50"
+              >
+                {GUIDED_TRACKS.map((track, idx) => {
+                  const isLocked = idx > maxUnlockedIndex;
+                  return (
+                    <option key={track.id} value={track.id} disabled={isLocked} className="bg-[#1a2030] text-white">
+                      {isLocked ? '🔒 ' : ''}"{track.title}"
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
         </div>
       )}
@@ -641,4 +652,110 @@ const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, si
   );
 };
 
-export default GuidedListeningActivity;
+// ── Tabbed wrapper: Explore Artists + Listening Guide ──────
+// When students are filling out the listening guide, they can toggle to
+// the artist discovery platform and keep listening via the MiniPlayer.
+// Teacher split-screen mode (singleTrackId) skips the tabs entirely.
+const GuidedListeningWithExplore = (props) => {
+  // Single-track teacher mode: no tabs, no audio provider
+  if (props.singleTrackId) {
+    return <GuidedListeningActivity {...props} />;
+  }
+
+  return (
+    <AudioProvider>
+      <GuidedListeningTabs {...props} />
+    </AudioProvider>
+  );
+};
+
+const GuidedListeningTabs = (props) => {
+  const { currentStage } = useSession();
+  const isGuidedStage = ['guided-listening-1', 'guided-listening-2', 'guided-listening-3'].includes(currentStage);
+  const [activeTab, setActiveTab] = useState(isGuidedStage ? 'listening' : 'discover');
+  const audio = useGlobalAudio();
+  const hasAudioPlaying = audio?.currentTrack != null;
+
+  // When teacher moves to a guided listening stage, force students to the listening tab
+  useEffect(() => {
+    if (isGuidedStage) setActiveTab('listening');
+  }, [isGuidedStage]);
+
+  // During guided listening stages, no tabs — just the listening guide
+  if (isGuidedStage) {
+    return <GuidedListeningActivity {...props} />;
+  }
+
+  return (
+    <div className="h-screen flex flex-col" style={{ background: '#0f1419' }}>
+      {/* Tab bar */}
+      <div className="flex-shrink-0 flex items-center gap-3 px-4 py-2 border-b border-white/10" style={{ background: '#0f1b2e' }}>
+        <div className="flex bg-white/5 rounded-lg p-0.5">
+          <button
+            onClick={() => setActiveTab('discover')}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-1.5 ${
+              activeTab === 'discover'
+                ? 'bg-amber-500/20 text-amber-300'
+                : 'text-white/40 hover:text-white/60'
+            }`}
+          >
+            <Search size={12} /> Explore Artists
+          </button>
+          <button
+            onClick={() => setActiveTab('listening')}
+            className={`px-3 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-1.5 ${
+              activeTab === 'listening'
+                ? 'bg-amber-500/20 text-amber-300'
+                : 'text-white/40 hover:text-white/60'
+            }`}
+          >
+            <Headphones size={12} /> Listening Guide
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        {/* Artist Discovery — always mounted, hidden when on listening tab */}
+        <div
+          className="flex-1 overflow-hidden"
+          style={{ display: activeTab === 'discover' ? 'block' : 'none' }}
+        >
+          <div className="h-full overflow-y-auto">
+            <ArtistDiscovery isSessionMode={props.isSessionMode} hideMiniPlayer />
+          </div>
+        </div>
+
+        {/* Listening Guide */}
+        <div
+          className="flex-1 overflow-hidden"
+          style={{ display: activeTab === 'listening' ? 'flex' : 'none' }}
+        >
+          <GuidedListeningActivity {...props} embedded />
+        </div>
+      </div>
+
+      {/* MiniPlayer — shows when audio is playing */}
+      {hasAudioPlaying && (
+        <MiniPlayer
+          currentTrack={audio.currentTrack}
+          isPlaying={audio.isPlaying}
+          progress={audio.progress}
+          currentTime={audio.currentTime}
+          duration={audio.duration}
+          onTogglePlay={audio.togglePlay}
+          onNext={audio.next}
+          onPrev={audio.prev}
+          onSeek={audio.seek}
+          volume={audio.volume}
+          onVolumeChange={audio.setVolume}
+          imageUrl={audio.artistImageUrl}
+          artistName={audio.artistName}
+          onArtistClick={() => setActiveTab('discover')}
+        />
+      )}
+    </div>
+  );
+};
+
+export default GuidedListeningWithExplore;

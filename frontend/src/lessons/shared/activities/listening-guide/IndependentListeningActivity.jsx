@@ -1,192 +1,360 @@
 // File: IndependentListeningActivity.jsx
-// Student picks 1 of 5 tracks, listens on their device, fills out listening guide.
-// Has audio player (unlike GuidedListening where teacher plays for class).
+// Independent Listening — student browses Artist Discovery, picks any track,
+// fills out the same 7-question Listening Guide used in guided listening.
+// Tabbed layout: Explore Artists | Listening Guide.
+// Directions modal on first entry.
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Music, Play, Pause, Save, CheckCircle, Headphones, ChevronDown, ChevronUp } from 'lucide-react';
-import { INDEPENDENT_TRACKS } from '../../../music-journalist/lesson2/lesson2Config';
-import { saveStudentWork, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
+import { Search, Headphones, Save, CheckCircle, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { saveStudentWork, getClassAuthInfo, getStudentId } from '../../../../utils/studentWorkStorage';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
+import { AudioProvider, useGlobalAudio } from '../artist-discovery/AudioContext';
+import DirectionsModal from '../../components/DirectionsModal';
+import ArtistDiscovery from '../artist-discovery/ArtistDiscovery';
+import MiniPlayer from '../artist-discovery/profile/MiniPlayer';
 
+// ── Reuse the same question options from guided listening ──
 const INSTRUMENT_OPTIONS = [
   'Vocals', 'Guitar', 'Bass', 'Drums', 'Piano/Keys', 'Synthesizer',
   'Strings', 'Brass', 'Woodwinds', 'Percussion', 'Samples/Loops', 'Other',
 ];
-const TEMPO_OPTIONS = ['Slow', 'Moderate', 'Fast', 'Changes'];
+const TEMPO_OPTIONS = [
+  { label: 'Largo', help: 'Very slow' },
+  { label: 'Adagio', help: 'Slow, relaxed' },
+  { label: 'Andante', help: 'Walking speed' },
+  { label: 'Moderato', help: 'Medium' },
+  { label: 'Allegro', help: 'Fast, lively' },
+  { label: 'Presto', help: 'Very fast' },
+];
+const TEMPO_CHANGE_OPTIONS = [
+  { label: 'Accelerando', help: 'Getting faster' },
+  { label: 'Ritardando', help: 'Getting slower' },
+  { label: 'Steady', help: 'Stays the same' },
+];
+const DYNAMICS_OPTIONS = [
+  { label: 'pp', help: 'Very soft' },
+  { label: 'p', help: 'Soft' },
+  { label: 'mp', help: 'Medium soft' },
+  { label: 'mf', help: 'Medium loud' },
+  { label: 'f', help: 'Loud' },
+  { label: 'ff', help: 'Very loud' },
+];
+const DYNAMICS_CHANGE_OPTIONS = [
+  { label: 'Crescendo', help: 'Getting louder' },
+  { label: 'Decrescendo', help: 'Getting softer' },
+  { label: 'Steady', help: 'Stays the same' },
+];
 const MOOD_OPTIONS = [
   'Energetic', 'Chill', 'Happy', 'Sad', 'Mysterious', 'Powerful',
   'Peaceful', 'Intense', 'Dreamy', 'Playful', 'Dark', 'Uplifting',
 ];
+const TEXTURE_OPTIONS = [
+  { label: 'Thin', help: '1-2 layers' },
+  { label: 'Medium', help: '2-3 layers' },
+  { label: 'Thick', help: '4+ layers' },
+];
 
-const STORAGE_KEY = 'mma-independent-listening-l3';
+const STORAGE_KEY = 'mma-independent-listening-l2';
+const DIRECTIONS_KEY = 'mma-independent-listening-directions-seen';
 
 const EMPTY_ENTRY = () => ({
+  artistName: '',
+  trackTitle: '',
+  genre: '',
   instruments: [],
   otherInstrument: '',
   tempo: '',
+  tempoChange: '',
+  dynamics: [],
+  dynamicsChange: '',
+  texture: '',
   moods: [],
   hook: '',
   influences: '',
   notes: '',
 });
 
+function getStorageKey() {
+  const studentId = getStudentId();
+  return `${STORAGE_KEY}-${studentId}`;
+}
+
 function loadSaved() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    const raw = localStorage.getItem(getStorageKey());
+    if (raw) return JSON.parse(raw);
+    return null;
   } catch { return null; }
 }
 
-function saveToDisk(selectedTrackId, entry) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ selectedTrackId, entry, savedAt: new Date().toISOString() }));
+function saveToDisk(entry) {
+  localStorage.setItem(getStorageKey(), JSON.stringify({ entry, savedAt: new Date().toISOString() }));
 }
 
-// ── Simple Audio Player ──────────────────────────────
-const TrackPlayer = ({ track }) => {
-  const audioRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const animRef = useRef(null);
+const DIRECTIONS_STEPS = [
+  { text: 'Browse artists and listen to different songs' },
+  { text: 'Find a track that stands out to you' },
+  { text: 'Switch to "Listening Guide" and fill it out for your chosen track' },
+  { text: 'Once complete, keep exploring!' },
+];
 
-  useEffect(() => {
-    const audio = new Audio(track.audioUrl);
-    audio.preload = 'auto';
-    audioRef.current = audio;
+// ── Listening Guide Form (7 questions, same as guided) ──
+const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, viewMode }) => {
+  const [qPage, setQPage] = useState(0);
 
-    audio.addEventListener('ended', () => { setIsPlaying(false); setProgress(0); });
-    audio.addEventListener('pause', () => setIsPlaying(false));
-    audio.addEventListener('play', () => setIsPlaying(true));
-
-    return () => {
-      cancelAnimationFrame(animRef.current);
-      audio.pause();
-      audio.src = '';
-    };
-  }, [track.audioUrl]);
-
-  useEffect(() => {
-    const tick = () => {
-      const audio = audioRef.current;
-      if (audio && audio.duration) {
-        setProgress(audio.currentTime / audio.duration);
-      }
-      animRef.current = requestAnimationFrame(tick);
-    };
-    if (isPlaying) { animRef.current = requestAnimationFrame(tick); }
-    return () => cancelAnimationFrame(animRef.current);
-  }, [isPlaying]);
-
-  const togglePlay = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (isPlaying) { audio.pause(); } else { audio.play().catch(() => {}); }
-  };
-
-  const seek = (e) => {
-    const audio = audioRef.current;
-    if (!audio || !audio.duration) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const frac = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    audio.currentTime = frac * audio.duration;
-    setProgress(frac);
-  };
-
-  const fmt = (s) => {
-    if (!s || isNaN(s)) return '0:00';
-    return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-  };
-
-  const audio = audioRef.current;
-  const currentTime = audio ? audio.currentTime : 0;
-  const duration = audio ? audio.duration || 0 : 0;
+  const QUESTIONS = [
+    { id: 'tempo', label: 'Tempo', subtitle: 'How fast is the music?', done: !!entry.tempo },
+    { id: 'dynamics', label: 'Dynamics', subtitle: 'How loud or soft?', done: entry.dynamics.length > 0 },
+    { id: 'mood', label: 'Mood', subtitle: 'What feeling does it create?', done: entry.moods.length > 0 },
+    { id: 'instruments', label: 'Instruments', subtitle: 'What sounds do you hear?', done: entry.instruments.length > 0 },
+    { id: 'texture', label: 'Texture', subtitle: 'How many layers?', done: !!entry.texture },
+    { id: 'hook', label: 'Hook', subtitle: 'What\'s the catchiest part?', done: !!entry.hook },
+    { id: 'bonus', label: 'Bonus', subtitle: 'Influences & notes (optional)', done: !!(entry.influences || entry.notes) },
+  ];
+  const totalCore = 6;
+  const answeredCore = QUESTIONS.slice(0, 6).filter(q => q.done).length;
+  const currentQ = QUESTIONS[qPage] || QUESTIONS[0];
+  const isLastPage = qPage >= QUESTIONS.length - 1;
+  const isFirstPage = qPage === 0;
 
   return (
-    <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3">
-      <button
-        onClick={togglePlay}
-        className="w-11 h-11 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center flex-shrink-0 transition-colors"
-      >
-        {isPlaying
-          ? <Pause size={18} className="text-black" fill="currentColor" />
-          : <Play size={18} className="text-black ml-0.5" fill="currentColor" />}
-      </button>
-      <div className="flex-1 min-w-0">
-        <p className="text-white/80 text-sm font-semibold truncate">"{track.title}" — {track.artist}</p>
-        <div className="flex items-center gap-2 mt-1.5">
-          <span className="text-white/30 text-xs w-8 text-right flex-shrink-0">{fmt(currentTime)}</span>
-          <div className="flex-1 h-1.5 bg-white/[0.08] rounded-full cursor-pointer" onClick={seek}>
-            <div className="h-full bg-amber-400 rounded-full transition-all" style={{ width: `${progress * 100}%` }} />
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Top bar: track info + nav */}
+      <div className="shrink-0 px-3 py-2 bg-[#141a21] border-b border-white/[0.06]">
+        <div className="max-w-2xl mx-auto space-y-2">
+          {/* Row 1: Track inputs */}
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={entry.artistName}
+              onChange={(e) => !viewMode && updateField('artistName', e.target.value)}
+              readOnly={viewMode}
+              placeholder="Artist name"
+              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-white/25 focus:outline-none focus:border-amber-400/30 min-h-[34px]"
+            />
+            <input
+              type="text"
+              value={entry.trackTitle}
+              onChange={(e) => !viewMode && updateField('trackTitle', e.target.value)}
+              readOnly={viewMode}
+              placeholder="Track title"
+              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-white/25 focus:outline-none focus:border-amber-400/30 min-h-[34px]"
+            />
           </div>
-          <span className="text-white/30 text-xs w-8 flex-shrink-0">{fmt(duration)}</span>
+          {/* Row 2: Back/Next + progress dots */}
+          <div className="flex items-center gap-2">
+            <button onClick={() => setQPage(p => p - 1)} disabled={isFirstPage}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all min-h-[32px] flex items-center gap-1 ${
+                isFirstPage ? 'bg-white/[0.03] text-white/15 cursor-not-allowed' : 'bg-white/[0.08] text-white/70 hover:bg-white/[0.12]'
+              }`}>
+              <ChevronDown size={14} className="rotate-90" /> Back
+            </button>
+            <div className="flex-1 flex items-center justify-center gap-1">
+              {QUESTIONS.map((q, i) => (
+                <button
+                  key={q.id}
+                  onClick={() => setQPage(i)}
+                  className={`w-3 h-3 rounded-full transition-all ${
+                    i === qPage
+                      ? 'bg-amber-400 scale-125'
+                      : q.done
+                        ? 'bg-emerald-400/60 hover:bg-emerald-400'
+                        : 'bg-white/[0.12] hover:bg-white/[0.2]'
+                  }`}
+                  title={q.label}
+                />
+              ))}
+            </div>
+            {isLastPage ? (
+              <div className="px-3 py-1.5 rounded-lg text-xs font-semibold min-h-[32px] flex items-center gap-1 bg-emerald-500/10 text-emerald-400">
+                <CheckCircle size={14} /> Done
+              </div>
+            ) : (
+              <button onClick={() => setQPage(p => p + 1)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all min-h-[32px] flex items-center gap-1 bg-amber-500 text-white hover:bg-amber-600">
+                Next <ChevronDown size={14} className="-rotate-90" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
 
-// ── Preview Player for Track Selection ───────────────
-const PreviewPlayer = ({ track, onSelect }) => {
-  const audioRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+      {/* Question content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-4 overflow-y-auto">
+        <div className="w-full max-w-lg">
+          <div className="text-center mb-5">
+            <h2 className="text-white text-xl font-bold">
+              {currentQ.label}
+              {currentQ.done && <CheckCircle size={18} className="inline ml-2 text-emerald-400" />}
+            </h2>
+            <p className="text-white/40 text-sm mt-1">{currentQ.subtitle}</p>
+          </div>
 
-  useEffect(() => {
-    const audio = new Audio(track.audioUrl);
-    audio.preload = 'none';
-    audioRef.current = audio;
-    audio.addEventListener('ended', () => setIsPlaying(false));
-    audio.addEventListener('pause', () => setIsPlaying(false));
-    audio.addEventListener('play', () => setIsPlaying(true));
-    return () => { audio.pause(); audio.src = ''; };
-  }, [track.audioUrl]);
+          {/* Q0: Tempo */}
+          {qPage === 0 && (
+            <div className="space-y-3">
+              <div className="flex flex-wrap justify-center gap-2">
+                {TEMPO_OPTIONS.map(t => (
+                  <button key={t.label} onClick={() => !viewMode && updateField('tempo', entry.tempo === t.label ? '' : t.label)}
+                    className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[48px] ${
+                      entry.tempo === t.label ? 'bg-amber-500/25 text-amber-300 border-2 border-amber-400/50' : 'bg-white/[0.04] text-white/60 border-2 border-white/[0.06] hover:bg-white/[0.08]'
+                    }`}>{t.label} <span className="text-white/25 text-xs">({t.help})</span></button>
+                ))}
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {TEMPO_CHANGE_OPTIONS.map(t => (
+                  <button key={t.label} onClick={() => !viewMode && updateField('tempoChange', entry.tempoChange === t.label ? '' : t.label)}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-all min-h-[36px] ${
+                      entry.tempoChange === t.label ? 'bg-amber-500/20 text-amber-300 border border-amber-400/25' : 'bg-white/[0.03] text-white/30 border border-white/[0.05] hover:bg-white/[0.06]'
+                    }`}>{t.label} <span className="text-white/15">({t.help})</span></button>
+                ))}
+              </div>
+            </div>
+          )}
 
-  const togglePlay = (e) => {
-    e.stopPropagation();
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (isPlaying) { audio.pause(); } else { audio.play().catch(() => {}); }
-  };
+          {/* Q1: Dynamics */}
+          {qPage === 1 && (
+            <div className="space-y-3">
+              <div className="flex flex-wrap justify-center gap-2">
+                {DYNAMICS_OPTIONS.map(d => {
+                  const selected = entry.dynamics.includes(d.label);
+                  return (
+                    <button key={d.label} onClick={() => { if (viewMode) return; updateField('dynamics', selected ? entry.dynamics.filter(v => v !== d.label) : [...entry.dynamics, d.label]); }}
+                      className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[48px] ${
+                        selected ? 'bg-blue-500/25 text-blue-300 border-2 border-blue-400/50' : 'bg-white/[0.04] text-white/60 border-2 border-white/[0.06] hover:bg-white/[0.08]'
+                      }`}><span className="font-bold">{d.label}</span> <span className="text-white/25 text-xs">({d.help})</span></button>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {DYNAMICS_CHANGE_OPTIONS.map(d => (
+                  <button key={d.label} onClick={() => !viewMode && updateField('dynamicsChange', entry.dynamicsChange === d.label ? '' : d.label)}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-all min-h-[36px] ${
+                      entry.dynamicsChange === d.label ? 'bg-blue-500/20 text-blue-300 border border-blue-400/25' : 'bg-white/[0.03] text-white/30 border border-white/[0.05] hover:bg-white/[0.06]'
+                    }`}>{d.label} <span className="text-white/15">({d.help})</span></button>
+                ))}
+              </div>
+            </div>
+          )}
 
-  return (
-    <div className="w-full flex items-center gap-3 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all min-h-[72px]">
-      <button
-        onClick={togglePlay}
-        className="w-12 h-12 rounded-full bg-amber-500 hover:bg-amber-400 flex items-center justify-center flex-shrink-0 transition-colors"
-      >
-        {isPlaying
-          ? <Pause size={20} className="text-black" fill="currentColor" />
-          : <Play size={20} className="text-black ml-0.5" fill="currentColor" />}
-      </button>
-      <div className="flex-1 min-w-0">
-        <p className="text-white font-semibold text-base truncate">"{track.title}"</p>
-        <p className="text-white/50 text-sm">{track.artist}</p>
-        <span className="text-xs text-white/30">{track.genre}</span>
+          {/* Q2: Mood */}
+          {qPage === 2 && (
+            <div className="flex flex-wrap justify-center gap-2">
+              {MOOD_OPTIONS.map(mood => {
+                const selected = entry.moods.includes(mood);
+                const disabled = !selected && entry.moods.length >= 3;
+                return (
+                  <button key={mood} onClick={() => !viewMode && toggleMood(mood)} disabled={viewMode ? false : disabled}
+                    className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[48px] ${
+                      selected ? 'bg-purple-500/25 text-purple-300 border-2 border-purple-400/50' : disabled ? 'bg-white/[0.02] text-white/15 border-2 border-white/[0.04] cursor-not-allowed' : 'bg-white/[0.04] text-white/60 border-2 border-white/[0.06] hover:bg-white/[0.08]'
+                    }`}>{mood}</button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Q3: Instruments */}
+          {qPage === 3 && (
+            <div className="space-y-3">
+              <div className="flex flex-wrap justify-center gap-2">
+                {INSTRUMENT_OPTIONS.map(inst => (
+                  <button key={inst} onClick={() => !viewMode && toggleInstrument(inst)}
+                    className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all min-h-[48px] ${
+                      entry.instruments.includes(inst) ? 'bg-emerald-500/25 text-emerald-300 border-2 border-emerald-400/50' : 'bg-white/[0.04] text-white/60 border-2 border-white/[0.06] hover:bg-white/[0.08]'
+                    }`}>{inst}</button>
+                ))}
+              </div>
+              {entry.instruments.includes('Other') && (
+                <input type="text" value={entry.otherInstrument} onChange={(e) => !viewMode && updateField('otherInstrument', e.target.value)} readOnly={viewMode}
+                  placeholder="What other instrument or sound?" className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white placeholder-white/25 focus:outline-none focus:border-white/20 min-h-[44px]" />
+              )}
+            </div>
+          )}
+
+          {/* Q4: Texture */}
+          {qPage === 4 && (
+            <div className="flex flex-wrap justify-center gap-3">
+              {TEXTURE_OPTIONS.map(t => (
+                <button key={t.label} onClick={() => !viewMode && updateField('texture', entry.texture === t.label ? '' : t.label)}
+                  className={`px-6 py-4 rounded-xl text-base font-medium transition-all min-h-[56px] ${
+                    entry.texture === t.label ? 'bg-teal-500/25 text-teal-300 border-2 border-teal-400/50' : 'bg-white/[0.04] text-white/60 border-2 border-white/[0.06] hover:bg-white/[0.08]'
+                  }`}>{t.label} <span className="text-white/25 text-sm">({t.help})</span></button>
+              ))}
+            </div>
+          )}
+
+          {/* Q5: Hook */}
+          {qPage === 5 && (
+            <textarea value={entry.hook} onChange={(e) => !viewMode && updateField('hook', e.target.value)} readOnly={viewMode}
+              placeholder="Describe the catchiest part in 1-2 sentences..." rows={4}
+              className="w-full bg-white/[0.04] border-2 border-white/[0.08] rounded-xl px-4 py-3 text-base text-white placeholder-white/25 focus:outline-none focus:border-white/20 resize-none" />
+          )}
+
+          {/* Q6: Bonus */}
+          {qPage === 6 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-white/40 text-xs font-semibold uppercase tracking-wider mb-2">Influences — Who do they remind you of?</label>
+                <input type="text" value={entry.influences} onChange={(e) => !viewMode && updateField('influences', e.target.value)} readOnly={viewMode}
+                  placeholder="What other artists or songs does this remind you of?" className="w-full bg-white/[0.04] border-2 border-white/[0.08] rounded-xl px-4 py-3 text-base text-white placeholder-white/25 focus:outline-none focus:border-white/20 min-h-[48px]" />
+              </div>
+              <div>
+                <label className="block text-white/40 text-xs font-semibold uppercase tracking-wider mb-2">Notes — Anything else you noticed?</label>
+                <textarea value={entry.notes} onChange={(e) => !viewMode && updateField('notes', e.target.value)} readOnly={viewMode}
+                  placeholder="Additional observations about this track..." rows={3}
+                  className="w-full bg-white/[0.04] border-2 border-white/[0.08] rounded-xl px-4 py-3 text-base text-white placeholder-white/25 focus:outline-none focus:border-white/20 resize-none" />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-      <button
-        onClick={(e) => { e.stopPropagation(); if (audioRef.current) audioRef.current.pause(); onSelect(); }}
-        className="px-4 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold transition-colors flex-shrink-0 min-h-[44px]"
-      >
-        Select Artist
-      </button>
+
     </div>
   );
 };
 
-// ── Main Component ───────────────────────────────────
-const IndependentListeningActivity = ({ onComplete, isSessionMode }) => {
+// ── Main Inner Component ───────────────────────────────
+const IndependentListeningInner = ({ onComplete, isSessionMode, viewMode }) => {
+  const [activeTab, setActiveTab] = useState('discover');
+  const [showDirections, setShowDirections] = useState(() => {
+    return !localStorage.getItem(DIRECTIONS_KEY);
+  });
+  const audio = useGlobalAudio();
+  const hasAudioPlaying = audio?.currentTrack != null;
+
   const saved = loadSaved();
-  const [selectedTrackId, setSelectedTrackId] = useState(saved?.selectedTrackId || null);
   const [entry, setEntry] = useState(saved?.entry || EMPTY_ENTRY());
   const [isSaved, setIsSaved] = useState(false);
 
-  const selectedTrack = INDEPENDENT_TRACKS.find(t => t.id === selectedTrackId);
+  const closeDirections = () => {
+    setShowDirections(false);
+    localStorage.setItem(DIRECTIONS_KEY, 'true');
+  };
 
-  // Auto-save locally
+  // Auto-save locally (800ms debounce)
   useEffect(() => {
-    if (!selectedTrackId) return;
-    const timeout = setTimeout(() => saveToDisk(selectedTrackId, entry), 800);
+    if (viewMode) return;
+    const timeout = setTimeout(() => {
+      saveToDisk(entry);
+      // Dashboard key
+      const studentId = getStudentId();
+      const dashKey = `mma-saved-${studentId}-independent-listening`;
+      try {
+        localStorage.setItem(dashKey, JSON.stringify({
+          activityId: 'independent-listening',
+          title: 'Independent Listening',
+          emoji: '\uD83C\uDFA7',
+          viewRoute: '/lessons/music-journalist/lesson2?view=independent-listening',
+          subtitle: entry.artistName && entry.trackTitle ? `"${entry.trackTitle}" by ${entry.artistName}` : 'Track analysis',
+          category: 'Music Agent',
+          lastSaved: new Date().toISOString(),
+          data: { entry }
+        }));
+      } catch { /* localStorage full or blocked */ }
+    }, 800);
     return () => clearTimeout(timeout);
-  }, [entry, selectedTrackId]);
+  }, [entry, viewMode]);
 
   const updateField = useCallback((field, value) => {
     setEntry(prev => ({ ...prev, [field]: value }));
@@ -212,30 +380,28 @@ const IndependentListeningActivity = ({ onComplete, isSessionMode }) => {
     setIsSaved(false);
   }, []);
 
-  // ── Firebase save ────
+  // Firebase save
   const fullSave = useCallback(() => {
-    if (!selectedTrackId) return;
-    saveToDisk(selectedTrackId, entry);
+    saveToDisk(entry);
     setIsSaved(true);
     const authInfo = getClassAuthInfo();
-    const track = INDEPENDENT_TRACKS.find(t => t.id === selectedTrackId);
     saveStudentWork('independent-listening', {
       title: 'Independent Listening',
       emoji: '\uD83C\uDFA7',
-      viewRoute: '/lessons/music-journalist/lesson3?view=independent-listening',
-      subtitle: track ? `"${track.title}" by ${track.artist}` : 'Track analysis',
-      category: 'Music Journalist',
-      lessonId: 'mj-lesson3',
-      data: { selectedTrackId, entry }
+      viewRoute: '/lessons/music-journalist/lesson2?view=independent-listening',
+      subtitle: entry.artistName && entry.trackTitle ? `"${entry.trackTitle}" by ${entry.artistName}` : 'Track analysis',
+      category: 'Music Agent',
+      lessonId: 'mj-lesson2',
+      data: { entry }
     }, null, authInfo);
-  }, [entry, selectedTrackId]);
+  }, [entry]);
 
   const handleSave = () => {
     fullSave();
     setTimeout(() => setIsSaved(false), 2000);
   };
 
-  // Listen for teacher "Save All"
+  // Teacher "Save All" listener
   const { sessionCode } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
@@ -244,7 +410,7 @@ const IndependentListeningActivity = ({ onComplete, isSessionMode }) => {
   const [teacherSaveToast, setTeacherSaveToast] = useState(false);
 
   useEffect(() => {
-    if (!effectiveSessionCode || !isSessionMode) return;
+    if (!effectiveSessionCode || !isSessionMode || viewMode) return;
     const db = getDatabase();
     const saveCommandRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
 
@@ -263,196 +429,124 @@ const IndependentListeningActivity = ({ onComplete, isSessionMode }) => {
       }
     });
     return () => unsubscribe();
-  }, [effectiveSessionCode, isSessionMode, fullSave]);
+  }, [effectiveSessionCode, isSessionMode, fullSave, viewMode]);
 
-  // ── Track Selection Screen ─────────────────────────
-  if (!selectedTrack) {
-    return (
-      <div className="h-screen flex flex-col bg-[#0f1419]">
-        <div className="flex-shrink-0 border-b border-white/[0.08] px-4 py-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <Headphones size={32} className="text-amber-400 mx-auto mb-2" />
-            <h1 className="text-white font-bold text-xl">Pick a Track to Analyze</h1>
-            <p className="text-white/40 text-sm mt-1">Listen to each track. Select an artist to fill out the Listening Guide.</p>
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-4 py-4 space-y-3">
-            {INDEPENDENT_TRACKS.map((track) => (
-              <PreviewPlayer
-                key={track.id}
-                track={track}
-                onSelect={() => setSelectedTrackId(track.id)}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Compute progress for the tab badge
+  const answeredCore = [
+    !!entry.tempo,
+    entry.dynamics.length > 0,
+    entry.moods.length > 0,
+    entry.instruments.length > 0,
+    !!entry.texture,
+    !!entry.hook,
+  ].filter(Boolean).length;
+  const totalCore = 6;
 
-  // ── Listening Guide for Selected Track ─────────────
   return (
-    <div className="h-screen flex flex-col bg-[#0f1419]">
-      {/* Header */}
-      <div className="flex-shrink-0 border-b border-white/[0.08] px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <div className="h-screen flex flex-col" style={{ background: '#0f1419' }}>
+      {/* Directions modal — shared component */}
+      <DirectionsModal
+        title="Independent Listening"
+        isOpen={showDirections}
+        onClose={closeDirections}
+        steps={DIRECTIONS_STEPS}
+        bonusText="Use the Music Description Toolkit from earlier!"
+      />
+
+      {/* Tab bar */}
+      <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 border-b border-white/10" style={{ background: '#0f1b2e' }}>
+        <div className="flex items-center gap-3">
+          <div className="flex bg-white/5 rounded-lg p-0.5">
             <button
-              onClick={() => { setSelectedTrackId(null); setEntry(EMPTY_ENTRY()); }}
-              className="text-white/40 hover:text-white/70 text-sm font-medium transition-colors"
+              onClick={() => setActiveTab('discover')}
+              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                activeTab === 'discover' ? 'bg-amber-500/20 text-amber-300' : 'text-white/40 hover:text-white/60'
+              }`}
             >
-              &larr; Change Track
+              <Search size={12} /> Explore Artists
+            </button>
+            <button
+              onClick={() => setActiveTab('listening')}
+              className={`px-3 py-2 rounded text-xs font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'listening'
+                  ? 'bg-amber-500/20 text-amber-300'
+                  : answeredCore === 0
+                    ? 'bg-red-500/15 text-red-300 hover:bg-red-500/25 animate-pulse'
+                    : answeredCore < totalCore
+                      ? 'bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
+                      : 'bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
+              }`}
+            >
+              <Headphones size={13} /> Listening Guide
             </button>
           </div>
+          {/* Progress text — always visible */}
+          <span className={`text-xs font-bold ${answeredCore === 0 ? 'text-red-400' : answeredCore < totalCore ? 'text-amber-400' : 'text-emerald-400'}`}>
+            {answeredCore}/{totalCore} Listening Guide Questions Answered
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Directions re-open button */}
+        </div>
+        <div className="flex items-center gap-2">
           <button
-            onClick={handleSave}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
-              isSaved
-                ? 'bg-emerald-500/20 text-emerald-400'
-                : 'bg-white/10 text-white hover:bg-white/15'
-            }`}
+            onClick={() => setShowDirections(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-purple-500/15 text-purple-300 hover:bg-purple-500/25 transition-colors"
           >
-            {isSaved ? <CheckCircle size={16} /> : <Save size={16} />}
-            {isSaved ? 'Saved' : 'Save'}
+            <HelpCircle size={12} /> Directions
           </button>
+          {!viewMode && (
+            <button onClick={handleSave}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                isSaved ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/10 text-white hover:bg-white/15'
+              }`}>
+              {isSaved ? <CheckCircle size={12} /> : <Save size={12} />}
+              {isSaved ? 'Saved' : 'Save'}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
-          {/* Audio Player */}
-          <TrackPlayer track={selectedTrack} />
-
-          {/* Form */}
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 space-y-5">
-            {/* Instruments */}
-            <div>
-              <label className="block text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">
-                Instruments / Sounds
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {INSTRUMENT_OPTIONS.map(inst => (
-                  <button
-                    key={inst}
-                    onClick={() => toggleInstrument(inst)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all min-h-[44px] ${
-                      entry.instruments.includes(inst)
-                        ? 'bg-blue-500/25 text-blue-300 border border-blue-400/30'
-                        : 'bg-white/[0.04] text-white/50 border border-white/[0.06] hover:bg-white/[0.08]'
-                    }`}
-                  >
-                    {inst}
-                  </button>
-                ))}
-              </div>
-              {entry.instruments.includes('Other') && (
-                <input
-                  type="text"
-                  value={entry.otherInstrument}
-                  onChange={(e) => updateField('otherInstrument', e.target.value)}
-                  placeholder="What other instrument or sound?"
-                  className="mt-2 w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white placeholder-white/25 focus:outline-none focus:border-white/20 min-h-[44px]"
-                />
-              )}
-            </div>
-
-            {/* Tempo */}
-            <div>
-              <label className="block text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">
-                Tempo
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {TEMPO_OPTIONS.map(tempo => (
-                  <button
-                    key={tempo}
-                    onClick={() => updateField('tempo', entry.tempo === tempo ? '' : tempo)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all min-h-[44px] ${
-                      entry.tempo === tempo
-                        ? 'bg-amber-500/25 text-amber-300 border border-amber-400/30'
-                        : 'bg-white/[0.04] text-white/50 border border-white/[0.06] hover:bg-white/[0.08]'
-                    }`}
-                  >
-                    {tempo}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Mood */}
-            <div>
-              <label className="block text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">
-                Mood <span className="text-white/30 normal-case">(select up to 3)</span>
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {MOOD_OPTIONS.map(mood => {
-                  const selected = entry.moods.includes(mood);
-                  const disabled = !selected && entry.moods.length >= 3;
-                  return (
-                    <button
-                      key={mood}
-                      onClick={() => toggleMood(mood)}
-                      disabled={disabled}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all min-h-[44px] ${
-                        selected
-                          ? 'bg-purple-500/25 text-purple-300 border border-purple-400/30'
-                          : disabled
-                            ? 'bg-white/[0.02] text-white/15 border border-white/[0.04] cursor-not-allowed'
-                            : 'bg-white/[0.04] text-white/50 border border-white/[0.06] hover:bg-white/[0.08]'
-                      }`}
-                    >
-                      {mood}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Hook */}
-            <div>
-              <label className="block text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">
-                Hook — What is the catchiest part?
-              </label>
-              <textarea
-                value={entry.hook}
-                onChange={(e) => updateField('hook', e.target.value)}
-                placeholder="Describe the catchiest part in 1-2 sentences..."
-                rows={2}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white placeholder-white/25 focus:outline-none focus:border-white/20 resize-none"
-              />
-            </div>
-
-            {/* Influences */}
-            <div>
-              <label className="block text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">
-                Influences — Who do they remind you of?
-              </label>
-              <input
-                type="text"
-                value={entry.influences}
-                onChange={(e) => updateField('influences', e.target.value)}
-                placeholder="What other artists or songs does this remind you of?"
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white placeholder-white/25 focus:outline-none focus:border-white/20 min-h-[44px]"
-              />
-            </div>
-
-            {/* Notes */}
-            <div>
-              <label className="block text-white/50 text-xs font-semibold uppercase tracking-wider mb-2">
-                Notes — Anything else you noticed?
-              </label>
-              <textarea
-                value={entry.notes}
-                onChange={(e) => updateField('notes', e.target.value)}
-                placeholder="Additional observations about this track..."
-                rows={2}
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 text-sm text-white placeholder-white/25 focus:outline-none focus:border-white/20 resize-none"
-              />
-            </div>
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        {/* Artist Discovery */}
+        <div className="flex-1 overflow-hidden" style={{ display: activeTab === 'discover' ? 'block' : 'none' }}>
+          <div className="h-full overflow-y-auto">
+            <ArtistDiscovery isSessionMode={isSessionMode} hideMiniPlayer />
           </div>
         </div>
+
+        {/* Listening Guide */}
+        <div className="flex-1 overflow-hidden flex flex-col" style={{ display: activeTab === 'listening' ? 'flex' : 'none' }}>
+          <ListeningGuideForm
+            entry={entry}
+            updateField={updateField}
+            toggleInstrument={toggleInstrument}
+            toggleMood={toggleMood}
+            viewMode={viewMode}
+          />
+        </div>
       </div>
+
+      {/* MiniPlayer */}
+      {hasAudioPlaying && (
+        <MiniPlayer
+          currentTrack={audio.currentTrack}
+          isPlaying={audio.isPlaying}
+          progress={audio.progress}
+          currentTime={audio.currentTime}
+          duration={audio.duration}
+          onTogglePlay={audio.togglePlay}
+          onNext={audio.next}
+          onPrev={audio.prev}
+          onSeek={audio.seek}
+          volume={audio.volume}
+          onVolumeChange={audio.setVolume}
+          imageUrl={audio.artistImageUrl}
+          artistName={audio.artistName}
+          onArtistClick={() => setActiveTab('discover')}
+        />
+      )}
 
       {/* Teacher Save All toast */}
       {teacherSaveToast && (
@@ -472,5 +566,12 @@ const IndependentListeningActivity = ({ onComplete, isSessionMode }) => {
     </div>
   );
 };
+
+// ── Exported wrapper with AudioProvider ────────────────
+const IndependentListeningActivity = (props) => (
+  <AudioProvider>
+    <IndependentListeningInner {...props} />
+  </AudioProvider>
+);
 
 export default IndependentListeningActivity;

@@ -33,18 +33,29 @@ export const lessonSections = [
     ]
   },
   {
-    id: 'choose-artist',
-    title: '2. Choose Your Artist',
-    subtitle: 'Browse, Listen, Commit',
+    id: 'scouting',
+    title: '2. Scouting Report',
+    subtitle: 'Narrow Down Your Picks',
     color: 'blue',
-    estimatedTime: 12,
+    estimatedTime: 10,
     stages: [
-      { id: 'choose-your-artist', type: 'activity', label: 'Choose Your Artist', description: 'STUDENTS: Browse artists, listen to tracks, pick ONE and lock in.', duration: 12, hasTimer: true, trackProgress: true }
+      { id: 'scouting-intro', type: 'summary', label: 'Scouting Instructions', description: 'Explain: Browse artists, narrow to Top 5, then pick your #1.', duration: 2 },
+      { id: 'scouting-report', type: 'activity', label: 'Scouting Report', description: 'STUDENTS BUILD: Top 5, #1 Pick, What I Notice.', duration: 8, hasTimer: true, trackProgress: true }
+    ]
+  },
+  {
+    id: 'choose-artist',
+    title: '3. Lock In Your Artist',
+    subtitle: 'Commit to Your Pick',
+    color: 'blue',
+    estimatedTime: 5,
+    stages: [
+      { id: 'choose-your-artist', type: 'activity', label: 'Choose Your Artist', description: 'STUDENTS: Lock in your #1 pick. First come, first served — no duplicates.', duration: 5, hasTimer: true, trackProgress: true }
     ]
   },
   {
     id: 'research',
-    title: '3. Research Session',
+    title: '4. Research Session',
     subtitle: 'Strong vs Weak Evidence + Research',
     color: 'blue',
     estimatedTime: 16,
@@ -55,7 +66,7 @@ export const lessonSections = [
   },
   {
     id: 'game',
-    title: '4. Fact or Opinion',
+    title: '5. Fact or Opinion',
     subtitle: 'Game Time',
     color: 'blue',
     estimatedTime: 7,
@@ -65,7 +76,7 @@ export const lessonSections = [
   },
   {
     id: 'reflect',
-    title: '5. Checkpoint',
+    title: '6. Checkpoint',
     subtitle: 'Share + Preview',
     color: 'blue',
     estimatedTime: 3,
@@ -91,9 +102,10 @@ export const lesson3Config = {
   ],
   lessonSections,
   activities: [
-    { id: 1, type: 'artist-discovery', title: 'Choose Your Artist', estimatedTime: '12 min' },
-    { id: 2, type: 'artist-discovery', title: 'Research Session', estimatedTime: '12 min' },
-    { id: 3, type: 'fact-opinion-sorter', title: 'Fact or Opinion', estimatedTime: '7 min' }
+    { id: 1, type: 'scouting-report', title: 'Scouting Report', estimatedTime: '8 min' },
+    { id: 2, type: 'artist-discovery', title: 'Lock In Your Artist', estimatedTime: '5 min' },
+    { id: 3, type: 'artist-discovery', title: 'Research Session', estimatedTime: '12 min' },
+    { id: 4, type: 'fact-opinion-sorter', title: 'Fact or Opinion', estimatedTime: '7 min' }
   ]
 };
 
@@ -137,8 +149,31 @@ export const lessonStages = [
     }
   },
   {
-    id: 'choose-your-artist', label: 'Choose Your Artist', type: 'activity', duration: 12, hasTimer: true, trackProgress: true,
-    presentationView: { type: 'activity-banner', title: 'Choose Your Artist', subtitle: 'Browse. Listen. Pick ONE. Lock it in.' }
+    id: 'scouting-intro', label: 'Scouting Instructions', type: 'summary', duration: 2,
+    presentationView: {
+      type: 'summary', title: 'Your Scouting Report', subtitle: 'Narrow Down Your Picks',
+      sections: [
+        { heading: 'What to Do', bullets: [
+          'Browse the artist library \u2014 listen to tracks across different genres',
+          'Star artists that catch your ear',
+          'Switch to "My Report" to build your 3 slides'
+        ]},
+        { heading: 'Your 3 Slides', bullets: [
+          'Slide 1: MY TOP 5 ARTISTS \u2014 list the 5 artists you like most',
+          'Slide 2: MY #1 PICK \u2014 who would you sign? Why?',
+          'Slide 3: WHAT I NOTICE \u2014 one interesting fact + what you hear in their music'
+        ]},
+        { heading: '', bullets: ['You have 8 minutes \u2014 use your listening skills from Lesson 2!'] }
+      ]
+    }
+  },
+  {
+    id: 'scouting-report', label: 'Scouting Report', type: 'activity', duration: 8, hasTimer: true, trackProgress: true,
+    presentationView: { type: 'activity-banner', title: 'Scouting Report', subtitle: 'Explore artists and build your 3 slides: Top 5, #1 Pick, What I Notice' }
+  },
+  {
+    id: 'choose-your-artist', label: 'Lock In Your Artist', type: 'activity', duration: 5, hasTimer: true, trackProgress: true,
+    presentationView: { type: 'activity-banner', title: 'Lock In Your Artist', subtitle: 'Commit to your #1 pick. First come, first served — no duplicates!' }
   },
   {
     id: 'strong-vs-weak', label: 'Strong vs Weak Evidence', type: 'summary', duration: 4,
@@ -208,6 +243,8 @@ export const getActivityForStage = (stage) => {
     'join-code': 'waiting',
     'hook': 'summary',
     'worth-signing': 'summary',
+    'scouting-intro': 'summary',
+    'scouting-report': 'scouting-report',
     'choose-your-artist': 'artist-discovery',
     'strong-vs-weak': 'summary',
     'research-session': 'artist-discovery',

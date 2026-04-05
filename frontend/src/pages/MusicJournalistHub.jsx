@@ -126,17 +126,17 @@ const MusicJournalistHub = () => {
       route: '/lessons/music-journalist/lesson1',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students learn what music agents and A&R reps do, explore 20 emerging artists across 10 genres on the discovery platform, play the Genre Match game, and learn the difference between facts and opinions as agent research skills.',
+      inThisLesson: 'Students learn what music agents and A&R reps do, explore 20 emerging artists across 10 genres on the discovery platform, play the Genre Match game, and complete Genre Scouts — finding one artist per genre.',
       studentsWill: [
         'Understand what music agents and A&R reps do in the music industry',
         'Explore and identify characteristics of different musical genres',
-        'Distinguish fact from opinion when evaluating artist potential'
+        'Find one artist per genre and describe what they hear'
       ],
       activities: [
         { title: 'Welcome to the Agency', description: 'How Billie Eilish, Chance, and BTS went from zero to fame', time: 5 },
-        { title: 'Explore the Platform', description: 'Browse 20 emerging artists across 10 genres — star your favorites', time: 10, activityType: 'artist-discovery' },
+        { title: 'Genre Showcase', description: 'Teacher presents 6 genres with real emerging artists and audio', time: 10 },
         { title: 'Genre Match Game', description: 'Hear a clip, identify the genre — test your ear', time: 8, activityType: 'genre-match' },
-        { title: 'The Assignment', description: 'Learn the 5-lesson arc: discover, research, listen, build, pitch', time: 5 }
+        { title: 'Genre Scouts', description: 'Find one artist per genre, note a surprise discovery, describe a sound', time: 15, activityType: 'genre-scouts' }
       ]
     },
     {
@@ -150,17 +150,16 @@ const MusicJournalistHub = () => {
       route: '/lessons/music-journalist/lesson2',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students learn to listen critically using 6 music descriptors (tempo, mood, instrumentation, hook, production, influence), practice with guided and independent listening sessions, write a Sound Statement, and play Source or Not to evaluate credibility.',
+      inThisLesson: 'Students learn to listen critically using 6 music descriptors (tempo, mood, instrumentation, hook, production, influence) and practice with guided and independent listening sessions.',
       studentsWill: [
         'Analyze music using 6 specific descriptors from the Music Description Toolkit',
         'Practice critical listening with guided and independent tracks',
-        'Write a Sound Statement that captures an artist\'s unique sound in one sentence'
+        'Share and defend observations with evidence from the music'
       ],
       activities: [
         { title: 'Hook: Same Genre, Different Sound', description: 'Two "rock" clips that sound nothing alike — describe the difference', time: 3 },
         { title: 'Music Description Toolkit', description: 'Learn 6 ways to describe music: tempo, mood, instrumentation, hook, production, influence', time: 5 },
-        { title: 'Critical Listening Session', description: 'Listen to tracks and fill out the Listening Guide', time: 15, activityType: 'listening-guide' },
-        { title: 'Source or Not?', description: 'Can you spot a credible music source vs random noise?', time: 7, activityType: 'source-or-not' }
+        { title: 'Critical Listening Session', description: 'Listen to tracks and fill out the Listening Guide', time: 15, activityType: 'listening-guide' }
       ]
     },
     {
@@ -174,15 +173,16 @@ const MusicJournalistHub = () => {
       route: '/lessons/music-journalist/lesson3',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students choose their emerging artist from the platform, research their story using the artist profile, learn to distinguish strong evidence from weak evidence, save facts to their Research Board, and play Fact or Opinion to sharpen their skills.',
+      inThisLesson: 'Students narrow their picks with a Scouting Report, lock in their artist, research their story using the artist profile, learn to distinguish strong evidence from weak evidence, save facts to their Research Board, and play Fact or Opinion to sharpen their skills.',
       studentsWill: [
-        'Select an emerging artist and commit to representing them',
+        'Build a Scouting Report to narrow down and select their artist',
         'Identify strong vs weak evidence for building a case',
         'Save at least 5 specific facts to their Research Board'
       ],
       activities: [
         { title: 'What Makes an Artist Worth It?', description: 'The 4-point checklist: unique sound, story, growth, your gut', time: 4 },
-        { title: 'Choose Your Artist', description: 'Browse the platform and lock in your pick — first come, first served', time: 12, activityType: 'artist-discovery' },
+        { title: 'Scouting Report', description: 'Narrow your picks — Top 5, #1 Pick, What I Notice', time: 10, activityType: 'scouting-report' },
+        { title: 'Lock In Your Artist', description: 'Commit to your #1 pick — first come, first served', time: 5, activityType: 'artist-discovery' },
         { title: 'Strong vs Weak Evidence', description: 'Learn what would convince a label vs what falls flat', time: 4 },
         { title: 'Research Session', description: 'Dig into your artist\'s profile — save 5+ facts to Research Board', time: 12, activityType: 'artist-discovery' },
         { title: 'Fact or Opinion Game', description: 'Sort 10 statements — agents need evidence, not just vibes', time: 7, activityType: 'fact-opinion-sorter' }
