@@ -280,7 +280,7 @@ const Lesson5 = () => {
               onClose={decoyDirections.close}
               pages={stageDirectionsPages}
             />
-          )}}
+          )}
           <TransitionOverlay isVisible={showTransition} />
         </>
       );

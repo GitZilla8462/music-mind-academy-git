@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Music, Play, Pause, Save, CheckCircle, Headphones, ChevronDown, ChevronUp } from 'lucide-react';
-import { INDEPENDENT_TRACKS } from '../../../music-journalist/lesson3/lesson3Config';
+import { INDEPENDENT_TRACKS } from '../../../music-journalist/lesson2/lesson2Config';
 import { saveStudentWork, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
