@@ -637,35 +637,33 @@ const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, si
             </div>
 
             {/* Back / Next buttons — pinned at bottom */}
-            {!singleTrackId && (
-              <div className="shrink-0 px-4 py-3 bg-[#0f1419] border-t border-white/[0.08]">
-                <div className="max-w-lg mx-auto flex items-center gap-3">
+            <div className="shrink-0 px-4 py-3 bg-[#0f1419] border-t border-white/[0.08]">
+              <div className="max-w-lg mx-auto flex items-center gap-3">
+                <button
+                  onClick={() => setQPage(p => p - 1)}
+                  disabled={isFirstPage}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all min-h-[48px] ${
+                    isFirstPage
+                      ? 'bg-white/[0.03] text-white/15 cursor-not-allowed'
+                      : 'bg-white/[0.08] text-white/70 hover:bg-white/[0.12] active:scale-[0.98]'
+                  }`}
+                >
+                  <ChevronDown size={18} className="rotate-90" /> Back
+                </button>
+                {isLastPage ? (
+                  <div className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold min-h-[48px] bg-emerald-500/10 text-emerald-400">
+                    <CheckCircle size={18} /> Done! Review your answers.
+                  </div>
+                ) : (
                   <button
-                    onClick={() => setQPage(p => p - 1)}
-                    disabled={isFirstPage}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all min-h-[48px] ${
-                      isFirstPage
-                        ? 'bg-white/[0.03] text-white/15 cursor-not-allowed'
-                        : 'bg-white/[0.08] text-white/70 hover:bg-white/[0.12] active:scale-[0.98]'
-                    }`}
+                    onClick={() => setQPage(p => p + 1)}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all min-h-[48px] bg-amber-500 text-white hover:bg-amber-600 active:scale-[0.98]"
                   >
-                    <ChevronDown size={18} className="rotate-90" /> Back
+                    Next <ChevronDown size={18} className="-rotate-90" />
                   </button>
-                  {isLastPage ? (
-                    <div className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold min-h-[48px] bg-emerald-500/10 text-emerald-400">
-                      <CheckCircle size={18} /> Done! Review your answers.
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setQPage(p => p + 1)}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-all min-h-[48px] bg-amber-500 text-white hover:bg-amber-600 active:scale-[0.98]"
-                    >
-                      Next <ChevronDown size={18} className="-rotate-90" />
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         );
       })()}

@@ -3806,7 +3806,14 @@ const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent,
 
       {/* Right — GuidedListeningActivity showing only this track */}
       <div className="flex-1 h-full relative overflow-hidden">
-        <style>{`.guided-listening-embed .h-screen { height: 100% !important; }`}</style>
+        <style>{`
+          .guided-listening-embed .h-screen { height: 100% !important; }
+          .guided-listening-embed h2 { font-size: 2rem !important; }
+          .guided-listening-embed button { font-size: 1rem !important; min-height: 52px !important; }
+          .guided-listening-embed textarea, .guided-listening-embed input { font-size: 1.1rem !important; }
+          .guided-listening-embed .text-xs { font-size: 0.9rem !important; }
+          .guided-listening-embed .text-sm { font-size: 1rem !important; }
+        `}</style>
         <div className="h-full guided-listening-embed">
           {GuidedListeningComponent ? (
             <GuidedListeningComponent
@@ -4808,12 +4815,13 @@ const TeacherLessonView = ({
   return (
     <>
       <style>{`
+        .teacher-lesson-wrapper {
+          height: 100vh;
+          height: 100dvh;
+          overflow: hidden;
+          background: #0f172a;
+        }
         @media (max-width: 1400px) {
-          .teacher-lesson-wrapper {
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
-          }
           .teacher-lesson-container {
             transform: scale(0.67);
             transform-origin: top left;
