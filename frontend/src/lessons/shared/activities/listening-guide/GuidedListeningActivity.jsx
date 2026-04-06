@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Music, ChevronDown, ChevronUp, Save, CheckCircle, Headphones, Search } from 'lucide-react';
 import { GUIDED_TRACKS } from '../../../music-journalist/lesson2/lesson2Config';
+import { getArtistById } from '../artist-discovery/artistDatabase';
 import { saveStudentWork, getClassAuthInfo, getStudentId } from '../../../../utils/studentWorkStorage';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
@@ -388,6 +389,30 @@ const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, si
             {/* Question content — centered, one at a time */}
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-4 overflow-y-auto">
               <div className="w-full max-w-lg">
+                {/* Artist info banner */}
+                {(() => {
+                  const artistData = getArtistById(track.artistId);
+                  return artistData ? (
+                    <div className="flex items-center gap-3 mb-4 bg-white/[0.04] rounded-xl px-4 py-3 border border-white/[0.06]">
+                      {artistData.imageUrl && (
+                        <img
+                          src={artistData.imageUrl}
+                          alt={artistData.name}
+                          className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-white font-bold text-sm truncate">{artistData.name}</p>
+                        <p className="text-white/40 text-xs truncate">"{track.title}" &middot; {track.genre}</p>
+                        {artistData.whyInteresting && (
+                          <p className="text-white/30 text-xs mt-0.5 line-clamp-1">{artistData.whyInteresting}</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
+
                 {/* Question header */}
                 <div className="text-center mb-5">
                   <h2 className="text-white text-xl font-bold">
@@ -565,7 +590,7 @@ const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, si
                   />
                 )}
 
-                {/* Q6: Bonus — Influences + Notes */}
+                {/* Q6: Bonus — Influences + Notes + Save */}
                 {qPage === 6 && (
                   <div className="space-y-4">
                     <div>
@@ -594,6 +619,18 @@ const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, si
                         className="w-full bg-white/[0.04] border-2 border-white/[0.08] rounded-xl px-4 py-3 text-base text-white placeholder-white/25 focus:outline-none focus:border-white/20 resize-none"
                       />
                     </div>
+                    {!viewMode && (
+                      <button
+                        onClick={handleSave}
+                        className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl text-lg font-bold transition-all min-h-[56px] ${
+                          saved
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-green-500 hover:bg-green-600 text-white'
+                        }`}
+                      >
+                        {saved ? <><CheckCircle size={20} /> Saved!</> : <><Save size={20} /> Save My Work</>}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

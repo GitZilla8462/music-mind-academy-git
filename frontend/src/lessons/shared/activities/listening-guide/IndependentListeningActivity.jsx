@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Headphones, Save, CheckCircle, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { ARTIST_DATABASE, getArtistById } from '../artist-discovery/artistDatabase';
 import { saveStudentWork, getClassAuthInfo, getStudentId } from '../../../../utils/studentWorkStorage';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
@@ -100,7 +101,7 @@ const DIRECTIONS_STEPS = [
 ];
 
 // ── Listening Guide Form (7 questions, same as guided) ──
-const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, viewMode }) => {
+const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, viewMode, handleSave, saved }) => {
   const [qPage, setQPage] = useState(0);
 
   const QUESTIONS = [
@@ -123,24 +124,44 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
       {/* Top bar: track info + nav */}
       <div className="shrink-0 px-3 py-2 bg-[#141a21] border-b border-white/[0.06]">
         <div className="max-w-2xl mx-auto space-y-2">
-          {/* Row 1: Track inputs */}
+          {/* Row 1: Artist & Track dropdowns */}
           <div className="flex items-center gap-2">
-            <input
-              type="text"
+            <select
               value={entry.artistName}
-              onChange={(e) => !viewMode && updateField('artistName', e.target.value)}
-              readOnly={viewMode}
-              placeholder="Artist name"
-              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-white/25 focus:outline-none focus:border-amber-400/30 min-h-[34px]"
-            />
-            <input
-              type="text"
+              onChange={(e) => {
+                if (viewMode) return;
+                const artistName = e.target.value;
+                updateField('artistName', artistName);
+                // Auto-clear track when artist changes
+                if (artistName !== entry.artistName) {
+                  updateField('trackTitle', '');
+                  // Auto-set genre from artist database
+                  const artist = ARTIST_DATABASE.find(a => a.name === artistName);
+                  if (artist) updateField('genre', artist.genre);
+                }
+              }}
+              disabled={viewMode}
+              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400/30 min-h-[34px] appearance-none cursor-pointer"
+            >
+              <option value="" className="bg-[#1a2030]">Select artist...</option>
+              {ARTIST_DATABASE.map(artist => (
+                <option key={artist.id} value={artist.name} className="bg-[#1a2030]">{artist.name}</option>
+              ))}
+            </select>
+            <select
               value={entry.trackTitle}
               onChange={(e) => !viewMode && updateField('trackTitle', e.target.value)}
-              readOnly={viewMode}
-              placeholder="Track title"
-              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-white/25 focus:outline-none focus:border-amber-400/30 min-h-[34px]"
-            />
+              disabled={viewMode || !entry.artistName}
+              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400/30 min-h-[34px] appearance-none cursor-pointer disabled:opacity-40"
+            >
+              <option value="" className="bg-[#1a2030]">{entry.artistName ? 'Select track...' : 'Pick artist first'}</option>
+              {(() => {
+                const artist = ARTIST_DATABASE.find(a => a.name === entry.artistName);
+                return artist?.tracks?.map(track => (
+                  <option key={track.title} value={track.title} className="bg-[#1a2030]">{track.title}</option>
+                )) || [];
+              })()}
+            </select>
           </div>
           {/* Row 2: Back/Next + progress dots */}
           <div className="flex items-center gap-2">
@@ -291,7 +312,7 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
               className="w-full bg-white/[0.04] border-2 border-white/[0.08] rounded-xl px-4 py-3 text-base text-white placeholder-white/25 focus:outline-none focus:border-white/20 resize-none" />
           )}
 
-          {/* Q6: Bonus */}
+          {/* Q6: Bonus + Save */}
           {qPage === 6 && (
             <div className="space-y-4">
               <div>
@@ -305,6 +326,16 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
                   placeholder="Additional observations about this track..." rows={3}
                   className="w-full bg-white/[0.04] border-2 border-white/[0.08] rounded-xl px-4 py-3 text-base text-white placeholder-white/25 focus:outline-none focus:border-white/20 resize-none" />
               </div>
+              {!viewMode && (
+                <button
+                  onClick={handleSave}
+                  className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl text-lg font-bold transition-all min-h-[56px] ${
+                    saved ? 'bg-emerald-500 text-white' : 'bg-green-500 hover:bg-green-600 text-white'
+                  }`}
+                >
+                  {saved ? <><CheckCircle size={20} /> Saved!</> : <><Save size={20} /> Save My Work</>}
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -522,6 +553,8 @@ const IndependentListeningInner = ({ onComplete, isSessionMode, viewMode }) => {
             toggleInstrument={toggleInstrument}
             toggleMood={toggleMood}
             viewMode={viewMode}
+            handleSave={handleSave}
+            saved={isSaved}
           />
         </div>
       </div>

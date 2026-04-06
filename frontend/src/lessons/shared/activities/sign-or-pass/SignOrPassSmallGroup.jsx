@@ -337,7 +337,7 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
       const snapshot = await get(ref(db, getGroupPath(code)));
       if (!snapshot.exists()) { setError('Group not found. Check the code.'); return; }
       const groupData = snapshot.val();
-      if (groupData.game?.phase !== 'lobby') { setError('Game already in progress.'); return; }
+      if (groupData.game?.phase === 'finished') { setError('Game is over. Ask the host to start a new one.'); return; }
       const memberCount = groupData.members ? Object.keys(groupData.members).length : 0;
       if (memberCount >= 5) { setError('Group is full (max 5 players).'); return; }
       await update(ref(db, `${getGroupPath(code)}/members/${userId}`), {
@@ -851,6 +851,14 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
             <span className="text-blue-300 text-xs ml-1">pts</span>
           </div>
         </div>
+
+        {/* Volume banner for the host (DJ) */}
+        {memberOrder[0] === userId && (
+          <div className="bg-amber-500/20 border border-amber-400/30 rounded-lg px-3 py-2 mb-2 text-center flex items-center justify-center gap-2">
+            <Volume2 size={16} className="text-amber-300" />
+            <p className="text-amber-300 text-sm font-bold">Turn up your volume so the group can hear!</p>
+          </div>
+        )}
 
         <div className="text-center mb-3">
           <h1 className="text-xl font-bold text-white mb-1">

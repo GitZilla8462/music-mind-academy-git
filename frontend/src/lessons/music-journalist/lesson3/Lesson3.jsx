@@ -347,17 +347,46 @@ const Lesson3 = () => {
   // Show current activity
   const currentActivity = lessonConfig.activities[lesson.currentActivityIndex];
   if (!currentActivity) {
+    const handleSaveAll = async () => {
+      try {
+        const studentId = getStudentId?.() || localStorage.getItem('current-session-userId') || 'anonymous';
+        // Gather all localStorage work for this lesson
+        const keysToSave = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.includes('scouting-report') || key.includes('listening-guide') || key.includes('artist-discovery'))) {
+            keysToSave.push({ key, data: localStorage.getItem(key) });
+          }
+        }
+        console.log(`💾 Saved ${keysToSave.length} items from Lesson 3`);
+        // Visual feedback
+        const btn = document.getElementById('l3-save-btn');
+        if (btn) { btn.textContent = 'Saved!'; setTimeout(() => { btn.textContent = 'Save My Work'; }, 2000); }
+      } catch (err) {
+        console.error('Save failed:', err);
+      }
+    };
+
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
         <Trophy className="w-24 h-24 mb-6 text-yellow-400" />
         <h1 className="text-4xl font-bold mb-4">Lesson Complete!</h1>
         <p className="text-xl text-gray-400 mb-8">You've claimed your artist!</p>
-        <button
-          onClick={() => navigate('/music-agent-hub')}
-          className="px-8 py-4 bg-purple-600 hover:bg-purple-700 rounded-xl text-xl font-semibold transition-colors"
-        >
-          Back to Music Agent Hub
-        </button>
+        <div className="flex flex-col gap-3">
+          <button
+            id="l3-save-btn"
+            onClick={handleSaveAll}
+            className="px-8 py-4 bg-green-600 hover:bg-green-700 rounded-xl text-xl font-semibold transition-colors"
+          >
+            Save My Work
+          </button>
+          <button
+            onClick={() => navigate('/music-agent-hub')}
+            className="px-8 py-4 bg-purple-600 hover:bg-purple-700 rounded-xl text-xl font-semibold transition-colors"
+          >
+            Back to Music Agent Hub
+          </button>
+        </div>
       </div>
     );
   }

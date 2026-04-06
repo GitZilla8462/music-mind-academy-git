@@ -2188,15 +2188,15 @@ const PresentationContent = ({
       const isDense = totalBullets > 6 || (hasManySections && totalBullets > 4);
 
       return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-6 lg:p-12">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-4 lg:p-12 overflow-hidden">
           {/* Title */}
-          <h1 className={`${isDense ? 'text-5xl lg:text-7xl mb-2 lg:mb-4' : 'text-7xl lg:text-8xl mb-4 lg:mb-6'} font-bold text-white text-center`}>
+          <h1 className={`${isDense ? 'text-4xl lg:text-7xl mb-2 lg:mb-4' : 'text-5xl lg:text-8xl mb-3 lg:mb-6'} font-bold text-white text-center`}>
             {title}
           </h1>
 
           {/* Subtitle (if provided) */}
           {subtitle && (
-            <p className={`${isDense ? 'text-2xl lg:text-4xl mb-4 lg:mb-6' : 'text-4xl lg:text-5xl mb-6 lg:mb-10'} text-purple-300 text-center`}>
+            <p className={`${isDense ? 'text-xl lg:text-4xl mb-3 lg:mb-6' : 'text-3xl lg:text-5xl mb-4 lg:mb-10'} text-purple-300 text-center`}>
               {subtitle}
             </p>
           )}
@@ -3603,9 +3603,9 @@ const FinalPilotSurvey = ({
 // Teacher plays tracks on left, student worksheet on right
 // ============================================
 const GUIDED_LISTENING_TRACKS_DATA = [
-  { id: 'guided-1', title: 'Trench Work', artist: 'Ketsa', genre: 'Jazz / Soul / Trip-Hop', audioUrl: 'https://media.musicmindacademy.com/artists/ketsa/trench-work.mp3', color: '#3b82f6', playDuration: 60 },
-  { id: 'guided-2', title: "Jenny's Theme", artist: 'Jason Shaw', genre: 'Country / Acoustic', audioUrl: 'https://media.musicmindacademy.com/artists/jason-shaw/jennys-theme.mp3', color: '#f97316', playDuration: 60 },
-  { id: 'guided-3', title: 'Horizon Ending', artist: 'Soft and Furious', genre: 'Synth Pop / Electronic', audioUrl: 'https://media.musicmindacademy.com/artists/soft-and-furious/horizon-ending.mp3', color: '#8b5cf6', playDuration: 60 },
+  { id: 'guided-1', title: 'Trench Work', artist: 'Ketsa', genre: 'Jazz / Soul / Trip-Hop', audioUrl: 'https://media.musicmindacademy.com/artists/ketsa/trench-work.mp3', color: '#3b82f6', playDuration: 0 },
+  { id: 'guided-2', title: "Jenny's Theme", artist: 'Jason Shaw', genre: 'Country / Acoustic', audioUrl: 'https://media.musicmindacademy.com/artists/jason-shaw/jennys-theme.mp3', color: '#f97316', playDuration: 0 },
+  { id: 'guided-3', title: 'Horizon Ending', artist: 'Soft and Furious', genre: 'Synth Pop / Electronic', audioUrl: 'https://media.musicmindacademy.com/artists/soft-and-furious/horizon-ending.mp3', color: '#8b5cf6', playDuration: 0 },
 ];
 
 const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent, onAdvanceToNext, nextLabel }) => {
@@ -3617,8 +3617,9 @@ const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent,
   const [duration, setDuration] = useState(0);
   const audioRef = useRef(null);
 
-  const maxDuration = track.playDuration || 60; // Play first 60 seconds
-  const fadeStart = maxDuration - 5; // Start fade-out 5 seconds before end
+  const playFullSong = !track.playDuration; // 0 or undefined = play entire song
+  const [maxDuration, setMaxDuration] = useState(track.playDuration || 300);
+  const fadeStart = playFullSong ? Infinity : maxDuration - 5;
 
   // Preload audio on mount
   useEffect(() => {
@@ -3627,8 +3628,8 @@ const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent,
     audioRef.current = audio;
 
     const onTimeUpdate = () => {
-      // Stop at playDuration limit
-      if (audio.currentTime >= maxDuration) {
+      // Stop at playDuration limit (skip if playing full song)
+      if (!playFullSong && audio.currentTime >= maxDuration) {
         audio.pause();
         audio.volume = 1;
         audio.currentTime = 0;
@@ -3637,14 +3638,17 @@ const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent,
         setElapsed(0);
         return;
       }
-      // Fade out over last 5 seconds
-      if (audio.currentTime >= fadeStart) {
+      // Fade out over last 5 seconds (skip if playing full song)
+      if (!playFullSong && audio.currentTime >= fadeStart) {
         const remaining = maxDuration - audio.currentTime;
         audio.volume = Math.max(0, remaining / 5);
       }
       setElapsed(audio.currentTime);
     };
-    const onLoadedMetadata = () => setDuration(Math.min(audio.duration, maxDuration));
+    const onLoadedMetadata = () => {
+      if (playFullSong) setMaxDuration(audio.duration);
+      setDuration(playFullSong ? audio.duration : Math.min(audio.duration, maxDuration));
+    };
     const onEnded = () => { setIsPlaying(false); setHasPlayed(true); setElapsed(0); };
 
     audio.addEventListener('timeupdate', onTimeUpdate);
@@ -3659,7 +3663,7 @@ const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent,
       audio.src = '';
       audioRef.current = null;
     };
-  }, [track.audioUrl, maxDuration, fadeStart]);
+  }, [track.audioUrl, playFullSong]);
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
@@ -3670,10 +3674,13 @@ const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent,
       audio.volume = 1;
       setIsPlaying(false);
     } else {
-      // Always start from the beginning
       audio.volume = 1;
-      audio.currentTime = 0;
-      setElapsed(0);
+      // Start from beginning only if song ended or first play
+      if (hasPlayed || audio.currentTime === 0) {
+        audio.currentTime = 0;
+        setElapsed(0);
+        setHasPlayed(false);
+      }
       setIsLoading(true);
       audio.play().then(() => {
         setIsLoading(false);
@@ -3691,7 +3698,7 @@ const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent,
   return (
     <div className="absolute inset-0 flex bg-white">
       {/* Left — Single track player + directions */}
-      <div className="w-[340px] h-full bg-white border-r border-gray-200 flex flex-col">
+      <div className="w-[300px] h-full bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
         {/* Header */}
         <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-5 py-4 shrink-0">
           <h2 className="font-bold text-lg">Guided Listening {trackIndex + 1} of 3</h2>
