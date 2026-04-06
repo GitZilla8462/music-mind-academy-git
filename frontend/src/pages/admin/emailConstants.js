@@ -69,6 +69,17 @@ export const EMAIL_TEMPLATES = [
     variables: ['firstName', 'unitName', 'siteUrl'],
   },
   {
+    id: 'login-update',
+    name: 'Login Update',
+    subject: 'New way to sign in — no Google needed',
+    trigger: 'Manual batch send',
+    description: 'Announces the new email/password login option. Includes IT whitelist draft for teachers whose schools block the site.',
+    color: 'sky',
+    outreachField: 'loginUpdateSent',
+    from: 'Rob Taube - Music Mind Academy',
+    variables: ['firstName', 'schoolEmail', 'loginUrl', 'siteUrl'],
+  },
+  {
     id: 'application-notify',
     name: 'Application Notification',
     subject: 'New pilot application: [Name]',

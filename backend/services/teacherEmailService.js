@@ -137,6 +137,45 @@ const getDefaultTemplates = () => ({
   </div>
 </div>`
   },
+  'login-update': {
+    subject: 'New way to sign in — no Google needed',
+    from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
+    html: `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background: #0c4a6e; color: white; padding: 24px; border-radius: 8px 8px 0 0;">
+    <h1 style="margin: 0; font-size: 20px;">New Sign-In Option</h1>
+    <p style="margin: 8px 0 0; opacity: 0.9;">Music Mind Academy</p>
+  </div>
+  <div style="background: #ffffff; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <p style="font-size: 16px; color: #374151;">Hi {{firstName}},</p>
+    <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">We've added a simpler way to sign in to Music Mind Academy that doesn't require Google or Microsoft.</p>
+    <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 16px; margin: 20px 0;">
+      <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #0c4a6e;">How to sign in:</p>
+      <ol style="margin: 0; padding-left: 20px; color: #4b5563; line-height: 2; font-size: 15px;">
+        <li>Go to <a href="{{loginUrl}}" style="color: #0ea5e9;">{{loginUrl}}</a></li>
+        <li>Click <strong>"New? Create Account"</strong></li>
+        <li>Enter your school email and choose any password</li>
+      </ol>
+    </div>
+    <p style="font-size: 15px; color: #4b5563; line-height: 1.6;">If you've already been using Google to sign in, that still works too.</p>
+    <div style="text-align: center; margin: 28px 0;">
+      <a href="{{loginUrl}}" style="background: #0ea5e9; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: 600;">Sign In Now</a>
+    </div>
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 24px 0;">
+      <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #374151;">Does your school block websites?</p>
+      <p style="font-size: 14px; color: #4b5563; line-height: 1.5; margin: 0 0 8px;">Forward this to your IT department and ask them to whitelist these domains:</p>
+      <ul style="margin: 0 0 8px; padding-left: 20px; color: #4b5563; font-size: 14px; line-height: 1.8;">
+        <li>musicmindacademy.com</li>
+        <li>musicroomtools.org</li>
+        <li>media.musicmindacademy.com</li>
+      </ul>
+      <p style="font-size: 13px; color: #6b7280; margin: 0;">Privacy &amp; compliance info: <a href="{{siteUrl}}/student-privacy" style="color: #0ea5e9;">{{siteUrl}}/student-privacy</a></p>
+    </div>
+    <p style="font-size: 15px; color: #4b5563;">Questions? Just reply to this email.</p>
+    <p style="font-size: 15px; color: #4b5563;">Best,<br><strong>Rob Taube</strong><br><span style="color: #6b7280;">Music Mind Academy</span></p>
+    <p style="font-size: 13px; color: #9ca3af; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb;">Music Mind Academy &middot; <a href="{{siteUrl}}" style="color: #0ea5e9;">musicmindacademy.com</a></p>
+  </div>
+</div>`
+  },
   'survey-l3': {
     subject: "You're halfway through the pilot! Quick survey inside",
     from: `"Music Mind Academy" <${SMTP_USER}>`,
@@ -526,6 +565,9 @@ const getSampleVars = (type) => {
     applicationDetails: `<div style="margin-top: 16px; padding: 12px; background: #f8fafc; border-radius: 8px;"><p style="margin: 0 0 4px; font-size: 13px; color: #6b7280;">Why Pilot</p><p style="margin: 0; font-size: 14px; color: #374151;">I want to bring more technology into my music classroom.</p></div>`
   };
 
+  if (type === 'login-update') {
+    vars.schoolEmail = 'jane.smith@school.edu';
+  }
   if (type === 'survey-l5') {
     vars.surveyUrl = `${SITE_URL}/survey/final?email=jane.smith%40school.edu`;
   }
@@ -563,6 +605,41 @@ const getEmailPreview = (type) => {
 };
 
 /**
+ * Login Update email: announces new email/password login option
+ */
+const sendLoginUpdateEmail = async (email, firstName, schoolEmail) => {
+  const transport = getTransporter();
+  if (!transport) {
+    return { success: false, error: 'SMTP not configured' };
+  }
+
+  const name = firstName || 'Teacher';
+  const vars = { firstName: name, schoolEmail: schoolEmail || email, siteUrl: SITE_URL, loginUrl: `${SITE_URL}/login` };
+
+  const custom = await getCustomOrDefaultHtml('login-update', vars);
+  const subject = custom ? custom.subject : "New way to sign in — no Google needed";
+  const html = custom ? custom.html : renderTemplate(getDefaultTemplates()['login-update'].html, vars);
+  const text = `Hi ${name},\n\nWe've added a simpler way to sign in to Music Mind Academy that doesn't require Google or Microsoft.\n\nHow to sign in:\n1. Go to ${SITE_URL}/login\n2. Click "New? Create Account"\n3. Enter your school email and choose any password\n\nIf you've already been using Google to sign in, that still works too.\n\nSign in: ${SITE_URL}/login\n\nDoes your school block websites?\nForward this to your IT department and ask them to whitelist:\n- musicmindacademy.com\n- musicroomtools.org\n- media.musicmindacademy.com\n\nPrivacy info: ${SITE_URL}/student-privacy\n\nQuestions? Just reply to this email.\n\nBest,\nRob Taube\nMusic Mind Academy`;
+
+  try {
+    const info = await transport.sendMail({
+      from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
+      replyTo: ADMIN_EMAIL,
+      to: email,
+      bcc: ADMIN_EMAIL,
+      subject,
+      text,
+      html
+    });
+    console.log(`[TeacherEmail] Login update sent to ${email} (${info.messageId})`);
+    return { success: true, messageId: info.messageId };
+  } catch (err) {
+    console.error(`[TeacherEmail] Failed to send login update to ${email}:`, err.message);
+    return { success: false, error: err.message };
+  }
+};
+
+/**
  * Send a custom/ad-hoc email with pre-rendered subject and html
  * Used by the batch-send endpoint for arbitrary emails
  */
@@ -597,6 +674,7 @@ module.exports = {
   sendDripWelcomeEmail,
   sendDripFollowup1Email,
   sendDripFollowup2Email,
+  sendLoginUpdateEmail,
   sendCustomEmail,
   getEmailPreview,
   getDefaultTemplates,

@@ -53,13 +53,14 @@ const EmailsPage = () => {
 
   const stats = useMemo(() => {
     // Count from emailsSent/{emailKey}/{type} — the actual send log
-    const counts = { 'drip-1': 0, 'drip-2': 0, 'drip-3': 0, 'survey-l3': 0, 'survey-l5': 0 };
+    const counts = { 'drip-1': 0, 'drip-2': 0, 'drip-3': 0, 'survey-l3': 0, 'survey-l5': 0, 'login-update': 0 };
     Object.values(emailsSent).forEach(teacherEmails => {
       if (teacherEmails['drip-1']) counts['drip-1']++;
       if (teacherEmails['drip-2']) counts['drip-2']++;
       if (teacherEmails['drip-3']) counts['drip-3']++;
       if (teacherEmails['survey-l3']) counts['survey-l3']++;
       if (teacherEmails['survey-l5']) counts['survey-l5']++;
+      if (teacherEmails['login-update']) counts['login-update']++;
     });
     return counts;
   }, [emailsSent]);

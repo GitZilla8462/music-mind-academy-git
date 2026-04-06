@@ -9,6 +9,7 @@ const {
   sendDripWelcomeEmail,
   sendDripFollowup1Email,
   sendDripFollowup2Email,
+  sendLoginUpdateEmail,
   sendCustomEmail,
   getEmailPreview,
   getDefaultTemplates,
@@ -157,6 +158,26 @@ router.post('/drip-3', async (req, res) => {
 });
 
 /**
+ * POST /api/email/login-update
+ * Send login update email announcing email/password sign-in
+ */
+router.post('/login-update', async (req, res) => {
+  const { email, name } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    const result = await sendLoginUpdateEmail(email, name);
+    return res.json(result);
+  } catch (error) {
+    console.error('[EmailRoute] login-update error:', error.message);
+    return res.status(200).json({ success: false, error: error.message });
+  }
+});
+
+/**
  * GET /api/email/preview/:type
  * Get rendered HTML preview for an email template (no sending)
  * Returns custom template from MongoDB if it exists, otherwise default
@@ -231,7 +252,7 @@ router.put('/templates/:type', async (req, res) => {
   const { type } = req.params;
   const { subject, htmlContent, updatedBy } = req.body;
 
-  const validTypes = ['drip-1', 'drip-2', 'drip-3', 'survey-l3', 'survey-l5', 'application-notify'];
+  const validTypes = ['drip-1', 'drip-2', 'drip-3', 'survey-l3', 'survey-l5', 'login-update', 'application-notify'];
   if (!validTypes.includes(type) && !type.startsWith('custom-')) {
     return res.status(400).json({ error: `Invalid template type: ${type}` });
   }
