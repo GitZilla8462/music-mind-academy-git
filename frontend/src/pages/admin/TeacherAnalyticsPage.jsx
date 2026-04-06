@@ -409,6 +409,8 @@ const TeacherAnalyticsPage = () => {
     else if (emailFilter === 'hasWelcome') list = list.filter(t => !!t.emailHistory['drip-1']);
     else if (emailFilter === 'hasFollowup') list = list.filter(t => !!t.emailHistory['drip-2']);
     else if (emailFilter === 'hasFinal') list = list.filter(t => !!t.emailHistory['drip-3']);
+    else if (emailFilter === 'hasLoginUpdate') list = list.filter(t => !!t.emailHistory['login-update']);
+    else if (emailFilter === 'missingLoginUpdate') list = list.filter(t => !t.emailHistory['login-update']);
 
     // Funnel filter overrides
     if (funnelFilter === 'notLoggedIn') list = list.filter(t => t.stage === 'Not Logged In');
@@ -703,6 +705,8 @@ const TeacherAnalyticsPage = () => {
                 <option value="missingFollowup">Missing 7-Day Follow-up</option>
                 <option value="hasFinal">Has Final Reminder</option>
                 <option value="missingFinal">Missing Final Reminder</option>
+                <option value="hasLoginUpdate">Has Login Update</option>
+                <option value="missingLoginUpdate">Missing Login Update</option>
                 <option value="missingSurveyL3">Missing Mid-Pilot Survey email</option>
                 <option value="missingSurveyL5">Missing Final Survey email</option>
               </select>
