@@ -248,26 +248,33 @@ const TeacherLoginPage = () => {
 
                 {/* Email + Password — primary method */}
                 <form onSubmit={handleEmailPasswordSignIn} className="space-y-3">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@school.edu"
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
-                    required
-                    autoComplete="email"
-                  />
-                  <div className="relative">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">School Email</label>
                     <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder={isNewAccount ? 'Choose a password' : 'Password'}
-                      className="w-full px-4 py-3 pr-12 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@school.edu"
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
                       required
-                      autoComplete={isNewAccount ? 'new-password' : 'current-password'}
-                      minLength={6}
+                      autoComplete="email"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      {isNewAccount ? 'Choose a Password' : 'Password'}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder={isNewAccount ? 'At least 6 characters' : 'Enter your password'}
+                        className="w-full px-4 py-3 pr-12 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
+                        required
+                        autoComplete={isNewAccount ? 'new-password' : 'current-password'}
+                        minLength={6}
+                      />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
@@ -285,15 +292,17 @@ const TeacherLoginPage = () => {
                         </svg>
                       )}
                     </button>
+                    </div>
                   </div>
                   {isNewAccount && (
-                    <div className="relative">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Confirm Password</label>
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirm password"
-                        className="w-full px-4 py-3 pr-12 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
+                        placeholder="Type your password again"
+                        className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
                         required
                         autoComplete="new-password"
                         minLength={6}
