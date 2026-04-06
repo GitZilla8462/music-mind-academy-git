@@ -183,7 +183,7 @@ const VirtualKeyboard = ({ onExit }) => {
       {/* Controls Panel */}
       <div style={{
         backgroundColor: 'rgba(255,255,255,0.08)',
-        backdropFilter: 'blur(10px)',
+        backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
         borderRadius: '8px',
         padding: '10px 20px',
         marginBottom: '15px',

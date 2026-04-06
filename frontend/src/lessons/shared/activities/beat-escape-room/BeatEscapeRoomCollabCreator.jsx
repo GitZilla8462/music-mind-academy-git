@@ -498,7 +498,7 @@ const BeatEscapeRoomCollabCreator = ({
 
         {/* Lock Grid - Compact layout for Chromebooks (5 columns, 2 rows) */}
         <div className="flex-1 flex flex-col items-center justify-center pb-40 px-2">
-          <div className="grid grid-cols-5 gap-3 w-full max-w-3xl">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 w-full max-w-3xl">
             {Array.from({ length: totalLocks }, (_, i) => i + 1).map(lockNumber => {
               const isMyLock = myLocks.includes(lockNumber);
               const pattern = room?.patterns?.[lockNumber];

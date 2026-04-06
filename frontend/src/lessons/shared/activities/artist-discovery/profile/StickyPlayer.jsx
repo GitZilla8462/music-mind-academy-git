@@ -20,7 +20,7 @@ const StickyPlayer = ({ artist, visible }) => {
       )}
 
       {/* Player panel */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f1419] border-t border-white/[0.1] rounded-t-2xl shadow-2xl shadow-black/50">
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#0f1419] border-t border-white/[0.1] rounded-t-2xl shadow-2xl shadow-black/50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {/* Handle bar — tap to minimize/expand */}
         <button
           onClick={() => setMinimized(!minimized)}

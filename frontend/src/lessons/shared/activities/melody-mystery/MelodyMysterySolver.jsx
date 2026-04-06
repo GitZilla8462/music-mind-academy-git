@@ -108,7 +108,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Detect Chromebook for performance optimizations
-  const isChromebook = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS');
+  const isChromebook = typeof navigator !== 'undefined' && (navigator.userAgent.includes('CrOS') || (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)));
 
   // Game state
   const [gameState, setGameState] = useState(STATES.SCENE);

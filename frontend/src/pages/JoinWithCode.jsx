@@ -89,7 +89,7 @@ function JoinWithCode() {
   // Activity load handlers
   if (loadRoomCode) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#1a202c' }}>
+      <div className="min-h-screen" style={{ backgroundColor: '#1a202c' }}>
         <BeatEscapeRoomActivity onComplete={() => navigate('/join')} />
       </div>
     );
@@ -97,7 +97,7 @@ function JoinWithCode() {
 
   if (loadMelodyMysteryCode) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#1a202c' }}>
+      <div className="min-h-screen" style={{ backgroundColor: '#1a202c' }}>
         <MelodyMysteryActivity
           onComplete={() => navigate('/join')}
           initialLoadCode={loadMelodyMysteryCode}

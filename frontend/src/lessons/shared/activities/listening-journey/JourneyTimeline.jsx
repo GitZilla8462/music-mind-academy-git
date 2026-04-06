@@ -254,8 +254,7 @@ const BoundaryHandle = ({ leftPct, isDragging, onDragStart }) => (
   <div
     className={`absolute top-0 bottom-0 w-5 -translate-x-1/2 cursor-col-resize z-20 group ${isDragging ? 'z-30' : ''}`}
     style={{ left: `${leftPct}%` }}
-    onMouseDown={onDragStart}
-    onTouchStart={onDragStart}
+    onPointerDown={onDragStart}
   >
     <div className={`absolute left-1/2 -translate-x-1/2 top-0 h-full transition-all ${
       isDragging
@@ -327,19 +326,16 @@ const ItemBlock = ({ item, lane, totalDuration, isSelected, onSelect, onUpdate, 
       if (onSeek) onSeek(newTimestamp + (item.duration || 3) / 2);
     };
 
-    const handleMouseMove = (e) => handleMove(e.clientX);
-    const handleTouchMove = (e) => { if (e.touches.length > 0) handleMove(e.touches[0].clientX); };
+    const handlePointerMove = (e) => handleMove(e.clientX);
     const handleEnd = () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleEnd);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleEnd);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handleEnd);
+      window.removeEventListener('pointercancel', handleEnd);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleEnd);
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    window.addEventListener('touchend', handleEnd);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handleEnd);
+    window.addEventListener('pointercancel', handleEnd);
   }, [item, totalDuration, onUpdate, onSelect, calcTime]);
 
   return (
@@ -354,8 +350,7 @@ const ItemBlock = ({ item, lane, totalDuration, isSelected, onSelect, onUpdate, 
         height: `${LANE_HEIGHT - 2}px`,
         backgroundColor: isSelected ? bgSelected : bg,
       }}
-      onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); startBodyDrag(e.clientX); }}
-      onTouchStart={(e) => { e.stopPropagation(); if (e.touches.length > 0) startBodyDrag(e.touches[0].clientX); }}
+      onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); startBodyDrag(e.clientX); }}
     >
       {/* Content */}
       <span className="text-[9px] text-white/90 truncate px-2 pointer-events-none select-none">
@@ -366,8 +361,7 @@ const ItemBlock = ({ item, lane, totalDuration, isSelected, onSelect, onUpdate, 
       {onRemove && (
         <button
           onClick={(e) => { e.stopPropagation(); e.preventDefault(); onRemove(item.id); }}
-          onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
-          onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); onRemove(item.id); }}
+          onPointerDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
           className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 hover:bg-red-600 rounded-full text-white text-[10px] font-bold flex items-center justify-center z-30 opacity-0 group-hover/item:opacity-100 transition-opacity shadow-md"
           title="Delete"
         >
@@ -468,19 +462,11 @@ const JourneyTimeline = ({
 
   // ── Clip strip seek (click/drag anywhere to scrub) ────────────────
 
-  const handleClipStripMouseDown = useCallback((e) => {
+  const handleClipStripPointerDown = useCallback((e) => {
     e.preventDefault();
     setIsDraggingProgress(true);
     const time = calcTimeFromClipStrip(e.clientX);
     if (time !== null) onSeek(time);
-  }, [calcTimeFromClipStrip, onSeek]);
-
-  const handleClipStripTouchStart = useCallback((e) => {
-    setIsDraggingProgress(true);
-    if (e.touches.length > 0) {
-      const time = calcTimeFromClipStrip(e.touches[0].clientX);
-      if (time !== null) onSeek(time);
-    }
   }, [calcTimeFromClipStrip, onSeek]);
 
   const handleBoundaryDragStart = useCallback((index, e) => {
@@ -516,26 +502,21 @@ const JourneyTimeline = ({
       }
     };
 
-    const handleMouseMove = (e) => handleMove(e.clientX);
-    const handleTouchMove = (e) => { if (e.touches.length > 0) handleMove(e.touches[0].clientX); };
+    const handlePointerMove = (e) => handleMove(e.clientX);
     const handleEnd = () => {
       setIsDraggingProgress(false);
       setDraggingBoundary(null);
       setIsDraggingLastEdge(false);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleEnd);
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    window.addEventListener('touchend', handleEnd);
-    window.addEventListener('touchcancel', handleEnd);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handleEnd);
+    window.addEventListener('pointercancel', handleEnd);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleEnd);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleEnd);
-      window.removeEventListener('touchcancel', handleEnd);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handleEnd);
+      window.removeEventListener('pointercancel', handleEnd);
     };
   }, [isDraggingProgress, draggingBoundary, isDraggingLastEdge, calcTimeFromClipStrip, onSeek, onResizeBoundary, onExtendLastEdge]);
 
@@ -617,8 +598,7 @@ const JourneyTimeline = ({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onMouseDown={handleClipStripMouseDown}
-            onTouchStart={handleClipStripTouchStart}
+            onPointerDown={handleClipStripPointerDown}
           >
             {!hasContent ? (
               <div className={`w-full h-full border-2 border-dashed rounded-lg flex items-center justify-center transition-colors ${
@@ -692,8 +672,7 @@ const JourneyTimeline = ({
                   <div
                     className={`absolute top-0 h-full w-5 -translate-x-1/2 cursor-col-resize z-20 group ${isDraggingLastEdge ? 'z-30' : ''}`}
                     style={{ left: `${coveredPct}%` }}
-                    onMouseDown={handleLastEdgeDragStart}
-                    onTouchStart={handleLastEdgeDragStart}
+                    onPointerDown={handleLastEdgeDragStart}
                   >
                     <div className={`absolute left-1/2 -translate-x-1/2 top-0 h-full transition-all rounded-full ${
                       isDraggingLastEdge
@@ -712,8 +691,7 @@ const JourneyTimeline = ({
                 {!presetMode && coveredEnd >= totalDuration && sections.length > 0 && (
                   <div
                     className={`absolute top-0 right-0 h-full w-5 cursor-col-resize z-20 group ${isDraggingLastEdge ? 'z-30' : ''}`}
-                    onMouseDown={handleLastEdgeDragStart}
-                    onTouchStart={handleLastEdgeDragStart}
+                    onPointerDown={handleLastEdgeDragStart}
                   >
                     <div className={`absolute right-0 top-0 h-full transition-all rounded-full ${
                       isDraggingLastEdge

@@ -9,7 +9,8 @@ import React, { useState, useEffect, useRef } from 'react';
 // Detect Chromebook for seamless cursor
 const isChromebook = typeof navigator !== 'undefined' && (
   /CrOS/.test(navigator.userAgent) ||
-  (navigator.userAgentData?.platform === 'Chrome OS')
+  (navigator.userAgentData?.platform === 'Chrome OS') ||
+  (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent))
 );
 import { useNavigate } from 'react-router-dom';
 import MusicComposer from "../../../pages/projects/film-music-score/composer/MusicComposer";
@@ -756,6 +757,7 @@ const GameCompositionActivity = ({
         <div className="flex-1 flex items-center justify-center">
           <video
             src={previewingVideo.videoPath}
+            playsInline
             controls
             autoPlay
             className="max-w-full max-h-full"

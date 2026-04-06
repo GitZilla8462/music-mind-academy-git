@@ -357,15 +357,17 @@ export const useComposerEffects = ({
     };
 
     if (isResizingLeft || isResizingTop) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('pointermove', handleMouseMove);
+      document.addEventListener('pointerup', handleMouseUp);
+      document.addEventListener('pointercancel', handleMouseUp);
       document.body.style.cursor = isResizingLeft ? 'col-resize' : 'row-resize';
       document.body.style.userSelect = 'none';
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('pointermove', handleMouseMove);
+      document.removeEventListener('pointerup', handleMouseUp);
+      document.removeEventListener('pointercancel', handleMouseUp);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };

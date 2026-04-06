@@ -257,8 +257,8 @@ const ArticleReader = ({ article: articleProp, articleId, onBack, onHighlight, s
       }
     };
 
-    document.addEventListener('mouseup', handleMouseUp);
-    return () => document.removeEventListener('mouseup', handleMouseUp);
+    document.addEventListener('pointerup', handleMouseUp);
+    return () => document.removeEventListener('pointerup', handleMouseUp);
   }, []);
 
   // Loading state

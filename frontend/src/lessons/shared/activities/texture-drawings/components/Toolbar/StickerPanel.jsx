@@ -24,61 +24,46 @@ import { INSTRUMENT_ICONS } from '../../config/InstrumentIcons.jsx';
 const StickerItem = ({ item, isSelected, onClick, onDragStart }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const handlePointerStart = (e, clientX, clientY, isTouch) => {
+  const handlePointerDown = (e) => {
     // Prevent text selection during drag
-    if (!isTouch) e.preventDefault();
+    e.preventDefault();
 
-    const startX = clientX;
-    const startY = clientY;
+    const startX = e.clientX;
+    const startY = e.clientY;
     let hasDragged = false;
 
     const handleMove = (moveEvent) => {
-      const mx = moveEvent.touches ? moveEvent.touches[0].clientX : moveEvent.clientX;
-      const my = moveEvent.touches ? moveEvent.touches[0].clientY : moveEvent.clientY;
+      const mx = moveEvent.clientX;
+      const my = moveEvent.clientY;
       const dx = Math.abs(mx - startX);
       const dy = Math.abs(my - startY);
 
-      // Start drag if moved more than 8px (slightly higher for touch to avoid scroll conflicts)
+      // Start drag if moved more than 8px
       if (!hasDragged && (dx > 8 || dy > 8)) {
         hasDragged = true;
-        if (isTouch) moveEvent.preventDefault(); // Prevent scroll once drag starts
         if (onDragStart) {
           onDragStart(item, moveEvent);
         }
         // Clean up — parent takes over
-        window.removeEventListener('mousemove', handleMove);
-        window.removeEventListener('mouseup', handleUp);
-        window.removeEventListener('touchmove', handleMove);
-        window.removeEventListener('touchend', handleUp);
-        window.removeEventListener('touchcancel', handleUp);
+        window.removeEventListener('pointermove', handleMove);
+        window.removeEventListener('pointerup', handleUp);
+        window.removeEventListener('pointercancel', handleUp);
       }
     };
 
     const handleUp = () => {
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleUp);
-      window.removeEventListener('touchmove', handleMove);
-      window.removeEventListener('touchend', handleUp);
-      window.removeEventListener('touchcancel', handleUp);
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      window.removeEventListener('pointercancel', handleUp);
 
       if (!hasDragged) {
         onClick(item);
       }
     };
 
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleUp);
-    window.addEventListener('touchmove', handleMove, { passive: false });
-    window.addEventListener('touchend', handleUp);
-    window.addEventListener('touchcancel', handleUp);
-  };
-
-  const handleMouseDown = (e) => {
-    handlePointerStart(e, e.clientX, e.clientY, false);
-  };
-
-  const handleTouchStart = (e) => {
-    handlePointerStart(e, e.touches[0].clientX, e.touches[0].clientY, true);
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+    window.addEventListener('pointercancel', handleUp);
   };
 
   const renderSymbol = () => {
@@ -210,8 +195,7 @@ const StickerItem = ({ item, isSelected, onClick, onDragStart }) => {
 
   return (
     <button
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
+      onPointerDown={handlePointerDown}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{

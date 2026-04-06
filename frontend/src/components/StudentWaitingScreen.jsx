@@ -35,12 +35,11 @@ const StudentWaitingScreen = ({
   // Session ended - show message before redirect
   if (currentStage === 'ended') {
     return (
-      <div style={{
+      <div className="min-h-screen" style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '100vh',
         backgroundColor: '#1a202c',
         color: 'white',
         padding: '20px'
@@ -93,8 +92,7 @@ const StudentWaitingScreen = ({
 
   // Normal waiting screen - show keyboard with header
   return (
-    <div style={{
-      minHeight: '100vh',
+    <div className="min-h-screen" style={{
       backgroundColor: '#1a202c',
       color: 'white',
       display: 'flex',

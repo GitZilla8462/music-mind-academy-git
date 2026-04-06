@@ -383,7 +383,6 @@ const ExitTicketActivity = ({ questions = [], onComplete, isSessionMode = false,
               onChange={e => handleOpenChange(e.target.value)}
               placeholder="Type your answer here..."
               className="w-full h-36 px-5 py-4 rounded-2xl bg-white/10 border border-white/10 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/20 text-white text-lg placeholder-white/30 resize-none"
-              autoFocus
             />
           )}
         </div>

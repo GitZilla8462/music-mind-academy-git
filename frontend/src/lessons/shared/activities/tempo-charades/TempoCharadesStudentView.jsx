@@ -413,7 +413,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
         {gamePhase === 'guessing' && !answerSubmitted && audioPlayed && (
           <>
             <p className="text-purple-200 text-sm mb-4">Tap your answer:</p>
-            <div className="grid grid-cols-5 gap-2 w-full max-w-lg">
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 w-full max-w-lg">
               {TEMPO_OPTIONS.map(t => (
                 <button
                   key={t.symbol}

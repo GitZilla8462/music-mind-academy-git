@@ -10,7 +10,8 @@ import React, { createContext, useContext, useState, useCallback, useRef, useEff
 // Detect Chromebook/ChromeOS
 const isChromebook = typeof navigator !== 'undefined' && (
   /CrOS/.test(navigator.userAgent) ||
-  (navigator.userAgentData?.platform === 'Chrome OS')
+  (navigator.userAgentData?.platform === 'Chrome OS') ||
+  (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent))
 );
 
 // DEBUG: Cursor state logging (disabled for production - enable for debugging)

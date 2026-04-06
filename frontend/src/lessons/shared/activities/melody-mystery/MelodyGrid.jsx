@@ -29,7 +29,7 @@ const MelodyGrid = ({
   const concept = getConcept(conceptId);
 
   // Detect Chromebook for performance optimizations
-  const isChromebook = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS');
+  const isChromebook = typeof navigator !== 'undefined' && (navigator.userAgent.includes('CrOS') || (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)));
 
   const handleCellClick = async (row, col) => {
     if (disabled) return;

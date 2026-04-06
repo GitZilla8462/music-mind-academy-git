@@ -491,7 +491,7 @@ const ListeningLabHub = () => {
                                     handleStartSession(lesson);
                                   }}
                                   disabled={creatingSession === lesson.id}
-                                  className={`hidden sm:flex font-semibold py-2.5 px-5 rounded-lg transition-colors items-center gap-2 text-base ${
+                                  className={`hidden sm:flex font-semibold py-3 px-5 rounded-lg transition-colors items-center gap-2 text-base ${
                                     creatingSession === lesson.id
                                       ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                                       : 'bg-violet-500 hover:bg-violet-600 text-white'

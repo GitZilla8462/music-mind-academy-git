@@ -779,7 +779,7 @@ const SimpleMelodyGrid = ({
   const [triggeredCells, setTriggeredCells] = useState({});
 
   // Detect Chromebook for performance optimizations
-  const isChromebook = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS');
+  const isChromebook = typeof navigator !== 'undefined' && (navigator.userAgent.includes('CrOS') || (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)));
 
   // Handle cell click
   const handleCellClick = async (row, col) => {

@@ -22,7 +22,8 @@ const SCHOOL_BENEATH_DEADLINE = 30 * 60 * 1000; // 30 minutes
 // CHROMEBOOK FIX: Detect Chromebook for custom cursor
 const isChromebook = typeof navigator !== 'undefined' && (
   /CrOS/.test(navigator.userAgent) ||
-  (navigator.userAgentData?.platform === 'Chrome OS')
+  (navigator.userAgentData?.platform === 'Chrome OS') ||
+  (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent))
 );
 
 // Check if we're in passive mode (iframe preview) - defer MusicComposer loading for performance

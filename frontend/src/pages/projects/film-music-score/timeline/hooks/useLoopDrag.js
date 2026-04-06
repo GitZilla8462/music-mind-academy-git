@@ -213,6 +213,10 @@ export const useLoopDrag = (
   const handleLoopMouseDown = (e, loop) => {
     e.stopPropagation();
     e.preventDefault();
+    // Capture pointer for touch support (iPad) — ensures pointermove fires even outside element
+    if (e.pointerId !== undefined) {
+      try { e.target.setPointerCapture(e.pointerId); } catch {}
+    }
     
     if (!timelineRef.current || !timelineScrollRef.current) return;
     
@@ -375,8 +379,9 @@ export const useLoopDrag = (
 
   useEffect(() => {
     if (draggedLoop) {
-      document.addEventListener('mousemove', handleMouseMove, { passive: true });
-      document.addEventListener('mouseup', handleMouseUp, { passive: true });
+      document.addEventListener('pointermove', handleMouseMove, { passive: true });
+      document.addEventListener('pointerup', handleMouseUp, { passive: true });
+      document.addEventListener('pointercancel', handleMouseUp, { passive: true });
       
       document.body.style.userSelect = 'none';
       document.body.style.cursor = 'grabbing';
@@ -386,8 +391,9 @@ export const useLoopDrag = (
       }
       
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('pointermove', handleMouseMove);
+        document.removeEventListener('pointerup', handleMouseUp);
+        document.removeEventListener('pointercancel', handleMouseUp);
         document.body.style.userSelect = '';
         document.body.style.cursor = '';
         document.body.style.pointerEvents = '';

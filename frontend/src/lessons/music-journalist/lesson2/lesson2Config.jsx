@@ -91,12 +91,11 @@ export const lessonSections = [
   {
     id: 'introduction',
     title: '1. Introduction',
-    subtitle: 'Hook + Music Description Toolkit',
+    subtitle: 'Why Listen Like an Agent?',
     color: 'blue',
-    estimatedTime: 8,
+    estimatedTime: 3,
     stages: [
-      { id: 'hook', type: 'summary', label: 'Hook', description: 'Play two clips of "rock" that sound totally different.', duration: 3 },
-      { id: 'description-toolkit', type: 'summary', label: 'Description Toolkit', description: 'Teach: tempo, mood, instrumentation, hook, production, influence.', duration: 5 }
+      { id: 'hook', type: 'summary', label: 'Why Listen Like an Agent?', description: 'Set up WHY agents need precise vocabulary to describe music.', duration: 3 }
     ]
   },
   {
@@ -115,8 +114,19 @@ export const lessonSections = [
     ]
   },
   {
+    id: 'sign-or-pass',
+    title: '3. Sign or Pass',
+    subtitle: 'Rank + Debate',
+    color: 'blue',
+    estimatedTime: 7,
+    stages: [
+      { id: 'sign-or-pass-intro', type: 'summary', label: 'Sign or Pass Intro', description: 'Explain the game and get into groups.', duration: 2 },
+      { id: 'sign-or-pass-game', type: 'activity', label: 'Sign or Pass', description: 'Listen to 3 mystery artists. Rank 1–3. Match your group to score!', duration: 5, hasTimer: true, trackProgress: true }
+    ]
+  },
+  {
     id: 'wrap-up',
-    title: '3. Wrap Up',
+    title: '4. Wrap Up',
     subtitle: 'Share + Complete',
     color: 'blue',
     estimatedTime: 1,
@@ -142,47 +152,23 @@ export const lesson2Config = {
   lessonSections,
   activities: [
     { id: 1, type: 'guided-listening', title: 'Guided Listening (3 tracks)', estimatedTime: '15 min' },
-    { id: 2, type: 'independent-listening', title: 'Independent Listening', estimatedTime: '7 min' }
+    { id: 2, type: 'independent-listening', title: 'Independent Listening', estimatedTime: '7 min' },
+    { id: 3, type: 'sign-or-pass', title: 'Sign or Pass', estimatedTime: '5 min' }
   ]
 };
 
 export const lessonStages = [
   { id: 'join-code', label: 'Join Code', type: 'waiting' },
   {
-    id: 'hook', label: 'Hook', type: 'summary', duration: 3,
+    id: 'hook', label: 'Why Listen Like an Agent?', type: 'summary', duration: 3,
     presentationView: {
-      type: 'summary', title: 'Listen Like an Agent', subtitle: 'Can You Hear the Difference?',
+      type: 'summary', title: 'Listen Like an Agent', subtitle: 'Agents don\'t just say "I like it" — they say WHY.',
       sections: [
-        { heading: 'Listen to These Two Clips', bullets: [
-          'Both of these artists are labeled "rock"',
-          'But they sound COMPLETELY different',
-          'How would you explain that difference to someone who hasn\'t heard them?'
-        ]},
-        { heading: 'Today\'s Challenge', bullets: [
-          'Learn the vocabulary to DESCRIBE what you hear',
-          'Listen to music together and analyze it as a class',
-          'Then pick a track and analyze it on your own'
-        ]}
-      ]
-    }
-  },
-  {
-    id: 'description-toolkit', label: 'Description Toolkit', type: 'summary', duration: 5,
-    presentationView: {
-      type: 'summary', title: 'The Music Description Toolkit', subtitle: '6 Ways to Describe What You Hear',
-      sections: [
-        { heading: 'The Toolkit', bullets: [
-          'TEMPO — How fast is the music? (Slow, Moderate, Fast, Changes)',
-          'MOOD — What feeling does it create? (Energetic, Chill, Mysterious, Powerful...)',
-          'INSTRUMENTATION — What instruments or sounds do you hear?',
-          'HOOK — What\'s the catchy part that grabs your attention?',
-          'PRODUCTION — How is the overall sound shaped? (Raw, Polished, Lo-fi, Layered)',
-          'INFLUENCE — Who do they remind you of? What genre traditions do they draw from?'
-        ]},
-        { heading: 'How We\'ll Use It', bullets: [
-          'First: I\'ll play 3 tracks and we\'ll analyze them TOGETHER as a class',
-          'Then: You\'ll pick a track and analyze it ON YOUR OWN',
-          'Use ALL 6 categories for each track you listen to'
+        { heading: '', bullets: [
+          'Last class you explored genres and discovered artists — but liking a song isn\'t enough',
+          'To pitch an artist, you need to DESCRIBE their sound so precisely that someone who\'s never heard them can imagine it',
+          'Today you\'ll learn the vocabulary real agents use to break down any piece of music',
+          'By the end of class, you\'ll be able to listen to a track and tell someone exactly what makes it unique'
         ]}
       ]
     }
@@ -246,17 +232,44 @@ export const lessonStages = [
     }
   },
   {
+    id: 'sign-or-pass-intro', label: 'Sign or Pass Intro', type: 'summary', duration: 2,
+    presentationView: {
+      type: 'summary', title: 'Sign or Pass', subtitle: 'Would You Sign This Artist?',
+      sections: [
+        { heading: 'How It Works', bullets: [
+          'Get into groups of 2–5',
+          'One person creates a group, others join with the 4-digit code',
+          'Listen to 3 mystery artists — 15 seconds each',
+          'Privately rank them 1–3 by who you\'d sign to your record label',
+          'Reveal at the same time — score points when your rankings match!'
+        ]},
+        { heading: 'The Catch', bullets: [
+          'You\'re not just picking your favorite — you\'re trying to predict what your GROUP thinks',
+          'When you disagree, explain WHY using what you learned today'
+        ]}
+      ]
+    }
+  },
+  {
+    id: 'sign-or-pass-game', label: 'Sign or Pass', type: 'activity', duration: 5, hasTimer: true, trackProgress: true,
+    presentationView: {
+      type: 'sign-or-pass-teacher'
+    }
+  },
+  {
     id: 'lesson-complete', label: 'Lesson Complete', type: 'summary', duration: 1,
     presentationView: {
       type: 'summary', title: 'Lesson 2 Complete!', subtitle: 'You\'re Listening Like an Agent',
       sections: [
-        { heading: 'What You Did Today', bullets: [
-          'Learned 6 ways to describe music (tempo, mood, instrumentation, hook, production, influence)',
-          'Analyzed 3 tracks together as a class',
-          'Independently analyzed a track on your own',
-          'Shared your analysis and heard how others described the same music'
+        { heading: 'Quick Check', bullets: [
+          'Name 2 of the 6 ways to describe music from today\'s toolkit.',
+          'If you had to sign one artist from Sign or Pass, who would it be and why?',
+          'What\'s one thing you heard in a track today that surprised you?'
         ]},
-        { heading: 'Come Ready for Lesson 3', bullets: ['You\'ll pick your artist and start building your case with real evidence'] }
+        { heading: 'Next Time: Lesson 3', bullets: [
+          'You\'ll pick YOUR artist and start building your case',
+          'Think about which artists caught your ear today — you might want to claim one!'
+        ]}
       ]
     }
   }
@@ -265,13 +278,14 @@ export const lessonStages = [
 export const getActivityForStage = (stage) => ({
   'join-code': 'waiting',
   'hook': 'summary',
-  'description-toolkit': 'summary',
   'guided-listening-intro': 'summary',
   'guided-listening-1': 'guided-listening',
   'guided-listening-2': 'guided-listening',
   'guided-listening-3': 'guided-listening',
   'independent-listening': 'independent-listening',
   'listening-share': 'discussion',
+  'sign-or-pass-intro': 'summary',
+  'sign-or-pass-game': 'sign-or-pass',
   'lesson-complete': 'summary'
 })[stage];
 

@@ -134,15 +134,17 @@ export const useSelectionBox = (
   // Set up mouse event listeners
   useEffect(() => {
     if (isDraggingSelectionRef.current) {
-      document.addEventListener('mousemove', handleSelectionMove);
-      document.addEventListener('mouseup', handleSelectionEnd);
-      
+      document.addEventListener('pointermove', handleSelectionMove);
+      document.addEventListener('pointerup', handleSelectionEnd);
+      document.addEventListener('pointercancel', handleSelectionEnd);
+
       document.body.style.cursor = 'crosshair';
       document.body.style.userSelect = 'none';
 
       return () => {
-        document.removeEventListener('mousemove', handleSelectionMove);
-        document.removeEventListener('mouseup', handleSelectionEnd);
+        document.removeEventListener('pointermove', handleSelectionMove);
+        document.removeEventListener('pointerup', handleSelectionEnd);
+        document.removeEventListener('pointercancel', handleSelectionEnd);
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
       };

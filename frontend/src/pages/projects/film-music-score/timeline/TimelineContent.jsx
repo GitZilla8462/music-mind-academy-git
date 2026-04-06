@@ -107,8 +107,12 @@ const TimelineContent = forwardRef(({
         setIsDraggingPlayhead(false);
       };
 
-      window.addEventListener('mouseup', handleGlobalMouseUp);
-      return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+      window.addEventListener('pointerup', handleGlobalMouseUp);
+      window.addEventListener('pointercancel', handleGlobalMouseUp);
+      return () => {
+        window.removeEventListener('pointerup', handleGlobalMouseUp);
+        window.removeEventListener('pointercancel', handleGlobalMouseUp);
+      };
     }
   }, [isScrubbing, setIsDraggingPlayhead]);
 

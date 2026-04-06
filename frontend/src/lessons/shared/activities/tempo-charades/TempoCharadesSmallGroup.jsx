@@ -637,7 +637,7 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
 
   if (!hasJoinedGroup) {
     return (
-      <div className="h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <audio ref={audioRef} preload="auto" />
         {!showDirections && <DirectionsReopenButton onClick={() => setShowDirections(true)} />}
         <DirectionsModal

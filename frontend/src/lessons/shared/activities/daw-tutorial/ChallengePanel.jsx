@@ -33,19 +33,19 @@ const ChallengePanel = ({
     const panelWidth = 400;
     const panelHeight = 400;
     return {
-      x: window.innerWidth - panelWidth - 20,
-      y: window.innerHeight - panelHeight - 20
+      x: (window.visualViewport?.width || window.innerWidth) - panelWidth - 20,
+      y: (window.visualViewport?.height || window.innerHeight) - panelHeight - 20
     };
   });
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef({ startX: 0, startY: 0, initialX: 0, initialY: 0 });
 
-  const handleMouseDown = (e) => {
+  const handlePointerDown = (e) => {
     // Only drag if clicking directly on the drag-handle, not on buttons or slider
     const target = e.target;
-    const isDragHandleText = target.classList.contains('drag-handle') || 
+    const isDragHandleText = target.classList.contains('drag-handle') ||
                             (target.closest('.drag-handle') && !target.closest('button') && !target.closest('input'));
-    
+
     if (isDragHandleText) {
       setIsDragging(true);
       dragRef.current = {
@@ -57,29 +57,31 @@ const ChallengePanel = ({
     }
   };
 
-  const handleMouseMove = (e) => {
+  const handlePointerMove = (e) => {
     if (!isDragging) return;
-    
+
     const deltaX = e.clientX - dragRef.current.startX;
     const deltaY = e.clientY - dragRef.current.startY;
-    
+
     setPosition({
       x: dragRef.current.initialX + deltaX,
       y: dragRef.current.initialY + deltaY
     });
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = () => {
     setIsDragging(false);
   };
 
   useEffect(() => {
     if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerup', handlePointerUp);
+      window.addEventListener('pointercancel', handlePointerUp);
       return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('pointermove', handlePointerMove);
+        window.removeEventListener('pointerup', handlePointerUp);
+        window.removeEventListener('pointercancel', handlePointerUp);
       };
     }
   }, [isDragging]);
@@ -153,7 +155,7 @@ const ChallengePanel = ({
           pointerEvents: 'auto'
         }}
         className="bg-white rounded-lg shadow-2xl border-4 border-orange-500"
-        onMouseDown={handleMouseDown}
+        onPointerDown={handlePointerDown}
       >
         <div className="drag-handle bg-orange-500 px-4 py-2 flex items-center justify-between cursor-move">
           <div className="text-white font-bold text-sm">
@@ -189,7 +191,7 @@ const ChallengePanel = ({
         pointerEvents: needsClickThrough ? 'none' : 'auto'
       }}
       className="bg-white rounded-lg shadow-2xl border-4 border-orange-500 overflow-hidden flex flex-col"
-      onMouseDown={handleMouseDown}
+      onPointerDown={handlePointerDown}
     >
       <div 
         className="h-1 bg-gray-200 flex-shrink-0"
@@ -209,10 +211,10 @@ const ChallengePanel = ({
           {showExplorationMode ? 'Exploration Mode' : 'Challenge Question'}
         </div>
         
-        <div className="flex items-center gap-2" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2" onPointerDown={(e) => e.stopPropagation()}>
           <div 
             className="flex items-center gap-1 bg-white/20 rounded px-2 py-1"
-            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
           >
             <Volume2 size={14} className="text-white flex-shrink-0" />
             <input
@@ -222,7 +224,7 @@ const ChallengePanel = ({
               step="0.1"
               value={voiceVolume}
               onChange={handleVolumeChange}
-              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
               className="w-16 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer"
               style={{
@@ -234,7 +236,7 @@ const ChallengePanel = ({
 
           <button
             onClick={handleMuteToggle}
-            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
             className={`p-1.5 rounded transition-colors ${
               voiceEnabled ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-500 hover:bg-gray-600'
             }`}
@@ -249,7 +251,7 @@ const ChallengePanel = ({
                 e.stopPropagation();
                 setShowHint(!showHint);
               }}
-              onMouseDown={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
               className="p-1.5 bg-yellow-500 rounded hover:bg-yellow-600 transition-colors"
               title="Show hint"
             >
@@ -262,7 +264,7 @@ const ChallengePanel = ({
               e.stopPropagation();
               setIsMinimized(true);
             }}
-            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
             className="p-1.5 bg-white/20 rounded hover:bg-white/30 transition-colors"
             title="Minimize panel"
           >

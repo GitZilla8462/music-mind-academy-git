@@ -7,7 +7,8 @@ import { GripHorizontal } from 'lucide-react';
 // Detect Chromebook/ChromeOS for custom cursor
 const isChromebook = typeof navigator !== 'undefined' && (
   /CrOS/.test(navigator.userAgent) ||
-  (navigator.userAgentData?.platform === 'Chrome OS')
+  (navigator.userAgentData?.platform === 'Chrome OS') ||
+  (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent))
 );
 
 const ResizableSplitPane = ({
@@ -57,8 +58,9 @@ const ResizableSplitPane = ({
 
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('pointermove', handleMouseMove);
+      document.addEventListener('pointerup', handleMouseUp);
+      document.addEventListener('pointercancel', handleMouseUp);
       // Set body cursor for non-Chromebook (Chromebook uses global CustomCursor)
       if (!isChromebook) {
         document.body.style.cursor = 'row-resize';
@@ -66,8 +68,9 @@ const ResizableSplitPane = ({
       document.body.style.userSelect = 'none';
 
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('pointermove', handleMouseMove);
+        document.removeEventListener('pointerup', handleMouseUp);
+        document.removeEventListener('pointercancel', handleMouseUp);
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
       };

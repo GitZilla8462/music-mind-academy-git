@@ -235,7 +235,7 @@ const BeatMakerPanel = ({ onClose, onAddToProject, customLoopCount = 0, hideClap
   const [showPresetDropdown, setShowPresetDropdown] = useState(false);
 
   // Detect Chromebook for performance optimizations
-  const isChromebook = navigator.userAgent.includes('CrOS');
+  const isChromebook = typeof navigator !== 'undefined' && (navigator.userAgent.includes('CrOS') || (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)));
 
   // Handle mood selection - sets BPM automatically
   const handleMoodSelect = (mood) => {

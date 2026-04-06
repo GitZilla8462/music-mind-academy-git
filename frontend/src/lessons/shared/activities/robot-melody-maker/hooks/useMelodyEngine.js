@@ -58,7 +58,7 @@ const useMelodyEngine = ({ pattern, tempo, isPlaying, onNotePlay, onStep }) => {
       isDisposedRef.current = false; // Reset disposed flag
 
       // ✅ CHROMEBOOK OPTIMIZATION: Detect low-end devices
-      const isChromebook = /CrOS/.test(navigator.userAgent);
+      const isChromebook = /CrOS/.test(navigator.userAgent) || (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent));
       const isLowEnd = isChromebook || navigator.hardwareConcurrency <= 4;
 
       if (isLowEnd) {

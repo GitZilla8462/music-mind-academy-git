@@ -116,8 +116,9 @@ const renderStickerContent = (item, scale = 1) => {
 // Helper: clean up any active drag listeners stored in a ref
 const cleanupDrag = (ref) => {
   if (ref.current) {
-    window.removeEventListener('mousemove', ref.current.onMove);
-    window.removeEventListener('mouseup', ref.current.onUp);
+    window.removeEventListener('pointermove', ref.current.onMove);
+    window.removeEventListener('pointerup', ref.current.onUp);
+    window.removeEventListener('pointercancel', ref.current.onUp);
     ref.current = null;
   }
 };
@@ -191,8 +192,9 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
     };
 
     dragRef.current = { onMove, onUp };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
   };
 
   const handleResizeDown = (e) => {
@@ -215,8 +217,9 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
     };
 
     resizeRef.current = { onMove, onUp };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
   };
 
   const handleRotateDown = (e) => {
@@ -249,8 +252,9 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
     };
 
     rotateRef.current = { onMove, onUp };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
   };
 
   return (
@@ -264,8 +268,9 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
         willChange: 'transform',
         display: visible ? 'inline-block' : 'none',
         width: 'fit-content',
+        touchAction: interactive ? 'none' : undefined,
       }}
-      onMouseDown={handleMouseDown}
+      onPointerDown={handleMouseDown}
       onClick={(e) => { if (interactive) e.stopPropagation(); }}
     >
       {/* Selection ring */}
@@ -342,16 +347,17 @@ const StickerItemInner = ({ item, visible, scrollOffsetX, isSelected, isSingleSe
       {/* Resize handle — green square at bottom-right */}
       {isSelected && (
         <div
-          className="absolute -bottom-2 -right-2 w-4 h-4 bg-green-500 border-2 border-white rounded-sm cursor-nwse-resize z-40 pointer-events-auto"
-          onMouseDown={handleResizeDown}
+          className="absolute -bottom-2 -right-2 w-6 h-6 bg-green-500 border-2 border-white rounded-sm cursor-nwse-resize z-40 pointer-events-auto"
+          style={{ touchAction: 'none', minWidth: '44px', minHeight: '44px', margin: '-10px' }}
+          onPointerDown={handleResizeDown}
         />
       )}
       {/* Rotate handle — blue circle at top-right */}
       {isSelected && (
         <div
-          className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 border-2 border-white rounded-full z-40 pointer-events-auto flex items-center justify-center"
-          style={{ cursor: 'grab' }}
-          onMouseDown={handleRotateDown}
+          className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 border-2 border-white rounded-full z-40 pointer-events-auto flex items-center justify-center"
+          style={{ cursor: 'grab', touchAction: 'none', minWidth: '44px', minHeight: '44px', margin: '-10px' }}
+          onPointerDown={handleRotateDown}
           title="Rotate"
         >
           <svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">

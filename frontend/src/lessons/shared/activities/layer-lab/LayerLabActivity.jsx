@@ -479,8 +479,7 @@ const LayerLabActivity = ({ onComplete }) => {
   // ============================================================================
   
   return (
-    <div style={{
-      height: '100vh',
+    <div className="h-screen" style={{
       display: 'flex',
       flexDirection: 'column',
       background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',

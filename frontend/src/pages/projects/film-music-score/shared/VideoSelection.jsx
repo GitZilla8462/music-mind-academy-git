@@ -387,6 +387,7 @@ const VideoSelection = ({ onVideoSelect, isDemo = false, isPractice = false }) =
           
           <video
             className="w-full h-full object-contain"
+            playsInline
             controls
             autoPlay
             onEnded={closeFullscreen}

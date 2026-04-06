@@ -83,6 +83,7 @@ const WelcomeBanner = ({
                 ref={videoRef}
                 src={expandedVideo.src}
                 className="w-full h-full"
+                playsInline
                 controls
                 onError={() => handleVideoError(expandedVideo.id)}
               >
@@ -133,6 +134,7 @@ const WelcomeBanner = ({
                     <>
                       <video
                         src={video.src}
+                        playsInline
                         className="w-full h-full object-cover"
                         preload="metadata"
                         onError={() => handleVideoError(video.id)}

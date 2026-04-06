@@ -43,11 +43,10 @@ const MiniPlayer = ({
     const bar = progressBarRef.current;
     if (!bar) return 0;
     const rect = bar.getBoundingClientRect();
-    const clientX = e.touches?.[0]?.clientX ?? e.clientX;
-    return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    return Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
   };
 
-  // Start scrubbing (mousedown/touchstart on progress bar)
+  // Start scrubbing (pointerdown on progress bar)
   const handleScrubStart = (e) => {
     e.preventDefault();
     setIsScrubbing(true);
@@ -59,15 +58,13 @@ const MiniPlayer = ({
     };
     const handleEnd = () => {
       setIsScrubbing(false);
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleEnd);
-      window.removeEventListener('touchmove', handleMove);
-      window.removeEventListener('touchend', handleEnd);
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleEnd);
+      window.removeEventListener('pointercancel', handleEnd);
     };
-    window.addEventListener('mousemove', handleMove, { passive: false });
-    window.addEventListener('mouseup', handleEnd);
-    window.addEventListener('touchmove', handleMove, { passive: false });
-    window.addEventListener('touchend', handleEnd);
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleEnd);
+    window.addEventListener('pointercancel', handleEnd);
   };
 
   const handleVolumeChange = (e) => {
@@ -86,15 +83,14 @@ const MiniPlayer = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
+    <div className="fixed bottom-0 left-0 right-0 z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {/* Player bar */}
       <div className="bg-[#0f1419]/98 backdrop-blur-md border-t border-white/[0.06]">
         {/* Progress bar — full width, draggable scrub */}
         <div
           ref={progressBarRef}
           className="w-full h-3 flex items-center cursor-pointer group"
-          onMouseDown={handleScrubStart}
-          onTouchStart={handleScrubStart}
+          onPointerDown={handleScrubStart}
           style={{ touchAction: 'none' }}
         >
           <div className="w-full h-1 bg-white/[0.08] relative group-hover:h-1.5 transition-all">

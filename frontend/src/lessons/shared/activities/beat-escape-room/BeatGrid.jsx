@@ -24,7 +24,7 @@ const BeatGrid = ({
   const assets = getThemeAssets(themeId);
 
   // Detect Chromebook for performance optimizations
-  const isChromebook = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS');
+  const isChromebook = typeof navigator !== 'undefined' && (navigator.userAgent.includes('CrOS') || (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)));
   const handleCellClick = async (instrumentId, beatIndex) => {
     if (disabled) return;
 

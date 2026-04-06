@@ -46,7 +46,8 @@ const GlobalCursorWithKey = ({ cursorType, initiallyVisible, initialPosition }) 
 // CHROMEBOOK FIX: Detect Chromebook for global custom cursor
 const isChromebook = typeof navigator !== 'undefined' && (
   /CrOS/.test(navigator.userAgent) ||
-  (navigator.userAgentData?.platform === 'Chrome OS')
+  (navigator.userAgentData?.platform === 'Chrome OS') ||
+  (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent))
 );
 
 // Check if we're in passive mode (iframe preview) - disable audio to improve performance

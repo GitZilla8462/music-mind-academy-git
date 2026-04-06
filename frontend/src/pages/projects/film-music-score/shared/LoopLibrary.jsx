@@ -21,7 +21,8 @@ const LOOPS_MANIFEST_URL = '/projects/film-music-score/loops.json';
 // CHROMEBOOK FIX: Detect Chromebook for custom drag image
 const isChromebook = typeof navigator !== 'undefined' && (
   /CrOS/.test(navigator.userAgent) ||
-  (navigator.userAgentData?.platform === 'Chrome OS')
+  (navigator.userAgentData?.platform === 'Chrome OS') ||
+  (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent))
 );
 
 const INSTRUMENT_COLORS = {

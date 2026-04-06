@@ -168,7 +168,7 @@ export const CURRICULUM = [
         route: '/lessons/music-journalist/lesson2',
         activities: [
           { id: 'guided-listening', name: 'Guided Listening', type: 'composition' },
-          { id: 'source-or-not', name: 'Source or Not?', type: 'game' },
+          { id: 'sign-or-pass', name: 'Sign or Pass', type: 'game' },
           { id: 'mj-lesson2-reflection', name: 'Listening Reflection', type: 'reflection' }
         ]
       },

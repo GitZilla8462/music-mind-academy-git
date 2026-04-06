@@ -109,6 +109,9 @@ import { SourceOrNotStudentView } from '../activities/source-or-not';
 // ✅ ADDED: Headline Writer (Music Journalist Unit 3)
 import { HeadlineWriterStudentView } from '../activities/headline-writer';
 
+// ✅ ADDED: Sign or Pass (Music Journalist Unit 3 Lesson 2)
+import { SignOrPassSmallGroup } from '../activities/sign-or-pass';
+
 // ✅ ADDED: Image Library (Music Journalist Unit 3)
 import { ImageLibrary } from '../activities/image-library';
 
@@ -980,6 +983,17 @@ const ActivityRenderer = ({
       return (
         <SourceOrNotStudentView
           key={`source-or-not-student-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Sign or Pass (Music Journalist Unit 3 Lesson 2)
+    // Students rank 3 mystery artists, score points for matching groupmates
+    case 'sign-or-pass':
+      return (
+        <SignOrPassSmallGroup
+          key={`sign-or-pass-${activity.id}`}
           onComplete={onComplete}
           isSessionMode={isSessionMode}
         />

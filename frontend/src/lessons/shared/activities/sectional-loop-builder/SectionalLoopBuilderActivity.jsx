@@ -1149,7 +1149,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     if (onSafari && safariTarget && safariTarget.emoji && safariTarget.name) {
       return (
         <>
-          <div className="h-screen flex flex-col bg-gradient-to-br from-amber-900 via-orange-900 to-yellow-900 text-white relative">
+          <div className="min-h-screen flex flex-col bg-gradient-to-br from-amber-900 via-orange-900 to-yellow-900 text-white relative">
             <style>{styles}</style>
             <ActivityBanner />
 

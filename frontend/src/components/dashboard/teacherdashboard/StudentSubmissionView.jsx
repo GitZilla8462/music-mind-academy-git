@@ -457,6 +457,7 @@ const StudentSubmissionView = ({ showToast, submissionId, embedded = false }) =>
             {selectedVideo ? (
               <video
                 ref={videoRef}
+                playsInline
                 className="max-w-full max-h-full"
                 muted={false}
                 src={selectedVideo.videoPath}

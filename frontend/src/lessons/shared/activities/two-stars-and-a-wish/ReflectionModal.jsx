@@ -13,7 +13,8 @@ import { useSession } from '../../../../context/SessionContext';
 // Chromebook detection for cursor handling
 const isChromebook = typeof navigator !== 'undefined' && (
   /CrOS/.test(navigator.userAgent) ||
-  (navigator.userAgentData?.platform === 'Chrome OS')
+  (navigator.userAgentData?.platform === 'Chrome OS') ||
+  (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent))
 );
 
 const ReflectionModal = ({ compositionData, onComplete, viewMode: viewModeProp = false, isSessionMode = false, activityId = null, reflectionKey = 'school-beneath-reflection' }) => {
@@ -376,7 +377,7 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode: viewModeProp =
   }
 
   return (
-    <div data-reflection-modal className={`fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-purple-200 ${isChromebook ? 'chromebook-hide-cursor' : ''}`}>
+    <div data-reflection-modal className={`fixed top-4 left-4 z-[100] w-96 max-h-[calc(100dvh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-purple-200 ${isChromebook ? 'chromebook-hide-cursor' : ''}`} style={{ maxHeight: 'calc(100dvh - 2rem)' }}>
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-3 rounded-t-xl flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
@@ -474,7 +475,6 @@ const ReflectionModal = ({ compositionData, onComplete, viewMode: viewModeProp =
                 onChange={handlePartnerNameChange}
                 placeholder="Enter their first name..."
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none text-lg"
-                autoFocus
               />
             </div>
 

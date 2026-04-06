@@ -95,6 +95,7 @@ const TutorialVideoLibrary = ({ isOpen, onClose }) => {
                 ) : (
                   <video
                     ref={videoRef}
+                    playsInline
                     src={activeVideo.src}
                     controls
                     autoPlay

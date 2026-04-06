@@ -8,10 +8,9 @@ const CanvaImageSlide = ({ imagePath, sessionCode }) => {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <div style={{
+    <div className="h-screen" style={{
       position: 'relative',
       width: '100vw',
-      height: '100vh',
       backgroundColor: '#000000',
       display: 'flex',
       alignItems: 'center',

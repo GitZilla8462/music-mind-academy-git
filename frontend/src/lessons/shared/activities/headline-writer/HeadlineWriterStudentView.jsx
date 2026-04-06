@@ -369,7 +369,6 @@ const HeadlineWriterStudentView = ({ onComplete, isSessionMode = true }) => {
                 className="w-full px-5 py-4 rounded-xl text-lg font-bold text-white placeholder-white/30 outline-none focus:ring-2"
                 style={{ backgroundColor: '#1a2744', border: '2px solid rgba(201, 149, 43, 0.4)', focusRingColor: '#c9952b' }}
                 maxLength={HEADLINE_MAX_LENGTH}
-                autoFocus
               />
               <div className="flex items-center justify-between mt-2 px-1">
                 <span className="text-sm text-white/40">{headline.length}/{HEADLINE_MAX_LENGTH}</span>

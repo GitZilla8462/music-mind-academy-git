@@ -155,7 +155,7 @@ function AudioClipWidget({ obj, scale }) {
       style={{
         width: w,
         background: 'rgba(255,255,255,0.08)',
-        backdropFilter: 'blur(8px)',
+        backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
         borderRadius: 10 * scale,
         padding: `${8 * scale}px ${12 * scale}px`,
         border: '1px solid rgba(255,255,255,0.12)',
@@ -167,7 +167,7 @@ function AudioClipWidget({ obj, scale }) {
         {/* Play/Pause */}
         <div
           role="button"
-          onMouseDown={togglePlay}
+          onPointerDown={togglePlay}
           style={{
             width: 32 * scale,
             height: 32 * scale,
@@ -252,8 +252,7 @@ function ResizeHandles({ onDragStart, objId, objType }) {
   return handles.map(h => (
     <div
       key={h.id}
-      onMouseDown={(e) => { e.stopPropagation(); onDragStart(e, objId, 'resize', h.id); }}
-      onTouchStart={(e) => { e.stopPropagation(); onDragStart(e, objId, 'resize', h.id); }}
+      onPointerDown={(e) => { e.stopPropagation(); onDragStart(e, objId, 'resize', h.id); }}
       style={{
         position: 'absolute',
         ...h.style,
@@ -303,8 +302,7 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
 
   return (
     <div
-      onMouseDown={(e) => { e.stopPropagation(); wasSelectedRef.current = isSelected; onSelect(obj.id); if (!isEditing) onDragStart(e, obj.id, 'move'); }}
-      onTouchStart={(e) => { e.stopPropagation(); wasSelectedRef.current = isSelected; onSelect(obj.id); if (!isEditing) onDragStart(e, obj.id, 'move'); }}
+      onPointerDown={(e) => { e.stopPropagation(); wasSelectedRef.current = isSelected; onSelect(obj.id); if (!isEditing) onDragStart(e, obj.id, 'move'); }}
       onClick={(e) => { e.stopPropagation(); if (obj.type === 'text' && !isEditing) onEdit(obj.id); }}
       draggable={false}
       style={{
@@ -417,7 +415,7 @@ function FixedToolbar({
     <div
       ref={dropdownRef}
       className="flex items-center gap-0.5 px-2 py-1.5 bg-[#1a1f2e] border-b border-white/10 rounded-t-lg overflow-x-auto"
-      onMouseDown={e => e.stopPropagation()}
+      onPointerDown={e => e.stopPropagation()}
     >
       {/* Undo / Redo */}
       <button onClick={onUndo} disabled={!canUndo} className={canUndo ? btnInactive : btnDisabled} title="Undo (Ctrl+Z)">
@@ -658,19 +656,17 @@ function AudioTrimPanel({ obj, onUpdate }) {
       }
     };
 
-    update(e.clientX || e.touches?.[0]?.clientX);
+    update(e.clientX);
 
-    const onMove = (ev) => update(ev.clientX || ev.touches?.[0]?.clientX);
+    const onMove = (ev) => update(ev.clientX);
     const onUp = () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', onUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
     };
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend', onUp);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
   };
 
   const startPct = (clipStart / trackDuration) * 100;
@@ -680,7 +676,7 @@ function AudioTrimPanel({ obj, onUpdate }) {
   return (
     <div
       className="mt-1 px-3 py-2 bg-[#1a1f2e] rounded-lg border border-white/10"
-      onMouseDown={e => e.stopPropagation()}
+      onPointerDown={e => e.stopPropagation()}
     >
       <div className="flex items-center gap-3 mb-2">
         <div
@@ -733,8 +729,7 @@ function AudioTrimPanel({ obj, onUpdate }) {
         <div
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 cursor-ew-resize"
           style={{ left: `${startPct}%` }}
-          onMouseDown={e => handleBarInteraction(e, 'start')}
-          onTouchStart={e => handleBarInteraction(e, 'start')}
+          onPointerDown={e => handleBarInteraction(e, 'start')}
         >
           <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow" />
         </div>
@@ -743,8 +738,7 @@ function AudioTrimPanel({ obj, onUpdate }) {
         <div
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 cursor-ew-resize"
           style={{ left: `${endPct}%` }}
-          onMouseDown={e => handleBarInteraction(e, 'end')}
-          onTouchStart={e => handleBarInteraction(e, 'end')}
+          onPointerDown={e => handleBarInteraction(e, 'end')}
         >
           <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow" />
         </div>
@@ -803,7 +797,6 @@ const TrackPickerModal = ({ artistTracks, onSelect, onClose }) => {
             placeholder="Search songs or artists..."
             value={query}
             onChange={e => setQuery(e.target.value)}
-            autoFocus
             className="w-full bg-white/10 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/25"
           />
         </div>
@@ -1050,16 +1043,14 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
 
     const handleEnd = () => {
       dragRef.current = null;
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleEnd);
-      window.removeEventListener('touchmove', handleMove);
-      window.removeEventListener('touchend', handleEnd);
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleEnd);
+      window.removeEventListener('pointercancel', handleEnd);
     };
 
-    window.addEventListener('mousemove', handleMove, { passive: false });
-    window.addEventListener('mouseup', handleEnd);
-    window.addEventListener('touchmove', handleMove, { passive: false });
-    window.addEventListener('touchend', handleEnd);
+    window.addEventListener('pointermove', handleMove, { passive: false });
+    window.addEventListener('pointerup', handleEnd);
+    window.addEventListener('pointercancel', handleEnd);
   }, [objects, onChange, readOnly, scale, pushUndo, selectedIds]);
 
   // Deselect on canvas background click — only fires from the bg element itself
@@ -1125,12 +1116,14 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
         }
         return null;
       });
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
     };
 
-    window.addEventListener('mousemove', onMove, { passive: false });
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('pointermove', onMove, { passive: false });
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
   };
 
   // Keyboard shortcuts
@@ -1319,7 +1312,7 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
       <div
         ref={containerRef}
         onClick={handleCanvasClick}
-        onMouseDown={handleCanvasMouseDown}
+        onPointerDown={handleCanvasMouseDown}
         className="relative w-full overflow-hidden"
         style={{
           aspectRatio: `${CANVAS_W}/${CANVAS_H}`,

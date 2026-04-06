@@ -34,6 +34,36 @@ const JourneyViewport = ({
 }) => {
   const dragRef = useRef(null);
 
+  // Touch control for flying characters on iPad/mobile — bird follows finger position
+  const touchTargetRef = useRef(null);
+
+  useEffect(() => {
+    if (!gameMode || !character?.flying || !onBirdYChange) return;
+
+    const handleTouchMove = (e) => {
+      if (!touchTargetRef.current) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = touchTargetRef.current.getBoundingClientRect();
+      const normalizedY = Math.max(0.05, Math.min(0.85, (touch.clientY - rect.top) / rect.height));
+      const normalizedX = Math.max(0.03, Math.min(0.35, (touch.clientX - rect.left) / rect.width));
+      onBirdYChange(() => normalizedY);
+      if (onBirdXChange) onBirdXChange(() => normalizedX);
+    };
+
+    const el = touchTargetRef.current;
+    if (el) {
+      el.addEventListener('touchmove', handleTouchMove, { passive: false });
+      el.addEventListener('touchstart', handleTouchMove, { passive: false });
+    }
+    return () => {
+      if (el) {
+        el.removeEventListener('touchmove', handleTouchMove);
+        el.removeEventListener('touchstart', handleTouchMove);
+      }
+    };
+  }, [gameMode, character?.flying, onBirdYChange, onBirdXChange]);
+
   // Arrow key control for flying characters — always active when bird is present
   const keysRef = useRef(new Set());
 
@@ -157,8 +187,9 @@ const JourneyViewport = ({
     };
 
     const onUp = (me) => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
       if (dragged) {
         const cx = (me.clientX - rect.left) / rect.width;
         const cy = (me.clientY - rect.top) / rect.height;
@@ -169,8 +200,9 @@ const JourneyViewport = ({
       }
     };
 
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
   };
 
   // Marquee rectangle rendering
@@ -185,11 +217,13 @@ const JourneyViewport = ({
   return (
     <div
       data-viewport="true"
+      ref={gameMode ? touchTargetRef : undefined}
       className={`relative w-full h-full rounded-2xl ${
         editMode === 'sticker' || editMode === 'text' ? 'cursor-crosshair' : ''
       }`}
+      style={gameMode ? { touchAction: 'none' } : undefined}
       onClick={handleClick}
-      onMouseDown={handleMouseDown}
+      onPointerDown={handleMouseDown}
     >
       {/* Scene container — overflow-hidden clips environment/character to viewport */}
       <div className="absolute inset-0 overflow-hidden rounded-2xl">

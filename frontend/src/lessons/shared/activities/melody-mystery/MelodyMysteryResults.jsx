@@ -32,7 +32,7 @@ const MelodyMysteryResults = ({
     : 0;
 
   // Detect Chromebook for performance optimizations
-  const isChromebook = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS');
+  const isChromebook = typeof navigator !== 'undefined' && (navigator.userAgent.includes('CrOS') || (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)));
 
   return (
     <div

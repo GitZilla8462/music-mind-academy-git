@@ -175,7 +175,6 @@ const LaunchDayStudent = ({ onComplete, isSessionMode = false }) => {
                 placeholder="The evidence that convinced me was..."
                 rows={3}
                 className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-base text-white placeholder-white/30 focus:outline-none focus:border-blue-400 resize-none"
-                autoFocus
               />
             </div>
             <div>

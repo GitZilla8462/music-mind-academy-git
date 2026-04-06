@@ -11,7 +11,8 @@ import { loadStudentWork as loadFromFirebase } from '../../../../firebase/studen
 // Chromebook detection for cursor handling
 const isChromebook = typeof navigator !== 'undefined' && (
   /CrOS/.test(navigator.userAgent) ||
-  (navigator.userAgentData?.platform === 'Chrome OS')
+  (navigator.userAgentData?.platform === 'Chrome OS') ||
+  (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent))
 );
 
 const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, isSessionMode = false }) => {
@@ -256,7 +257,7 @@ const CityReflectionModal = ({ compositionData, onComplete, viewMode = false, is
   }
 
   return (
-    <div data-reflection-modal className={`fixed top-4 left-4 z-[100] w-96 max-h-[calc(100vh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-purple-200 ${isChromebook ? 'chromebook-hide-cursor' : ''}`}>
+    <div data-reflection-modal className={`fixed top-4 left-4 z-[100] w-96 max-h-[calc(100dvh-2rem)] flex flex-col bg-white rounded-xl shadow-2xl border-2 border-purple-200 ${isChromebook ? 'chromebook-hide-cursor' : ''}`} style={{ maxHeight: 'calc(100dvh - 2rem)' }}>
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-3 rounded-t-xl flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">

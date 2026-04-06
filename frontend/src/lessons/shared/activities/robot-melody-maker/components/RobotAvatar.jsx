@@ -206,7 +206,7 @@ const RobotAvatar = ({
       const app = new PIXI.Application();
 
       // Detect if we're on a Chromebook or low-end device
-      const isChromebook = /CrOS/.test(navigator.userAgent);
+      const isChromebook = /CrOS/.test(navigator.userAgent) || (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent));
       const isLowEnd = navigator.hardwareConcurrency <= 4 || isChromebook;
 
       // Use lower resolution and disable antialias for Chromebooks

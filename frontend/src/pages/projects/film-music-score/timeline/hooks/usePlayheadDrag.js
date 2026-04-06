@@ -42,14 +42,16 @@ export const usePlayheadDrag = (timelineRef, pixelToTime, duration, onSeek) => {
 
   useEffect(() => {
     if (isDraggingPlayhead) {
-      document.addEventListener('mousemove', handlePlayheadMouseMove);
-      document.addEventListener('mouseup', handlePlayheadMouseUp);
+      document.addEventListener('pointermove', handlePlayheadMouseMove);
+      document.addEventListener('pointerup', handlePlayheadMouseUp);
+      document.addEventListener('pointercancel', handlePlayheadMouseUp);
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
       
       return () => {
-        document.removeEventListener('mousemove', handlePlayheadMouseMove);
-        document.removeEventListener('mouseup', handlePlayheadMouseUp);
+        document.removeEventListener('pointermove', handlePlayheadMouseMove);
+        document.removeEventListener('pointerup', handlePlayheadMouseUp);
+        document.removeEventListener('pointercancel', handlePlayheadMouseUp);
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
       };

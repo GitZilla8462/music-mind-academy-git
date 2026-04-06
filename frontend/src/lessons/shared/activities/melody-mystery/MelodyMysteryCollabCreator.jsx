@@ -57,7 +57,7 @@ const MelodyMysteryCollabCreator = ({
   const locations = endingData?.locations || [];
 
   // Detect Chromebook for performance optimizations
-  const isChromebook = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS');
+  const isChromebook = typeof navigator !== 'undefined' && (navigator.userAgent.includes('CrOS') || (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)));
 
   // Get which scenes belong to this player (1-indexed from config, convert to 0-indexed)
   const myScenes = useMemo(() => {

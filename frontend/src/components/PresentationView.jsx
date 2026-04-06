@@ -41,7 +41,7 @@ const SessionCodeBadge = ({ sessionCode, isDarkBackground = false }) => (
     fontFamily: 'monospace',
     letterSpacing: '4px',
     color: isDarkBackground ? '#1f2937' : 'white',
-    backdropFilter: 'blur(10px)',
+    backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     zIndex: 1000,
     border: isDarkBackground ? '2px solid rgba(0, 0, 0, 0.1)' : '2px solid rgba(255, 255, 255, 0.2)'
@@ -289,7 +289,8 @@ const PresentationView = () => {
   // FULLSCREEN TOGGLE
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen();
+      const el = document.documentElement;
+      (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el);
     } else {
       if (document.exitFullscreen) {
         document.exitFullscreen();
@@ -421,7 +422,7 @@ const PresentationView = () => {
             fontSize: '14px',
             fontWeight: '600',
             color: 'white',
-            backdropFilter: 'blur(10px)',
+            backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             zIndex: 1000,
           }}
@@ -726,7 +727,7 @@ const PresentationView = () => {
               fontSize: '14px',
               fontWeight: '600',
               color: '#1f2937',
-              backdropFilter: 'blur(10px)',
+              backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
               boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
               zIndex: 1000,
               transition: 'all 0.2s ease',
@@ -790,7 +791,7 @@ const PresentationView = () => {
               fontSize: '14px',
               fontWeight: '600',
               color: '#1f2937',
-              backdropFilter: 'blur(10px)',
+              backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
               boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
               zIndex: 1000,
               transition: 'all 0.2s ease'
@@ -801,6 +802,7 @@ const PresentationView = () => {
           
           <video
             key={currentStage}
+            playsInline
             controls
             onLoadedData={(e) => {
               const video = e.target;
@@ -869,7 +871,7 @@ const PresentationView = () => {
             fontSize: '14px',
             fontWeight: '600',
             color: '#1f2937',
-            backdropFilter: 'blur(10px)',
+            backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             zIndex: 1000,
             transition: 'all 0.2s ease',

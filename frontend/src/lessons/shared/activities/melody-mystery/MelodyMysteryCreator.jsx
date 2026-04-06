@@ -37,7 +37,7 @@ const MelodyMysteryCreator = ({
   const locations = endingData?.locations || [];
 
   // Detect Chromebook for performance optimizations
-  const isChromebook = typeof navigator !== 'undefined' && navigator.userAgent.includes('CrOS');
+  const isChromebook = typeof navigator !== 'undefined' && (navigator.userAgent.includes('CrOS') || (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)));
 
   // Get which melody numbers this player is assigned (1-indexed, convert to 0-indexed)
   const myMelodyAssignments = getMelodyAssignments(mode, playerIndex).map(m => m - 1);

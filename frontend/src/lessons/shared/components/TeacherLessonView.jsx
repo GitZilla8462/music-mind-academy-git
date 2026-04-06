@@ -1763,13 +1763,33 @@ const PresentationContent = ({
     // Independent Listening (Music Journalist Lesson 2) — teacher sees same view as students
     if (type === 'independent-listening-teacher') {
       return (
-        <div className="absolute inset-0">
-          <ActivityRenderer
-            activity={{ type: 'independent-listening', id: 'teacher-preview' }}
-            onComplete={() => {}}
-            viewMode={false}
-            isSessionMode={false}
-          />
+        <div className="absolute inset-0 overflow-hidden">
+          <style>{`.teacher-embed-activity .h-screen { height: 100% !important; }`}</style>
+          <div className="h-full teacher-embed-activity">
+            <ActivityRenderer
+              activity={{ type: 'independent-listening', id: 'teacher-preview' }}
+              onComplete={() => {}}
+              viewMode={false}
+              isSessionMode={false}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Sign or Pass (Music Journalist Lesson 2) — teacher sees same game as students
+    if (type === 'sign-or-pass-teacher') {
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <style>{`.teacher-embed-activity .h-screen { height: 100% !important; }`}</style>
+          <div className="h-full teacher-embed-activity">
+            <ActivityRenderer
+              activity={{ type: 'sign-or-pass', id: 'teacher-preview' }}
+              onComplete={() => {}}
+              viewMode={false}
+              isSessionMode={true}
+            />
+          </div>
         </div>
       );
     }
@@ -3690,7 +3710,7 @@ const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent,
         </div>
 
         {/* Track card */}
-        <div className="flex-1 flex flex-col p-4">
+        <div className="flex flex-col p-4">
           <div
             className="rounded-xl border-2 p-5 transition-all"
             style={{ borderColor: track.color, backgroundColor: track.color + '12' }}
@@ -3762,6 +3782,9 @@ const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent,
           )}
         </div>
 
+        {/* Spacer */}
+        <div className="flex-1" />
+
         {/* Tip at bottom */}
         <div className="px-4 pb-4 shrink-0">
           <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
@@ -3776,17 +3799,20 @@ const GuidedListeningSplit = React.memo(({ trackIndex, GuidedListeningComponent,
 
       {/* Right — GuidedListeningActivity showing only this track */}
       <div className="flex-1 h-full relative overflow-hidden">
-        {GuidedListeningComponent ? (
-          <GuidedListeningComponent
-            onComplete={() => {}}
-            isSessionMode={false}
-            singleTrackId={track.id}
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full bg-gray-100">
-            <p className="text-gray-400">Loading listening guide...</p>
-          </div>
-        )}
+        <style>{`.guided-listening-embed .h-screen { height: 100% !important; }`}</style>
+        <div className="h-full guided-listening-embed">
+          {GuidedListeningComponent ? (
+            <GuidedListeningComponent
+              onComplete={() => {}}
+              isSessionMode={false}
+              singleTrackId={track.id}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full bg-gray-100">
+              <p className="text-gray-400">Loading listening guide...</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -4778,6 +4804,7 @@ const TeacherLessonView = ({
         @media (max-width: 1400px) {
           .teacher-lesson-wrapper {
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
           }
           .teacher-lesson-container {

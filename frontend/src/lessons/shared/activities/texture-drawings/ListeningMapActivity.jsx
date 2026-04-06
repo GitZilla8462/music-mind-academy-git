@@ -527,21 +527,21 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
     setDragPosition({ x: event.clientX, y: event.clientY });
   }, []);
 
-  // Global mouse handlers for drag from panel
+  // Global pointer handlers for drag from panel
   useEffect(() => {
     if (!isDraggingFromPanel) return;
 
-    const handleMouseMove = (e) => {
+    const handlePointerMove = (e) => {
       setDragPosition({ x: e.clientX, y: e.clientY });
     };
 
-    const handleMouseUp = (e) => {
+    const handlePointerUp = (e) => {
       // Check if dropped over canvas
       const canvasBounds = canvasRef.current?.getCanvasBounds?.();
-      
+
       if (canvasBounds && draggedSticker) {
         const { clientX, clientY } = e;
-        
+
         // Check if cursor is within canvas bounds
         if (
           clientX >= canvasBounds.left &&
@@ -551,7 +551,7 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
         ) {
           // Convert screen position to canvas coordinates
           const canvasPoint = canvasRef.current?.screenToCanvas?.(clientX, clientY);
-          
+
           if (canvasPoint) {
             console.log('✅ Dropped on canvas at:', canvasPoint);
             canvasRef.current?.placeStickerAt?.(draggedSticker, canvasPoint.x, canvasPoint.y, stickerSize);
@@ -567,12 +567,14 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
       setDragPosition(null);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
     };
   }, [isDraggingFromPanel, draggedSticker, stickerSize]);
 
@@ -608,27 +610,29 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
     return Math.max(0, Math.min(totalTime, mapConfig.totalDuration));
   }, [rowHeight, canvasWidth, mapConfig.numRows, mapConfig.secondsPerRow, mapConfig.totalDuration]);
 
-  // Global mouse handlers for playhead drag
+  // Global pointer handlers for playhead drag
   useEffect(() => {
     if (!isDraggingPlayhead) return;
 
-    const handleMouseMove = (e) => {
+    const handlePointerMove = (e) => {
       const newTime = getTimeFromMousePosition(e.clientX, e.clientY);
       if (newTime !== null) {
         audio.seekTo(newTime);
       }
     };
 
-    const handleMouseUp = () => {
+    const handlePointerUp = () => {
       setIsDraggingPlayhead(false);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
     };
   }, [isDraggingPlayhead, getTimeFromMousePosition, audio]);
 

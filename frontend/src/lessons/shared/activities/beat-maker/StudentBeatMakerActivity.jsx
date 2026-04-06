@@ -138,7 +138,7 @@ const TeacherBeatTutorial = () => {
   const bpm = 110;
 
   // Detect Chromebook for performance optimizations
-  const isChromebook = navigator.userAgent.includes('CrOS');
+  const isChromebook = typeof navigator !== 'undefined' && (navigator.userAgent.includes('CrOS') || (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)));
 
   // Create synths
   const createSynths = useCallback(() => {

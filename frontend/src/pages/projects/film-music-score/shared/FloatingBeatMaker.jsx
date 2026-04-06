@@ -10,7 +10,8 @@ import BeatMakerPanel from './BeatMakerPanel';
 // Detect Chromebook for smaller sizing
 const isChromebook = typeof navigator !== 'undefined' && (
   /CrOS/.test(navigator.userAgent) ||
-  (navigator.userAgentData?.platform === 'Chrome OS')
+  (navigator.userAgentData?.platform === 'Chrome OS') ||
+  (navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent))
 );
 
 const FloatingBeatMaker = ({
@@ -39,8 +40,8 @@ const FloatingBeatMaker = ({
   useEffect(() => {
     if (isOpen) {
       // Position it nicely in the viewport
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.visualViewport?.width || window.innerWidth;
+      const viewportHeight = window.visualViewport?.height || window.innerHeight;
 
       // Center horizontally, position near top so whole modal is visible
       const x = Math.max(20, (viewportWidth - size.width) / 2);
