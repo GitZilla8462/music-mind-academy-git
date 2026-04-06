@@ -852,11 +852,16 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
           </div>
         </div>
 
-        {/* Volume banner for the host (DJ) */}
-        {memberOrder[0] === userId && (
+        {/* Volume banner for the host (DJ) / listening info for others */}
+        {memberOrder[0] === userId ? (
           <div className="bg-amber-500/20 border border-amber-400/30 rounded-lg px-3 py-2 mb-2 text-center flex items-center justify-center gap-2">
             <Volume2 size={16} className="text-amber-300" />
             <p className="text-amber-300 text-sm font-bold">Turn up your volume so the group can hear!</p>
+          </div>
+        ) : (
+          <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg px-3 py-2 mb-2 text-center flex items-center justify-center gap-2">
+            <Volume2 size={16} className="text-blue-300" />
+            <p className="text-blue-300 text-sm font-bold">Playing music from {members[memberOrder[0]]?.name || 'host'}'s device</p>
           </div>
         )}
 
