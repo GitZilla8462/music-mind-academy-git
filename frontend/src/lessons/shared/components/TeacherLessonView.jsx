@@ -4819,14 +4819,14 @@ const TeacherLessonView = ({
           height: 100vh;
           height: 100dvh;
           overflow: hidden;
-          background: #0f172a;
+          position: relative;
         }
         @media (max-width: 1400px) {
           .teacher-lesson-container {
             transform: scale(0.67);
             transform-origin: top left;
-            width: 149.25%;
-            height: 149.25%;
+            width: 150%;
+            height: 150%;
           }
         }
       `}</style>
