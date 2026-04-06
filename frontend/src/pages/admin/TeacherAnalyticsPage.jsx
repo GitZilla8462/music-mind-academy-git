@@ -766,6 +766,8 @@ const TeacherAnalyticsPage = () => {
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
                 <tr>
+                  {/* Row number */}
+                  <th className="w-6 px-1 py-2 bg-gray-50 text-xs text-gray-400">#</th>
                   {/* Checkbox */}
                   <th className="w-8 px-2 py-2 bg-gray-50">
                     <input
@@ -796,7 +798,7 @@ const TeacherAnalyticsPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredTeachers.map((teacher) => {
+                {filteredTeachers.map((teacher, index) => {
                   const isExpanded = expandedTeachers[teacher.email];
                   const isSelected = selectedEmails.has(teacher.email);
                   const daysApproved = daysSince(teacher.approvedAt);
@@ -812,6 +814,8 @@ const TeacherAnalyticsPage = () => {
                           if (canExpand) setExpandedTeachers(prev => ({ ...prev, [teacher.email]: !prev[teacher.email] }));
                         }}
                       >
+                        {/* Row number */}
+                        <td className="px-1 py-2 text-center text-xs text-gray-400 font-mono">{index + 1}</td>
                         {/* Checkbox */}
                         <td className="px-2 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                           <input
