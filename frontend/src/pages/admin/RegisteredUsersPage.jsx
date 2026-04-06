@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Users, Trash2, Download } from 'lucide-react';
+import { Users, Trash2, Download, KeyRound } from 'lucide-react';
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 import { useAdminData } from './AdminDataContext';
 
 const RegisteredUsersPage = () => {
@@ -10,6 +11,19 @@ const RegisteredUsersPage = () => {
 
   const [selectedUsers, setSelectedUsers] = useState({});
   const [bulkDeletingUsers, setBulkDeletingUsers] = useState(false);
+  const [resetStatus, setResetStatus] = useState({}); // { email: 'sent' | 'error' | 'sending' }
+
+  const handleSendPasswordReset = async (userEmail) => {
+    if (!userEmail) return;
+    setResetStatus(prev => ({ ...prev, [userEmail]: 'sending' }));
+    try {
+      await sendPasswordResetEmail(getAuth(), userEmail);
+      setResetStatus(prev => ({ ...prev, [userEmail]: 'sent' }));
+    } catch (err) {
+      console.error('Password reset failed for', userEmail, err);
+      setResetStatus(prev => ({ ...prev, [userEmail]: 'error' }));
+    }
+  };
 
   const toggleSelectAllUsers = () => {
     const allSelected = registeredUsers.every(user => selectedUsers[user.id]);
@@ -154,6 +168,24 @@ const RegisteredUsersPage = () => {
                 ) : (
                   <span className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">Not Approved</span>
                 )}
+                <button
+                  onClick={() => handleSendPasswordReset(user.email)}
+                  disabled={resetStatus[user.email] === 'sending' || resetStatus[user.email] === 'sent'}
+                  className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors ${
+                    resetStatus[user.email] === 'sent'
+                      ? 'bg-green-100 text-green-700'
+                      : resetStatus[user.email] === 'error'
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                      : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                  } disabled:opacity-50`}
+                  title="Send password reset email to this teacher"
+                >
+                  <KeyRound size={14} />
+                  {resetStatus[user.email] === 'sending' ? 'Sending...'
+                    : resetStatus[user.email] === 'sent' ? 'Reset Sent'
+                    : resetStatus[user.email] === 'error' ? 'Failed — Retry'
+                    : 'Reset Password'}
+                </button>
               </div>
             );
           })}

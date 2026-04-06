@@ -13,7 +13,11 @@ import {
   signInWithEmailLink,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail,
+  fetchSignInMethodsForEmail,
+  EmailAuthProvider,
+  linkWithCredential
 } from 'firebase/auth';
 import { auth, googleProvider, microsoftProvider } from '../firebase/config';
 import { getOrCreateUser, getUserById } from '../firebase/users';
@@ -315,7 +319,7 @@ export const FirebaseAuthProvider = ({ children }) => {
       return { user: firebaseUser, userData: data };
     } catch (err) {
       if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-        // No account yet — create one
+        // No account yet — try to create one
         try {
           const result = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
           const firebaseUser = result.user;
@@ -335,11 +339,11 @@ export const FirebaseAuthProvider = ({ children }) => {
           return { user: firebaseUser, userData: data };
         } catch (createErr) {
           if (createErr.code === 'auth/email-already-in-use') {
-            // Account exists but sign-in failed — wrong password
-            const wrongPwError = new Error('Incorrect password. Please try again.');
-            wrongPwError.code = 'auth/wrong-password';
-            setError(wrongPwError.message);
-            throw wrongPwError;
+            // Account exists via Google/Microsoft — tell them to use that instead.
+            const existsError = new Error('You already have an account with Google or Microsoft. Use the Google or Microsoft button below to sign in.');
+            existsError.code = 'auth/account-exists-different-provider';
+            setError(existsError.message);
+            throw existsError;
           }
           console.error('Failed to create account:', createErr);
           setError(createErr.message);
@@ -369,6 +373,13 @@ export const FirebaseAuthProvider = ({ children }) => {
     return localStorage.getItem(EMAIL_FOR_SIGN_IN_KEY);
   };
 
+  // Reset password
+  const resetPassword = async (email) => {
+    setError(null);
+    const normalizedEmail = email.toLowerCase().trim();
+    await sendPasswordResetEmail(auth, normalizedEmail);
+  };
+
   // Sign out
   const signOut = async () => {
     try {
@@ -392,6 +403,7 @@ export const FirebaseAuthProvider = ({ children }) => {
     signInWithGoogle,
     signInWithMicrosoft,
     signInWithEmailPassword,
+    resetPassword,
     sendMagicLink,
     completeMagicLinkSignIn,
     isMagicLinkUrl,

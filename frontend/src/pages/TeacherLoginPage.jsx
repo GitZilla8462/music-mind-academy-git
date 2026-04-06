@@ -1,6 +1,6 @@
 // /src/pages/TeacherLoginPage.jsx
 // Login page for approved pilot teachers
-// Supports: Google, Microsoft, and Magic Link authentication
+// Supports: Email/Password (primary), Google, Microsoft
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -17,27 +17,22 @@ const TeacherLoginPage = () => {
     isAuthenticated,
     signInWithGoogle,
     signInWithMicrosoft,
-    sendMagicLink,
-    completeMagicLinkSignIn,
     signInWithEmailPassword,
-    isMagicLinkUrl,
+    resetPassword,
     loading
   } = useFirebaseAuth();
 
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState(null);
-  const [magicLinkEmail, setMagicLinkEmail] = useState('');
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
-  const [isSendingMagicLink, setIsSendingMagicLink] = useState(false);
-  const [isCompletingMagicLink, setIsCompletingMagicLink] = useState(false);
-  const [needsEmailForMagicLink, setNeedsEmailForMagicLink] = useState(false);
-  const [showEmailOption, setShowEmailOption] = useState(false);
-  const [emailPasswordMode, setEmailPasswordMode] = useState(false);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isNewAccount, setIsNewAccount] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
 
   // Check if we're on the edu site
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
-  // Go to unit selection page after login
   const dashboardRoute = '/music-classroom-resources';
   const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
   const accentColor = isEduSite ? 'text-violet-600' : 'text-blue-600';
@@ -48,43 +43,50 @@ const TeacherLoginPage = () => {
     preloadUnitPage();
   }, []);
 
-  // Handle magic link return (when user clicks link in email)
-  useEffect(() => {
-    const handleMagicLinkReturn = async () => {
-      if (isMagicLinkUrl()) {
-        setIsCompletingMagicLink(true);
-        setError(null);
-
-        try {
-          const result = await completeMagicLinkSignIn();
-          if (result) {
-            navigate(dashboardRoute);
-          }
-        } catch (err) {
-          console.error('Magic link completion failed:', err);
-          if (err.code === 'auth/needs-email') {
-            // User opened link on different device, needs to enter email
-            setNeedsEmailForMagicLink(true);
-          } else if (err.code === 'auth/not-approved') {
-            setError("Your email is not registered for access. Contact your administrator");
-          } else {
-            setError(err.message || 'Failed to complete sign-in. Please try again.');
-          }
-        } finally {
-          setIsCompletingMagicLink(false);
-        }
-      }
-    };
-
-    handleMagicLinkReturn();
-  }, []);
-
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && !loading) {
       navigate(dashboardRoute);
     }
   }, [isAuthenticated, loading, navigate, dashboardRoute]);
+
+  const handleEmailPasswordSignIn = async (e) => {
+    e.preventDefault();
+    if (!email.trim() || !password.trim()) return;
+
+    if (isNewAccount) {
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.');
+        return;
+      }
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters.');
+        return;
+      }
+    }
+
+    setIsSigningIn(true);
+    setError(null);
+
+    try {
+      await signInWithEmailPassword(email, password);
+      navigate(dashboardRoute);
+    } catch (err) {
+      console.error('Email/password sign-in failed:', err);
+      if (err.code === 'auth/account-exists-different-provider') {
+        // Account exists via Google/Microsoft — show error, don't send reset email
+        setError(err.message);
+      } else if (err.code === 'auth/not-approved') {
+        setError("Your email hasn't been approved yet. Apply through our form and wait for approval.");
+      } else if (err.code === 'auth/wrong-password') {
+        setError('Incorrect password. Try again or use "Forgot password?" below.');
+      } else {
+        setError(err.message || 'Sign-in failed. Please try again.');
+      }
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setIsSigningIn(true);
@@ -95,7 +97,7 @@ const TeacherLoginPage = () => {
     } catch (err) {
       console.error('Sign-in failed:', err);
       if (err.code === 'auth/not-approved') {
-        setError("Your email is not registered for access. Contact your administrator");
+        setError("Your email hasn't been approved yet. Apply through our form and wait for approval.");
       } else {
         setError(err.message || 'Sign-in failed. Please try again.');
       }
@@ -113,7 +115,7 @@ const TeacherLoginPage = () => {
     } catch (err) {
       console.error('Microsoft sign-in failed:', err);
       if (err.code === 'auth/not-approved') {
-        setError("Your email is not registered for access. Contact your administrator");
+        setError("Your email hasn't been approved yet. Apply through our form and wait for approval.");
       } else {
         setError(err.message || 'Sign-in failed. Please try again.');
       }
@@ -122,76 +124,23 @@ const TeacherLoginPage = () => {
     }
   };
 
-  const handleEmailPasswordSignIn = async (e) => {
-    e.preventDefault();
-    if (!magicLinkEmail.trim() || !password.trim()) return;
-
-    setIsSigningIn(true);
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      setError('Enter your email above, then click "Forgot password?"');
+      return;
+    }
+    setIsSendingReset(true);
     setError(null);
-
     try {
-      await signInWithEmailPassword(magicLinkEmail, password);
-      navigate(dashboardRoute);
+      await resetPassword(email);
+      setResetSent(true);
     } catch (err) {
-      console.error('Email/password sign-in failed:', err);
-      if (err.code === 'auth/not-approved') {
-        setError("Your email hasn't been approved for the pilot yet. Please apply through our form and wait for approval.");
-      } else if (err.code === 'auth/wrong-password') {
-        setError('Incorrect password. Please try again.');
-      } else {
-        setError(err.message || 'Sign-in failed. Please try again.');
-      }
+      console.error('Password reset failed:', err);
+      setError('Could not send reset email. Make sure your email is correct.');
     } finally {
-      setIsSigningIn(false);
+      setIsSendingReset(false);
     }
   };
-
-  const handleSendMagicLink = async (e) => {
-    e.preventDefault();
-    if (!magicLinkEmail.trim()) return;
-
-    setIsSendingMagicLink(true);
-    setError(null);
-
-    try {
-      await sendMagicLink(magicLinkEmail);
-      setMagicLinkSent(true);
-    } catch (err) {
-      console.error('Failed to send magic link:', err);
-      if (err.code === 'auth/not-approved') {
-        setError("This email is not registered. Contact your administrator");
-      } else {
-        setError(err.message || 'Failed to send login link. Please try again.');
-      }
-    } finally {
-      setIsSendingMagicLink(false);
-    }
-  };
-
-  const handleCompleteMagicLinkWithEmail = async (e) => {
-    e.preventDefault();
-    if (!magicLinkEmail.trim()) return;
-
-    setIsCompletingMagicLink(true);
-    setError(null);
-
-    try {
-      await completeMagicLinkSignIn(magicLinkEmail);
-      navigate(dashboardRoute);
-    } catch (err) {
-      console.error('Magic link completion failed:', err);
-      if (err.code === 'auth/not-approved') {
-        setError("Your email is not registered for access. Contact your administrator");
-      } else {
-        setError(err.message || 'Failed to complete sign-in. Please try again.');
-      }
-    } finally {
-      setIsCompletingMagicLink(false);
-    }
-  };
-
-  // Don't block the login page on loading - let users start signing in immediately
-  // They'll be redirected once auth state is confirmed
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -225,8 +174,8 @@ const TeacherLoginPage = () => {
       <main className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
-            {/* Magic Link Sent Success */}
-            {magicLinkSent ? (
+            {/* Password Reset Success */}
+            {resetSent ? (
               <div className="text-center">
                 <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
                   <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -235,249 +184,170 @@ const TeacherLoginPage = () => {
                 </div>
                 <h2 className="text-xl font-bold text-slate-800 mb-2">Check your email!</h2>
                 <p className="text-slate-600 mb-4">
-                  We sent a login link to <span className="font-semibold">{magicLinkEmail}</span>
+                  We sent a link to <span className="font-semibold">{email}</span> to set your password.
                 </p>
                 <p className="text-slate-500 text-sm mb-6">
-                  Click the link in the email to sign in. The link expires in 1 hour.
-                  <br />Check your spam folder if you don't see it within a minute.
+                  Click the link in the email to create a password. Then come back here and sign in.
+                  <br />Check your spam folder if you don't see it.
                 </p>
                 <button
                   onClick={() => {
-                    setMagicLinkSent(false);
-                    setMagicLinkEmail('');
+                    setResetSent(false);
+                    setPassword('');
                   }}
                   className="text-slate-600 hover:text-slate-800 text-sm font-medium"
                 >
-                  ← Use a different email
+                  &larr; Back to sign in
                 </button>
               </div>
-            ) : needsEmailForMagicLink ? (
-              /* Need email to complete magic link (opened on different device) */
-              <div>
+            ) : (
+              <>
                 <div className="text-center mb-6">
-                  <h1 className="text-2xl font-bold text-slate-800 mb-2">Complete Sign In</h1>
+                  <h1 className="text-2xl font-bold text-slate-800 mb-2">
+                    {isNewAccount ? 'Create Your Account' : 'Teacher Sign In'}
+                  </h1>
                   <p className="text-slate-600">
-                    Enter your email to complete the sign-in process.
+                    {isNewAccount ? 'Enter your school email and choose a password.' : 'Sign in with your school email.'}
                   </p>
                 </div>
 
-                {error && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
-                    <p className="text-red-700 text-sm">{error}</p>
-                  </div>
-                )}
-
-                <form onSubmit={handleCompleteMagicLinkWithEmail} className="space-y-4">
-                  <input
-                    type="email"
-                    value={magicLinkEmail}
-                    onChange={(e) => setMagicLinkEmail(e.target.value)}
-                    placeholder="you@school.edu"
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
-                    required
-                  />
+                {/* Toggle between Sign In and Create Account */}
+                <div className="flex rounded-xl border-2 border-slate-200 mb-5 overflow-hidden">
                   <button
-                    type="submit"
-                    disabled={isCompletingMagicLink || !magicLinkEmail.trim()}
-                    className={`w-full py-3 rounded-xl font-semibold text-white ${buttonBgColor} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
+                    type="button"
+                    onClick={() => { setIsNewAccount(false); setError(null); setConfirmPassword(''); }}
+                    className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
+                      !isNewAccount ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 hover:text-slate-700'
+                    }`}
                   >
-                    {isCompletingMagicLink ? 'Signing in...' : 'Complete Sign In'}
+                    Sign In
                   </button>
-                </form>
-              </div>
-            ) : isCompletingMagicLink ? (
-              /* Completing magic link sign-in */
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-slate-600">Completing sign-in...</p>
-              </div>
-            ) : (
-              /* Normal login view */
-              <>
-                <div className="text-center mb-8">
-                  <h1 className="text-2xl font-bold text-slate-800 mb-2">Teacher Sign In</h1>
-                  <p className="text-slate-600">
-                    Sign in with your school account.
-                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setIsNewAccount(true); setError(null); }}
+                    className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
+                      isNewAccount ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    New? Create Account
+                  </button>
                 </div>
 
                 {/* Error Message */}
                 {error && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <div className="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl">
                     <div className="flex items-start gap-3">
                       <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                       </svg>
-                      <div>
-                        <p className="text-red-700 text-sm">{error}</p>
-                      </div>
+                      <p className="text-red-700 text-sm">{error}</p>
                     </div>
                   </div>
                 )}
 
-                {/* Google Sign In — primary method */}
-                <button
-                  onClick={handleGoogleSignIn}
-                  disabled={isSigningIn}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white border-2 border-slate-200 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg className={`w-5 h-5 ${isSigningIn ? 'animate-spin' : ''}`} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
-                    {isSigningIn ? (
-                      <>
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </>
-                    ) : (
-                      <>
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                      </>
-                    )}
-                  </svg>
-                  {isSigningIn ? 'Signing in...' : 'Sign in with Google'}
-                </button>
-
-                {/* Microsoft Sign In */}
-                <button
-                  onClick={handleMicrosoftSignIn}
-                  disabled={isSigningIn}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-white border-2 border-slate-200 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-3"
-                >
-                  <svg className="w-5 h-5" viewBox="0 0 21 21">
-                    <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-                    <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-                    <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-                    <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-                  </svg>
-                  Sign in with Microsoft
-                </button>
-
-                {/* Fallback: email sign-in for district-blocked schools */}
-                {!showEmailOption ? (
+                {/* Email + Password — primary method */}
+                <form onSubmit={handleEmailPasswordSignIn} className="space-y-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@school.edu"
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
+                    required
+                    autoComplete="email"
+                  />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={isNewAccount ? 'Choose a password' : 'Password'}
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
+                    required
+                    autoComplete={isNewAccount ? 'new-password' : 'current-password'}
+                    minLength={6}
+                  />
+                  {isNewAccount && (
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm password"
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
+                      required
+                      autoComplete="new-password"
+                      minLength={6}
+                    />
+                  )}
                   <button
-                    onClick={() => setShowEmailOption(true)}
-                    className="w-full text-center text-sm text-slate-500 hover:text-slate-700 mt-4"
+                    type="submit"
+                    disabled={isSigningIn || !email.trim() || !password.trim() || (isNewAccount && !confirmPassword.trim())}
+                    className={`w-full py-3 rounded-xl font-semibold text-white ${buttonBgColor} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    Can't use Google at your school?
-                  </button>
-                ) : (
-                  <div className="mt-6">
-                    <div className="relative mb-4">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-slate-200"></div>
-                      </div>
-                      <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-white text-slate-500">or sign in with email</span>
-                      </div>
-                    </div>
-
-                    {/* Toggle between password and magic link */}
-                    <div className="flex rounded-lg border border-slate-200 mb-4 overflow-hidden">
-                      <button
-                        onClick={() => setEmailPasswordMode(true)}
-                        className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                          emailPasswordMode
-                            ? 'bg-slate-800 text-white'
-                            : 'bg-white text-slate-500 hover:text-slate-700'
-                        }`}
-                      >
-                        Email + Password
-                      </button>
-                      <button
-                        onClick={() => setEmailPasswordMode(false)}
-                        className={`flex-1 py-2 text-sm font-medium transition-colors ${
-                          !emailPasswordMode
-                            ? 'bg-slate-800 text-white'
-                            : 'bg-white text-slate-500 hover:text-slate-700'
-                        }`}
-                      >
-                        Magic Link
-                      </button>
-                    </div>
-
-                    {emailPasswordMode ? (
-                      <>
-                        <p className="text-sm text-slate-500 text-center mb-3">
-                          Enter your email and choose a password. First time? This will create your account.
-                        </p>
-                        <form onSubmit={handleEmailPasswordSignIn} className="space-y-3">
-                          <input
-                            type="email"
-                            value={magicLinkEmail}
-                            onChange={(e) => setMagicLinkEmail(e.target.value)}
-                            placeholder="you@school.edu"
-                            className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
-                            required
-                            autoComplete="email"
-                          />
-                          <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Password"
-                            className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
-                            required
-                            autoComplete="current-password"
-                            minLength={6}
-                          />
-                          <button
-                            type="submit"
-                            disabled={isSigningIn || !magicLinkEmail.trim() || !password.trim()}
-                            className={`w-full py-3 rounded-xl font-semibold text-white ${buttonBgColor} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
-                          >
-                            {isSigningIn ? (
-                              <span className="flex items-center justify-center gap-2">
-                                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Signing in...
-                              </span>
-                            ) : (
-                              'Sign In'
-                            )}
-                          </button>
-                        </form>
-                      </>
+                    {isSigningIn ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {isNewAccount ? 'Creating account...' : 'Signing in...'}
+                      </span>
                     ) : (
-                      <>
-                        <p className="text-sm text-slate-500 text-center mb-3">
-                          We'll send a login link to your email. No password needed.
-                        </p>
-                        <form onSubmit={handleSendMagicLink} className="space-y-3">
-                          <input
-                            type="email"
-                            value={magicLinkEmail}
-                            onChange={(e) => setMagicLinkEmail(e.target.value)}
-                            placeholder="you@school.edu"
-                            className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-0 outline-none transition-colors"
-                            required
-                            autoComplete="email"
-                          />
-                          <button
-                            type="submit"
-                            disabled={isSendingMagicLink || !magicLinkEmail.trim()}
-                            className={`w-full py-3 rounded-xl font-semibold text-white ${buttonBgColor} transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
-                          >
-                            {isSendingMagicLink ? (
-                              <span className="flex items-center justify-center gap-2">
-                                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Sending...
-                              </span>
-                            ) : (
-                              'Send me a login link'
-                            )}
-                          </button>
-                        </form>
-                      </>
+                      isNewAccount ? 'Create Account' : 'Sign In'
                     )}
+                  </button>
+                </form>
+
+                {!isNewAccount && (
+                  <div className="flex items-center justify-end mt-3">
+                    <button
+                      onClick={handleForgotPassword}
+                      disabled={isSendingReset}
+                      className={`text-sm font-medium ${accentColor} hover:underline disabled:opacity-50`}
+                    >
+                      {isSendingReset ? 'Sending...' : 'Forgot password?'}
+                    </button>
                   </div>
                 )}
+
+                {/* Divider */}
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-200"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-white text-slate-500">or sign in with</span>
+                  </div>
+                </div>
+
+                {/* Google + Microsoft — secondary */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleGoogleSignIn}
+                    disabled={isSigningIn}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-slate-200 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Google
+                  </button>
+                  <button
+                    onClick={handleMicrosoftSignIn}
+                    disabled={isSigningIn}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-slate-200 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 21 21">
+                      <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                      <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                      <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                      <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+                    </svg>
+                    Microsoft
+                  </button>
+                </div>
 
                 <div className="mt-6 pt-6 border-t border-slate-200">
                   <p className="text-center text-slate-500 text-sm">
