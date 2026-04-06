@@ -84,17 +84,16 @@ export const usePlaybackHandlers = ({
         console.log('✅ AudioContext resumed');
       }
 
-      // ✅ FIX: Start transport FIRST, then schedule loops
-      // This prevents scheduleLoops from being skipped due to Transport state check
+      // Start transport, then immediately schedule loops in the same tick
       await play();
-      console.log('✅ Transport started');
 
-      // Now schedule loops (Transport is running, so scheduling will work)
+      // Schedule loops right after transport starts
       const statesForScheduling = getTrackStatesForScheduling();
       if (placedLoops.length > 0) {
         console.log('📅 Scheduling loops after transport start...');
         scheduleLoops(placedLoops, selectedVideo?.duration || 60, statesForScheduling);
       }
+      console.log('✅ Transport started with loops scheduled');
 
       console.log('✅ Playback begun');
 
@@ -121,19 +120,18 @@ export const usePlaybackHandlers = ({
   const handleRestart = useCallback(async () => {
     if (!audioReady) return;
     if (lockFeatures.allowPlayback === false) return;
-    
+
     console.log('🔄 Restarting playback');
-    
-    // Stop and reset
+
+    // Stop completely — clears events and resets transport to 0
     stop();
-    seek(0);
-    
-    // Small delay then restart with fresh scheduling
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    // Now play (which will schedule loops)
+
+    // Wait long enough for stop to complete and debounce window to pass
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Play from the beginning (handlePlay starts transport then schedules loops)
     await handlePlay();
-  }, [stop, seek, audioReady, lockFeatures, handlePlay]);
+  }, [stop, audioReady, lockFeatures, handlePlay]);
     
   const handleSeek = useCallback((time) => {
     if (!audioReady) return;
