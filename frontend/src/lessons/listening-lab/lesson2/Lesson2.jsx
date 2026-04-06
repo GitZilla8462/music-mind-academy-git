@@ -66,6 +66,7 @@ const Lesson2 = () => {
   const viewSavedMode = searchParams.get('view') === 'saved';
   const viewReflectionMode = searchParams.get('view') === 'reflection';
   const isPreviewMode = searchParams.get('preview') === 'true';
+  const isPassivePreview = isPreviewMode && searchParams.get('passive') === 'true';
   const isMuted = searchParams.get('muted') === 'true';
 
   // Preview mode: use local stage state (SessionContext rejects setCurrentStage without a session)
@@ -78,7 +79,7 @@ const Lesson2 = () => {
 
   // Mute audio in preview mode
   React.useEffect(() => {
-    if (isPreviewMode || isMuted) {
+    if (isPassivePreview || isMuted) {
       const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
       if (OriginalAudioContext) {
         window.AudioContext = function() {
@@ -102,7 +103,7 @@ const Lesson2 = () => {
 
       return () => clearInterval(interval);
     }
-  }, [isPreviewMode, isMuted]);
+  }, [isPassivePreview, isMuted]);
 
   // Handle session activity completion
   const handleSessionActivityComplete = useCallback((activityId) => {

@@ -100,6 +100,7 @@ const WoodwindFamilyShowcase = ({ onAdvance }) => {
     try {
       videoRef.current.currentTime = config.startTime;
       videoRef.current.volume = config.volume ?? 0.8;
+      videoRef.current.muted = false;
       await videoRef.current.play();
       setPhase('playing');
     } catch (err) {
