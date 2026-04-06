@@ -105,6 +105,7 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
   const [qPage, setQPage] = useState(0);
 
   const QUESTIONS = [
+    { id: 'track', label: 'Your Track', subtitle: 'What are you listening to?', done: !!(entry.artistName && entry.trackTitle) },
     { id: 'tempo', label: 'Tempo', subtitle: 'How fast is the music?', done: !!entry.tempo },
     { id: 'dynamics', label: 'Dynamics', subtitle: 'How loud or soft?', done: entry.dynamics.length > 0 },
     { id: 'mood', label: 'Mood', subtitle: 'What feeling does it create?', done: entry.moods.length > 0 },
@@ -113,57 +114,18 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
     { id: 'hook', label: 'Hook', subtitle: 'What\'s the catchiest part?', done: !!entry.hook },
     { id: 'bonus', label: 'Bonus', subtitle: 'Influences & notes (optional)', done: !!(entry.influences || entry.notes) },
   ];
-  const totalCore = 6;
-  const answeredCore = QUESTIONS.slice(0, 6).filter(q => q.done).length;
+  const totalCore = 7;
+  const answeredCore = QUESTIONS.slice(0, 7).filter(q => q.done).length;
   const currentQ = QUESTIONS[qPage] || QUESTIONS[0];
   const isLastPage = qPage >= QUESTIONS.length - 1;
   const isFirstPage = qPage === 0;
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Top bar: track info + nav */}
+      {/* Top bar: nav */}
       <div className="shrink-0 px-3 py-2 bg-[#141a21] border-b border-white/[0.06]">
-        <div className="max-w-2xl mx-auto space-y-2">
-          {/* Row 1: Artist & Track dropdowns */}
-          <div className="flex items-center gap-2">
-            <select
-              value={entry.artistName}
-              onChange={(e) => {
-                if (viewMode) return;
-                const artistName = e.target.value;
-                updateField('artistName', artistName);
-                // Auto-clear track when artist changes
-                if (artistName !== entry.artistName) {
-                  updateField('trackTitle', '');
-                  // Auto-set genre from artist database
-                  const artist = ARTIST_DATABASE.find(a => a.name === artistName);
-                  if (artist) updateField('genre', artist.genre);
-                }
-              }}
-              disabled={viewMode}
-              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400/30 min-h-[34px] appearance-none cursor-pointer"
-            >
-              <option value="" className="bg-[#1a2030]">Select artist...</option>
-              {ARTIST_DATABASE.map(artist => (
-                <option key={artist.id} value={artist.name} className="bg-[#1a2030]">{artist.name}</option>
-              ))}
-            </select>
-            <select
-              value={entry.trackTitle}
-              onChange={(e) => !viewMode && updateField('trackTitle', e.target.value)}
-              disabled={viewMode || !entry.artistName}
-              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400/30 min-h-[34px] appearance-none cursor-pointer disabled:opacity-40"
-            >
-              <option value="" className="bg-[#1a2030]">{entry.artistName ? 'Select track...' : 'Pick artist first'}</option>
-              {(() => {
-                const artist = ARTIST_DATABASE.find(a => a.name === entry.artistName);
-                return artist?.tracks?.map(track => (
-                  <option key={track.title} value={track.title} className="bg-[#1a2030]">{track.title}</option>
-                )) || [];
-              })()}
-            </select>
-          </div>
-          {/* Row 2: Back/Next + progress dots */}
+        <div className="max-w-2xl mx-auto">
+          {/* Back/Next + progress dots */}
           <div className="flex items-center gap-2">
             <button onClick={() => setQPage(p => p - 1)} disabled={isFirstPage}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all min-h-[32px] flex items-center gap-1 ${
@@ -212,8 +174,54 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
             <p className="text-white/40 text-sm mt-1">{currentQ.subtitle}</p>
           </div>
 
-          {/* Q0: Tempo */}
+          {/* Q0: Track Selection */}
           {qPage === 0 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-white/40 text-xs font-semibold uppercase tracking-wider mb-2">Artist</label>
+                <select
+                  value={entry.artistName}
+                  onChange={(e) => {
+                    if (viewMode) return;
+                    const artistName = e.target.value;
+                    updateField('artistName', artistName);
+                    if (artistName !== entry.artistName) {
+                      updateField('trackTitle', '');
+                      const artist = ARTIST_DATABASE.find(a => a.name === artistName);
+                      if (artist) updateField('genre', artist.genre);
+                    }
+                  }}
+                  disabled={viewMode}
+                  className="w-full bg-white/[0.04] border-2 border-white/[0.08] rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:border-amber-400/30 min-h-[48px] appearance-none cursor-pointer"
+                >
+                  <option value="" className="bg-[#1a2030]">Select an artist...</option>
+                  {ARTIST_DATABASE.map(artist => (
+                    <option key={artist.id} value={artist.name} className="bg-[#1a2030]">{artist.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-white/40 text-xs font-semibold uppercase tracking-wider mb-2">Track</label>
+                <select
+                  value={entry.trackTitle}
+                  onChange={(e) => !viewMode && updateField('trackTitle', e.target.value)}
+                  disabled={viewMode || !entry.artistName}
+                  className="w-full bg-white/[0.04] border-2 border-white/[0.08] rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:border-amber-400/30 min-h-[48px] appearance-none cursor-pointer disabled:opacity-40"
+                >
+                  <option value="" className="bg-[#1a2030]">{entry.artistName ? 'Select a track...' : 'Pick an artist first'}</option>
+                  {(() => {
+                    const artist = ARTIST_DATABASE.find(a => a.name === entry.artistName);
+                    return artist?.tracks?.map(track => (
+                      <option key={track.title} value={track.title} className="bg-[#1a2030]">{track.title}</option>
+                    )) || [];
+                  })()}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Q1: Tempo */}
+          {qPage === 1 && (
             <div className="space-y-3">
               <div className="flex flex-wrap justify-center gap-2">
                 {TEMPO_OPTIONS.map(t => (
@@ -234,8 +242,8 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
             </div>
           )}
 
-          {/* Q1: Dynamics */}
-          {qPage === 1 && (
+          {/* Q2: Dynamics */}
+          {qPage === 2 && (
             <div className="space-y-3">
               <div className="flex flex-wrap justify-center gap-2">
                 {DYNAMICS_OPTIONS.map(d => {
@@ -259,8 +267,8 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
             </div>
           )}
 
-          {/* Q2: Mood */}
-          {qPage === 2 && (
+          {/* Q3: Mood */}
+          {qPage === 3 && (
             <div className="flex flex-wrap justify-center gap-2">
               {MOOD_OPTIONS.map(mood => {
                 const selected = entry.moods.includes(mood);
@@ -275,8 +283,8 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
             </div>
           )}
 
-          {/* Q3: Instruments */}
-          {qPage === 3 && (
+          {/* Q4: Instruments */}
+          {qPage === 4 && (
             <div className="space-y-3">
               <div className="flex flex-wrap justify-center gap-2">
                 {INSTRUMENT_OPTIONS.map(inst => (
@@ -293,8 +301,8 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
             </div>
           )}
 
-          {/* Q4: Texture */}
-          {qPage === 4 && (
+          {/* Q5: Texture */}
+          {qPage === 5 && (
             <div className="flex flex-wrap justify-center gap-3">
               {TEXTURE_OPTIONS.map(t => (
                 <button key={t.label} onClick={() => !viewMode && updateField('texture', entry.texture === t.label ? '' : t.label)}
@@ -305,15 +313,15 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
             </div>
           )}
 
-          {/* Q5: Hook */}
-          {qPage === 5 && (
+          {/* Q6: Hook */}
+          {qPage === 6 && (
             <textarea value={entry.hook} onChange={(e) => !viewMode && updateField('hook', e.target.value)} readOnly={viewMode}
               placeholder="Describe the catchiest part in 1-2 sentences..." rows={4}
               className="w-full bg-white/[0.04] border-2 border-white/[0.08] rounded-xl px-4 py-3 text-base text-white placeholder-white/25 focus:outline-none focus:border-white/20 resize-none" />
           )}
 
-          {/* Q6: Bonus + Save */}
-          {qPage === 6 && (
+          {/* Q7: Bonus + Save */}
+          {qPage === 7 && (
             <div className="space-y-4">
               <div>
                 <label className="block text-white/40 text-xs font-semibold uppercase tracking-wider mb-2">Influences — Who do they remind you of?</label>
