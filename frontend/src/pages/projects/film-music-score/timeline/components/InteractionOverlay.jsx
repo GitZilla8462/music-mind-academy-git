@@ -990,14 +990,15 @@ const InteractionOverlay = ({
           backgroundColor: 'transparent',
           // GPU acceleration
           transform: 'translateZ(0)',
+          touchAction: 'none',
           WebkitBackfaceVisibility: 'hidden',
           isolation: 'isolate'
         }}
-        onMouseMove={handleMouseMove}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onPointerUp={handleMouseUp}  // CHROMEBOOK FIX: pointerup fires more reliably on trackpads
-        onMouseLeave={handleMouseUp}
+        onPointerMove={handleMouseMove}
+        onPointerDown={handleMouseDown}
+        onPointerUp={handleMouseUp}
+        onPointerCancel={handleMouseUp}
+        onPointerLeave={handleMouseUp}
         onContextMenu={handleContextMenu}
         onDoubleClick={handleDoubleClick}
         onDragOver={handleDragOver}
