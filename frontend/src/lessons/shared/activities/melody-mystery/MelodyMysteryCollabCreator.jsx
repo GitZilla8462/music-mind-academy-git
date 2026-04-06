@@ -8,6 +8,7 @@ import SimpleMelodyGrid, {
   createEmptySimpleGrid,
   countSimpleNotes,
   playSimpleGrid,
+  stopSimpleGridPlayback,
   getSimpleContour
 } from './SimpleMelodyGrid';
 import {
@@ -354,6 +355,7 @@ const MelodyMysteryCollabCreator = ({
   };
 
   const handleCancel = () => {
+    stopSimpleGridPlayback();
     setEditingScene(null);
     setActiveScene(null);
     setCurrentBeat(-1);
@@ -362,6 +364,7 @@ const MelodyMysteryCollabCreator = ({
 
   const handlePreview = async () => {
     if (isPlaying) {
+      stopSimpleGridPlayback();
       playingRef.current = false;
       setIsPlaying(false);
       setCurrentBeat(-1);

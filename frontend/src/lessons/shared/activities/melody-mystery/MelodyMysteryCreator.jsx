@@ -8,6 +8,7 @@ import SimpleMelodyGrid, {
   createEmptySimpleGrid,
   countSimpleNotes,
   playSimpleGrid,
+  stopSimpleGridPlayback,
   disposeSimpleSynth,
   getSimpleContour,
   GRID_COLS
@@ -113,6 +114,7 @@ const MelodyMysteryCreator = ({
   // Play current melody (synced audio + visual)
   const handlePlay = async () => {
     if (isPlaying) {
+      stopSimpleGridPlayback();
       playingRef.current = false;
       setIsPlaying(false);
       setCurrentBeat(-1);

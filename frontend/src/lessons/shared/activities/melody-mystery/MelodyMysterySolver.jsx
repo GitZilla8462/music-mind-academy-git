@@ -22,6 +22,7 @@ import SimpleMelodyGrid, {
   createEmptySimpleGrid,
   countSimpleNotes,
   playSimpleGrid,
+  stopSimpleGridPlayback,
   disposeSimpleSynth,
   simpleGridsMatch,
   GRID_COLS,
@@ -320,6 +321,7 @@ const MelodyMysterySolver = ({ mysteryData, onComplete, onBack }) => {
 
   // Clear grid
   const clearGrid = () => {
+    stopSimpleGridPlayback();
     playingRef.current = false;
     setIsPlayingPlayer(false);
     setIsPlayingTarget(false);

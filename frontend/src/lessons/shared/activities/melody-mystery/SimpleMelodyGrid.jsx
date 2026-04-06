@@ -718,14 +718,29 @@ const playNote = async (noteId, deviceId = null) => {
   }
 };
 
+// Abort controller for stopping playback mid-grid
+let playbackAbort = null;
+
+// Stop any in-progress grid playback
+export const stopSimpleGridPlayback = () => {
+  if (playbackAbort) playbackAbort.abort();
+};
+
 // Play entire grid with optional device sound
 export const playSimpleGrid = async (grid, bpm = 120, onBeatChange, deviceId = null) => {
+  // Abort any previous playback
+  if (playbackAbort) playbackAbort.abort();
+  const abort = new AbortController();
+  playbackAbort = abort;
+
   await initAudio(deviceId);
 
   const config = getDeviceConfig(deviceId);
   const interval = (60 / bpm) * 1000 / 2; // 8th notes
 
   for (let col = 0; col < GRID_COLS; col++) {
+    if (abort.signal.aborted) break;
+
     if (onBeatChange) onBeatChange(col);
 
     for (let row = 0; row < GRID_ROWS; row++) {
