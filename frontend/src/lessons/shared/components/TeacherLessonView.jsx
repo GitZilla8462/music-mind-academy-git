@@ -4822,23 +4822,8 @@ const TeacherLessonView = ({
   };
 
   return (
-    <div className="teacher-lesson-outer" style={{ position: 'fixed', inset: 0, overflow: 'hidden', background: 'linear-gradient(to bottom right, #1e1b4b, #581c87, #0f172a)' }}>
-      <style>{`
-        .teacher-lesson-wrapper {
-          height: 100%;
-          overflow: hidden;
-          position: relative;
-        }
-        @media (max-width: 1400px) {
-          .teacher-lesson-container {
-            transform: scale(0.67);
-            transform-origin: top left;
-            width: 150%;
-            height: 150%;
-          }
-        }
-      `}</style>
-      <div className="teacher-lesson-wrapper">
+    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden' }}>
+      <div className="teacher-lesson-wrapper" style={{ height: '100%', overflow: 'hidden' }}>
         <div className="teacher-lesson-container h-screen flex bg-slate-900 overflow-hidden">
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
