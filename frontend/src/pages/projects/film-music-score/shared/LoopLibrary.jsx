@@ -149,11 +149,10 @@ const LoopLibrary = ({
         setLoops(processedLoops);
         setLoading(false);
 
-        // CHROMEBOOK OPTIMIZATION: Only preload first 15 loops in batches of 2
-        // Rest will load on-demand when clicked (prevents overwhelming low-end devices)
-        const PRELOAD_COUNT = 15;
-        const BATCH_SIZE = 2;
-        const loopsToPreload = processedLoops.slice(0, PRELOAD_COUNT);
+        // Preload ALL loop metadata (durations) so visual blocks are correctly sized on drop
+        // Only fetches file headers (preload='metadata'), not full audio — lightweight even on Chromebooks
+        const BATCH_SIZE = 4;
+        const loopsToPreload = processedLoops;
 
         const loadBatch = async (startIndex) => {
           const batch = loopsToPreload.slice(startIndex, startIndex + BATCH_SIZE);
@@ -245,7 +244,7 @@ const LoopLibrary = ({
       mood: mood,
       color: INSTRUMENT_COLORS[instrument],
       category: instrument,
-      duration: 17.5, // Default to standard loop duration (all loops are ~17.5s)
+      duration: 17.454545454545453, // Default: 32 beats at 110 BPM (beat-aligned)
       loaded: false,
       accessible: true,
       originalFilename: `${name}.${extension}`,
@@ -271,8 +270,13 @@ const LoopLibrary = ({
         
         testAudio.addEventListener('loadedmetadata', () => {
           clearTimeout(timeout);
+          // Quantize duration to beat grid (110 BPM) so visual blocks align with audio loops
+          const rawDuration = testAudio.duration || 4;
+          const BEAT_DURATION = 60 / 110;
+          const numBeats = Math.round(rawDuration / BEAT_DURATION);
+          const beatAlignedDuration = numBeats * BEAT_DURATION;
           resolve({
-            duration: testAudio.duration || 4,
+            duration: beatAlignedDuration,
             accessible: true
           });
         });

@@ -201,27 +201,25 @@ export const logSessionEnded = async (sessionCode, lastStage, studentsJoined, cl
     }).catch(err => console.warn('HubSpot lesson sync skipped:', err.message));
   }
 
-  // Auto-emails on lesson completion (duplicate prevention handled by emailTracking)
-  if (sessionData.teacherEmail && studentCount >= 5) {
-    if (isUnit1) {
-      // Unit 1 only: mid-pilot survey after L3, final survey after L5
-      if (lessonNum === 3) {
-        sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l3')
-          .catch(err => console.warn('L3 survey email skipped:', err.message));
-      }
-      if (lessonNum === 5) {
-        sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l5')
-          .catch(err => console.warn('L5 survey email skipped:', err.message));
-      }
-    } else {
-      // Units 2+: send unit-complete feedback request after L5
-      if (lessonNum === 5) {
-        const unitName = unitNames[unitNum] || `Unit ${unitNum}`;
-        sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, `unit-complete-u${unitNum}`, { unitName })
-          .catch(err => console.warn(`Unit ${unitNum} complete email skipped:`, err.message));
-      }
-    }
-  }
+  // Auto-survey emails disabled — re-enable when ready to collect feedback
+  // if (sessionData.teacherEmail && studentCount >= 5) {
+  //   if (isUnit1) {
+  //     if (lessonNum === 3) {
+  //       sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l3')
+  //         .catch(err => console.warn('L3 survey email skipped:', err.message));
+  //     }
+  //     if (lessonNum === 5) {
+  //       sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, 'survey-l5')
+  //         .catch(err => console.warn('L5 survey email skipped:', err.message));
+  //     }
+  //   } else {
+  //     if (lessonNum === 5) {
+  //       const unitName = unitNames[unitNum] || `Unit ${unitNum}`;
+  //       sendTeacherEmail(sessionData.teacherEmail, sessionData.teacherName, `unit-complete-u${unitNum}`, { unitName })
+  //         .catch(err => console.warn(`Unit ${unitNum} complete email skipped:`, err.message));
+  //     }
+  //   }
+  // }
 };
 
 /**

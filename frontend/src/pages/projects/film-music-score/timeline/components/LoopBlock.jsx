@@ -30,9 +30,9 @@ const LoopBlock = ({
     isDragged: draggedLoop?.id === loop.id
   });
 
-  // Track original duration on first render
+  // Track per-cycle duration — update when the audio engine corrects it
   useEffect(() => {
-    if (originalDurationRef.current === null && loop.duration > 0) {
+    if (loop.duration > 0) {
       originalDurationRef.current = loop.duration;
     }
   }, [loop.duration]);

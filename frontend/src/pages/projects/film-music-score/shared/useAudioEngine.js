@@ -16,12 +16,18 @@ const MAX_CACHED_BUFFERS = 10;
 // Key: baseId, Value: error message
 const failedBuffersMap = new Map();
 
+// Calculate the beat-aligned duration for a loop (what the audio should loop at in real time)
+// This is the source of truth for both visual separator lines and audio loop points
+const getBeatAlignedDuration = (actualDuration) => {
+  const numBeats = Math.round(actualDuration / BEAT_DURATION);
+  return numBeats * BEAT_DURATION;
+};
+
 // Calculate playback rate to sync a loop to the project BPM
 // This ensures all library loops play at exactly 110 BPM regardless of their original tempo
 const calculatePlaybackRate = (actualDuration) => {
   // Quantize to nearest beat boundary to find expected duration
-  const numBeats = Math.round(actualDuration / BEAT_DURATION);
-  const expectedDuration = numBeats * BEAT_DURATION;
+  const expectedDuration = getBeatAlignedDuration(actualDuration);
 
   // Calculate rate: if loop is too long, speed it up (rate > 1)
   // if loop is too short, slow it down (rate < 1)
@@ -259,7 +265,8 @@ export const useAudioEngine = (videoDuration = 60) => {
         buffer,
         isBuffer: true,
         baseId,
-        duration: buffer.duration
+        duration: buffer.duration,
+        beatAlignedDuration: getBeatAlignedDuration(buffer.duration)
       };
       playersRef.current.set(playerKey, wrappedPlayer);
       return wrappedPlayer;
@@ -283,7 +290,8 @@ export const useAudioEngine = (videoDuration = 60) => {
         buffer,
         isBuffer: true,
         baseId,
-        duration: buffer.duration
+        duration: buffer.duration,
+        beatAlignedDuration: getBeatAlignedDuration(buffer.duration)
       };
       playersRef.current.set(playerKey, wrappedPlayer);
 
@@ -367,6 +375,8 @@ export const useAudioEngine = (videoDuration = 60) => {
       // Calculate timing
       const loopOffset = loop.startOffset || 0;
       const bufferDuration = player.buffer.duration;
+      // Use beat-aligned duration for loop cycling - trims AAC padding and matches visual
+      const beatAligned = player.beatAlignedDuration || getBeatAlignedDuration(bufferDuration);
 
       // How far into the timeline are we relative to this loop's start?
       const timelineProgress = Math.max(0, schedulingStartTime - loop.startTime);
@@ -374,21 +384,31 @@ export const useAudioEngine = (videoDuration = 60) => {
       // Calculate timeline duration of this loop placement
       const timelineDuration = loop.endTime - loop.startTime;
 
-      // Determine if loop should repeat (stretched beyond audio duration)
-      const shouldLoop = timelineDuration > bufferDuration * 1.05;
+      // Determine if loop should repeat (stretched beyond one beat-aligned cycle)
+      const shouldLoop = timelineDuration > beatAligned * 1.05;
 
-      // Calculate audio offset
-      // KEY FIX: Sync all loops to a global beat grid starting from time 0
-      // This ensures loops entering later are in phase with loops already playing
+      // Compute playback rate early — needed for offset calculation
+      const playbackRate = (loop.type !== 'custom-beat' && loop.type !== 'custom-melody')
+        ? calculatePlaybackRate(bufferDuration)
+        : 1.0;
+
+      // The actual loop end point in buffer time
+      const loopEndTime = Math.min(beatAligned, bufferDuration);
+
+      // Calculate audio offset (must be in BUFFER time, not real time)
+      // timelineProgress is in real time, so convert via playbackRate
       let audioOffset;
       if (shouldLoop) {
         if (timelineProgress > 0) {
-          // Loop already started - calculate position based on current time
-          audioOffset = loopOffset + (timelineProgress % bufferDuration);
+          // Loop already started — find position within current buffer cycle
+          // Convert real time to buffer time, then modulo by loopEnd
+          const bufferProgress = timelineProgress * playbackRate;
+          audioOffset = loopOffset + (bufferProgress % loopEndTime);
+          // Floating point fix: clamp near-end values to 0
+          if (loopEndTime - (audioOffset - loopOffset) < 0.01) audioOffset = loopOffset;
         } else {
-          // Loop starts in the future - sync to global beat grid
-          // Calculate what beat position the loop should start at based on its start time
-          audioOffset = loopOffset + (loop.startTime % bufferDuration);
+          // Loop starts in the future — start from the beginning of its audio
+          audioOffset = loopOffset;
         }
       } else {
         audioOffset = loopOffset + timelineProgress;
@@ -400,19 +420,13 @@ export const useAudioEngine = (videoDuration = 60) => {
       // Create AudioBufferSourceNode
       const source = audioContext.createBufferSource();
       source.buffer = player.buffer;
-
-      // Apply tempo correction (skip for custom beats/melodies)
-      if (loop.type !== 'custom-beat' && loop.type !== 'custom-melody') {
-        source.playbackRate.value = calculatePlaybackRate(player.buffer.duration);
-      } else {
-        source.playbackRate.value = 1.0;
-      }
+      source.playbackRate.value = playbackRate;
 
       // Enable looping if stretched beyond audio duration
       if (shouldLoop) {
         source.loop = true;
         source.loopStart = loopOffset;
-        source.loopEnd = bufferDuration;
+        source.loopEnd = loopEndTime;
       }
 
       // Create gain node for volume

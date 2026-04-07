@@ -377,6 +377,8 @@ export const initErrorLogging = () => {
     // Firebase auth popup errors (expected on mobile — we use redirect instead)
     if (msg.includes('popup-closed-by-user') || msg.includes('popup-blocked') ||
       msg.includes('pending promise was never set')) return true;
+    // Safari internal error — accessing HTMLMediaElement.played on empty TimeRanges
+    if (msg.includes('emptyranges')) return true;
     return false;
   };
 

@@ -173,26 +173,30 @@ export const exportCompositionToWav = async (
     gainNode.connect(offlineCtx.destination);
 
     const bufferDuration = audioBuffer.duration;
+    // Use beat-aligned duration for tiling to match live playback behavior
+    const BEAT_DURATION = 60 / 110;
+    const numBeats = Math.round(bufferDuration / BEAT_DURATION);
+    const beatAligned = Math.min(numBeats * BEAT_DURATION, bufferDuration);
 
-    if (loopDuration <= bufferDuration) {
+    if (loopDuration <= beatAligned) {
       // Single play — clip to the needed duration
       const source = offlineCtx.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(gainNode);
       source.start(startTime, 0, loopDuration);
     } else {
-      // Loop: tile the buffer to fill the region
+      // Loop: tile using beat-aligned duration to match live playback loop points
       let offset = 0;
       while (offset < loopDuration) {
         const remaining = loopDuration - offset;
-        const playDuration = Math.min(bufferDuration, remaining);
+        const playDuration = Math.min(beatAligned, remaining);
 
         const source = offlineCtx.createBufferSource();
         source.buffer = audioBuffer;
         source.connect(gainNode);
         source.start(startTime + offset, 0, playDuration);
 
-        offset += bufferDuration;
+        offset += beatAligned;
       }
     }
 

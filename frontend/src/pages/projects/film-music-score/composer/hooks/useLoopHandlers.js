@@ -56,12 +56,13 @@ export const useLoopHandlers = ({
       originalId: loopData.id,
       name: loopData.name,
       file: loopData.file,
-      duration: loopData.duration,
+      // Upbeat loops are short (~7.6s) — place as 2 cycles so they're a usable length
+      duration: loopData.mood === 'Upbeat' ? loopData.duration * 2 : loopData.duration,
       category: loopData.category,
       color: loopData.color,
       trackIndex,
       startTime,
-      endTime: startTime + loopData.duration,
+      endTime: startTime + (loopData.mood === 'Upbeat' ? loopData.duration * 2 : loopData.duration),
       volume: 1,
       muted: false,
       // Custom beat properties (for re-rendering after page reload)
@@ -103,12 +104,12 @@ export const useLoopHandlers = ({
         console.warn('Failed to create audio player - loop visible but may not play');
         return;
       }
-      
+
       if (player.isNative) {
         if (!player.loaded && player.audio) {
           await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => resolve(), 3000); // Don't reject, just continue
-            
+
             if (player.audio.readyState >= 2) {
               clearTimeout(timeout);
               resolve();
@@ -117,7 +118,7 @@ export const useLoopHandlers = ({
                 clearTimeout(timeout);
                 resolve();
               }, { once: true });
-              
+
               player.audio.addEventListener('error', () => {
                 clearTimeout(timeout);
                 resolve(); // Don't reject - loop is already visible
@@ -126,7 +127,26 @@ export const useLoopHandlers = ({
           });
         }
       }
-      
+
+      // FIX: Correct placed loop size to match actual AudioBuffer
+      // Skip if duration is already a clean multiple of beatAligned (intentional multi-cycle placement)
+      if (player.beatAlignedDuration) {
+        const ratio = newLoop.duration / player.beatAlignedDuration;
+        const isCleanMultiple = Math.abs(ratio - Math.round(ratio)) < 0.05;
+        if (!isCleanMultiple && Math.abs(player.beatAlignedDuration - newLoop.duration) > 0.1) {
+          const correctedDuration = player.beatAlignedDuration;
+          const correctedEndTime = startTime + correctedDuration;
+          const correctedLoops = updatedLoops.map(l =>
+            l.id === newLoop.id
+              ? { ...l, duration: correctedDuration, endTime: correctedEndTime }
+              : l
+          );
+          setPlacedLoops(correctedLoops);
+          scheduleLoops(correctedLoops, selectedVideo?.duration || 60, trackStates);
+          return;
+        }
+      }
+
       // Schedule loops after audio is ready
       scheduleLoops(updatedLoops, selectedVideo?.duration || 60, trackStates);
       
