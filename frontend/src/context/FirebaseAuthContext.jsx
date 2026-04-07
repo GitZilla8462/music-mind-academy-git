@@ -30,8 +30,9 @@ import '../firebase/approvedEmails';
 // Key for storing email for magic link sign-in
 const EMAIL_FOR_SIGN_IN_KEY = 'emailForSignIn';
 
-// Mobile browsers block popups — use redirect flow instead
-const isMobileBrowser = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+// iOS Safari breaks signInWithRedirect (ITP clears session state during redirect,
+// so getRedirectResult returns null). Use popup on iOS; redirect only on Android.
+const isMobileBrowser = () => /Android/i.test(navigator.userAgent);
 
 const FirebaseAuthContext = createContext(null);
 
