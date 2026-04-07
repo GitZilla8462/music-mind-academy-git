@@ -379,6 +379,8 @@ export const initErrorLogging = () => {
       msg.includes('pending promise was never set')) return true;
     // Safari internal error — accessing HTMLMediaElement.played on empty TimeRanges
     if (msg.includes('emptyranges')) return true;
+    // Tone.js scheduling conflict — harmless, just skips a note on rapid clicks
+    if (msg.includes('start time must be strictly greater')) return true;
     return false;
   };
 
