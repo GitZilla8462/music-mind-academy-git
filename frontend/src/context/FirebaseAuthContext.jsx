@@ -134,6 +134,9 @@ export const FirebaseAuthProvider = ({ children }) => {
         throw notApprovedError;
       }
 
+      // Set user immediately so isAuthenticated is true before navigate fires
+      setUser(firebaseUser);
+
       // Only create user record AFTER approval confirmed
       const data = await getOrCreateUser(firebaseUser);
       setUserData(data);
@@ -177,6 +180,9 @@ export const FirebaseAuthProvider = ({ children }) => {
         console.log('Email not approved');
         throw notApprovedError;
       }
+
+      // Set user immediately so isAuthenticated is true before navigate fires
+      setUser(firebaseUser);
 
       // Only create user record AFTER approval confirmed
       const data = await getOrCreateUser(firebaseUser);
