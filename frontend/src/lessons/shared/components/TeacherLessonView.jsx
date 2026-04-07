@@ -4813,11 +4813,10 @@ const TeacherLessonView = ({
   };
 
   return (
-    <>
+    <div className="teacher-lesson-outer" style={{ height: '100vh', height: '100dvh', overflow: 'hidden', background: '#0f172a' }}>
       <style>{`
         .teacher-lesson-wrapper {
-          height: 100vh;
-          height: 100dvh;
+          height: 100%;
           overflow: hidden;
           position: relative;
         }
@@ -5523,7 +5522,7 @@ const TeacherLessonView = ({
       )}
       </div>
     </div>
-    </>
+    </div>
   );
 };
 
