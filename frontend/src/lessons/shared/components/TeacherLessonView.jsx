@@ -2801,7 +2801,9 @@ const PresentationContent = ({
       );
     }
 
-    // Video
+    // Video — key={currentStage} ensures a fresh element only when stage changes,
+    // and onLoadedMetadata fires once per mount (not on every re-render) so the
+    // teacher can pause/unpause without the video resetting.
     if (type === 'video' && videoPath) {
       return (
         <div className="absolute inset-0 bg-black">
@@ -2811,15 +2813,13 @@ const PresentationContent = ({
             playsInline
             className="absolute inset-0 w-full h-full object-contain"
             onEnded={onVideoEnded}
-            ref={(el) => {
-              if (el) {
-                const startTime = currentStageData.presentationView.startTime;
-                if (startTime) el.currentTime = startTime;
-                el.play().catch(() => {
-                  // Autoplay blocked — show controls so teacher can click play
-                  el.setAttribute('data-autoplay-blocked', 'true');
-                });
-              }
+            onLoadedMetadata={(e) => {
+              const el = e.target;
+              const startTime = currentStageData.presentationView.startTime;
+              if (startTime) el.currentTime = startTime;
+              el.play().catch(() => {
+                el.setAttribute('data-autoplay-blocked', 'true');
+              });
             }}
           >
             <source src={videoPath} type="video/mp4" />
