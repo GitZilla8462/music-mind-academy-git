@@ -736,32 +736,32 @@ const PresentationContent = ({
     const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
 
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-6 lg:p-12">
+      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-6 lg:p-16">
         {/* Welcome Header */}
-        <h1 className="text-5xl lg:text-7xl font-black text-gray-900 mb-6 lg:mb-10">Welcome to Music Class!</h1>
+        <h1 className="text-5xl lg:text-8xl font-black text-gray-900 mb-6 lg:mb-12">Welcome to Music Class!</h1>
 
         {/* Steps + Mock Login Side by Side */}
-        <div className="flex items-center gap-8 lg:gap-16 max-w-5xl w-full">
+        <div className="flex items-center gap-8 lg:gap-20 max-w-6xl w-full">
           {/* Left: Steps */}
-          <div className="flex-1 space-y-4 lg:space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl lg:text-2xl flex-shrink-0">1</div>
-              <div className="text-2xl lg:text-3xl font-bold text-gray-800">Get your login card<br/><span className="text-xl lg:text-2xl text-gray-500">or login info from your teacher</span></div>
+          <div className="flex-1 space-y-4 lg:space-y-7">
+            <div className="flex items-center gap-4 lg:gap-5">
+              <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl lg:text-3xl flex-shrink-0">1</div>
+              <div className="text-2xl lg:text-4xl font-bold text-gray-800">Get your login card<br/><span className="text-xl lg:text-3xl text-gray-500">or login info from your teacher</span></div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl lg:text-2xl flex-shrink-0">2</div>
-              <div className="text-2xl lg:text-3xl font-bold text-gray-800">Go to <span className="text-blue-600">{joinUrl}</span></div>
+            <div className="flex items-center gap-4 lg:gap-5">
+              <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl lg:text-3xl flex-shrink-0">2</div>
+              <div className="text-2xl lg:text-4xl font-bold text-gray-800">Go to <span className="text-blue-600">{joinUrl}</span></div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl lg:text-2xl flex-shrink-0">3</div>
-              <div className="text-2xl lg:text-3xl font-bold text-gray-800">Enter your username & password</div>
+            <div className="flex items-center gap-4 lg:gap-5">
+              <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl lg:text-3xl flex-shrink-0">3</div>
+              <div className="text-2xl lg:text-4xl font-bold text-gray-800">Enter your username & password</div>
             </div>
 
-            <div className="flex items-center gap-4 mt-2 lg:mt-3">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xl lg:text-2xl flex-shrink-0">!</div>
-              <div className="text-xl lg:text-2xl font-semibold text-gray-600">When Chrome asks "Save password?" — click Save</div>
+            <div className="flex items-center gap-4 lg:gap-5 mt-2 lg:mt-3">
+              <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xl lg:text-3xl flex-shrink-0">!</div>
+              <div className="text-xl lg:text-3xl font-semibold text-gray-600">When Chrome asks "Save password?" — click Save</div>
             </div>
           </div>
 
