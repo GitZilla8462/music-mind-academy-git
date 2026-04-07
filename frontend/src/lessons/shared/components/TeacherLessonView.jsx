@@ -1764,7 +1764,16 @@ const PresentationContent = ({
     if (type === 'independent-listening-teacher') {
       return (
         <div className="absolute inset-0 overflow-hidden">
-          <style>{`.teacher-embed-activity .h-screen { height: 100% !important; }`}</style>
+          <style>{`
+            .teacher-embed-activity .h-screen { height: 100% !important; }
+            .teacher-embed-activity button, .teacher-embed-activity a { font-size: 1rem !important; }
+            .teacher-embed-activity .text-xs { font-size: 0.95rem !important; }
+            .teacher-embed-activity .text-sm { font-size: 1.1rem !important; }
+            .teacher-embed-activity .py-2 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+            .teacher-embed-activity .px-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .teacher-embed-activity select { font-size: 1.1rem !important; min-height: 48px !important; }
+            .teacher-embed-activity h2 { font-size: 1.75rem !important; }
+          `}</style>
           <div className="h-full teacher-embed-activity">
             <ActivityRenderer
               activity={{ type: 'independent-listening', id: 'teacher-preview' }}
@@ -4813,7 +4822,7 @@ const TeacherLessonView = ({
   };
 
   return (
-    <div className="teacher-lesson-outer" style={{ height: '100vh', height: '100dvh', overflow: 'hidden', background: '#0f172a' }}>
+    <div className="teacher-lesson-outer" style={{ position: 'fixed', inset: 0, overflow: 'hidden', background: 'linear-gradient(to bottom right, #1e1b4b, #581c87, #0f172a)' }}>
       <style>{`
         .teacher-lesson-wrapper {
           height: 100%;

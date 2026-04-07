@@ -1,12 +1,11 @@
 import React from 'react';
 import { ArrowLeft, Star, Sparkles } from 'lucide-react';
-import { GENRE_CONFIG } from './artistDatabase';
+import { GENRE_CONFIG, ARTIST_DATABASE } from './artistDatabase';
 import HeroBanner from './profile/HeroBanner';
 import TrackList from './profile/TrackList';
 import QuickFacts from './profile/QuickFacts';
 import AboutSection from './profile/AboutSection';
 import TheirSound from './profile/TheirSound';
-import SimilarArtists from './profile/SimilarArtists';
 
 const ArtistProfile = ({
   artist,
@@ -96,20 +95,46 @@ const ArtistProfile = ({
         {/* Their sound */}
         <TheirSound artist={artist} />
 
-        {/* Similar artists */}
-        <SimilarArtists artistId={artist.id} onViewArtist={onViewArtist} />
-
-        {/* Select artist button */}
-        <button
-          onClick={() => onSelect?.(artist.id)}
-          className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all min-h-[44px] mb-6 ${
-            isSelected
-              ? 'bg-amber-400 text-black hover:bg-amber-300'
-              : 'bg-white/10 text-white hover:bg-white/15'
-          }`}
-        >
-          {isSelected ? '\u2605 This Is Your Artist' : 'Select This Artist'}
-        </button>
+        {/* Browse more artists */}
+        <div className="mb-8">
+          <h2 className="text-white/60 text-xs uppercase tracking-wider font-semibold mb-3">
+            Browse More Artists
+          </h2>
+          <div className="grid grid-cols-3 gap-3">
+            {ARTIST_DATABASE.filter(a => a.id !== artist.id).map(other => {
+              const otherGenreConfig = GENRE_CONFIG[other.genre] || { color: '#6b7280', bg: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)' };
+              return (
+                <button
+                  key={other.id}
+                  onClick={() => onViewArtist?.(other.id)}
+                  className="text-left group min-h-[44px]"
+                >
+                  <div className="aspect-square rounded-lg overflow-hidden mb-1.5">
+                    {other.imageUrl ? (
+                      <img
+                        src={other.imageUrl}
+                        alt={other.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{ background: otherGenreConfig.bg }}
+                      >
+                        <span className="text-3xl opacity-30">{otherGenreConfig.icon}</span>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-white/70 text-xs font-medium truncate group-hover:text-white transition-colors">
+                    {other.name}
+                  </p>
+                  <p className="text-white/30 text-[10px]">{other.genre}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
