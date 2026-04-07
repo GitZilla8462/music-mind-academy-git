@@ -414,7 +414,7 @@ function FixedToolbar({
   return (
     <div
       ref={dropdownRef}
-      className="flex items-center gap-0.5 px-2 py-1.5 bg-[#1a1f2e] border-b border-white/10 rounded-t-lg overflow-x-auto"
+      className="flex items-center gap-0.5 px-2 py-1.5 bg-[#1a1f2e] border-b border-white/10 rounded-t-lg overflow-x-auto relative z-[500]"
       onPointerDown={e => e.stopPropagation()}
     >
       {/* Undo / Redo */}
@@ -502,7 +502,7 @@ function FixedToolbar({
               onClick={() => setOpenMenu(openMenu === 'size' ? null : 'size')}
               className={`${btnInactive} px-1.5 gap-0.5 text-[11px] font-medium min-w-[32px]`}
             >
-              {currentSize} <DropdownIcon size={10} />
+              {Math.round(currentSize)} <DropdownIcon size={10} />
             </button>
             {openMenu === 'size' && (
               <div className="absolute top-full left-0 mt-1 bg-[#1a1f2e] border border-white/15 rounded-lg shadow-xl z-50 py-1 min-w-[60px]">
@@ -999,7 +999,7 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
             // Top/bottom center: adjust font size smoothly
             if (hid === 'tc' || hid === 'bc') {
               const expandDy = hid === 'bc' ? dy : -dy;
-              const newSize = Math.max(12, Math.min(96, drag.initialFontSize + expandDy * 0.1));
+              const newSize = Math.round(Math.max(12, Math.min(96, drag.initialFontSize + expandDy * 0.1)));
               return { ...o, fontSize: newSize };
             }
             // Corner handles: scale both width and font size proportionally
@@ -1007,7 +1007,7 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
             const expandDy = hid.includes('b') ? dy : -dy;
             const scale = Math.max(0.3, 1 + (expandDx + expandDy) / 400);
             const newW = Math.max(60, drag.initialWidth * scale);
-            const newSize = Math.max(12, Math.min(96, drag.initialFontSize * scale));
+            const newSize = Math.round(Math.max(12, Math.min(96, drag.initialFontSize * scale)));
             return { ...o, width: newW, fontSize: newSize };
           }
 
