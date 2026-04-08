@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useRef } from 'react';
 import {
   BarChart3, Search, Filter, ChevronDown, Check, Copy, Download,
   Mail, X, Eye, Loader2, CheckCircle, AlertCircle, Users, UserX,
-  GraduationCap, Clock, ClipboardList, Trash2, Link2
+  GraduationCap, Clock, ClipboardList, Trash2, Link2, MailX
 } from 'lucide-react';
 import { useAdminData } from './AdminDataContext';
 import { EMAIL_NAMES } from './emailConstants';
@@ -50,6 +50,7 @@ const TeacherAnalyticsPage = () => {
   const {
     academyEmails, registeredUsers, pilotSessions, teacherOutreach,
     midPilotSurveys, finalPilotSurveys, applications, emailsSent,
+    emailUnsubscribes,
     studentCountByEmail,
     toggleOutreach, setSuccess, formatDuration, formatDate,
     removeTeacherCompletely, mergeTeacherEntries,
@@ -873,6 +874,11 @@ const TeacherAnalyticsPage = () => {
                           <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${STAGE_COLORS[teacher.stage] || 'bg-gray-100 text-gray-600'}`}>
                             {teacher.stage}
                           </span>
+                          {emailUnsubscribes[teacher.email.toLowerCase().replace(/\./g, ',')] && (
+                            <span className="inline-flex items-center gap-0.5 ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-700" title="Unsubscribed from emails">
+                              <MailX size={10} /> Unsub
+                            </span>
+                          )}
                         </td>
                         {/* Days since approved */}
                         <td className="px-2 py-2 text-center text-sm text-gray-600">
@@ -1044,6 +1050,22 @@ const TeacherAnalyticsPage = () => {
                                   </div>
                                 );
                               })}
+                              {/* Remove teacher button */}
+                              <div className="col-span-1 md:col-span-2 lg:col-span-3 flex items-center justify-end gap-3 pt-2 border-t border-gray-200 mt-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (confirm(`Remove ${teacher.email} completely? This deletes their account, classes, and all data.`)) {
+                                      removeTeacherCompletely(teacher.email).then(ok => {
+                                        if (ok) showToast(`Removed ${teacher.email}`);
+                                      });
+                                    }
+                                  }}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                >
+                                  <Trash2 size={14} /> Remove Completely
+                                </button>
+                              </div>
                             </div>
                           </td>
                         </tr>
@@ -1107,6 +1129,7 @@ const TeacherAnalyticsPage = () => {
           teachers={selectedTeachers}
           teacherOutreach={teacherOutreach}
           applicationsByEmail={applicationsByEmail}
+          emailUnsubscribes={emailUnsubscribes}
           onClose={() => setShowEmailModal(false)}
           onSuccess={(msg) => { setShowEmailModal(false); setSuccess(msg); setSelectedEmails(new Set()); }}
         />
@@ -1387,7 +1410,7 @@ const DuplicatesModal = ({ pairs, onRemove, onMerge, onClose, onBulkDone }) => {
 
 // --- Batch Email Modal ---
 
-const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClose, onSuccess }) => {
+const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, emailUnsubscribes = {}, onClose, onSuccess }) => {
   const [templates, setTemplates] = useState([]);
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [subject, setSubject] = useState('');
@@ -1403,6 +1426,10 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
 
   const teachersWithPersonal = teachers.filter(t => t.personalEmail);
   const personalCount = teachersWithPersonal.length;
+
+  // Count unsubscribed teachers in selection
+  const unsubCount = teachers.filter(t => emailUnsubscribes[t.email.toLowerCase().replace(/\./g, ',')]).length;
+  const activeCount = teachers.length - unsubCount;
 
   // Convert plain text to styled HTML email
   const plainTextToHtml = (text) => {
@@ -1583,6 +1610,14 @@ const BatchEmailModal = ({ teachers, teacherOutreach, applicationsByEmail, onClo
             </div>
           ) : (
             <>
+              {/* Unsubscribe warning */}
+              {unsubCount > 0 && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                  <MailX size={16} />
+                  <span><strong>{unsubCount}</strong> of {teachers.length} selected teacher{teachers.length !== 1 ? 's' : ''} ha{unsubCount !== 1 ? 've' : 's'} unsubscribed — they will be automatically skipped.</span>
+                </div>
+              )}
+
               {/* Template picker */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
