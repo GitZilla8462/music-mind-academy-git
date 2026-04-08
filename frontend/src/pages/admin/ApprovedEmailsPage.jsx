@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, GraduationCap, UserPlus, Trash2, Calendar, RefreshCw } from 'lucide-react';
+import { Building2, GraduationCap, UserPlus, Trash2, UserX, Calendar, RefreshCw } from 'lucide-react';
 import { useAdminData } from './AdminDataContext';
 
 const ApprovedEmailsPage = () => {
@@ -7,6 +7,7 @@ const ApprovedEmailsPage = () => {
     selectedSite, setSelectedSite, approvedEmails,
     academyEmails, eduEmails, registeredUsers, teacherOutreach,
     handleAddEmail, handleBatchAdd, handleRemoveEmail, handleBulkDelete,
+    removeTeacherCompletely,
     formatDate, SITE_TYPES
   } = useAdminData();
 
@@ -314,9 +315,15 @@ const ApprovedEmailsPage = () => {
                       </>
                     )}
                     <button onClick={() => handleRemoveEmail(item.id, item.email)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Remove">
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Remove from approved list">
                       <Trash2 size={18} />
                     </button>
+                    {registeredUsers.some(u => u.email?.toLowerCase() === item.email?.toLowerCase()) && (
+                      <button onClick={() => removeTeacherCompletely(item.email)}
+                        className="p-2 text-red-700 hover:bg-red-100 rounded-lg transition-colors" title="Remove completely (account, classes, all data)">
+                        <UserX size={18} />
+                      </button>
+                    )}
                   </div>
                 </div>
               );
