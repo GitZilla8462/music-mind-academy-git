@@ -173,7 +173,7 @@ const MusicJournalistHub = () => {
       route: '/lessons/music-journalist/lesson3',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students narrow their picks with a Scouting Report, lock in their artist, research their story using the artist profile, learn to distinguish strong evidence from weak evidence, save facts to their Research Board, and play Fact or Opinion to sharpen their skills.',
+      inThisLesson: 'Students narrow their picks with a Scouting Report, choose their artist, research their story using the artist profile, learn to distinguish strong evidence from weak evidence, save facts to their Research Board, and play Fact or Opinion to sharpen their skills.',
       studentsWill: [
         'Build a Scouting Report to narrow down and select their artist',
         'Identify strong vs weak evidence for building a case',
@@ -182,7 +182,6 @@ const MusicJournalistHub = () => {
       activities: [
         { title: 'What Makes an Artist Worth It?', description: 'The 4-point checklist: unique sound, story, growth, your gut', time: 4 },
         { title: 'Scouting Report', description: 'Narrow your picks — Top 5, #1 Pick, What I Notice', time: 10, activityType: 'scouting-report' },
-        { title: 'Lock In Your Artist', description: 'Commit to your #1 pick — first come, first served', time: 5, activityType: 'artist-discovery' },
         { title: 'Strong vs Weak Evidence', description: 'Learn what would convince a label vs what falls flat', time: 4 },
         { title: 'Research Session', description: 'Dig into your artist\'s profile — save 5+ facts to Research Board', time: 12, activityType: 'artist-discovery' },
         { title: 'Fact or Opinion Game', description: 'Sort 10 statements — agents need evidence, not just vibes', time: 7, activityType: 'fact-opinion-sorter' }

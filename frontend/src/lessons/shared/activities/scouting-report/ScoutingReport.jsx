@@ -4,10 +4,12 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Save, Check, BookOpen, Search, RotateCcw } from 'lucide-react';
+import DirectionsModal from '../../components/DirectionsModal';
 import { AudioProvider, useGlobalAudio } from '../artist-discovery/AudioContext';
 import ArtistDiscovery from '../artist-discovery/ArtistDiscovery';
 import MiniPlayer from '../artist-discovery/profile/MiniPlayer';
 import SlideCanvas from '../press-kit-designer/components/SlideCanvas';
+import ImagePickerModal from '../press-kit-designer/components/ImagePickerModal';
 import { getPalette } from '../press-kit-designer/palettes';
 import { renderSlideObject, CANVAS_W, CANVAS_H } from '../press-kit-designer/components/SlideCanvas';
 import { SCOUTING_SLIDE_CONFIGS, generateScoutingTemplateObjects } from './scoutingReportConfig';
@@ -30,10 +32,52 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
   const [activeTab, setActiveTab] = useState('discover'); // start on discover so they browse first
   const reportRef = useRef(null);
   const saveTimerRef = useRef(null);
+  const imageCallbackRef = useRef(null);
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
 
   const audio = useGlobalAudio();
 
+  // Directions modal
+  const directionsKey = `mma-${variant || 'scouting-report'}-directions-seen`;
+  const [showDirections, setShowDirections] = useState(() => !localStorage.getItem(directionsKey));
+  const closeDirections = () => {
+    setShowDirections(false);
+    localStorage.setItem(directionsKey, 'true');
+  };
+
+  const DIRECTIONS_STEPS = isGenreScouts
+    ? [
+        { text: 'Browse artists and listen to tracks across different genres' },
+        { text: 'Star artists that catch your ear' },
+        { text: 'Switch to "My Report" to build your slides' },
+        { text: 'Fill in all 3 slides — your progress shows at the top' },
+      ]
+    : [
+        { text: 'Browse the artist library — listen to tracks across genres' },
+        { text: 'Star artists that catch your ear' },
+        { text: 'Switch to "My Report" to build your 3 slides' },
+        { text: 'Slide 1: Top 5 Artists, Slide 2: #1 Pick, Slide 3: What I Notice' },
+      ];
+
   useEffect(() => { reportRef.current = report; }, [report]);
+
+  // Image picker — listen for SlideCanvas custom event
+  useEffect(() => {
+    const handler = (e) => {
+      imageCallbackRef.current = e.detail?.callback || null;
+      setImagePickerOpen(true);
+    };
+    window.addEventListener('press-kit-add-image', handler);
+    return () => window.removeEventListener('press-kit-add-image', handler);
+  }, []);
+
+  const handleImageSelect = useCallback((imageData) => {
+    if (imageCallbackRef.current) {
+      imageCallbackRef.current(imageData);
+      imageCallbackRef.current = null;
+    }
+    setImagePickerOpen(false);
+  }, []);
 
   // Init
   useEffect(() => {
@@ -103,6 +147,21 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
     if (onComplete) onComplete();
   }, [report, onComplete, storageKey, isGenreScouts]);
 
+  // Slide completion — student marks each slide done manually
+  const completionKey = `${storageKey}-completed`;
+  const [slidesDone, setSlidesDone] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(completionKey)) || {}; } catch { return {}; }
+  });
+  const toggleSlideDone = useCallback((slideNum) => {
+    setSlidesDone(prev => {
+      const next = { ...prev, [slideNum]: !prev[slideNum] };
+      localStorage.setItem(completionKey, JSON.stringify(next));
+      return next;
+    });
+  }, [completionKey]);
+  const slidesCompleted = slideConfigs.filter((_, i) => slidesDone[i + 1]).length;
+  const totalSlides = slideConfigs.length;
+
   if (!report) {
     return (
       <div className="h-screen flex items-center justify-center" style={{ background: '#0f1419' }}>
@@ -117,6 +176,14 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
 
   return (
     <div className="h-screen flex flex-col" style={{ background: '#1a2744' }}>
+      {/* Directions modal */}
+      <DirectionsModal
+        title={activityTitle}
+        isOpen={showDirections}
+        onClose={closeDirections}
+        steps={DIRECTIONS_STEPS}
+      />
+
       {/* Top bar */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 border-b border-white/10" style={{ background: '#0f1b2e' }}>
         <div className="flex items-center gap-3">
@@ -138,15 +205,23 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
             </button>
             <button
               onClick={() => setActiveTab('report')}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-1.5 ${
+              className={`px-3 py-2 rounded text-xs font-bold transition-all flex items-center gap-2 ${
                 activeTab === 'report'
                   ? 'bg-amber-500/20 text-amber-300'
-                  : 'text-white/40 hover:text-white/60'
+                  : slidesCompleted === 0
+                    ? 'bg-red-500/15 text-red-300 hover:bg-red-500/25 animate-pulse'
+                    : slidesCompleted < totalSlides
+                      ? 'bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
+                      : 'bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20'
               }`}
             >
               <BookOpen size={12} /> My Report
             </button>
           </div>
+          {/* Progress text */}
+          <span className={`text-xs font-bold ${slidesCompleted === 0 ? 'text-red-400' : slidesCompleted < totalSlides ? 'text-amber-400' : 'text-emerald-400'}`}>
+            {slidesCompleted}/{totalSlides} Slides Completed
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -196,58 +271,76 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
               const isActive = activeSlide === slideNum;
 
               return (
-                <button
-                  key={slideNum}
-                  onClick={() => setActiveSlide(slideNum)}
-                  className={`relative flex flex-col rounded-lg overflow-hidden transition-all ${
-                    isActive
-                      ? 'ring-2 ring-amber-400 shadow-lg shadow-amber-400/10'
-                      : 'ring-1 ring-white/[0.08] hover:ring-white/20'
-                  }`}
-                >
-                  <div className="absolute top-1 left-1 z-10">
-                    <span className={`w-4 h-4 rounded flex items-center justify-center text-[9px] font-bold ${
-                      isActive ? 'bg-amber-400 text-black' : 'bg-black/50 text-white/70'
-                    }`}>
-                      {slideNum}
-                    </span>
-                  </div>
-
-                  <div
-                    className="relative w-full overflow-hidden pointer-events-none"
-                    style={{ aspectRatio: `${CANVAS_W}/${CANVAS_H}`, background: palette.bg }}
+                <div key={slideNum} className="flex flex-col gap-0.5">
+                  <button
+                    onClick={() => setActiveSlide(slideNum)}
+                    className={`relative flex flex-col rounded-lg overflow-hidden transition-all ${
+                      isActive
+                        ? 'ring-2 ring-amber-400 shadow-lg shadow-amber-400/10'
+                        : 'ring-1 ring-white/[0.08] hover:ring-white/20'
+                    }`}
                   >
-                    {(slide?.objects || []).map(obj => (
-                      <div
-                        key={obj.id}
-                        style={{
-                          position: 'absolute',
-                          left: obj.x * THUMB_SCALE,
-                          top: obj.y * THUMB_SCALE,
-                        }}
-                      >
-                        {renderSlideObject(obj, THUMB_SCALE)}
-                      </div>
-                    ))}
-                    {(!slide?.objects || slide.objects.length === 0) && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-[10px] text-white/20">{cfg.title}</span>
-                      </div>
-                    )}
-                  </div>
+                    <div className="absolute top-1 left-1 z-10">
+                      <span className={`w-4 h-4 rounded flex items-center justify-center text-[9px] font-bold ${
+                        isActive ? 'bg-amber-400 text-black' : 'bg-black/50 text-white/70'
+                      }`}>
+                        {slideNum}
+                      </span>
+                    </div>
 
-                  <div className={`px-1.5 py-1 text-[10px] font-medium truncate ${
-                    isActive ? 'text-amber-400' : 'text-white/40'
-                  }`} style={{ background: '#0d1520' }}>
-                    {cfg.title}
-                  </div>
-                </button>
+                    <div
+                      className="relative w-full overflow-hidden pointer-events-none"
+                      style={{ aspectRatio: `${CANVAS_W}/${CANVAS_H}`, background: palette.bg }}
+                    >
+                      {(slide?.objects || []).map(obj => (
+                        <div
+                          key={obj.id}
+                          style={{
+                            position: 'absolute',
+                            left: obj.x * THUMB_SCALE,
+                            top: obj.y * THUMB_SCALE,
+                          }}
+                        >
+                          {renderSlideObject(obj, THUMB_SCALE)}
+                        </div>
+                      ))}
+                      {(!slide?.objects || slide.objects.length === 0) && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-[10px] text-white/20">{cfg.title}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className={`px-1.5 py-1 text-[10px] font-medium truncate ${
+                      isActive ? 'text-amber-400' : 'text-white/40'
+                    }`} style={{ background: '#0d1520' }}>
+                      {cfg.title}
+                    </div>
+                  </button>
+                  {!viewMode && (
+                    <button
+                      onClick={() => toggleSlideDone(slideNum)}
+                      className={`flex items-center justify-center gap-1 w-full py-1 rounded text-[10px] font-medium transition-all ${
+                        slidesDone[slideNum]
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
+                      }`}
+                    >
+                      <div className={`w-3 h-3 rounded border flex items-center justify-center ${
+                        slidesDone[slideNum] ? 'border-emerald-400 bg-emerald-500/30' : 'border-red-400/50'
+                      }`}>
+                        {slidesDone[slideNum] && <Check size={8} />}
+                      </div>
+                      {slidesDone[slideNum] ? 'Done' : 'Mark done'}
+                    </button>
+                  )}
+                </div>
               );
             })}
           </div>
 
           {/* Canvas */}
-          <div className="flex-1 flex flex-col items-center justify-center p-3 overflow-hidden" style={{ background: '#202530' }}>
+          <div className="flex-1 flex flex-col items-center justify-center p-3 min-h-0 overflow-y-auto" style={{ background: '#202530' }}>
             <div className="w-full" style={{ maxWidth: 780 }}>
               <SlideCanvas
                 objects={currentSlide.objects || []}
@@ -268,6 +361,13 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
           </div>
         </div>
       </div>
+
+      {/* Image picker modal */}
+      <ImagePickerModal
+        isOpen={imagePickerOpen}
+        onClose={() => { setImagePickerOpen(false); imageCallbackRef.current = null; }}
+        onSelect={handleImageSelect}
+      />
 
       {/* Mini player */}
       {hasAudioPlaying && (

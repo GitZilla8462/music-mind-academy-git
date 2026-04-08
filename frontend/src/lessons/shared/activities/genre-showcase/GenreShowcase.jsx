@@ -309,11 +309,11 @@ const GenreShowcase = ({ sessionData }) => {
         <div className="flex-1 flex items-center justify-center">
           {currentIndex === -1 && (
             <div className="text-center">
-              <div className="text-8xl mb-6">🎵</div>
-              <p className="text-2xl text-white/60 mb-8">7 genres. 7 artists. Let's go.</p>
+              <div className="text-5xl mb-4">🎵</div>
+              <p className="text-xl text-white/60 mb-6">7 genres. 7 artists. Let's go.</p>
               <button
                 onClick={handleStart}
-                className="px-10 py-5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-2xl text-2xl font-bold text-white hover:scale-105 transition-all flex items-center gap-3 mx-auto"
+                className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-2xl text-xl font-bold text-white hover:scale-105 transition-all flex items-center gap-3 mx-auto"
               >
                 <Play size={32} /> Start
               </button>
@@ -334,9 +334,9 @@ const GenreShowcase = ({ sessionData }) => {
                 className="px-6 py-4 flex items-center gap-4"
                 style={{ background: `linear-gradient(135deg, ${activeGenre.color}40, ${activeGenre.color}15)` }}
               >
-                <span className="text-5xl">{activeGenre.icon}</span>
+                <span className="text-3xl">{activeGenre.icon}</span>
                 <div>
-                  <h2 className="text-4xl font-black text-white">{activeGenre.name}</h2>
+                  <h2 className="text-2xl font-black text-white">{activeGenre.name}</h2>
                 </div>
               </div>
 
@@ -347,7 +347,7 @@ const GenreShowcase = ({ sessionData }) => {
                   <img
                     src={activeGenre.imageUrl}
                     alt={activeGenre.artist}
-                    className="w-44 h-44 rounded-xl object-cover border-2"
+                    className="w-36 h-36 rounded-xl object-cover border-2"
                     style={{ borderColor: `${activeGenre.color}40` }}
                   />
                   <div className="mt-2 text-center">

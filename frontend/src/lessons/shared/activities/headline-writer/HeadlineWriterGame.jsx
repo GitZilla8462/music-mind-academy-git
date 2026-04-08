@@ -330,8 +330,8 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
         {/* Header */}
         <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <div className="flex items-center gap-4">
-            <span className="text-5xl">{'\uD83D\uDCF0'}</span>
-            <h1 className="text-4xl font-bold">Headline Writer</h1>
+            <span className="text-3xl">{'\uD83D\uDCF0'}</span>
+            <h1 className="text-2xl font-bold">Headline Writer</h1>
             {gamePhase !== 'setup' && gamePhase !== 'finished' && (
               <span className="bg-white/10 px-4 py-2 rounded-full text-xl">
                 Round {currentRound + 1}/{SUMMARIES.length}
@@ -375,10 +375,10 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
             {/* ==================== SETUP ==================== */}
             {gamePhase === 'setup' && (
               <div className="text-center">
-                <div className="text-9xl mb-6">{'\uD83D\uDCF0'}</div>
-                <h2 className="text-5xl font-bold mb-4">Headline Writer</h2>
-                <p className="text-2xl text-white/70 mb-2">Read the news summary. Write the best headline you can!</p>
-                <p className="text-xl text-white/50 mb-6">The class votes on the best headline each round.</p>
+                <div className="text-6xl mb-4">{'\uD83D\uDCF0'}</div>
+                <h2 className="text-3xl font-bold mb-3">Headline Writer</h2>
+                <p className="text-lg text-white/70 mb-2">Read the news summary. Write the best headline you can!</p>
+                <p className="text-base text-white/50 mb-4">The class votes on the best headline each round.</p>
 
                 <div className="flex flex-wrap gap-4 justify-center mb-8">
                   <div className="bg-white/10 px-6 py-3 rounded-xl text-lg">
@@ -413,7 +413,7 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
                     {/* Timer */}
                     <div className="text-center mb-6">
                       <div
-                        className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-6xl font-black transition-colors"
+                        className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl text-4xl font-black transition-colors"
                         style={{ backgroundColor: `${timerColor}20`, color: timerColor, border: `3px solid ${timerColor}40` }}
                       >
                         <Timer size={48} />
@@ -567,8 +567,8 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
                 )}
 
                 <div className="text-center z-10">
-                  <div className="text-8xl mb-4">{'\uD83C\uDFC6'}</div>
-                  <h2 className="text-4xl font-bold mb-2">Round {currentRound + 1} Winner!</h2>
+                  <div className="text-5xl mb-3">{'\uD83C\uDFC6'}</div>
+                  <h2 className="text-3xl font-bold mb-2">Round {currentRound + 1} Winner!</h2>
 
                   {/* Winning headline */}
                   {(() => {
@@ -622,9 +622,9 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
             {gamePhase === 'finished' && (
               <div className="w-full h-full flex flex-col items-center justify-center overflow-auto">
                 <div className="text-center mb-6">
-                  <div className="text-8xl mb-4">{'\uD83C\uDFC6'}</div>
-                  <h2 className="text-5xl font-black mb-2">Game Complete!</h2>
-                  <p className="text-2xl text-white/70">Final Leaderboard</p>
+                  <div className="text-5xl mb-3">{'\uD83C\uDFC6'}</div>
+                  <h2 className="text-3xl font-black mb-2">Game Complete!</h2>
+                  <p className="text-lg text-white/70">Final Leaderboard</p>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-8 w-full max-w-5xl">

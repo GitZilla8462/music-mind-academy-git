@@ -103,15 +103,28 @@ export function renderSlideObject(obj, scale = 1) {
 // Audio Clip Widget — renders on the slide canvas, plays a clip on click
 // ---------------------------------------------------------------------------
 
-function AudioClipWidget({ obj, scale }) {
+function AudioClipWidget({ obj, scale, onUpdate }) {
   const [playing, setPlaying] = useState(false);
   const audioElRef = useRef(null);
   const timerRef = useRef(null);
   const [currentSec, setCurrentSec] = useState(0);
+  const trackBarRef = useRef(null);
 
   const clipStart = obj.clipStart || 0;
   const clipEnd = obj.clipEnd || (clipStart + 15);
   const clipDuration = clipEnd - clipStart;
+
+  // Get full track duration
+  const [trackDuration, setTrackDuration] = useState(Math.max(clipEnd + 30, 120));
+  useEffect(() => {
+    const audio = new Audio();
+    audio.preload = 'metadata';
+    audio.src = obj.audioUrl;
+    audio.onloadedmetadata = () => {
+      if (audio.duration && isFinite(audio.duration)) setTrackDuration(audio.duration);
+    };
+    return () => { audio.src = ''; };
+  }, [obj.audioUrl]);
 
   const cleanup = () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -120,35 +133,58 @@ function AudioClipWidget({ obj, scale }) {
     setCurrentSec(0);
   };
 
-  // Cleanup on unmount
   useEffect(() => cleanup, []);
 
   const togglePlay = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    if (playing) {
-      cleanup();
-      return;
-    }
+    if (playing) { cleanup(); return; }
     const audio = new Audio(obj.audioUrl);
     audio.currentTime = clipStart;
     audioElRef.current = audio;
     audio.play().catch(() => { cleanup(); });
     setPlaying(true);
     setCurrentSec(0);
-
     timerRef.current = setInterval(() => {
       if (!audioElRef.current) return;
       const elapsed = audioElRef.current.currentTime - clipStart;
       setCurrentSec(Math.min(elapsed, clipDuration));
-      if (audioElRef.current.currentTime >= clipEnd) {
-        cleanup();
-      }
+      if (audioElRef.current.currentTime >= clipEnd) cleanup();
     }, 100);
+  };
+
+  // Drag handle for trim
+  const handleTrimDrag = (e, handle) => {
+    if (!onUpdate || !trackBarRef.current) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const bar = trackBarRef.current;
+    const update = (clientX) => {
+      const rect = bar.getBoundingClientRect();
+      const fraction = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const time = Math.round(fraction * trackDuration);
+      if (handle === 'start') {
+        onUpdate(obj.id, { clipStart: Math.min(time, clipEnd - 1) });
+      } else {
+        onUpdate(obj.id, { clipEnd: Math.max(time, clipStart + 1) });
+      }
+    };
+    update(e.clientX);
+    const onMove = (ev) => update(ev.clientX);
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
   };
 
   const w = (obj.width || 280) * scale;
   const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  const startPct = (clipStart / trackDuration) * 100;
+  const endPct = (clipEnd / trackDuration) * 100;
+  const playPct = playing ? ((clipStart + currentSec) / trackDuration) * 100 : 0;
+  const handleSize = 10 * scale;
 
   return (
     <div
@@ -186,43 +222,69 @@ function AudioClipWidget({ obj, scale }) {
           }
         </div>
 
-        {/* Track info + progress */}
+        {/* Track info */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
-            fontSize: 11 * scale,
-            fontWeight: 600,
-            color: '#fff',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            fontSize: 11 * scale, fontWeight: 600, color: '#fff',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>
             {obj.trackTitle || 'Audio Clip'}
           </div>
-          <div style={{
-            fontSize: 9 * scale,
-            color: 'rgba(255,255,255,0.5)',
-            marginTop: 1 * scale,
-          }}>
+          <div style={{ fontSize: 9 * scale, color: 'rgba(255,255,255,0.5)', marginTop: 1 * scale }}>
             {fmtTime(clipStart)} – {fmtTime(clipEnd)} ({Math.round(clipDuration)}s clip)
           </div>
-          {/* Progress bar */}
-          <div style={{
-            width: '100%',
-            height: 3 * scale,
-            background: 'rgba(255,255,255,0.1)',
-            borderRadius: 2 * scale,
-            marginTop: 3 * scale,
-            overflow: 'hidden',
-          }}>
-            <div style={{
-              width: `${clipDuration > 0 ? (currentSec / clipDuration) * 100 : 0}%`,
-              height: '100%',
-              background: '#4285f4',
-              borderRadius: 2 * scale,
-              transition: 'width 0.1s linear',
-            }} />
-          </div>
         </div>
+      </div>
+
+      {/* Trim bar — full track with draggable start/end handles */}
+      <div
+        ref={trackBarRef}
+        style={{ position: 'relative', height: 22 * scale, marginTop: 6 * scale, cursor: 'pointer' }}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        {/* Full track background */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, top: '50%', transform: 'translateY(-50%)',
+          height: 4 * scale, borderRadius: 2 * scale, background: 'rgba(255,255,255,0.08)',
+        }} />
+        {/* Selected range */}
+        <div style={{
+          position: 'absolute', top: '50%', transform: 'translateY(-50%)',
+          left: `${startPct}%`, width: `${endPct - startPct}%`,
+          height: 4 * scale, borderRadius: 2 * scale, background: 'rgba(66,133,244,0.4)',
+        }} />
+        {/* Playhead */}
+        {playing && (
+          <div style={{
+            position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)',
+            left: `${playPct}%`, width: 2 * scale, height: 10 * scale,
+            background: '#fff', borderRadius: 1 * scale,
+          }} />
+        )}
+        {/* Start handle */}
+        {onUpdate && (
+          <div
+            onPointerDown={(e) => handleTrimDrag(e, 'start')}
+            style={{
+              position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)',
+              left: `${startPct}%`, width: handleSize, height: handleSize,
+              borderRadius: '50%', background: '#4285f4', border: '2px solid #fff',
+              cursor: 'ew-resize', zIndex: 2, touchAction: 'none',
+            }}
+          />
+        )}
+        {/* End handle */}
+        {onUpdate && (
+          <div
+            onPointerDown={(e) => handleTrimDrag(e, 'end')}
+            style={{
+              position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)',
+              left: `${endPct}%`, width: handleSize, height: handleSize,
+              borderRadius: '50%', background: '#4285f4', border: '2px solid #fff',
+              cursor: 'ew-resize', zIndex: 2, touchAction: 'none',
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -273,7 +335,7 @@ function ResizeHandles({ onDragStart, objId, objType }) {
 // Single Object Wrapper
 // ---------------------------------------------------------------------------
 
-function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart, onEdit, onSaveText, onCancelEdit, zIndex }) {
+function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart, onEdit, onSaveText, onCancelEdit, zIndex, onUpdate }) {
   const s = scale;
   const x = obj.x * s;
   const y = obj.y * s;
@@ -354,6 +416,8 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
           }}
           dangerouslySetInnerHTML={{ __html: (obj.text || '').replace(/\n/g, '<br>') }}
         />
+      ) : obj.type === 'audio' ? (
+        <AudioClipWidget obj={obj} scale={s} onUpdate={onUpdate} />
       ) : (
         renderSlideObject(obj, s)
       )}
@@ -414,7 +478,7 @@ function FixedToolbar({
   return (
     <div
       ref={dropdownRef}
-      className="flex items-center gap-0.5 px-2 py-1.5 bg-[#1a1f2e] border-b border-white/10 rounded-t-lg overflow-x-auto relative z-[500]"
+      className="flex items-center gap-0.5 px-2 py-1.5 bg-[#1a1f2e] border-b border-white/10 rounded-t-lg relative z-[500]"
       onPointerDown={e => e.stopPropagation()}
     >
       {/* Undo / Redo */}
@@ -1345,6 +1409,7 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
               onSaveText={saveText}
               onCancelEdit={() => setEditingId(null)}
               onEdit={readOnly ? () => {} : setEditingId}
+              onUpdate={readOnly ? undefined : updateObject}
               zIndex={obj.zIndex || 0}
             />
         ))}

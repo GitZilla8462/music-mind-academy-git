@@ -356,7 +356,7 @@ const ListeningGuideForm = ({ entry, updateField, toggleInstrument, toggleMood, 
 // ── Main Inner Component ───────────────────────────────
 const IndependentListeningInner = ({ onComplete, isSessionMode, viewMode }) => {
   const [activeTab, setActiveTab] = useState('discover');
-  const [showDirections, setShowDirections] = useState(true);
+  const [showDirections, setShowDirections] = useState(() => !localStorage.getItem(DIRECTIONS_KEY));
   const audio = useGlobalAudio();
   const hasAudioPlaying = audio?.currentTrack != null;
 

@@ -288,8 +288,8 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
         {/* Header */}
         <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <div className="flex items-center gap-4">
-            <span className="text-5xl">{'\u2696\uFE0F'}</span>
-            <h1 className="text-4xl font-bold">Fact or Opinion?</h1>
+            <span className="text-3xl">{'\u2696\uFE0F'}</span>
+            <h1 className="text-2xl font-bold">Fact or Opinion?</h1>
             {gamePhase !== 'setup' && gamePhase !== 'finished' && (
               <span className="bg-white/10 px-4 py-2 rounded-full text-xl">
                 {currentStatementIndex + 1}/{STATEMENTS.length}
@@ -335,16 +335,16 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
             {/* ==================== SETUP ==================== */}
             {gamePhase === 'setup' && (
               <div className="text-center">
-                <div className="text-9xl mb-6">{'\u2696\uFE0F'}</div>
-                <h2 className="text-5xl font-bold mb-4">Fact or Opinion?</h2>
-                <p className="text-2xl text-white/70 mb-2">Read the statement. Is it a FACT or an OPINION?</p>
-                <p className="text-xl text-white/50 mb-6">Vote on your device. Be fast for bonus points!</p>
+                <div className="text-6xl mb-4">{'\u2696\uFE0F'}</div>
+                <h2 className="text-3xl font-bold mb-3">Fact or Opinion?</h2>
+                <p className="text-lg text-white/70 mb-2">Read the statement. Is it a FACT or an OPINION?</p>
+                <p className="text-base text-white/50 mb-4">Vote on your device. Be fast for bonus points!</p>
 
-                <p className="text-xl text-white/50 mb-8">10 statements &middot; +10 points for correct &middot; Speed bonus up to +5</p>
+                <p className="text-base text-white/50 mb-6">10 statements &middot; +10 points for correct &middot; Speed bonus up to +5</p>
 
                 <button
                   onClick={startGame}
-                  className="px-10 py-5 rounded-2xl text-3xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
+                  className="px-8 py-4 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
                   style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
                 >
                   <Play size={40} /> Start Game
@@ -359,9 +359,9 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
                 <div className="flex-1 flex items-center justify-center min-h-0">
                   <div className="w-full max-w-4xl">
                     {/* The statement */}
-                    <div className="rounded-3xl p-10 mb-6 text-center" style={{ backgroundColor: '#1a2744', border: '3px solid rgba(240, 180, 41, 0.4)' }}>
-                      <div className="text-lg text-white/50 mb-4 uppercase tracking-widest font-medium">Statement #{currentStatementIndex + 1}</div>
-                      <div className="text-4xl font-black leading-tight" style={{ color: '#f0b429' }}>
+                    <div className="rounded-3xl p-6 mb-4 text-center" style={{ backgroundColor: '#1a2744', border: '3px solid rgba(240, 180, 41, 0.4)' }}>
+                      <div className="text-base text-white/50 mb-3 uppercase tracking-widest font-medium">Statement #{currentStatementIndex + 1}</div>
+                      <div className="text-2xl font-black leading-tight" style={{ color: '#f0b429' }}>
                         &ldquo;{currentStatement.text}&rdquo;
                       </div>
                     </div>
@@ -371,13 +371,13 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
                       {/* Fact bar */}
                       <div className="flex-1 bg-blue-500/20 rounded-2xl p-4 text-center">
                         <div className="text-lg font-bold text-blue-400 mb-1">FACT</div>
-                        <div className="text-5xl font-black text-blue-400">{factCount}</div>
+                        <div className="text-3xl font-black text-blue-400">{factCount}</div>
                         <div className="text-sm text-white/50 mt-1">{factCount === 1 ? 'vote' : 'votes'}</div>
                       </div>
                       {/* Opinion bar */}
                       <div className="flex-1 bg-purple-500/20 rounded-2xl p-4 text-center">
                         <div className="text-lg font-bold text-purple-400 mb-1">OPINION</div>
-                        <div className="text-5xl font-black text-purple-400">{opinionCount}</div>
+                        <div className="text-3xl font-black text-purple-400">{opinionCount}</div>
                         <div className="text-sm text-white/50 mt-1">{opinionCount === 1 ? 'vote' : 'votes'}</div>
                       </div>
                     </div>
@@ -444,7 +444,7 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
                         style={{ backgroundColor: 'rgba(59,130,246,0.2)' }}
                       >
                         <div className="text-lg font-bold text-blue-400">FACT</div>
-                        <div className="text-4xl font-black text-blue-400">{factPercent}%</div>
+                        <div className="text-3xl font-black text-blue-400">{factPercent}%</div>
                         <div className="text-sm text-white/50">{factCount} {factCount === 1 ? 'vote' : 'votes'}</div>
                         {currentStatement.answer === 'fact' && (
                           <CheckCircle size={20} className="text-green-400 mx-auto mt-1" />
@@ -454,7 +454,7 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
                         style={{ backgroundColor: 'rgba(139,92,246,0.2)' }}
                       >
                         <div className="text-lg font-bold text-purple-400">OPINION</div>
-                        <div className="text-4xl font-black text-purple-400">{opinionPercent}%</div>
+                        <div className="text-3xl font-black text-purple-400">{opinionPercent}%</div>
                         <div className="text-sm text-white/50">{opinionCount} {opinionCount === 1 ? 'vote' : 'votes'}</div>
                         {currentStatement.answer === 'opinion' && (
                           <CheckCircle size={20} className="text-green-400 mx-auto mt-1" />
@@ -500,9 +500,9 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
             {gamePhase === 'finished' && (
               <div className="w-full h-full flex flex-col items-center justify-center overflow-auto">
                 <div className="text-center mb-6">
-                  <div className="text-8xl mb-4">{'\uD83C\uDFC6'}</div>
-                  <h2 className="text-5xl font-black mb-2">Game Complete!</h2>
-                  <p className="text-2xl text-white/70">Final Leaderboard</p>
+                  <div className="text-5xl mb-3">{'\uD83C\uDFC6'}</div>
+                  <h2 className="text-3xl font-black mb-2">Game Complete!</h2>
+                  <p className="text-lg text-white/70">Final Leaderboard</p>
                 </div>
 
                 {/* Leaderboard */}

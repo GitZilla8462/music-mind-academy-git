@@ -23,6 +23,8 @@ import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
 import ExitSessionButton from '../../../components/ExitSessionButton';
+import DirectionsModal from '../../shared/components/DirectionsModal';
+import useDirectionsModal from '../../shared/hooks/useDirectionsModal';
 
 const LESSON_PROGRESS_KEY = 'music-journalist-lesson3-progress';
 const LESSON_TIMER_KEY = 'music-journalist-lesson3-timer';
@@ -74,6 +76,12 @@ const Lesson3 = () => {
   // Memoize currentStageData
   const currentStageData = useMemo(() => {
     return lessonStages.find(stage => stage.id === currentStage);
+  }, [currentStage]);
+
+  // Directions modal for activity stages with studentDirections
+  const activityDirections = useDirectionsModal(currentStage);
+  useEffect(() => {
+    if (currentStageData?.studentDirections) activityDirections.triggerIfUnseen();
   }, [currentStage]);
 
   // Mute audio in preview mode
@@ -230,6 +238,15 @@ const Lesson3 = () => {
             lessonConfig={lessonConfig}
             currentStage={currentStage}
           />
+          {currentStageData.studentDirections && (
+            <DirectionsModal
+              title={currentStageData.label || 'Directions'}
+              isOpen={activityDirections.isOpen}
+              onClose={activityDirections.close}
+              steps={currentStageData.studentDirections}
+              bonusText={currentStageData.studentDirectionsBonusText}
+            />
+          )}
           {showTransition && (
             <TransitionOverlay
               message="Great work! Moving to the next section..."

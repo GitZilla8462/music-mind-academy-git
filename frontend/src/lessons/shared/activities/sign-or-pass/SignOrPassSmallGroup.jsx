@@ -1105,7 +1105,7 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
                       <span className={`w-8 h-8 rounded-full ${rl.bgActive} ${rl.textActive} flex items-center justify-center font-bold text-sm`}>
                         {rank}
                       </span>
-                      <span className="text-white text-sm font-semibold">{artist.name}</span>
+                      <span className="text-white text-sm font-semibold">"{artist.trackTitle}"</span>
                       <span className="text-gray-500 text-xs ml-auto">{rl.label}</span>
                     </div>
                   );
@@ -1125,9 +1125,9 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
     const totalMembers = memberOrder.length;
 
     const myRanking = rankings[userId] || {};
-    const getArtistName = (artistId) => {
+    const getArtistLabel = (artistId) => {
       const a = artists.find(x => x.id === artistId);
-      return a ? a.name : '?';
+      return a ? `"${a.trackTitle}"` : '?';
     };
 
     return (
@@ -1183,7 +1183,7 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
                             : 'bg-red-500/15 text-red-300/70 border border-red-400/20'
                         }`}
                       >
-                        {getArtistName(artistId)}
+                        {getArtistLabel(artistId)}
                       </div>
                     );
                   })}

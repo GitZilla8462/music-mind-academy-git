@@ -503,7 +503,7 @@ const GenreMatchTeacherGame = ({ sessionData, onComplete }) => {
                   className="rounded-3xl p-8 mb-4 max-w-lg mx-auto"
                   style={{ backgroundColor: correctColor }}
                 >
-                  <div className="text-5xl font-black text-white mb-2">{currentQuestion.genre}</div>
+                  <div className="text-3xl font-black text-white mb-2">{currentQuestion.genre}</div>
                   <div className="text-2xl font-bold text-white/90 mb-1">{currentQuestion.artistName} — "{currentQuestion.trackTitle}"</div>
                   <div className="flex items-center justify-center gap-2 mt-3">
                     <CheckCircle size={20} className="text-white/80" />
@@ -561,9 +561,9 @@ const GenreMatchTeacherGame = ({ sessionData, onComplete }) => {
             {/* ==================== FINISHED ==================== */}
             {gamePhase === 'finished' && (
               <div className="text-center">
-                <div className="text-9xl mb-4">{'\uD83C\uDFC6'}</div>
-                <h2 className="text-5xl font-black mb-4">Game Complete!</h2>
-                <p className="text-2xl text-white/70 mb-6">Great job everyone!</p>
+                <div className="text-5xl mb-3">{'\uD83C\uDFC6'}</div>
+                <h2 className="text-3xl font-black mb-3">Game Complete!</h2>
+                <p className="text-lg text-white/70 mb-4">Great job everyone!</p>
 
                 {leaderboard.length > 0 && (
                   <div className="max-w-lg mx-auto mb-8">

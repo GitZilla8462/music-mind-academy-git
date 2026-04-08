@@ -120,8 +120,7 @@ export const lessonSections = [
     color: 'blue',
     estimatedTime: 7,
     stages: [
-      { id: 'sign-or-pass-intro', type: 'summary', label: 'Sign or Pass Intro', description: 'Explain the game and get into groups.', duration: 2 },
-      { id: 'sign-or-pass-game', type: 'activity', label: 'Sign or Pass', description: 'Listen to 3 mystery artists. Rank 1–3. Match your group to score!', duration: 5, hasTimer: true, trackProgress: true }
+      { id: 'sign-or-pass-game', type: 'activity', label: 'Sign or Pass', description: 'Listen to 3 mystery artists. Rank 1–3. Match your group to score!', duration: 7, hasTimer: true, trackProgress: true }
     ]
   },
   {
@@ -214,47 +213,30 @@ export const lessonStages = [
     }
   },
   {
-    id: 'listening-share', label: 'Share Out', type: 'discussion', duration: 5,
+    id: 'listening-share', label: 'Share Out', type: 'activity', duration: 5,
     presentationView: {
-      type: 'summary', title: 'Share Your Analysis', subtitle: 'What Did You Hear?',
-      sections: [
-        { heading: 'Share Out', bullets: [
-          'What track did you pick and why?',
-          'What instruments or sounds did you hear?',
-          'What mood did the music create?',
-          'What was the catchiest part (the hook)?'
-        ]},
-        { heading: 'Listen to Each Other', bullets: [
-          'Did anyone pick the same track but hear different things?',
-          'What descriptions helped you "hear" the music through their words?'
-        ]}
-      ]
-    }
+      type: 'listening-share-teacher',
+    },
+    studentDirections: [
+      { text: 'Find a partner or small group near you' },
+      { text: 'Share which track you picked and why' },
+      { text: 'Read your Listening Guide answers out loud' },
+      { text: 'Listen to your partner — did they hear something you missed?' },
+    ],
   },
   {
-    id: 'sign-or-pass-intro', label: 'Sign or Pass Intro', type: 'summary', duration: 2,
-    presentationView: {
-      type: 'summary', title: 'Sign or Pass', subtitle: 'Would You Sign This Artist?',
-      sections: [
-        { heading: 'How It Works', bullets: [
-          'Get into groups of 2–5',
-          'One person creates a group, others join with the 4-digit code',
-          'Listen to 3 mystery artists — 15 seconds each',
-          'Privately rank them 1–3 by who you\'d sign to your record label',
-          'Reveal at the same time — score points when your rankings match!'
-        ]},
-        { heading: 'The Catch', bullets: [
-          'You\'re not just picking your favorite — you\'re trying to predict what your GROUP thinks',
-          'When you disagree, explain WHY using what you learned today'
-        ]}
-      ]
-    }
-  },
-  {
-    id: 'sign-or-pass-game', label: 'Sign or Pass', type: 'activity', duration: 5, hasTimer: true, trackProgress: true,
+    id: 'sign-or-pass-game', label: 'Sign or Pass', type: 'activity', duration: 7, hasTimer: true, trackProgress: true,
     presentationView: {
       type: 'sign-or-pass-teacher'
-    }
+    },
+    studentDirections: [
+      { text: 'Next we\'ll play a class game called Sign or Pass!' },
+      { text: 'Get into groups of 2–5' },
+      { text: 'One person creates a group, others join with the 4-digit code' },
+      { text: 'Listen to 3 mystery artists — 15 seconds each' },
+      { text: 'Privately rank them 1–3 by who you\'d sign to your record label' },
+      { text: 'Reveal at the same time — score points when your rankings match!' },
+    ],
   },
   {
     id: 'lesson-complete', label: 'Lesson Complete', type: 'summary', duration: 1,
@@ -283,8 +265,7 @@ export const getActivityForStage = (stage) => ({
   'guided-listening-2': 'guided-listening',
   'guided-listening-3': 'guided-listening',
   'independent-listening': 'independent-listening',
-  'listening-share': 'discussion',
-  'sign-or-pass-intro': 'summary',
+  'listening-share': 'independent-listening',
   'sign-or-pass-game': 'sign-or-pass',
   'lesson-complete': 'summary'
 })[stage];

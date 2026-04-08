@@ -286,8 +286,8 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
         {/* Header */}
         <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <div className="flex items-center gap-4">
-            <span className="text-5xl">{'\uD83D\uDD0D'}</span>
-            <h1 className="text-4xl font-bold">Source or Not?</h1>
+            <span className="text-3xl">{'\uD83D\uDD0D'}</span>
+            <h1 className="text-2xl font-bold">Source or Not?</h1>
             {gamePhase !== 'setup' && gamePhase !== 'finished' && (
               <span className="bg-white/10 px-4 py-2 rounded-full text-xl">
                 {currentRoundIndex + 1}/{ROUNDS.length}
@@ -333,16 +333,16 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
             {/* ==================== SETUP ==================== */}
             {gamePhase === 'setup' && (
               <div className="text-center">
-                <div className="text-9xl mb-6">{'\uD83D\uDD0D'}</div>
-                <h2 className="text-5xl font-bold mb-4">Source or Not?</h2>
-                <p className="text-2xl text-white/70 mb-2">Read the headline. Is the source CREDIBLE or NOT CREDIBLE?</p>
-                <p className="text-xl text-white/50 mb-6">Vote on your device. Be fast for bonus points!</p>
+                <div className="text-6xl mb-4">{'\uD83D\uDD0D'}</div>
+                <h2 className="text-3xl font-bold mb-3">Source or Not?</h2>
+                <p className="text-lg text-white/70 mb-2">Read the headline. Is the source CREDIBLE or NOT CREDIBLE?</p>
+                <p className="text-base text-white/50 mb-4">Vote on your device. Be fast for bonus points!</p>
 
-                <p className="text-xl text-white/50 mb-8">8 rounds &middot; +10 points for correct &middot; Speed bonus up to +5</p>
+                <p className="text-base text-white/50 mb-6">8 rounds &middot; +10 points for correct &middot; Speed bonus up to +5</p>
 
                 <button
                   onClick={startGame}
-                  className="px-10 py-5 rounded-2xl text-3xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
+                  className="px-8 py-4 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3 mx-auto"
                   style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
                 >
                   <Play size={40} /> Start Game
@@ -357,9 +357,9 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
                 <div className="flex-1 flex items-center justify-center min-h-0">
                   <div className="w-full max-w-4xl">
                     {/* The headline + source */}
-                    <div className="rounded-3xl p-10 mb-6 text-center" style={{ backgroundColor: '#1a2744', border: '3px solid rgba(240, 180, 41, 0.4)' }}>
-                      <div className="text-lg text-white/50 mb-4 uppercase tracking-widest font-medium">Round #{currentRoundIndex + 1}</div>
-                      <div className="text-4xl font-black leading-tight mb-6" style={{ color: '#f0b429' }}>
+                    <div className="rounded-3xl p-6 mb-4 text-center" style={{ backgroundColor: '#1a2744', border: '3px solid rgba(240, 180, 41, 0.4)' }}>
+                      <div className="text-base text-white/50 mb-3 uppercase tracking-widest font-medium">Round #{currentRoundIndex + 1}</div>
+                      <div className="text-2xl font-black leading-tight mb-4" style={{ color: '#f0b429' }}>
                         &ldquo;{currentRound.headline}&rdquo;
                       </div>
                       <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-xl font-bold" style={{ backgroundColor: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.2)' }}>
@@ -373,13 +373,13 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
                       {/* Credible bar */}
                       <div className="flex-1 bg-green-500/20 rounded-2xl p-4 text-center">
                         <div className="text-lg font-bold text-green-400 mb-1">CREDIBLE</div>
-                        <div className="text-5xl font-black text-green-400">{credibleCount}</div>
+                        <div className="text-3xl font-black text-green-400">{credibleCount}</div>
                         <div className="text-sm text-white/50 mt-1">{credibleCount === 1 ? 'vote' : 'votes'}</div>
                       </div>
                       {/* Not Credible bar */}
                       <div className="flex-1 bg-red-500/20 rounded-2xl p-4 text-center">
                         <div className="text-lg font-bold text-red-400 mb-1">NOT CREDIBLE</div>
-                        <div className="text-5xl font-black text-red-400">{notCredibleCount}</div>
+                        <div className="text-3xl font-black text-red-400">{notCredibleCount}</div>
                         <div className="text-sm text-white/50 mt-1">{notCredibleCount === 1 ? 'vote' : 'votes'}</div>
                       </div>
                     </div>
@@ -453,7 +453,7 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
                         style={{ backgroundColor: 'rgba(34,197,94,0.2)' }}
                       >
                         <div className="text-lg font-bold text-green-400">CREDIBLE</div>
-                        <div className="text-4xl font-black text-green-400">{crediblePercent}%</div>
+                        <div className="text-3xl font-black text-green-400">{crediblePercent}%</div>
                         <div className="text-sm text-white/50">{credibleCount} {credibleCount === 1 ? 'vote' : 'votes'}</div>
                         {currentRound.answer === 'credible' && (
                           <CheckCircle size={20} className="text-green-400 mx-auto mt-1" />
@@ -463,7 +463,7 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
                         style={{ backgroundColor: 'rgba(239,68,68,0.2)' }}
                       >
                         <div className="text-lg font-bold text-red-400">NOT CREDIBLE</div>
-                        <div className="text-4xl font-black text-red-400">{notCrediblePercent}%</div>
+                        <div className="text-3xl font-black text-red-400">{notCrediblePercent}%</div>
                         <div className="text-sm text-white/50">{notCredibleCount} {notCredibleCount === 1 ? 'vote' : 'votes'}</div>
                         {currentRound.answer === 'not-credible' && (
                           <CheckCircle size={20} className="text-green-400 mx-auto mt-1" />
@@ -509,9 +509,9 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
             {gamePhase === 'finished' && (
               <div className="w-full h-full flex flex-col items-center justify-center overflow-auto">
                 <div className="text-center mb-6">
-                  <div className="text-8xl mb-4">{'\uD83C\uDFC6'}</div>
-                  <h2 className="text-5xl font-black mb-2">Game Complete!</h2>
-                  <p className="text-2xl text-white/70">Final Leaderboard</p>
+                  <div className="text-5xl mb-3">{'\uD83C\uDFC6'}</div>
+                  <h2 className="text-3xl font-black mb-2">Game Complete!</h2>
+                  <p className="text-lg text-white/70">Final Leaderboard</p>
                 </div>
 
                 {/* Leaderboard */}
