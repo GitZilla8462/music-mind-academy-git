@@ -14,8 +14,10 @@ const {
   getEmailPreview,
   getDefaultTemplates,
   renderTemplate,
-  renderPreviewHtml
+  renderPreviewHtml,
+  generateUnsubscribeToken
 } = require('../services/teacherEmailService');
+const { getDatabase } = require('../services/firebaseAdmin');
 
 /**
  * POST /api/email/survey-l3
@@ -287,6 +289,93 @@ router.post('/templates/:type/reset', async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 });
+
+/**
+ * GET /api/email/unsubscribe
+ * Handles unsubscribe requests from email links.
+ * Verifies HMAC token, marks teacher as unsubscribed in Firebase, shows confirmation.
+ */
+router.get('/unsubscribe', async (req, res) => {
+  const { email, token } = req.query;
+
+  if (!email || !token) {
+    return res.status(400).send(unsubscribePage('Missing Information', 'This unsubscribe link is invalid. Please contact rob@musicmindacademy.com if you need help.', false));
+  }
+
+  // Verify token
+  const expectedToken = generateUnsubscribeToken(email);
+  if (token !== expectedToken) {
+    return res.status(403).send(unsubscribePage('Invalid Link', 'This unsubscribe link has expired or is invalid. Please contact rob@musicmindacademy.com if you need help.', false));
+  }
+
+  try {
+    const db = getDatabase();
+    if (!db) {
+      return res.status(500).send(unsubscribePage('Server Error', 'Unable to process your request right now. Please try again later or email rob@musicmindacademy.com.', false));
+    }
+
+    const emailKey = email.toLowerCase().replace(/\./g, ',');
+
+    // Mark as unsubscribed in Firebase
+    await db.ref(`emailUnsubscribes/${emailKey}`).set({
+      email: email.toLowerCase(),
+      unsubscribedAt: Date.now()
+    });
+
+    console.log(`[Unsubscribe] ${email} has unsubscribed`);
+    return res.send(unsubscribePage('Unsubscribed', `<strong>${email}</strong> has been unsubscribed from Music Mind Academy emails. You will no longer receive automated emails from us.`, true));
+  } catch (err) {
+    console.error(`[Unsubscribe] Error processing unsubscribe for ${email}:`, err.message);
+    return res.status(500).send(unsubscribePage('Error', 'Something went wrong. Please try again or email rob@musicmindacademy.com.', false));
+  }
+});
+
+/**
+ * POST /api/email/resubscribe
+ * Admin endpoint to re-subscribe a teacher (removes unsubscribe flag)
+ */
+router.post('/resubscribe', async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  try {
+    const db = getDatabase();
+    if (!db) return res.status(500).json({ error: 'Firebase not initialized' });
+
+    const emailKey = email.toLowerCase().replace(/\./g, ',');
+    await db.ref(`emailUnsubscribes/${emailKey}`).remove();
+    console.log(`[Unsubscribe] ${email} has been re-subscribed by admin`);
+    return res.json({ success: true });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+/** Helper: generate the unsubscribe confirmation HTML page */
+function unsubscribePage(title, message, success) {
+  const color = success ? '#059669' : '#dc2626';
+  const icon = success ? '&#10003;' : '&#10007;';
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${title} - Music Mind Academy</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; margin: 0; padding: 40px 20px; }
+  .card { max-width: 480px; margin: 60px auto; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+  .header { background: ${color}; color: white; padding: 24px; text-align: center; }
+  .header .icon { font-size: 48px; margin-bottom: 8px; }
+  .header h1 { margin: 0; font-size: 22px; }
+  .body { padding: 24px; color: #374151; font-size: 15px; line-height: 1.6; text-align: center; }
+  .footer { padding: 16px 24px; background: #f9fafb; border-top: 1px solid #e5e7eb; text-align: center; font-size: 13px; color: #9ca3af; }
+  a { color: #0ea5e9; }
+</style>
+</head><body>
+<div class="card">
+  <div class="header"><div class="icon">${icon}</div><h1>${title}</h1></div>
+  <div class="body"><p>${message}</p></div>
+  <div class="footer">Music Mind Academy &middot; <a href="https://musicmindacademy.com">musicmindacademy.com</a></div>
+</div>
+</body></html>`;
+}
 
 /**
  * POST /api/email/batch-send

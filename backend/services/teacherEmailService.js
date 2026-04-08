@@ -5,6 +5,7 @@
  */
 
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 const EmailTemplate = require('../models/EmailTemplate');
 
 const SMTP_USER = process.env.SMTP_USER || 'rob@musicmindacademy.com';
@@ -16,6 +17,53 @@ const RAILWAY_URL = process.env.RAILWAY_PUBLIC_DOMAIN
   : (process.env.RAILWAY_URL || `http://localhost:${process.env.PORT || 5000}`);
 const ADMIN_SECRET = process.env.ADMIN_SECRET;
 const ADMIN_EMAIL = 'rob@musicmindacademy.com';
+
+// =============================================
+// UNSUBSCRIBE HELPERS
+// =============================================
+
+/**
+ * Generate an HMAC token for unsubscribe links.
+ * Uses ADMIN_SECRET as the key so tokens are unforgeable but stateless.
+ */
+const generateUnsubscribeToken = (email) => {
+  const secret = ADMIN_SECRET || 'mma-unsub-fallback-key';
+  return crypto.createHmac('sha256', secret).update(email.toLowerCase()).digest('hex').slice(0, 32);
+};
+
+/**
+ * Build the full unsubscribe URL for a given email
+ */
+const getUnsubscribeUrl = (email) => {
+  const token = generateUnsubscribeToken(email);
+  return `${RAILWAY_URL}/api/email/unsubscribe?email=${encodeURIComponent(email)}&token=${token}`;
+};
+
+/**
+ * Generate the unsubscribe footer HTML to append to emails
+ */
+const getUnsubscribeFooterHtml = (email) => {
+  const url = getUnsubscribeUrl(email);
+  return `<p style="font-size: 12px; color: #9ca3af; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center;">
+    <a href="${url}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe</a> from future emails
+  </p>`;
+};
+
+/**
+ * Check if a teacher has unsubscribed (requires Firebase admin DB reference)
+ */
+const isUnsubscribed = async (email) => {
+  try {
+    const { getDatabase } = require('./firebaseAdmin');
+    const db = getDatabase();
+    if (!db) return false;
+    const emailKey = email.toLowerCase().replace(/\./g, ',');
+    const snap = await db.ref(`emailUnsubscribes/${emailKey}`).once('value');
+    return snap.exists();
+  } catch {
+    return false;
+  }
+};
 
 // Lazy-init transporter (same pattern as errorEmailService)
 let transporter = null;
@@ -33,6 +81,50 @@ const getTransporter = () => {
     });
   }
   return transporter;
+};
+
+/**
+ * Send an email with unsubscribe support.
+ * Checks if recipient has unsubscribed, appends footer, adds List-Unsubscribe header.
+ * Use this for all teacher-facing emails (not admin notifications).
+ */
+const sendTeacherMail = async (transport, mailOptions) => {
+  const recipientEmail = mailOptions.to;
+
+  // Check unsubscribe status
+  const unsub = await isUnsubscribed(recipientEmail);
+  if (unsub) {
+    console.log(`[TeacherEmail] ${recipientEmail} is unsubscribed, skipping`);
+    return { success: false, error: 'Recipient has unsubscribed' };
+  }
+
+  // Append unsubscribe footer to HTML
+  const unsubUrl = getUnsubscribeUrl(recipientEmail);
+  const footer = getUnsubscribeFooterHtml(recipientEmail);
+  if (mailOptions.html) {
+    // Insert footer before the last closing </div>
+    const lastDiv = mailOptions.html.lastIndexOf('</div>');
+    if (lastDiv !== -1) {
+      mailOptions.html = mailOptions.html.slice(0, lastDiv) + footer + mailOptions.html.slice(lastDiv);
+    } else {
+      mailOptions.html += footer;
+    }
+  }
+
+  // Add plain text unsubscribe note
+  if (mailOptions.text) {
+    mailOptions.text += `\n\nTo unsubscribe: ${unsubUrl}`;
+  }
+
+  // Add List-Unsubscribe header (RFC 2369 — helps Gmail/Yahoo show one-click unsubscribe)
+  mailOptions.headers = {
+    ...mailOptions.headers,
+    'List-Unsubscribe': `<${unsubUrl}>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
+  };
+
+  const info = await transport.sendMail(mailOptions);
+  return { success: true, messageId: info.messageId };
 };
 
 /**
@@ -287,7 +379,7 @@ const sendMidPilotSurveyEmail = async (email, displayName) => {
   const text = `Hi ${firstName},\n\nCongrats on finishing Lesson 3! You're halfway through the unit.\n\nPlease take our quick mid-pilot survey (2 minutes):\n${surveyUrl}\n\nThanks!\nMusic Mind Academy`;
 
   try {
-    const info = await transport.sendMail({
+    const result = await sendTeacherMail(transport, {
       from: `"Music Mind Academy" <${SMTP_USER}>`,
       replyTo: ADMIN_EMAIL,
       to: email,
@@ -296,8 +388,8 @@ const sendMidPilotSurveyEmail = async (email, displayName) => {
       text,
       html
     });
-    console.log(`[TeacherEmail] Mid-pilot survey sent to ${email} (${info.messageId})`);
-    return { success: true, messageId: info.messageId };
+    if (result.success) console.log(`[TeacherEmail] Mid-pilot survey sent to ${email} (${result.messageId})`);
+    return result;
   } catch (err) {
     console.error(`[TeacherEmail] Failed to send mid-pilot survey to ${email}:`, err.message);
     return { success: false, error: err.message };
@@ -324,7 +416,7 @@ const sendFinalPilotSurveyEmail = async (email, displayName) => {
   const text = `Hi ${firstName},\n\nAmazing work completing all 5 lessons!\n\nPlease take our final pilot survey (5 minutes):\n${surveyUrl}\n\nThanks!\nMusic Mind Academy`;
 
   try {
-    const info = await transport.sendMail({
+    const result = await sendTeacherMail(transport, {
       from: `"Music Mind Academy" <${SMTP_USER}>`,
       replyTo: ADMIN_EMAIL,
       to: email,
@@ -333,8 +425,8 @@ const sendFinalPilotSurveyEmail = async (email, displayName) => {
       text,
       html
     });
-    console.log(`[TeacherEmail] Final survey sent to ${email} (${info.messageId})`);
-    return { success: true, messageId: info.messageId };
+    if (result.success) console.log(`[TeacherEmail] Final survey sent to ${email} (${result.messageId})`);
+    return result;
   } catch (err) {
     console.error(`[TeacherEmail] Failed to send final survey to ${email}:`, err.message);
     return { success: false, error: err.message };
@@ -421,7 +513,7 @@ const sendDripWelcomeEmail = async (email, firstName) => {
   const text = `Hi ${name},\n\nI am sending this message to you because you signed up for my pilot for general music lessons. I am unlocking my pilot now so you can see the lessons and website before you teach with your students.\n\nKey Details:\n- Pilot Start: March 15, 2026\n- Access Through: June 30, 2026\n\nHere's what to do:\n1. Go to musicmindacademy.com and log in with your teacher email\n2. Explore the lessons and poke around\n3. Reply to this email to let me know you're in\n\nBest,\nRob Taube\nMusic Mind Academy`;
 
   try {
-    const info = await transport.sendMail({
+    const result = await sendTeacherMail(transport, {
       from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
       replyTo: ADMIN_EMAIL,
       to: email,
@@ -430,8 +522,8 @@ const sendDripWelcomeEmail = async (email, firstName) => {
       text,
       html
     });
-    console.log(`[TeacherEmail] Drip welcome sent to ${email} (${info.messageId})`);
-    return { success: true, messageId: info.messageId };
+    if (result.success) console.log(`[TeacherEmail] Drip welcome sent to ${email} (${result.messageId})`);
+    return result;
   } catch (err) {
     console.error(`[TeacherEmail] Failed to send drip welcome to ${email}:`, err.message);
     return { success: false, error: err.message };
@@ -456,7 +548,7 @@ const sendDripFollowup1Email = async (email, firstName) => {
   const text = `Hi ${name},\n\nI wanted to check in - I approved your Music Mind Academy pilot access about a week ago. Have you had a chance to log in and explore?\n\nIf you ran into any issues logging in, just reply to this email and I'll help you get set up. The pilot runs through June 30, so there's still plenty of time.\n\nLog in: ${SITE_URL}/login\n\nBest,\nRob Taube\nMusic Mind Academy`;
 
   try {
-    const info = await transport.sendMail({
+    const result = await sendTeacherMail(transport, {
       from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
       replyTo: ADMIN_EMAIL,
       to: email,
@@ -465,8 +557,8 @@ const sendDripFollowup1Email = async (email, firstName) => {
       text,
       html
     });
-    console.log(`[TeacherEmail] Drip followup-1 sent to ${email} (${info.messageId})`);
-    return { success: true, messageId: info.messageId };
+    if (result.success) console.log(`[TeacherEmail] Drip followup-1 sent to ${email} (${result.messageId})`);
+    return result;
   } catch (err) {
     console.error(`[TeacherEmail] Failed to send drip followup-1 to ${email}:`, err.message);
     return { success: false, error: err.message };
@@ -491,7 +583,7 @@ const sendDripFollowup2Email = async (email, firstName) => {
   const text = `Hi ${name},\n\nThis is my last reminder - your free pilot access to Music Mind Academy is still waiting for you. I'd love for you to try it out before the pilot ends on June 30.\n\nIt only takes a minute to log in and start exploring the lessons. Everything is ready to go - no setup needed.\n\nLog in: ${SITE_URL}/login\n\nIf you're no longer interested or have any questions, just reply to this email. No worries either way!\n\nBest,\nRob Taube\nMusic Mind Academy`;
 
   try {
-    const info = await transport.sendMail({
+    const result = await sendTeacherMail(transport, {
       from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
       replyTo: ADMIN_EMAIL,
       to: email,
@@ -500,8 +592,8 @@ const sendDripFollowup2Email = async (email, firstName) => {
       text,
       html
     });
-    console.log(`[TeacherEmail] Drip followup-2 sent to ${email} (${info.messageId})`);
-    return { success: true, messageId: info.messageId };
+    if (result.success) console.log(`[TeacherEmail] Drip followup-2 sent to ${email} (${result.messageId})`);
+    return result;
   } catch (err) {
     console.error(`[TeacherEmail] Failed to send drip followup-2 to ${email}:`, err.message);
     return { success: false, error: err.message };
@@ -527,7 +619,7 @@ const sendUnitCompleteEmail = async (email, displayName, unitName) => {
   const text = `Hi ${firstName},\n\nYou just wrapped up all 5 lessons in ${unitName}. I'd love to hear how it went — just reply with a few quick thoughts:\n\n1. What worked well in this unit?\n2. Any issues or things that didn't work?\n3. Would you teach this unit again?\n\nThanks,\nRob Taube\nMusic Mind Academy`;
 
   try {
-    const info = await transport.sendMail({
+    const result = await sendTeacherMail(transport, {
       from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
       replyTo: ADMIN_EMAIL,
       to: email,
@@ -536,8 +628,8 @@ const sendUnitCompleteEmail = async (email, displayName, unitName) => {
       text,
       html
     });
-    console.log(`[TeacherEmail] Unit-complete email sent to ${email} for ${unitName} (${info.messageId})`);
-    return { success: true, messageId: info.messageId };
+    if (result.success) console.log(`[TeacherEmail] Unit-complete email sent to ${email} for ${unitName} (${result.messageId})`);
+    return result;
   } catch (err) {
     console.error(`[TeacherEmail] Failed to send unit-complete email to ${email}:`, err.message);
     return { success: false, error: err.message };
@@ -622,7 +714,7 @@ const sendLoginUpdateEmail = async (email, firstName, schoolEmail) => {
   const text = `Hi ${name},\n\nWe've added a simpler way to sign in to Music Mind Academy that doesn't require Google or Microsoft.\n\nHow to sign in:\n1. Go to ${SITE_URL}/login\n2. Click "New? Create Account"\n3. Enter your school email and choose any password\n\nIf you've already been using Google to sign in, that still works too.\n\nSign in: ${SITE_URL}/login\n\nDoes your school block websites?\nForward this to your IT department and ask them to whitelist:\n- musicmindacademy.com\n- musicroomtools.org\n- media.musicmindacademy.com\n\nPrivacy info: ${SITE_URL}/student-privacy\n\nQuestions? Just reply to this email.\n\nBest,\nRob Taube\nMusic Mind Academy`;
 
   try {
-    const info = await transport.sendMail({
+    const result = await sendTeacherMail(transport, {
       from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
       replyTo: ADMIN_EMAIL,
       to: email,
@@ -631,8 +723,8 @@ const sendLoginUpdateEmail = async (email, firstName, schoolEmail) => {
       text,
       html
     });
-    console.log(`[TeacherEmail] Login update sent to ${email} (${info.messageId})`);
-    return { success: true, messageId: info.messageId };
+    if (result.success) console.log(`[TeacherEmail] Login update sent to ${email} (${result.messageId})`);
+    return result;
   } catch (err) {
     console.error(`[TeacherEmail] Failed to send login update to ${email}:`, err.message);
     return { success: false, error: err.message };
@@ -650,7 +742,7 @@ const sendCustomEmail = async (email, firstName, subject, html) => {
   }
 
   try {
-    const info = await transport.sendMail({
+    const result = await sendTeacherMail(transport, {
       from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
       replyTo: ADMIN_EMAIL,
       to: email,
@@ -658,8 +750,8 @@ const sendCustomEmail = async (email, firstName, subject, html) => {
       subject,
       html
     });
-    console.log(`[TeacherEmail] Custom email sent to ${email} (${info.messageId})`);
-    return { success: true, messageId: info.messageId };
+    if (result.success) console.log(`[TeacherEmail] Custom email sent to ${email} (${result.messageId})`);
+    return result;
   } catch (err) {
     console.error(`[TeacherEmail] Failed to send custom email to ${email}:`, err.message);
     return { success: false, error: err.message };
@@ -679,5 +771,7 @@ module.exports = {
   getEmailPreview,
   getDefaultTemplates,
   renderTemplate,
-  renderPreviewHtml
+  renderPreviewHtml,
+  generateUnsubscribeToken,
+  isUnsubscribed
 };

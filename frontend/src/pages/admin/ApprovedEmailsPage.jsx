@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Building2, GraduationCap, UserPlus, Trash2, UserX, Calendar, RefreshCw } from 'lucide-react';
+import { Building2, GraduationCap, UserPlus, Trash2, UserX, Calendar, RefreshCw, MailX } from 'lucide-react';
 import { useAdminData } from './AdminDataContext';
 
 const ApprovedEmailsPage = () => {
   const {
     selectedSite, setSelectedSite, approvedEmails,
     academyEmails, eduEmails, registeredUsers, teacherOutreach,
+    emailUnsubscribes,
     handleAddEmail, handleBatchAdd, handleRemoveEmail, handleBulkDelete,
     removeTeacherCompletely,
     formatDate, SITE_TYPES
@@ -293,6 +294,11 @@ const ApprovedEmailsPage = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    {emailUnsubscribes[emailKey] && (
+                      <span className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full flex items-center gap-1" title={`Unsubscribed ${emailUnsubscribes[emailKey].unsubscribedAt ? formatDate(emailUnsubscribes[emailKey].unsubscribedAt) : ''}`}>
+                        <MailX size={14} /> Unsubscribed
+                      </span>
+                    )}
                     {teacherType === 'purchased' ? (
                       <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">Paid</span>
                     ) : (

@@ -49,6 +49,7 @@ export const AdminDataProvider = ({ children }) => {
 
   const [teacherOutreach, setTeacherOutreach] = useState({});
   const [emailsSent, setEmailsSent] = useState({});
+  const [emailUnsubscribes, setEmailUnsubscribes] = useState({});
   const [applications, setApplications] = useState([]);
 
   const [approvingId, setApprovingId] = useState(null);
@@ -218,10 +219,16 @@ export const AdminDataProvider = ({ children }) => {
       } else { setApplications([]); }
     });
 
+    const unsubscribesRef = ref(database, 'emailUnsubscribes');
+    const unsubUnsubscribes = onValue(unsubscribesRef, (snapshot) => {
+      if (snapshot.exists()) { setEmailUnsubscribes(snapshot.val()); }
+      else { setEmailUnsubscribes({}); }
+    });
+
     return () => {
       unsubAcademy(); unsubEdu(); unsubUsers(); unsubAnalytics(); unsubTeacherClasses();
       unsubQuickSurveys(); unsubMidPilot(); unsubFinalPilot();
-      unsubOutreach(); unsubEmailsSent(); unsubApplications();
+      unsubOutreach(); unsubEmailsSent(); unsubApplications(); unsubUnsubscribes();
     };
   }, [user, isAdmin, database]);
 
@@ -998,7 +1005,7 @@ export const AdminDataProvider = ({ children }) => {
     academyEmails, eduEmails, registeredUsers, studentCountByEmail,
     teacherAnalytics, pilotSessions, summaryStats,
     quickSurveys, midPilotSurveys, finalPilotSurveys,
-    teacherOutreach, emailsSent, applications,
+    teacherOutreach, emailsSent, emailUnsubscribes, applications,
     approvingId, dripProcessing, dripResult,
     isBackfilling, backfillResult, setBackfillResult,
     hubspotSyncing, hubspotSyncResult,
