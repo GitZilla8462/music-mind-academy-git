@@ -42,6 +42,7 @@ import { useTimerSound } from '../hooks/useTimerSound';
 import ActivityRenderer from './ActivityRenderer';
 import DirectionsModal from './DirectionsModal';
 import LaunchDayTeacher from '../activities/launch-day/LaunchDayTeacher';
+import IndependentListeningActivity from '../activities/listening-guide/IndependentListeningActivity';
 
 // ============================================
 // SLIDE WITH AUDIO COMPONENT
@@ -1775,11 +1776,11 @@ const PresentationContent = ({
             .teacher-embed-activity h2 { font-size: 1.75rem !important; }
           `}</style>
           <div className="h-full teacher-embed-activity">
-            <ActivityRenderer
-              activity={{ type: 'independent-listening', id: 'teacher-preview' }}
+            <IndependentListeningActivity
               onComplete={() => {}}
               viewMode={false}
               isSessionMode={false}
+              forceShowDirections={true}
             />
           </div>
         </div>

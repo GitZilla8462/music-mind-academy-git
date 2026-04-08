@@ -58,9 +58,9 @@ const MOOD_OPTIONS = [
 
 // Texture — from Unit 1 Lesson 2
 const TEXTURE_OPTIONS = [
-  { label: 'Thin', help: '1-2 layers' },
-  { label: 'Medium', help: '2-3 layers' },
-  { label: 'Thick', help: '4+ layers' },
+  { label: 'Thin', help: '1-3 layers' },
+  { label: 'Medium', help: '4-6 layers' },
+  { label: 'Thick', help: '7+ layers' },
 ];
 
 const EMPTY_ENTRY = () => ({

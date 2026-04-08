@@ -393,7 +393,12 @@ export const useAudioEngine = (videoDuration = 60) => {
         : 1.0;
 
       // The actual loop end point in buffer time
-      const loopEndTime = Math.min(beatAligned, bufferDuration);
+      // SYNC FIX: Always use bufferDuration, not min(beatAligned, bufferDuration).
+      // The playbackRate correction already stretches/compresses the full buffer to play
+      // in exactly beatAligned real-time seconds. Truncating to beatAligned AND applying
+      // playbackRate double-corrects, making audio cycles shorter than the timeline expects.
+      // This caused loops entering on cycle 2/3/4+ to drift out of sync.
+      const loopEndTime = bufferDuration;
 
       // Calculate audio offset (must be in BUFFER time, not real time)
       // timelineProgress is in real time, so convert via playbackRate
