@@ -48,6 +48,7 @@ const DataPrivacyAgreement = lazyWithRetry(() => import('./pages/DataPrivacyAgre
 const SecurityPractices = lazyWithRetry(() => import('./pages/SecurityPractices'));
 
 // Dashboard pages
+const AdminLoginPage = lazyWithRetry(() => import('./pages/AdminLoginPage'));
 const AdminDashboard = lazyWithRetry(() => import('./pages/AdminDashboard'));
 const TeacherDashboard = lazyWithRetry(() => import('./pages/TeacherDashboard'));
 const StudentDashboard = lazyWithRetry(() => import('./pages/StudentDashboard'));
@@ -373,6 +374,14 @@ const AppContent = () => {
         </Route>
         {/* Redirect old admin URL */}
         <Route path="/admin/pilot" element={<Navigate to="/admin" replace />} />
+
+        {/* Backend JWT admin login + dashboard (same as commercial site) */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin/dashboard" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
 
         {/* Teacher Gradebook (NEW) */}
         <Route path="/teacher/gradebook/:classId" element={

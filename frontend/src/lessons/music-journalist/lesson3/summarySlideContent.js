@@ -1,7 +1,8 @@
 // File: /src/lessons/music-journalist/lesson3/summarySlideContent.js
 // All instructional text and content for Music Agent Unit — Lesson 3
 // "Claim Your Artist"
-// Students choose their artist, research their story, learn strong vs weak evidence
+// Students learn the 4-point checklist, strong vs weak evidence,
+// play Fact or Opinion, and build a Scouting Report for one assigned artist.
 //
 // Standards:
 // - MU:Cn10.0.7 — Personal interests influence musical selection
@@ -12,159 +13,140 @@
 // 1. SLIDE CONTENT FOR PRESENTATION VIEW
 // ========================================
 export const summarySlides = {
-  // Welcome Hook
-  welcomeHook: {
+  // Hook
+  hook: {
     title: 'Claim Your Artist',
-    subtitle: 'Find the one nobody knows about yet',
-    essentialQuestion: 'What makes an artist worth believing in?',
-    iCan: 'I can select an emerging artist and identify strong evidence about why they deserve attention.',
-    agenda: [
-      'Review: What makes an artist worth signing?',
-      'CHOOSE your artist from the platform',
-      'Research their story — build your evidence',
-      'Play FACT OR OPINION to sharpen your skills'
+    subtitle: 'Time to Find Your Next Star',
+    prompts: [
+      'Imagine you\'re scrolling through music and you hear something that STOPS you',
+      'That\'s the moment every talent agent lives for',
+      'Today you\'re going to find that artist'
     ],
-    hook: {
-      title: 'Imagine This...',
-      prompts: [
-        'You are scrolling through music and you hear something that stops you',
-        'Something about this artist is DIFFERENT — their sound, their story, their energy',
-        'Today you find that artist and make them YOURS'
-      ]
-    },
-    teacherNote: 'Build urgency — this is the commitment moment. Once they choose, that artist is theirs for the rest of the unit. First come, first served means they need to be decisive. Remind them to use the listening skills from Lesson 2 when choosing.'
+    teacherNote: 'Build urgency — this is the commitment moment. Frame students as agents making a real decision.'
   },
 
-  // What Makes an Artist Worth It?
-  worthSigning: {
-    title: 'What Makes an Artist Worth It?',
-    subtitle: 'The 4-Point Checklist',
-    checklist: [
-      {
-        label: 'Unique Sound',
-        icon: 'music',
-        description: 'Do they sound DIFFERENT from everyone else? Can you hear their voice in a crowd?',
-        question: 'If you played their song in a room of 100 songs, would it stand out?'
-      },
-      {
-        label: 'Story',
-        icon: 'bookOpen',
-        description: 'Where are they from? What drives them? Is there something about their background that makes you care?',
-        question: 'Could you tell someone their story in 30 seconds and make them interested?'
-      },
-      {
-        label: 'Growth',
-        icon: 'trendingUp',
-        description: 'Are they getting better? Are more people discovering them? Is there momentum?',
-        question: 'Is this artist on the way UP — or have they peaked?'
-      },
-      {
-        label: 'Your Gut',
-        icon: 'heart',
-        description: 'Do YOU believe in this artist? Would you stake your reputation on them?',
-        question: 'If you had one shot to make an artist blow up, would you pick THIS one?'
-      }
+  // 4-Point Checklist — one slide per point
+  checklist1: {
+    title: 'Unique Sound',
+    subtitle: 'Point 1 of 4',
+    bullets: [
+      'Their music doesn\'t sound like anyone else in the library',
+      'You could pick their song out of a playlist without seeing the name',
+      'Their genre, style, or production has something you haven\'t heard before'
     ],
-    teacherNote: 'Walk through each point. Emphasize that agents use ALL FOUR — not just gut feeling. The research in this unit is about backing up your gut with evidence. Remind students to use the Description Toolkit from Lesson 2 when evaluating sound.'
+    teacherNote: 'Ask: "If you played 100 songs, would THIS one stand out?"'
+  },
+
+  checklist2: {
+    title: 'Compelling Story',
+    subtitle: 'Point 2 of 4',
+    bullets: [
+      'There\'s a real reason they started making music — loss, struggle, obsession, identity',
+      'Their background makes you more interested in what they create',
+      'The story makes the music mean something more than just sound'
+    ],
+    teacherNote: 'Stories make people care. The music gets you listening, the story keeps you invested.'
+  },
+
+  checklist3: {
+    title: 'Signs of Growth',
+    subtitle: 'Point 3 of 4',
+    bullets: [
+      'Their streams, followers, or shows have increased over time',
+      'They\'ve been releasing music consistently, not just once',
+      'Other people — blogs, playlists, venues — are starting to notice them'
+    ],
+    teacherNote: 'Growth means momentum. An artist going up is more exciting than one who peaked.'
+  },
+
+  checklist4: {
+    title: 'Gut Feeling',
+    subtitle: 'Point 4 of 4',
+    bullets: [
+      'You keep replaying their music even when you\'re not sure why',
+      'Something about them feels different from everyone else you heard',
+      'You\'d be disappointed if someone else signed them first'
+    ],
+    teacherNote: 'Validate instinct as real — but remind students that gut feeling alone isn\'t enough. They need all 4 points.'
   },
 
   // Strong vs Weak Evidence
   strongVsWeak: {
     title: 'Strong vs Weak Evidence',
-    subtitle: 'What Would Convince a Label?',
+    subtitle: 'Not All Facts Are Created Equal',
     strong: [
-      {
-        statement: 'Their EP has 12,000 streams in 3 months',
-        why: 'Specific number + specific timeframe = verifiable growth'
-      },
-      {
-        statement: 'Featured on Bandcamp Daily in October 2025',
-        why: 'Named source + specific date = credible press mention'
-      },
-      {
-        statement: 'Self-released debut at age 20, Pitchfork gave it Best New Music',
-        why: 'Specific achievement + recognized publication = strong credential'
-      }
+      'Specific facts — numbers, dates, names, places',
+      'Something you could look up and verify'
     ],
     weak: [
-      {
-        statement: 'They are really good',
-        why: 'Vague — what does "good" mean? No specifics.'
-      },
-      {
-        statement: 'A lot of people like them',
-        why: 'How many? Where? "A lot" means nothing without data.'
-      },
-      {
-        statement: 'They should be famous',
-        why: 'Opinion without evidence — WHY should they be famous?'
-      }
+      'Vague opinions — "they\'re amazing," "their vibe is different"',
+      'Feelings without any facts to back them up'
     ],
-    rule: 'Strong evidence has NUMBERS, NAMES, DATES, and SOURCES. Weak evidence has VAGUE WORDS and NO PROOF.',
-    teacherNote: 'This is the most important slide for the unit. Every pitch in Lesson 5 will be judged on evidence quality. Plant the seed now that "I like them" is not enough — agents need proof.'
+    teacherNote: 'This is the key concept. Every pitch in Lesson 5 will be judged on evidence quality. "I like them" is not enough — agents need proof.'
   },
 
-  // Research Session
-  researchIntro: {
-    title: 'Research Your Artist',
-    subtitle: 'Build Your Evidence Board',
-    description: 'You have your artist. Now dig into their profile and find the facts that will make your case. Save at least 5 strong pieces of evidence to your Research Board.',
-    tasks: [
+  // Teacher Models the Scouting Report
+  modelReport: {
+    title: 'Scouting Report — Example',
+    subtitle: 'Here\'s What You\'re Building',
+    slides: [
       {
-        label: 'Read the Bio',
-        description: 'Where are they from? When did they start? What is their story?'
+        heading: 'Slide 1 of 3: Artist Overview',
+        bullets: [
+          'Artist Name: Ketsa',
+          'Track: "Love Comes Back Around"',
+          'Location: London, England',
+          'Genre: Jazz / Soul / Latin'
+        ]
       },
       {
-        label: 'Check the Numbers',
-        description: 'How many albums? What instruments? When did they form?'
+        heading: 'Slide 2 of 3: The Four Points',
+        bullets: [
+          'Unique Sound: Blends jazz, soul, and Latin rhythms — no one else in the library sounds like this',
+          'Compelling Story: Self-taught multi-instrumentalist who creates everything solo',
+          'Signs of Growth: 8 albums released, tracks featured on multiple CC music platforms',
+          'Gut Feeling: The music makes you want to move — it\'s feel-good without being generic'
+        ]
       },
       {
-        label: 'Find the Hook',
-        description: 'What is the ONE thing about this artist that would make someone stop scrolling?'
-      },
-      {
-        label: 'Save to Research Board',
-        description: 'Highlight and save at least 5 facts that you can use in your pitch'
+        heading: 'Slide 3 of 3: Fact or Opinion Sort',
+        bullets: [
+          'Each statement — is it a Fact or Opinion? Strong or Weak evidence?',
+          'Your job: classify each one correctly'
+        ]
       }
     ],
-    teacherNote: 'Students should spend the full 12 minutes reading and saving. Walk around and check that they are finding SPECIFIC facts, not just reading casually.'
+    teacherNote: 'Walk through each slide so there is zero ambiguity about what students are filling in. Point out what makes the Four Points answers strong — specific facts, not vague.'
   },
 
-  // Checkpoint
-  checkpoint: {
-    title: 'Agent Checkpoint',
-    subtitle: 'Where Do You Stand?',
+  // Share Out
+  shareOut: {
+    title: 'Share Out',
+    subtitle: 'Partner Discussion',
     prompts: [
-      {
-        number: 1,
-        question: 'Tell your neighbor: Who did you pick and WHY?',
-        hint: 'Use at least one specific fact from your research, not just "I liked their sound."'
-      },
-      {
-        number: 2,
-        question: 'What is the strongest piece of evidence you found?',
-        hint: 'Think: would this convince a label executive?'
-      }
+      'Which of the four points felt strongest for this artist?',
+      'What was your best piece of strong evidence?',
+      'Would you sign them — yes or no?'
     ],
-    lookingAhead: 'Next lesson, you will DESIGN THE CAMPAIGN — build a 5-slide press kit using your research, Sound Statement, and evidence. Bring everything.',
+    lookingAhead: 'Next lesson, you\'ll pick YOUR OWN artist and start building the real presentation.',
     teacherNote: 'Quick partner share. Listen for students using specific evidence vs vague opinions. Call out strong examples to the class.'
   },
 
   // Lesson Complete
   lessonComplete: {
     title: 'Lesson 3 Complete!',
-    subtitle: 'You Have Your Artist',
+    subtitle: 'You Know How to Evaluate an Artist',
     summary: [
-      'You chose an emerging artist and committed to representing them',
-      'Strong evidence uses NUMBERS, NAMES, DATES, and SOURCES',
-      'Weak evidence uses vague words with no proof',
-      'Your Research Board has at least 5 facts to build your case'
+      'Learned the 4-Point Checklist for evaluating artists',
+      'Practiced spotting strong vs weak evidence',
+      'Played Fact or Opinion with three question types',
+      'Built a Scouting Report using real evidence'
     ],
     nextLesson: {
-      title: 'Lesson 4: Design the Campaign',
-      preview: 'Build your 5-slide press kit — the visual campaign that makes the world discover your artist.'
+      title: 'Lesson 4: Build Your Presentation',
+      preview: 'Pick your OWN artist and start building the press kit.'
     },
-    celebration: 'Your artist has an agent now. Do not let them down.'
+    celebration: 'You know how to evaluate talent. Now it\'s time to find YOUR artist.'
   }
 };
 
@@ -175,8 +157,7 @@ export const vocabulary = [
   { term: 'Evidence', definition: 'Facts, data, quotes, or examples that support a claim — the proof behind your argument' },
   { term: 'Strong Evidence', definition: 'Specific, verifiable information with numbers, dates, names, or sources' },
   { term: 'Weak Evidence', definition: 'Vague statements without specifics — "a lot of people" or "really good" with no proof' },
-  { term: 'Research Board', definition: 'Your collection of saved facts, quotes, and images about your artist — the raw material for your pitch' },
-  { term: 'Credible Source', definition: 'A trustworthy place where information comes from — like a recognized publication or official record' },
   { term: 'Fact', definition: 'A statement that can be proven true or false with evidence' },
-  { term: 'Opinion', definition: 'A statement that reflects someone\'s personal view — it cannot be proven, only agreed or disagreed with' }
+  { term: 'Opinion', definition: 'A statement that reflects someone\'s personal view — it cannot be proven, only agreed or disagreed with' },
+  { term: '4-Point Checklist', definition: 'Unique Sound, Compelling Story, Signs of Growth, Gut Feeling — what agents evaluate before signing an artist' }
 ];

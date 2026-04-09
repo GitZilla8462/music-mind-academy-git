@@ -43,6 +43,7 @@ import ActivityRenderer from './ActivityRenderer';
 import DirectionsModal from './DirectionsModal';
 import LaunchDayTeacher from '../activities/launch-day/LaunchDayTeacher';
 import IndependentListeningActivity from '../activities/listening-guide/IndependentListeningActivity';
+import ClaimArtistReport from '../activities/scouting-report/ClaimArtistReport';
 
 // ============================================
 // SLIDE WITH AUDIO COMPONENT
@@ -497,6 +498,7 @@ const PresentationContent = ({
   const [CapstonePlanning, setCapstonePlanning] = useState(null);
   const [ListeningJourney, setListeningJourney] = useState(null);
   const [FactOpinionSorterGame, setFactOpinionSorterGame] = useState(null);
+  const [FactOpinionSorterResults, setFactOpinionSorterResults] = useState(null);
   const [SourceOrNotGame, setSourceOrNotGame] = useState(null);
   const [HeadlineWriterGame, setHeadlineWriterGame] = useState(null);
   const [GenreMatchTeacherGame, setGenreMatchTeacherGame] = useState(null);
@@ -700,6 +702,11 @@ const PresentationContent = ({
     import('../../shared/activities/fact-opinion-sorter/FactOpinionSorterGame')
       .then(module => setFactOpinionSorterGame(() => module.default))
       .catch(() => console.log('Fact Opinion Sorter Game not available'));
+
+    // Unit 3 Music Journalist: Fact or Opinion Sorter Results
+    import('../../shared/activities/fact-opinion-sorter/FactOpinionSorterResults')
+      .then(module => setFactOpinionSorterResults(() => module.default))
+      .catch(() => console.log('Fact Opinion Sorter Results not available'));
 
     // Unit 3 Music Journalist: Source or Not
     import('../../shared/activities/source-or-not/SourceOrNotGame')
@@ -1744,6 +1751,23 @@ const PresentationContent = ({
       );
     }
 
+    // Fact or Opinion Sorter Results (Music Journalist Lesson 3) - Show leaderboard
+    if (type === 'fact-opinion-sorter-results') {
+      if (!FactOpinionSorterResults) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
+            <div className="text-white text-2xl">Loading Results...</div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="absolute inset-0">
+          <FactOpinionSorterResults sessionData={sessionData} />
+        </div>
+      );
+    }
+
     // Source or Not (Music Journalist Lesson 2)
     if (type === 'source-or-not-teacher-game') {
       if (!SourceOrNotGame) {
@@ -1825,12 +1849,37 @@ const PresentationContent = ({
             .teacher-embed-activity h2 { font-size: 1.75rem !important; }
           `}</style>
           <div className="h-full teacher-embed-activity">
-            <ActivityRenderer
-              activity={{ type: 'scouting-report', id: 'teacher-preview' }}
+            <ClaimArtistReport
               onComplete={() => {}}
               viewMode={false}
               isSessionMode={false}
+              forceShowDirections={true}
             />
+          </div>
+        </div>
+      );
+    }
+
+    // Share Out (Music Journalist Lesson 3) — scouting report underneath + share overlay on top
+    if (type === 'claim-artist-share-teacher') {
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <style>{`
+            .teacher-embed-activity .h-screen { height: 100% !important; }
+            .teacher-embed-activity button, .teacher-embed-activity a { font-size: 1rem !important; }
+            .teacher-embed-activity .text-xs { font-size: 0.95rem !important; }
+            .teacher-embed-activity .text-sm { font-size: 1.1rem !important; }
+            .teacher-embed-activity select { font-size: 1.1rem !important; min-height: 48px !important; }
+            .teacher-embed-activity h2 { font-size: 1.75rem !important; }
+          `}</style>
+          <div className="h-full teacher-embed-activity relative">
+            <ClaimArtistReport
+              onComplete={() => {}}
+              viewMode={false}
+              isSessionMode={false}
+              forceShowDirections={true}
+            />
+            <ClaimArtistShareOverlay />
           </div>
         </div>
       );
@@ -2247,15 +2296,15 @@ const PresentationContent = ({
       const isDense = totalBullets > 6 || (hasManySections && totalBullets > 4);
 
       return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-4 lg:p-8 overflow-hidden">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-4 lg:p-8 xl:p-12 2xl:p-16 overflow-hidden">
           {/* Title */}
-          <h1 className={`${isDense ? 'text-3xl lg:text-5xl mb-2 lg:mb-3' : 'text-4xl lg:text-6xl mb-3 lg:mb-5'} font-bold text-white text-center`}>
+          <h1 className={`${isDense ? 'text-3xl lg:text-5xl xl:text-6xl 2xl:text-7xl mb-2 lg:mb-3' : 'text-4xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-3 lg:mb-5 xl:mb-6 2xl:mb-8'} font-bold text-white text-center`}>
             {title}
           </h1>
 
           {/* Subtitle (if provided) */}
           {subtitle && (
-            <p className={`${isDense ? 'text-lg lg:text-2xl mb-2 lg:mb-4' : 'text-2xl lg:text-3xl mb-3 lg:mb-6'} text-purple-300 text-center`}>
+            <p className={`${isDense ? 'text-lg lg:text-2xl xl:text-3xl 2xl:text-4xl mb-2 lg:mb-4' : 'text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl mb-3 lg:mb-6 xl:mb-8 2xl:mb-10'} text-purple-300 text-center`}>
               {subtitle}
             </p>
           )}
@@ -2265,12 +2314,12 @@ const PresentationContent = ({
 
           {/* Simple bullets (if provided) */}
           {bullets && bullets.length > 0 && (
-            <div className="max-w-7xl w-full px-6 lg:px-12">
-              <ul className={isDense ? 'space-y-1.5 lg:space-y-3' : 'space-y-3 lg:space-y-5'}>
+            <div className="max-w-7xl w-full px-6 lg:px-12 2xl:px-16">
+              <ul className={isDense ? 'space-y-1.5 lg:space-y-3' : 'space-y-3 lg:space-y-5 xl:space-y-6 2xl:space-y-8'}>
                 {bullets.map((bullet, index) => (
-                  <li key={index} className="flex items-start gap-3 lg:gap-4">
-                    <span className={`text-purple-400 ${isDense ? 'text-xl lg:text-2xl' : 'text-2xl lg:text-3xl'} mt-0.5`}>•</span>
-                    <span className={`${isDense ? 'text-lg lg:text-xl' : 'text-xl lg:text-2xl'} text-slate-200 leading-snug`}>{bullet}</span>
+                  <li key={index} className="flex items-start gap-3 lg:gap-4 2xl:gap-5">
+                    <span className={`text-purple-400 ${isDense ? 'text-xl lg:text-2xl 2xl:text-3xl' : 'text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl'} mt-0.5`}>•</span>
+                    <span className={`${isDense ? 'text-lg lg:text-xl xl:text-2xl 2xl:text-3xl' : 'text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl'} text-slate-200 leading-snug`}>{bullet}</span>
                   </li>
                 ))}
               </ul>
@@ -2279,19 +2328,19 @@ const PresentationContent = ({
 
           {/* Sections with headings (if provided) */}
           {sections && sections.length > 0 && (
-            <div className="max-w-7xl w-full px-6 lg:px-12">
+            <div className="max-w-7xl w-full px-6 lg:px-12 2xl:px-16">
               {sections.map((section, sectionIndex) => (
-                <div key={sectionIndex} className={isDense ? 'mb-3 lg:mb-4' : 'mb-4 lg:mb-6'}>
+                <div key={sectionIndex} className={isDense ? 'mb-3 lg:mb-4' : 'mb-4 lg:mb-6 xl:mb-8 2xl:mb-10'}>
                   {section.heading && (
-                    <h2 className={`${isDense ? 'text-2xl lg:text-3xl mb-1.5 lg:mb-2' : 'text-3xl lg:text-4xl mb-2 lg:mb-4'} font-bold text-purple-400`}>
+                    <h2 className={`${isDense ? 'text-2xl lg:text-3xl xl:text-4xl 2xl:text-5xl mb-1.5 lg:mb-2' : 'text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl mb-2 lg:mb-4 2xl:mb-5'} font-bold text-purple-400`}>
                       {section.heading}
                     </h2>
                   )}
-                  <ul className={`${isDense ? 'space-y-1.5 lg:space-y-2' : 'space-y-2 lg:space-y-4'} pl-2 lg:pl-4`}>
+                  <ul className={`${isDense ? 'space-y-1.5 lg:space-y-2' : 'space-y-2 lg:space-y-4 xl:space-y-5 2xl:space-y-6'} pl-2 lg:pl-4`}>
                     {section.bullets.map((bullet, bulletIndex) => (
-                      <li key={bulletIndex} className="flex items-start gap-3 lg:gap-4">
-                        {!section.noBullets && <span className={`text-purple-400 ${isDense ? 'text-lg lg:text-xl' : 'text-xl lg:text-2xl'} mt-0.5`}>•</span>}
-                        <span className={`${isDense ? 'text-base lg:text-xl' : 'text-xl lg:text-2xl'} text-slate-200 leading-snug`}>{bullet}</span>
+                      <li key={bulletIndex} className="flex items-start gap-3 lg:gap-4 2xl:gap-5">
+                        {!section.noBullets && <span className={`text-purple-400 ${isDense ? 'text-lg lg:text-xl xl:text-2xl 2xl:text-3xl' : 'text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl'} mt-0.5`}>•</span>}
+                        <span className={`${isDense ? 'text-base lg:text-xl xl:text-2xl 2xl:text-3xl' : 'text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl'} text-slate-200 leading-snug`}>{bullet}</span>
                       </li>
                     ))}
                   </ul>
@@ -4324,6 +4373,42 @@ const ShareOutOverlay = () => {
             'Share which track you picked and why',
             'Read your Listening Guide answers out loud',
             'Listen to your partner — did they hear something you missed?',
+          ].map((step, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <span className="text-2xl font-black text-purple-600 w-8 text-center flex-shrink-0">{i + 1}</span>
+              <p className="text-lg text-gray-700">{step}</p>
+            </div>
+          ))}
+        </div>
+        <div className="px-6 pb-5">
+          <button onClick={() => setDismissed(true)} className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-bold rounded-xl hover:from-purple-700 hover:to-indigo-700">
+            Got it!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ClaimArtistShareOverlay = () => {
+  const [dismissed, setDismissed] = React.useState(false);
+  if (dismissed) return null;
+  return (
+    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-10">
+      <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden mx-4">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-white">Share Out</h2>
+            <p className="text-purple-100 text-sm">Talk to Your Partner</p>
+          </div>
+          <button onClick={() => setDismissed(true)} className="text-white/70 hover:text-white text-2xl font-bold leading-none">{'\u2715'}</button>
+        </div>
+        <div className="px-6 py-5 space-y-4">
+          {[
+            'Find a partner or small group near you',
+            'Which of the four points felt strongest for this artist?',
+            'What was your best piece of strong evidence?',
+            'Would you sign them \u2014 yes or no?',
           ].map((step, i) => (
             <div key={i} className="flex items-start gap-3">
               <span className="text-2xl font-black text-purple-600 w-8 text-center flex-shrink-0">{i + 1}</span>

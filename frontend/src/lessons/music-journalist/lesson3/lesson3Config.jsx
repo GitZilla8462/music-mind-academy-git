@@ -6,10 +6,10 @@
 // CURRICULUM NOTES
 // ========================================
 // Students learn:
-// - How to choose an artist and commit to researching them
+// - The 4-point checklist for evaluating an artist (Unique Sound, Compelling Story, Signs of Growth, Gut Feeling)
 // - The difference between strong and weak evidence
-// - How to use the Research Board to save key facts
-// - Fact vs opinion (game review from Lesson 1)
+// - How to classify statements as fact vs opinion
+// - How to build a structured Scouting Report for one artist
 //
 // Standards:
 // - MU:Cn10.0.7 — Personal interests influence musical selection
@@ -24,53 +24,57 @@ export const lessonSections = [
   {
     id: 'introduction',
     title: '1. Introduction',
-    subtitle: 'Hook + What Makes an Artist Worth Signing?',
+    subtitle: 'Hook + 4-Point Checklist',
     color: 'blue',
     estimatedTime: 7,
     stages: [
-      { id: 'hook', type: 'summary', label: 'Hook', description: '"Imagine scrolling and hearing something that stops you."', duration: 3 },
-      { id: 'worth-signing', type: 'summary', label: 'Worth Signing?', description: 'Teach the 4-point checklist: unique sound, story, growth, your gut.', duration: 4 }
-    ]
-  },
-  {
-    id: 'scouting',
-    title: '2. Scouting Report',
-    subtitle: 'Narrow Down Your Picks',
-    color: 'blue',
-    estimatedTime: 10,
-    stages: [
-      { id: 'scouting-report', type: 'activity', label: 'Scouting Report', description: 'Browse artists, build your 3 slides: Top 5, #1 Pick, What I Notice.', duration: 10, hasTimer: true, trackProgress: true }
-    ]
-  },
-  {
-    id: 'research',
-    title: '3. Research Session',
-    subtitle: 'Strong vs Weak Evidence + Research',
-    color: 'blue',
-    estimatedTime: 16,
-    stages: [
-      { id: 'strong-vs-weak', type: 'summary', label: 'Strong vs Weak Evidence', description: 'Teach: specific facts vs vague opinions.', duration: 4 },
-      { id: 'research-session', type: 'activity', label: 'Research Session', description: 'STUDENTS: Read artist profile, highlight key facts. Save 5+ to Research Board.', duration: 12, hasTimer: true, trackProgress: true }
+      { id: 'hook', type: 'summary', label: 'Hook', description: '"Imagine scrolling and hearing something that stops you."', duration: 2 },
+      { id: 'checklist-overview', type: 'summary', label: '4 Points Overview', description: 'Here are 4 things agents look for before signing an artist.', duration: 1 },
+      { id: 'checklist-1', type: 'summary', label: 'Unique Sound', description: 'Point 1 of 4 — What makes their sound different?', duration: 1 },
+      { id: 'checklist-2', type: 'summary', label: 'Compelling Story', description: 'Point 2 of 4 — Why do they make music?', duration: 1 },
+      { id: 'checklist-3', type: 'summary', label: 'Signs of Growth', description: 'Point 3 of 4 — Are more people discovering them?', duration: 1 },
+      { id: 'checklist-4', type: 'summary', label: 'Gut Feeling', description: 'Point 4 of 4 — Do YOU believe in them?', duration: 1 }
     ]
   },
   {
     id: 'game',
-    title: '4. Fact or Opinion',
-    subtitle: 'Game Time',
+    title: '2. Fact or Opinion',
+    subtitle: 'Full Class Game',
     color: 'blue',
     estimatedTime: 7,
     stages: [
-      { id: 'fact-opinion-game', type: 'activity', label: 'Fact or Opinion', description: 'STUDENTS PLAY: Sort music statements!', duration: 7, hasTimer: true, trackProgress: true }
+      { id: 'fact-opinion-game', type: 'activity', label: 'Fact or Opinion', description: 'STUDENTS PLAY: Fact/Opinion, Strong/Weak, 4-Point categories!', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true },
+      { id: 'fact-opinion-results', type: 'activity', label: 'Results', description: 'View class leaderboard and celebrate top scorers.', duration: 2 }
+    ]
+  },
+  {
+    id: 'model',
+    title: '3. Model the Report',
+    subtitle: 'Teacher Walks Through Example',
+    color: 'blue',
+    estimatedTime: 3,
+    stages: [
+      { id: 'model-report', type: 'summary', label: 'Model Report', description: 'Teacher shows a completed scouting report example.', duration: 3 }
+    ]
+  },
+  {
+    id: 'scouting',
+    title: '4. Scouting Report',
+    subtitle: 'Build Your Report',
+    color: 'blue',
+    estimatedTime: 15,
+    stages: [
+      { id: 'scouting-report', type: 'activity', label: 'Scouting Report', description: 'STUDENTS: Complete 3 slides for the assigned artist.', duration: 15, hasTimer: true, trackProgress: true }
     ]
   },
   {
     id: 'reflect',
-    title: '5. Checkpoint',
-    subtitle: 'Share + Preview',
+    title: '5. Share Out',
+    subtitle: 'Partner Discussion',
     color: 'blue',
     estimatedTime: 3,
     stages: [
-      { id: 'checkpoint', type: 'discussion', label: 'Checkpoint', description: '"Tell your neighbor: Who did you pick and why?"', duration: 3 }
+      { id: 'share-out', type: 'activity', label: 'Share Out', description: '"Which of the four points felt strongest?"', duration: 3 }
     ]
   }
 ];
@@ -80,130 +84,169 @@ export const lesson3Config = {
   lessonPath: '/lessons/music-journalist/lesson3',
   title: 'Claim Your Artist',
   subtitle: 'What makes an artist worth believing in?',
-  duration: 45,
+  duration: 35,
   themeColor: '#1a2744',
   accentColor: '#f0b429',
   learningObjectives: [
-    'Choose an emerging artist to represent as their agent',
+    'Evaluate artists using the 4-point checklist',
     'Distinguish between strong evidence and weak evidence',
-    'Use the Research Board to collect and organize key facts',
-    'Apply fact vs opinion skills to music research'
+    'Classify statements as fact or opinion',
+    'Build a structured Scouting Report with evidence'
   ],
   lessonSections,
   activities: [
-    { id: 1, type: 'scouting-report', title: 'Scouting Report', estimatedTime: '8 min' },
-    { id: 2, type: 'artist-discovery', title: 'Research Session', estimatedTime: '12 min' },
-    { id: 3, type: 'fact-opinion-sorter', title: 'Fact or Opinion', estimatedTime: '7 min' }
+    { id: 1, type: 'fact-opinion-sorter', title: 'Fact or Opinion', estimatedTime: '7 min' },
+    { id: 2, type: 'claim-artist-report', title: 'Scouting Report', estimatedTime: '15 min' }
   ]
 };
 
 export const lessonStages = [
   { id: 'join-code', label: 'Join Code', type: 'waiting' },
   {
-    id: 'hook', label: 'Hook', type: 'summary', duration: 3,
+    id: 'hook', label: 'Hook', type: 'summary', duration: 2,
     presentationView: {
       type: 'summary', title: 'Claim Your Artist', subtitle: 'Time to Find Your Next Star',
       sections: [
         { heading: 'The Moment', bullets: [
           'Imagine you\'re scrolling through music and you hear something that STOPS you',
-          'Something different. Something real. Something that makes you think "this person has IT"',
-          'That\'s what we\'re looking for today'
-        ]},
-        { heading: 'Today\'s Goal', bullets: [
-          'Pick ONE emerging artist from the platform',
-          'Start researching their story',
-          'Save at least 5 strong facts to your Research Board'
+          'That\'s the moment every talent agent lives for',
+          'Today you\'re going to find that artist'
         ]}
       ]
     }
   },
   {
-    id: 'worth-signing', label: 'Worth Signing?', type: 'summary', duration: 4,
+    id: 'checklist-overview', label: '4 Points Overview', type: 'summary', duration: 1,
     presentationView: {
-      type: 'summary', title: 'What Makes an Artist Worth Signing?', subtitle: 'The Agent\'s Checklist',
+      type: 'summary', title: 'What Makes an Artist Worth Signing?', subtitle: 'The 4-Point Checklist',
       sections: [
-        { heading: 'The 4-Point Checklist', bullets: [
-          '1. UNIQUE SOUND — Do they sound like everyone else, or do they have their own thing?',
-          '2. STORY — Where are they from? What drives them? Why do they make music?',
-          '3. GROWTH — Are they getting better? Are more people discovering them?',
-          '4. YOUR GUT — Do YOU believe in them? Would you stake your reputation on them?'
-        ]},
-        { heading: 'Remember', bullets: [
-          'Great agents don\'t just follow trends — they FIND talent others miss',
-          'No duplicates allowed — first come, first served!',
-          'Use what you learned in Lesson 2 — listen like an agent when choosing'
+        { heading: '', bullets: [
+          '1. Unique Sound — Do they sound different from everyone else?',
+          '2. Compelling Story — Why do they make music? What drives them?',
+          '3. Signs of Growth — Are more people discovering them?',
+          '4. Gut Feeling — Do YOU believe in this artist?'
         ]}
       ]
     }
   },
   {
-    id: 'scouting-report', label: 'Scouting Report', type: 'activity', duration: 10, hasTimer: true, trackProgress: true,
-    presentationView: { type: 'scouting-report-teacher' },
-    studentDirections: [
-      { text: 'Browse the artist library — listen to tracks across genres' },
-      { text: 'Star artists that catch your ear' },
-      { text: 'Switch to "My Report" to build your 3 slides' },
-      { text: 'Slide 1: Top 5 Artists, Slide 2: #1 Pick, Slide 3: What I Notice' },
-    ],
-  },
-  {
-    id: 'strong-vs-weak', label: 'Strong vs Weak Evidence', type: 'summary', duration: 4,
+    id: 'checklist-1', label: 'Unique Sound', type: 'summary', duration: 1,
     presentationView: {
-      type: 'summary', title: 'Strong vs Weak Evidence', subtitle: 'Not All Facts Are Created Equal',
+      type: 'summary', title: 'Unique Sound', subtitle: 'Point 1 of 4',
       sections: [
-        { heading: 'STRONG Evidence', bullets: [
-          '"Their EP has 12,000 streams in 3 months" — specific, measurable',
-          '"They were featured on Bandcamp Daily in October 2025" — verifiable',
-          '"She started playing guitar at age 14" — concrete fact',
-          '"Their name means \'be strong\' in Urhobo" — specific, interesting'
-        ]},
-        { heading: 'WEAK Evidence', bullets: [
-          '"They\'re really good" — vague, no detail',
-          '"Their music is cool" — opinion, not evidence',
-          '"A lot of people like them" — how many? who?',
-          '"They\'ve been around for a while" — how long?'
-        ]},
-        { heading: 'Your Goal', bullets: ['Save at least 5 STRONG facts to your Research Board'] }
+        { heading: '', bullets: [
+          'Their music doesn\'t sound like anyone else in the library',
+          'You could pick their song out of a playlist without seeing the name',
+          'Their genre, style, or production has something you haven\'t heard before'
+        ]}
       ]
     }
   },
   {
-    id: 'research-session', label: 'Research Session', type: 'activity', duration: 12, hasTimer: true, trackProgress: true,
-    presentationView: { type: 'activity-banner', title: 'Research Session', subtitle: 'Read the artist profile. Highlight key facts. Save 5+ to Research Board.' }
+    id: 'checklist-2', label: 'Compelling Story', type: 'summary', duration: 1,
+    presentationView: {
+      type: 'summary', title: 'Compelling Story', subtitle: 'Point 2 of 4',
+      sections: [
+        { heading: '', bullets: [
+          'There\'s a real reason they started making music — loss, struggle, obsession, identity',
+          'Their background makes you more interested in what they create',
+          'The story makes the music mean something more than just sound'
+        ]}
+      ]
+    }
+  },
+  {
+    id: 'checklist-3', label: 'Signs of Growth', type: 'summary', duration: 1,
+    presentationView: {
+      type: 'summary', title: 'Signs of Growth', subtitle: 'Point 3 of 4',
+      sections: [
+        { heading: '', bullets: [
+          'Their streams, followers, or shows have increased over time',
+          'They\'ve been releasing music consistently, not just once',
+          'Other people — blogs, playlists, venues — are starting to notice them'
+        ]}
+      ]
+    }
+  },
+  {
+    id: 'checklist-4', label: 'Gut Feeling', type: 'summary', duration: 1,
+    presentationView: {
+      type: 'summary', title: 'Gut Feeling', subtitle: 'Point 4 of 4',
+      sections: [
+        { heading: '', bullets: [
+          'You keep replaying their music even when you\'re not sure why',
+          'Something about them feels different from everyone else you heard',
+          'You\'d be disappointed if someone else signed them first'
+        ]}
+      ]
+    }
   },
   {
     id: 'fact-opinion-game', label: 'Fact or Opinion', type: 'activity', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true,
     presentationView: { type: 'fact-opinion-sorter-teacher-game' }
   },
   {
-    id: 'checkpoint', label: 'Checkpoint', type: 'discussion', duration: 3,
+    id: 'fact-opinion-results', label: 'Results', type: 'activity', duration: 2,
+    description: 'View class leaderboard and celebrate top scorers.',
+    presentationView: { type: 'fact-opinion-sorter-results' }
+  },
+  {
+    id: 'model-report', label: 'Model Report', type: 'summary', duration: 3,
     presentationView: {
-      type: 'summary', title: 'Checkpoint', subtitle: 'Share Your Pick',
+      type: 'summary', title: 'Scouting Report — Example', subtitle: 'Here\'s What You\'re Building',
       sections: [
-        { heading: 'Turn to Your Neighbor', bullets: [
-          'Who did you pick and WHY?',
-          'What\'s one STRONG fact you found about them?',
-          'What makes their sound unique?'
+        { heading: 'Slide 1 of 3: Artist Overview', bullets: [
+          'Artist Name: Ketsa',
+          'Track: "Love Comes Back Around"',
+          'Location: London, England',
+          'Genre: Jazz / Soul / Latin'
         ]},
-        { heading: 'Next Time', bullets: [
-          'Lesson 4: Design the Campaign',
-          'You\'ll take your research and listening notes and build a 5-slide press kit'
+        { heading: 'Slide 2 of 3: The Four Points', bullets: [
+          'Unique Sound: Blends jazz, soul, and Latin rhythms — no one else in the library sounds like this',
+          'Compelling Story: Self-taught multi-instrumentalist who creates everything solo',
+          'Signs of Growth: 8 albums released, tracks featured on multiple CC music platforms',
+          'Gut Feeling: The music makes you want to move — it\'s feel-good without being generic'
+        ]},
+        { heading: 'Slide 3 of 3: Fact or Opinion Sort', bullets: [
+          'Each statement — is it a Fact or Opinion? Strong or Weak evidence?',
+          'Your job: classify each one correctly'
         ]}
       ]
     }
   },
   {
+    id: 'scouting-report', label: 'Scouting Report', type: 'activity', duration: 15, hasTimer: true, trackProgress: true,
+    presentationView: { type: 'scouting-report-teacher' },
+    studentDirections: [
+      { text: 'Complete Slide 1: Review the pre-filled artist info' },
+      { text: 'Complete Slide 2: Fill in the Four Points with your own observations' },
+      { text: 'Complete Slide 3: Classify each statement as Fact/Opinion and Strong/Weak' },
+    ],
+  },
+  {
+    id: 'share-out', label: 'Share Out', type: 'activity', duration: 3,
+    presentationView: {
+      type: 'claim-artist-share-teacher',
+    },
+    studentDirections: [
+      { text: 'Find a partner or small group near you' },
+      { text: 'Which of the four points felt strongest for this artist?' },
+      { text: 'What was your best piece of strong evidence?' },
+      { text: 'Would you sign them — yes or no?' },
+    ],
+  },
+  {
     id: 'lesson-complete', label: 'Lesson Complete', type: 'summary', duration: 1,
     presentationView: {
-      type: 'summary', title: 'Lesson 3 Complete!', subtitle: 'You\'ve Claimed Your Artist',
+      type: 'summary', title: 'Lesson 3 Complete!', subtitle: 'You Know How to Evaluate an Artist',
       sections: [
         { heading: 'What You Did Today', bullets: [
-          'Evaluated artists using the 4-point checklist',
-          'Chose YOUR artist to represent',
-          'Researched their story with strong evidence',
-          'Practiced spotting fact vs opinion'
+          'Learned the 4-Point Checklist for evaluating artists',
+          'Practiced spotting strong vs weak evidence',
+          'Played Fact or Opinion with three question types',
+          'Built a Scouting Report using real evidence'
         ]},
-        { heading: 'Come Ready for Lesson 4', bullets: ['Bring your Research Board and Sound Statement — you\'ll build the press kit'] }
+        { heading: 'Come Ready for Lesson 4', bullets: ['You\'ll pick your OWN artist and start building your press kit presentation'] }
       ]
     }
   }
@@ -213,13 +256,16 @@ export const getActivityForStage = (stage) => {
   const stageMap = {
     'join-code': 'waiting',
     'hook': 'summary',
-    'worth-signing': 'summary',
-
-    'scouting-report': 'scouting-report',
-    'strong-vs-weak': 'summary',
-    'research-session': 'artist-discovery',
+    'checklist-overview': 'summary',
+    'checklist-1': 'summary',
+    'checklist-2': 'summary',
+    'checklist-3': 'summary',
+    'checklist-4': 'summary',
     'fact-opinion-game': 'fact-opinion-sorter',
-    'checkpoint': 'discussion',
+    'fact-opinion-results': 'fact-opinion-sorter',
+    'model-report': 'summary',
+    'scouting-report': 'claim-artist-report',
+    'share-out': 'claim-artist-report',
     'lesson-complete': 'summary'
   };
   return stageMap[stage];
@@ -229,8 +275,7 @@ export const VOCABULARY = [
   { term: 'Evidence', definition: 'Specific facts, quotes, numbers, or data that support your argument' },
   { term: 'Strong Evidence', definition: 'Evidence that is specific, measurable, and verifiable — like dates, numbers, and named sources' },
   { term: 'Weak Evidence', definition: 'Vague statements that don\'t include specific details — like "they\'re really good"' },
-  { term: 'Research Board', definition: 'Your collection of highlighted facts and evidence saved from artist profiles' },
-  { term: 'Credible Source', definition: 'A trustworthy, reliable place to find accurate information' },
   { term: 'Fact', definition: 'A statement that can be proven true or false with evidence' },
-  { term: 'Opinion', definition: 'A statement that reflects someone\'s personal view, belief, or judgment' }
+  { term: 'Opinion', definition: 'A statement that reflects someone\'s personal view, belief, or judgment' },
+  { term: '4-Point Checklist', definition: 'Unique Sound, Compelling Story, Signs of Growth, Gut Feeling — the four things agents look for' }
 ];

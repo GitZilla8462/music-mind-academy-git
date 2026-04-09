@@ -283,7 +283,10 @@ const FactOpinionStudentView = ({ onComplete, isSessionMode = true }) => {
       {/* Statement text */}
       {statementData && (
         <div className="rounded-2xl p-5 mb-4 text-center" style={{ backgroundColor: '#1a2744', border: '2px solid rgba(240, 180, 41, 0.3)' }}>
-          <div className="text-xs text-white/40 uppercase tracking-wider mb-2">Statement #{currentStatement + 1}</div>
+          {statementData.questionLabel && (
+            <div className="text-[10px] text-amber-400 uppercase tracking-widest font-bold mb-1">{statementData.questionLabel}</div>
+          )}
+          <div className="text-xs text-white/40 uppercase tracking-wider mb-2">#{currentStatement + 1}</div>
           <div className="text-xl font-bold text-white leading-tight">
             &ldquo;{statementData.text}&rdquo;
           </div>
@@ -292,23 +295,19 @@ const FactOpinionStudentView = ({ onComplete, isSessionMode = true }) => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center min-h-0">
-        {/* Showing phase — vote buttons */}
-        {gamePhase === 'showing' && !answerSubmitted && (
-          <div className="w-full max-w-md space-y-4">
-            <button
-              onClick={() => submitAnswer('fact')}
-              className="w-full py-8 rounded-2xl text-center transition-all hover:scale-[1.03] active:scale-95 text-white font-black text-3xl shadow-lg"
-              style={{ backgroundColor: '#3B82F6', minHeight: '80px' }}
-            >
-              FACT
-            </button>
-            <button
-              onClick={() => submitAnswer('opinion')}
-              className="w-full py-8 rounded-2xl text-center transition-all hover:scale-[1.03] active:scale-95 text-white font-black text-3xl shadow-lg"
-              style={{ backgroundColor: '#8B5CF6', minHeight: '80px' }}
-            >
-              OPINION
-            </button>
+        {/* Showing phase — vote buttons (dynamic from options) */}
+        {gamePhase === 'showing' && !answerSubmitted && statementData?.options && (
+          <div className={`w-full max-w-md ${statementData.options.length <= 2 ? 'space-y-4' : 'grid grid-cols-2 gap-3'}`}>
+            {statementData.options.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => submitAnswer(opt.value)}
+                className="w-full py-6 rounded-2xl text-center transition-all hover:scale-[1.03] active:scale-95 text-white font-black text-2xl shadow-lg"
+                style={{ backgroundColor: opt.color, minHeight: '64px' }}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         )}
 
@@ -318,12 +317,15 @@ const FactOpinionStudentView = ({ onComplete, isSessionMode = true }) => {
             <div className="bg-white/20 rounded-2xl p-8 inline-block">
               <Check size={48} className="mx-auto text-green-400 mb-4" />
               <p className="text-xl text-white font-bold mb-3">Answer Locked!</p>
-              <div
-                className="inline-flex items-center gap-3 px-8 py-3 rounded-full text-white font-bold text-2xl"
-                style={{ backgroundColor: selectedAnswer === 'fact' ? '#3B82F6' : '#8B5CF6' }}
-              >
-                {selectedAnswer === 'fact' ? 'FACT' : 'OPINION'}
-              </div>
+              {(() => {
+                const opt = statementData?.options?.find(o => o.value === selectedAnswer);
+                return (
+                  <div className="inline-flex items-center gap-3 px-8 py-3 rounded-full text-white font-bold text-2xl"
+                    style={{ backgroundColor: opt?.color || '#3B82F6' }}>
+                    {opt?.label || selectedAnswer}
+                  </div>
+                );
+              })()}
               <p className="text-sm text-indigo-300 mt-4">Waiting for reveal...</p>
             </div>
           </div>
@@ -351,17 +353,17 @@ const FactOpinionStudentView = ({ onComplete, isSessionMode = true }) => {
             )}
 
             {/* Show correct answer */}
-            <div
-              className="rounded-2xl p-6 text-white"
-              style={{ backgroundColor: correctAnswer === 'fact' ? '#3B82F6' : '#8B5CF6' }}
-            >
-              <div className="text-lg opacity-80 mb-1">The answer is...</div>
-              <div className="text-4xl font-black">
-                {correctAnswer === 'fact' ? 'FACT' : 'OPINION'}
-              </div>
-            </div>
+            {(() => {
+              const correctOpt = statementData?.options?.find(o => o.value === correctAnswer);
+              return (
+                <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: correctOpt?.color || '#3B82F6' }}>
+                  <div className="text-lg opacity-80 mb-1">The answer is...</div>
+                  <div className="text-4xl font-black">{correctOpt?.label || correctAnswer}</div>
+                </div>
+              );
+            })()}
 
-            <p className="text-indigo-200 mt-4 text-sm">Waiting for next statement...</p>
+            <p className="text-indigo-200 mt-4 text-sm">Waiting for next question...</p>
           </div>
         )}
       </div>

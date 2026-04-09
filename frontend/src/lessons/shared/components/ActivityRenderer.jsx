@@ -145,6 +145,7 @@ import { GenreMatchStudentView } from '../activities/genre-match';
 
 // ✅ ADDED: Scouting Report (Music Agent Unit 3 — Lesson 1)
 import { ScoutingReport } from '../activities/scouting-report';
+import ClaimArtistReport from '../activities/scouting-report/ClaimArtistReport';
 
 // ✅ ADDED: Listening Guide + Sound Statement (Music Agent Unit 3 — Lesson 3)
 import { ListeningGuideActivity, GuidedListeningActivity, IndependentListeningActivity } from '../activities/listening-guide';
@@ -1063,6 +1064,17 @@ const ActivityRenderer = ({
       return (
         <ScoutingReport
           key={`scouting-report-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Claim Artist Report (Music Agent Unit 3 — Lesson 3 redesign)
+    case 'claim-artist-report':
+      return (
+        <ClaimArtistReport
+          key={`claim-artist-report-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
