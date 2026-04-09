@@ -48,18 +48,8 @@ export const lessonSections = [
     ]
   },
   {
-    id: 'model',
-    title: '3. Model the Report',
-    subtitle: 'Teacher Walks Through Example',
-    color: 'blue',
-    estimatedTime: 3,
-    stages: [
-      { id: 'model-report', type: 'summary', label: 'Model Report', description: 'Teacher shows a completed scouting report example.', duration: 3 }
-    ]
-  },
-  {
     id: 'scouting',
-    title: '4. Scouting Report',
+    title: '3. Scouting Report',
     subtitle: 'Build Your Report',
     color: 'blue',
     estimatedTime: 15,
@@ -69,7 +59,7 @@ export const lessonSections = [
   },
   {
     id: 'reflect',
-    title: '5. Share Out',
+    title: '4. Share Out',
     subtitle: 'Partner Discussion',
     color: 'blue',
     estimatedTime: 3,
@@ -84,7 +74,7 @@ export const lesson3Config = {
   lessonPath: '/lessons/music-journalist/lesson3',
   title: 'Claim Your Artist',
   subtitle: 'What makes an artist worth believing in?',
-  duration: 35,
+  duration: 32,
   themeColor: '#1a2744',
   accentColor: '#f0b429',
   learningObjectives: [
@@ -191,30 +181,6 @@ export const lessonStages = [
     presentationView: { type: 'fact-opinion-sorter-results' }
   },
   {
-    id: 'model-report', label: 'Model Report', type: 'summary', duration: 3,
-    presentationView: {
-      type: 'summary', title: 'Scouting Report — Example', subtitle: 'Here\'s What You\'re Building',
-      sections: [
-        { heading: 'Slide 1 of 3: Artist Overview', bullets: [
-          'Artist Name: Ketsa',
-          'Track: "Love Comes Back Around"',
-          'Location: London, England',
-          'Genre: Jazz / Soul / Latin'
-        ]},
-        { heading: 'Slide 2 of 3: The Four Points', bullets: [
-          'Unique Sound: Blends jazz, soul, and Latin rhythms — no one else in the library sounds like this',
-          'Compelling Story: Self-taught multi-instrumentalist who creates everything solo',
-          'Signs of Growth: 8 albums released, tracks featured on multiple CC music platforms',
-          'Gut Feeling: The music makes you want to move — it\'s feel-good without being generic'
-        ]},
-        { heading: 'Slide 3 of 3: Fact or Opinion Sort', bullets: [
-          'Each statement — is it a Fact or Opinion? Strong or Weak evidence?',
-          'Your job: classify each one correctly'
-        ]}
-      ]
-    }
-  },
-  {
     id: 'scouting-report', label: 'Scouting Report', type: 'activity', duration: 15, hasTimer: true, trackProgress: true,
     presentationView: { type: 'scouting-report-teacher' },
     studentDirections: [
@@ -263,7 +229,6 @@ export const getActivityForStage = (stage) => {
     'checklist-4': 'summary',
     'fact-opinion-game': 'fact-opinion-sorter',
     'fact-opinion-results': 'fact-opinion-sorter',
-    'model-report': 'summary',
     'scouting-report': 'claim-artist-report',
     'share-out': 'claim-artist-report',
     'lesson-complete': 'summary'
