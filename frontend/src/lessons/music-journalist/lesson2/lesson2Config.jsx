@@ -229,14 +229,7 @@ export const lessonStages = [
     presentationView: {
       type: 'sign-or-pass-teacher'
     },
-    studentDirections: [
-      { text: 'Next we\'ll play a class game called Sign or Pass!' },
-      { text: 'Get into groups of 2–5' },
-      { text: 'One person creates a group, others join with the 4-digit code' },
-      { text: 'Listen to 3 mystery artists — 15 seconds each' },
-      { text: 'Privately rank them 1–3 by who you\'d sign to your record label' },
-      { text: 'Reveal at the same time — score points when your rankings match!' },
-    ],
+    // No studentDirections here — SignOrPassSmallGroup has its own built-in DirectionsModal
   },
   {
     id: 'lesson-complete', label: 'Lesson Complete', type: 'summary', duration: 1,

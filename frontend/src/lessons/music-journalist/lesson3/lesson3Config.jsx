@@ -66,6 +66,16 @@ export const lessonSections = [
     stages: [
       { id: 'share-out', type: 'activity', label: 'Share Out', description: '"Which of the four points felt strongest?"', duration: 3 }
     ]
+  },
+  {
+    id: 'bonus',
+    title: '5. Bonus',
+    subtitle: 'Would You Sign Them?',
+    color: 'yellow',
+    estimatedTime: 7,
+    stages: [
+      { id: 'would-you-sign-them', type: 'activity', label: 'Would You Sign Them?', description: 'STUDENTS PLAY: Match evidence to the 4-point checklist!', duration: 7, hasTimer: true, trackProgress: true }
+    ]
   }
 ];
 
@@ -183,11 +193,6 @@ export const lessonStages = [
   {
     id: 'scouting-report', label: 'Scouting Report', type: 'activity', duration: 15, hasTimer: true, trackProgress: true,
     presentationView: { type: 'scouting-report-teacher' },
-    studentDirections: [
-      { text: 'Complete Slide 1: Review the pre-filled artist info' },
-      { text: 'Complete Slide 2: Fill in the Four Points with your own observations' },
-      { text: 'Complete Slide 3: Classify each statement as Fact/Opinion and Strong/Weak' },
-    ],
   },
   {
     id: 'share-out', label: 'Share Out', type: 'activity', duration: 3,
@@ -200,6 +205,10 @@ export const lessonStages = [
       { text: 'What was your best piece of strong evidence?' },
       { text: 'Would you sign them — yes or no?' },
     ],
+  },
+  {
+    id: 'would-you-sign-them', label: 'Would You Sign Them?', type: 'activity', duration: 7, hasTimer: true, trackProgress: true,
+    presentationView: { type: 'would-you-sign-them-teacher' }
   },
   {
     id: 'lesson-complete', label: 'Lesson Complete', type: 'summary', duration: 1,
@@ -231,6 +240,7 @@ export const getActivityForStage = (stage) => {
     'fact-opinion-results': 'fact-opinion-sorter',
     'scouting-report': 'claim-artist-report',
     'share-out': 'claim-artist-report',
+    'would-you-sign-them': 'would-you-sign-them',
     'lesson-complete': 'summary'
   };
   return stageMap[stage];

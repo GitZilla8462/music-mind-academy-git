@@ -24,7 +24,7 @@ const DirectionsModal = ({ title, isOpen, onClose, steps, pages, bonusText }) =>
   // ── Single-page mode: numbered steps ──
   if (!isMultiPage) {
     return (
-      <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
         <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
           <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
             <h2 className="text-2xl font-black text-white">{title}</h2>
@@ -63,7 +63,7 @@ const DirectionsModal = ({ title, isOpen, onClose, steps, pages, bonusText }) =>
   const page = pages[currentPage];
 
   return (
-    <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
         {/* Header with title + step dots */}
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
@@ -133,7 +133,7 @@ const DirectionsModal = ({ title, isOpen, onClose, steps, pages, bonusText }) =>
 export const DirectionsReopenButton = ({ onClick, label = 'Directions' }) => (
   <button
     onClick={onClick}
-    className="fixed top-2 right-2 z-[300] flex items-center gap-1.5 px-3 py-2 bg-white/90 hover:bg-white rounded-xl shadow-lg border border-gray-200 text-gray-700 hover:text-gray-900 transition-all"
+    className="fixed top-2 right-2 z-[900] flex items-center gap-1.5 px-3 py-2 bg-white/90 hover:bg-white rounded-xl shadow-lg border border-gray-200 text-gray-700 hover:text-gray-900 transition-all"
   >
     <HelpCircle size={16} />
     <span className="text-sm font-semibold">{label}</span>

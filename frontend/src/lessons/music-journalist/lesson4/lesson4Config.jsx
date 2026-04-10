@@ -133,7 +133,15 @@ export const lessonStages = [
   },
   {
     id: 'build-press-kit', label: 'Build Press Kit', type: 'activity', duration: 25, hasTimer: true, trackProgress: true,
-    presentationView: { type: 'activity-banner', title: 'Build Your Press Kit', subtitle: '25 minutes. 5 slides. Make it count.' }
+    presentationView: { type: 'press-kit-build-teacher' },
+    studentDirections: [
+      { text: 'Open your Press Kit — you have 5 slides to complete' },
+      { text: 'Slide 1: "Meet [Artist Name]" — photo, genre, location, one hook sentence' },
+      { text: 'Slide 2: "Their Story" — where they\'re from, how they started, include a specific fact' },
+      { text: 'Slide 3: "Their Sound" — your Sound Statement, instruments, mood, "If you like ___, you\'ll love ___"' },
+      { text: 'Slide 4: "Why Sign Them?" — 3 evidence-based reasons + call to action' },
+      { text: 'Slide 5: "Listen" — song title, why you picked it' },
+    ],
   },
   {
     id: 'peer-review', label: 'Peer Review', type: 'activity', duration: 5, hasTimer: true, trackProgress: true,

@@ -44,6 +44,7 @@ import DirectionsModal from './DirectionsModal';
 import LaunchDayTeacher from '../activities/launch-day/LaunchDayTeacher';
 import IndependentListeningActivity from '../activities/listening-guide/IndependentListeningActivity';
 import ClaimArtistReport from '../activities/scouting-report/ClaimArtistReport';
+import { PressKitDesigner } from '../activities/press-kit-designer';
 
 // ============================================
 // SLIDE WITH AUDIO COMPONENT
@@ -1885,6 +1886,30 @@ const PresentationContent = ({
       );
     }
 
+    // Build Press Kit (Music Journalist Lesson 4) — press kit underneath + directions overlay on top
+    if (type === 'press-kit-build-teacher') {
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <style>{`
+            .teacher-embed-activity .h-screen { height: 100% !important; }
+            .teacher-embed-activity button, .teacher-embed-activity a { font-size: 1rem !important; }
+            .teacher-embed-activity .text-xs { font-size: 0.95rem !important; }
+            .teacher-embed-activity .text-sm { font-size: 1.1rem !important; }
+            .teacher-embed-activity select { font-size: 1.1rem !important; min-height: 48px !important; }
+            .teacher-embed-activity h2 { font-size: 1.75rem !important; }
+          `}</style>
+          <div className="h-full teacher-embed-activity relative">
+            <PressKitDesigner
+              onComplete={() => {}}
+              viewMode={false}
+              isSessionMode={false}
+            />
+            <PressKitBuildOverlay />
+          </div>
+        </div>
+      );
+    }
+
     // Sign or Pass (Music Journalist Lesson 2) — teacher sees same game as students
     if (type === 'sign-or-pass-teacher') {
       return (
@@ -1893,6 +1918,23 @@ const PresentationContent = ({
           <div className="h-full teacher-embed-activity">
             <ActivityRenderer
               activity={{ type: 'sign-or-pass', id: 'teacher-preview' }}
+              onComplete={() => {}}
+              viewMode={false}
+              isSessionMode={true}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Would You Sign Them? (Music Journalist Lesson 3 Bonus) — teacher sees same game as students
+    if (type === 'would-you-sign-them-teacher') {
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <style>{`.teacher-embed-activity .h-screen { height: 100% !important; }`}</style>
+          <div className="h-full teacher-embed-activity">
+            <ActivityRenderer
+              activity={{ type: 'would-you-sign-them', id: 'teacher-preview' }}
               onComplete={() => {}}
               viewMode={false}
               isSessionMode={true}
@@ -2296,7 +2338,7 @@ const PresentationContent = ({
       const isDense = totalBullets > 6 || (hasManySections && totalBullets > 4);
 
       return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-4 lg:p-8 xl:p-12 2xl:p-16 overflow-hidden">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 p-4 lg:p-8 xl:p-12 2xl:p-16 overflow-y-auto">
           {/* Title */}
           <h1 className={`${isDense ? 'text-3xl lg:text-5xl xl:text-6xl 2xl:text-7xl mb-2 lg:mb-3' : 'text-4xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-3 lg:mb-5 xl:mb-6 2xl:mb-8'} font-bold text-white text-center`}>
             {title}
@@ -4419,6 +4461,44 @@ const ClaimArtistShareOverlay = () => {
         <div className="px-6 pb-5">
           <button onClick={() => setDismissed(true)} className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-bold rounded-xl hover:from-purple-700 hover:to-indigo-700">
             Got it!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PressKitBuildOverlay = () => {
+  const [dismissed, setDismissed] = React.useState(false);
+  if (dismissed) return null;
+  return (
+    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000]">
+      <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden mx-4">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-white">Build Your Press Kit</h2>
+            <p className="text-purple-100 text-sm">5 Slides — Make It Count</p>
+          </div>
+          <button onClick={() => setDismissed(true)} className="text-white/70 hover:text-white text-2xl font-bold leading-none">{'\u2715'}</button>
+        </div>
+        <div className="px-6 py-5 space-y-4">
+          {[
+            'Open your Press Kit — you have 5 slides to complete',
+            'Slide 1: "Meet [Artist Name]" — photo, genre, location, one hook sentence',
+            'Slide 2: "Their Story" — where they\'re from, how they started, include a specific fact',
+            'Slide 3: "Their Sound" — your Sound Statement, instruments, mood, "If you like ___, you\'ll love ___"',
+            'Slide 4: "Why Sign Them?" — 3 evidence-based reasons + call to action',
+            'Slide 5: "Listen" — song title, why you picked it',
+          ].map((step, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <span className="text-2xl font-black text-purple-600 w-8 text-center flex-shrink-0">{i + 1}</span>
+              <p className="text-lg text-gray-700">{step}</p>
+            </div>
+          ))}
+        </div>
+        <div className="px-6 pb-5">
+          <button onClick={() => setDismissed(true)} className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-bold rounded-xl hover:from-purple-700 hover:to-indigo-700">
+            Got it — let's build!
           </button>
         </div>
       </div>

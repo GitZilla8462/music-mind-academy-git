@@ -211,6 +211,42 @@ export function generateSlide5Objects(fields = {}, imageUrl = null) {
 }
 
 // ---------------------------------------------------------------------------
+// Bonus Track slide
+// ---------------------------------------------------------------------------
+
+export function generateBonusTrackObjects(bonusNumber = 1) {
+  const objects = [];
+
+  objects.push(text(60, 40,
+    `Bonus Track ${bonusNumber}`,
+    40, { bold: true }
+  ));
+
+  objects.push(text(60, 120,
+    '4 things people should know about this track:',
+    18, { color: '#fbbf24', bold: true }
+  ));
+
+  const starters = [
+    'This track stands out because...',
+    'The instruments / sounds you\'ll hear are...',
+    'The mood of this track is... because...',
+    'I picked this track because...',
+  ];
+
+  starters.forEach((s, i) => {
+    objects.push(text(80, 175 + i * 55, `${i + 1}. ${s}`, 16, { color: '#ffffffcc' }));
+  });
+
+  objects.push(text(CANVAS_W / 2 - 100, 430,
+    'Place Audio Here',
+    22, { bold: true, color: '#ffffff44', width: 220 }
+  ));
+
+  return objects;
+}
+
+// ---------------------------------------------------------------------------
 // Master generator
 // ---------------------------------------------------------------------------
 

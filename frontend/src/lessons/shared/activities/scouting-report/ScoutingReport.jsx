@@ -53,7 +53,8 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
     ? [
         { text: 'Browse the artist library — listen to tracks, read bios' },
         { text: 'Switch to "My Report" to fill out your slides' },
-        { text: 'Slide 1: Enter artist name, track, location, genre' },
+        { text: 'Each slide has example text filled in — click a text box, delete it, and type your own answer' },
+        { text: 'Slide 1: Artist name, track, location, genre' },
         { text: 'Slide 2: Fill in the Four Points with specific details' },
         { text: 'Slide 3: Classify each statement as Fact/Opinion + Strong/Weak' },
         { text: 'Done? Start a new report for another artist!' },
@@ -63,12 +64,14 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
         { text: 'Browse artists and listen to tracks across different genres' },
         { text: 'Star artists that catch your ear' },
         { text: 'Switch to "My Report" to build your slides' },
+        { text: 'Each slide has example text — click a text box, delete it, and type your own words' },
         { text: 'Fill in all 3 slides — your progress shows at the top' },
       ]
     : [
         { text: 'Browse the artist library — listen to tracks across genres' },
         { text: 'Star artists that catch your ear' },
         { text: 'Switch to "My Report" to build your 3 slides' },
+        { text: 'Each slide has example text — click a text box, delete it, and type your own words' },
         { text: 'Slide 1: Top 5 Artists, Slide 2: #1 Pick, Slide 3: What I Notice' },
       ];
 
@@ -180,6 +183,42 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
   useEffect(() => { completedReportsRef.current = completedReports; }, [completedReports]);
   const [viewingReportIndex, setViewingReportIndex] = useState(null); // null = editing current
   const isViewingCompleted = viewingReportIndex !== null;
+
+  // Allow palette change on completed reports
+  const handleCompletedPaletteChange = useCallback((paletteId) => {
+    if (viewingReportIndex === null) return;
+    setCompletedReports(prev => {
+      const updated = [...prev];
+      const cr = { ...updated[viewingReportIndex] };
+      const rep = { ...cr.report };
+      const newSlides = [...rep.slides];
+      const idx = activeSlide - 1;
+      newSlides[idx] = { ...newSlides[idx], palette: paletteId };
+      rep.slides = newSlides;
+      cr.report = rep;
+      updated[viewingReportIndex] = cr;
+      localStorage.setItem(reportsKey, JSON.stringify(updated));
+      return updated;
+    });
+  }, [viewingReportIndex, activeSlide, reportsKey]);
+
+  // Allow editing completed reports in-place
+  const handleCompletedObjectsChange = useCallback((newObjects) => {
+    if (viewingReportIndex === null) return;
+    setCompletedReports(prev => {
+      const updated = [...prev];
+      const cr = { ...updated[viewingReportIndex] };
+      const rep = { ...cr.report };
+      const newSlides = [...rep.slides];
+      const idx = activeSlide - 1;
+      newSlides[idx] = { ...newSlides[idx], objects: newObjects };
+      rep.slides = newSlides;
+      cr.report = rep;
+      updated[viewingReportIndex] = cr;
+      localStorage.setItem(reportsKey, JSON.stringify(updated));
+      return updated;
+    });
+  }, [viewingReportIndex, activeSlide, reportsKey]);
 
   const handleComplete = useCallback(() => {
     if (report) saveScoutingReport(report, storageKey, activityId, lessonId);
@@ -434,27 +473,22 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
                         {cfg.title}
                       </div>
                     </button>
-                    {!viewMode && !isViewingCompleted && (
+                    {!viewMode && (
                       <button
                         onClick={() => toggleSlideDone(slideNum)}
                         className={`flex items-center justify-center gap-1 w-full py-1 rounded text-[10px] font-medium transition-all ${
-                          slidesDone[slideNum]
+                          (isViewingCompleted ? displaySlidesDone[slideNum] : slidesDone[slideNum])
                             ? 'bg-emerald-500/20 text-emerald-400'
                             : 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
                         }`}
                       >
                         <div className={`w-3 h-3 rounded border flex items-center justify-center ${
-                          slidesDone[slideNum] ? 'border-emerald-400 bg-emerald-500/30' : 'border-red-400/50'
+                          (isViewingCompleted ? displaySlidesDone[slideNum] : slidesDone[slideNum]) ? 'border-emerald-400 bg-emerald-500/30' : 'border-red-400/50'
                         }`}>
-                          {slidesDone[slideNum] && <Check size={8} />}
+                          {(isViewingCompleted ? displaySlidesDone[slideNum] : slidesDone[slideNum]) && <Check size={8} />}
                         </div>
-                        {slidesDone[slideNum] ? 'Done' : 'Mark done'}
+                        {(isViewingCompleted ? displaySlidesDone[slideNum] : slidesDone[slideNum]) ? 'Done' : 'Mark done'}
                       </button>
-                    )}
-                    {isViewingCompleted && (
-                      <div className="flex items-center justify-center gap-1 w-full py-1 text-[10px] font-medium text-emerald-400/60">
-                        <CheckCircle size={10} /> Done
-                      </div>
                     )}
                   </div>
                 );
@@ -466,7 +500,7 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
           <div className="flex-1 flex flex-col items-center justify-center p-3 min-h-0 overflow-y-auto" style={{ background: '#202530' }}>
             {isViewingCompleted && (
               <div className="mb-2 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-400/20 text-blue-300 text-xs font-medium flex items-center gap-1.5">
-                <Eye size={12} /> Viewing completed report — click current report chip to edit
+                <Eye size={12} /> Editing completed report
               </div>
             )}
             <div className="w-full" style={{ maxWidth: 780 }}>
@@ -480,8 +514,9 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
                   return displayReport?.slides[activeSlide - 1]?.palette || 'genre';
                 })()}
                 genre=""
-                onChange={isViewingCompleted ? undefined : handleObjectsChange}
-                readOnly={viewMode || isViewingCompleted}
+                onChange={isViewingCompleted ? handleCompletedObjectsChange : handleObjectsChange}
+                onPaletteChange={isViewingCompleted ? handleCompletedPaletteChange : (p) => handleUpdateSlide({ palette: p })}
+                readOnly={viewMode}
               />
             </div>
             {!viewMode && !isViewingCompleted && (

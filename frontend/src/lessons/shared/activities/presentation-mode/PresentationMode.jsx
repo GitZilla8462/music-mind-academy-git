@@ -251,7 +251,7 @@ const PresentationMode = ({ onComplete, viewMode = false, isSessionMode = false 
             /* New Press Kit Designer format — free-form canvas objects */
             <div className="w-full relative overflow-hidden rounded-lg" style={{ aspectRatio: `${CANVAS_W}/${CANVAS_H}`, background: getPalette(slide.palette || 'genre', pressKitGenre).bg }}>
               {/* Background accent */}
-              <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 30% 50%, ${getPalette(slide.palette || 'genre', pressKitGenre).accent}11 0%, transparent 70%)` }} />
+              <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(ellipse at 30% 50%, ${getPalette(slide.palette || 'genre', pressKitGenre).accent}22 0%, transparent 70%)` }} />
               {/* Render all objects at presentation scale */}
               {(slide.objects || []).map(obj => {
                 const containerEl = document.querySelector('.max-w-4xl');

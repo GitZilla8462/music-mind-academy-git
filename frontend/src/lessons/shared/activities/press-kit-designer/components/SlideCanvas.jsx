@@ -40,7 +40,7 @@ const FONT_FAMILIES = [
 ];
 
 const TEXT_COLORS = [
-  '#ffffff', '#f1f5f9', '#94a3b8', '#000000',
+  '#ffffff', '#cbd5e1', '#94a3b8', '#000000',
   '#fbbf24', '#f97316', '#ef4444', '#f43f5e',
   '#a855f7', '#3b82f6', '#06b6d4', '#10b981',
   '#84cc16',
@@ -342,10 +342,12 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
   const editRef = useRef(null);
   const wasSelectedRef = useRef(false); // track if already selected before this click
 
-  // Focus and place cursor when entering edit mode
+  // Focus, set initial content, and place cursor when entering edit mode
   useEffect(() => {
     if (!isEditing || !editRef.current) return;
     const el = editRef.current;
+    // Set content via DOM so React won't overwrite it on re-render
+    el.innerHTML = (obj.text || '').replace(/\n/g, '<br>');
     el.focus();
     const range = document.createRange();
     range.selectNodeContents(el);
@@ -353,7 +355,7 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
     const sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(range);
-  }, [isEditing]);
+  }, [isEditing]); // intentionally omit obj.text — we only seed on edit start
 
   const handleSave = () => {
     const el = editRef.current;
@@ -414,7 +416,6 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
             width: obj.width ? obj.width * s : undefined,
             caretColor: '#4285f4',
           }}
-          dangerouslySetInnerHTML={{ __html: (obj.text || '').replace(/\n/g, '<br>') }}
         />
       ) : obj.type === 'audio' ? (
         <AudioClipWidget obj={obj} scale={s} onUpdate={onUpdate} />
@@ -464,15 +465,15 @@ function FixedToolbar({
   const currentFont = FONT_FAMILIES.find(f => f.value === selectedObj?.fontFamily) || FONT_FAMILIES[0];
   const currentSize = selectedObj?.fontSize || 24;
 
-  // Palette colors for background picker
+  // Palette colors for background picker — show accent color as swatch
   const PALETTE_OPTIONS = [
-    { id: 'genre', label: 'Genre', bg: '#0f1419' },
-    { id: 'midnight', label: 'Midnight', bg: '#0f172a' },
-    { id: 'sunset', label: 'Sunset', bg: '#1c1917' },
-    { id: 'arctic', label: 'Arctic', bg: '#0c1421' },
-    { id: 'neon', label: 'Neon', bg: '#0a0a0a' },
-    { id: 'earth', label: 'Earth', bg: '#1a1814' },
-    { id: 'coral', label: 'Coral', bg: '#1a1018' },
+    { id: 'genre', label: 'Genre', bg: accentColor || '#3b82f6' },
+    { id: 'midnight', label: 'Midnight', bg: '#3b82f6' },
+    { id: 'sunset', label: 'Sunset', bg: '#f97316' },
+    { id: 'arctic', label: 'Arctic', bg: '#06b6d4' },
+    { id: 'neon', label: 'Neon', bg: '#a855f7' },
+    { id: 'earth', label: 'Earth', bg: '#84cc16' },
+    { id: 'coral', label: 'Coral', bg: '#f43f5e' },
   ];
 
   return (
@@ -919,6 +920,9 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
     onSelectionChange?.(obj);
   }, [selectedId, objects, onSelectionChange]);
 
+  // Clipboard for Ctrl+C / Ctrl+V of slide objects
+  const clipboardRef = useRef([]);
+
   // Undo/redo stacks
   const undoStack = useRef([]);
   const redoStack = useRef([]);
@@ -1008,6 +1012,13 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
     // Push undo before drag begins
     pushUndo(objects);
 
+    // Only do group-move when multiple objects were already selected (e.g. via
+    // marquee or shift-click).  A plain click calls selectOne() right before
+    // this, but React batches state so selectedIds still contains the *old*
+    // selection here.  Guard with selectedIds.size > 1 && the clicked object
+    // is already IN the set — that can only be true for a genuine multi-select.
+    const isGroupDrag = selectedIds.size > 1 && selectedIds.has(objId);
+
     dragRef.current = {
       mode,
       handleId,
@@ -1020,9 +1031,11 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
       initialWidth: obj.width || 200,
       initialHeight: obj.height || 150,
       // Store initial positions of all other selected objects for group move
-      otherInitials: Object.fromEntries(
-        objects.filter(o => selectedIds.has(o.id) && o.id !== objId).map(o => [o.id, { x: o.x, y: o.y }])
-      ),
+      otherInitials: isGroupDrag
+        ? Object.fromEntries(
+            objects.filter(o => selectedIds.has(o.id) && o.id !== objId).map(o => [o.id, { x: o.x, y: o.y }])
+          )
+        : {},
     };
 
     const handleMove = (ev) => {
@@ -1127,7 +1140,8 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
     }
     if (!dragRef.current) {
       selectNone();
-      setEditingId(null);
+      // Don't setEditingId(null) here — the blur handler on the contentEditable
+      // must fire first to save text. saveText() sets editingId=null after saving.
     }
   };
 
@@ -1142,7 +1156,7 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
     const startY = pos.y;
     setSelRect({ x: startX, y: startY, w: 0, h: 0 });
     selectNone();
-    setEditingId(null);
+    // Don't setEditingId(null) here — let blur handler save text first
 
     const onMove = (ev) => {
       ev.preventDefault();
@@ -1204,6 +1218,31 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
       if ((e.metaKey || e.ctrlKey) && (e.key === 'Z' || (e.key === 'z' && e.shiftKey))) {
         e.preventDefault();
         handleRedo();
+        return;
+      }
+
+      // Copy
+      if ((e.metaKey || e.ctrlKey) && e.key === 'c' && selectedIds.size > 0) {
+        e.preventDefault();
+        clipboardRef.current = objects.filter(o => selectedIds.has(o.id)).map(o => ({ ...o }));
+        return;
+      }
+
+      // Paste
+      if ((e.metaKey || e.ctrlKey) && e.key === 'v' && clipboardRef.current.length > 0) {
+        e.preventDefault();
+        pushUndo(objects);
+        const pasted = clipboardRef.current.map(o => ({
+          ...o,
+          id: genId(),
+          x: o.x + 20,
+          y: o.y + 20,
+          zIndex: objects.length + 1,
+        }));
+        onChange([...objects, ...pasted]);
+        setSelectedIds(new Set(pasted.map(o => o.id)));
+        // Offset clipboard so next paste doesn't stack exactly
+        clipboardRef.current = pasted.map(o => ({ ...o }));
         return;
       }
 
@@ -1392,7 +1431,7 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: `radial-gradient(ellipse at 30% 50%, ${palette.accent}11 0%, transparent 70%)`,
+            background: `radial-gradient(ellipse at 30% 50%, ${palette.accent}22 0%, transparent 70%)`,
           }}
         />
 

@@ -46,80 +46,98 @@ const QUESTION_TYPES = {
 };
 
 const STATEMENTS = [
-  // --- Fact or Opinion (4 questions) ---
+  // --- Fact or Opinion (5 questions — includes tricky ones) ---
   {
     id: 's1', questionType: 'fact-opinion',
-    text: "This artist has released 3 EPs in the last two years.",
-    answer: 'fact',
-    explanation: "This is a FACT — specific number of releases + specific timeframe. You could look this up."
+    text: "Most people agree this is the best album of the year.",
+    answer: 'opinion',
+    explanation: "OPINION — 'best album' is a personal judgment, even if 'most people' agree. Popularity doesn't make something a fact."
   },
   {
     id: 's2', questionType: 'fact-opinion',
-    text: "This artist is going to be huge someday.",
-    answer: 'opinion',
-    explanation: "This is an OPINION — predicting the future is a personal belief, not a provable fact."
+    text: "Their debut single was featured on Spotify's 'New Music Friday' playlist on March 8th.",
+    answer: 'fact',
+    explanation: "FACT — specific playlist, specific date. You could verify this even if it sounds impressive."
   },
   {
     id: 's3', questionType: 'fact-opinion',
-    text: "Their song has 47,000 streams on Bandcamp.",
-    answer: 'fact',
-    explanation: "This is a FACT — a specific number from a named source. Verifiable."
+    text: "They blend jazz chords with trap beats in a way nobody has done before.",
+    answer: 'opinion',
+    explanation: "OPINION — 'nobody has done before' is a claim you can't prove. Other artists may have blended these styles. The description of the sound is factual, but 'nobody has done before' makes it an opinion."
   },
   {
     id: 's4', questionType: 'fact-opinion',
-    text: "This artist makes the most emotional music I've ever heard.",
-    answer: 'opinion',
-    explanation: "This is an OPINION — 'most emotional' is a personal judgment. Someone else might feel differently."
+    text: "The music video has been viewed 2.3 million times since it was uploaded in January.",
+    answer: 'fact',
+    explanation: "FACT — specific view count + specific month. Even though 2.3 million sounds impressive, it's a verifiable number."
   },
-  // --- Strong or Weak Evidence (4 questions) ---
   {
-    id: 's5', questionType: 'strong-weak',
-    text: "Their sound is really unique.",
-    answer: 'weak',
-    explanation: "WEAK — 'really unique' is vague. HOW is it unique? What specifically makes it different?"
+    id: 's5', questionType: 'fact-opinion',
+    text: "Their lyrics are deeper than most artists in the genre.",
+    answer: 'opinion',
+    explanation: "OPINION — 'deeper' is subjective. What counts as deep to you might not to someone else. There's no way to measure 'depth.'"
   },
+  // --- Strong or Weak Evidence (5 questions — includes tricky ones) ---
   {
     id: 's6', questionType: 'strong-weak',
-    text: "They released their first album at 16 and have toured in 4 states.",
-    answer: 'strong',
-    explanation: "STRONG — specific age, specific number of states. Concrete details you could verify."
+    text: "A lot of people on social media are talking about them.",
+    answer: 'weak',
+    explanation: "WEAK — 'a lot of people' is vague. How many? Which platform? Without specifics, this could mean 5 people or 5,000."
   },
   {
     id: 's7', questionType: 'strong-weak',
-    text: "Something about their vibe just feels different.",
-    answer: 'weak',
-    explanation: "WEAK — 'something' and 'feels different' are vague. What specifically feels different?"
+    text: "They were nominated for 'Best New Artist' at the BET Awards in 2024.",
+    answer: 'strong',
+    explanation: "STRONG — specific award name, specific year. This is concrete, verifiable, and impressive."
   },
   {
     id: 's8', questionType: 'strong-weak',
-    text: "Their fanbase grew from 200 to 2,000 followers in six months.",
+    text: "I played their song for my friends and everyone loved it.",
+    answer: 'weak',
+    explanation: "WEAK — your friend group isn't a representative sample. 'Everyone loved it' is vague — how many friends? What did they actually say?"
+  },
+  {
+    id: 's9', questionType: 'strong-weak',
+    text: "They've gained 12,000 new monthly listeners since their song went viral on TikTok in September.",
     answer: 'strong',
-    explanation: "STRONG — specific numbers + specific timeframe = measurable growth."
-  },
-  // --- Which of the 4 Points (4 questions) ---
-  {
-    id: 's9', questionType: 'which-point',
-    text: "They went from playing coffee shops to selling out a 300-seat venue.",
-    answer: 'signs-of-growth',
-    explanation: "SIGNS OF GROWTH — going from small to bigger venues shows momentum and increasing audience."
+    explanation: "STRONG — specific number, specific platform, specific timeframe. Measurable and verifiable."
   },
   {
-    id: 's10', questionType: 'which-point',
-    text: "No other artist in our library sounds quite like this.",
-    answer: 'unique-sound',
-    explanation: "UNIQUE SOUND — if nobody else sounds like them, that's what makes their sound stand out."
+    id: 's10', questionType: 'strong-weak',
+    text: "Their production quality is way better than it was on their first album.",
+    answer: 'weak',
+    explanation: "WEAK — 'way better' is a vague comparison. Better how? Cleaner mix? More instruments? Without specifics, this is just a feeling."
   },
+  // --- Which of the 4 Points (5 questions — includes tricky ones) ---
   {
     id: 's11', questionType: 'which-point',
-    text: "They started writing music after losing a family member.",
+    text: "She taught herself to produce beats using free software while living in a homeless shelter at 15.",
     answer: 'compelling-story',
-    explanation: "COMPELLING STORY — a personal experience that drives their music makes you care about the artist."
+    explanation: "COMPELLING STORY — this is about her personal background and what she overcame. It makes you care about the person behind the music."
   },
   {
     id: 's12', questionType: 'which-point',
-    text: "I don't know why, but I keep replaying this track.",
+    text: "Their first EP got 500 plays. Their second got 15,000. Their third just hit 120,000.",
+    answer: 'signs-of-growth',
+    explanation: "SIGNS OF GROWTH — the numbers show a clear upward trend. Each release is reaching more people — that's momentum."
+  },
+  {
+    id: 's13', questionType: 'which-point',
+    text: "They mix traditional West African kora with electronic bass music — I've never heard anything like it.",
+    answer: 'unique-sound',
+    explanation: "UNIQUE SOUND — the specific combination of kora + electronic bass describes what makes their sound different from everyone else."
+  },
+  {
+    id: 's14', questionType: 'which-point',
+    text: "Every time I listen to this artist, I find something new in the track I didn't notice before.",
     answer: 'gut-feeling',
-    explanation: "GUT FEELING — you can't explain it, but something about them pulls you back. That's instinct."
+    explanation: "GUT FEELING — this is about your personal, instinctive reaction. You can't point to data — something just keeps pulling you back."
+  },
+  {
+    id: 's15', questionType: 'which-point',
+    text: "They went from 200 Instagram followers to being reposted by Chance the Rapper in under a year.",
+    answer: 'signs-of-growth',
+    explanation: "SIGNS OF GROWTH — going from unknown to getting a major co-sign shows rapid momentum. The specific timeline and numbers prove they're on the rise."
   },
 ];
 
@@ -138,6 +156,15 @@ const ActivityBanner = () => (
 const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
   const urlParams = new URLSearchParams(window.location.search);
   const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+  const classId = urlParams.get('classId');
+
+  // Firebase paths — class sessions use classes/{classId}/currentSession/..., quick sessions use sessions/{code}/...
+  const gamePath = classId
+    ? `classes/${classId}/currentSession/factOpinionSorter`
+    : `sessions/${sessionCode}/factOpinionSorter`;
+  const studentsBasePath = classId
+    ? `classes/${classId}/currentSession/studentsJoined`
+    : `sessions/${sessionCode}/studentsJoined`;
 
   // Game state
   const [gamePhase, setGamePhase] = useState('setup');
@@ -160,16 +187,16 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
-    if (!sessionCode) return;
+    if (!sessionCode && !classId) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/factOpinionSorter`), data);
-  }, [sessionCode]);
+    update(ref(db, gamePath), data);
+  }, [sessionCode, classId, gamePath]);
 
   // Firebase: Subscribe to students
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!sessionCode && !classId) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsBasePath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -204,7 +231,7 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [sessionCode, classId, studentsBasePath]);
 
   // Start game
   const startGame = useCallback(() => {
@@ -213,10 +240,10 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
     statementShownAt.current = Date.now();
 
     // Reset student answers and scores
-    if (sessionCode) {
+    if (sessionCode || classId) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsBasePath}/${s.id}`), {
           factOpinionAnswer: null,
           factOpinionScore: 0,
           factOpinionAnswerTime: null,
@@ -239,7 +266,7 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
       revealedAnswer: null,
       shownAt: Date.now(),
     });
-  }, [sessionCode, students, updateGame]);
+  }, [sessionCode, classId, students, updateGame, studentsBasePath]);
 
   // Reveal answer
   const reveal = useCallback(() => {
@@ -248,7 +275,7 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
     setGamePhase('revealed');
 
     // Calculate scores for each student
-    if (sessionCode) {
+    if (sessionCode || classId) {
       const db = getDatabase();
       students.forEach(s => {
         if (s.answer) {
@@ -265,7 +292,7 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
             }
           }
           const newScore = (s.score || 0) + points;
-          update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+          update(ref(db, `${studentsBasePath}/${s.id}`), {
             factOpinionScore: newScore,
           }).catch(() => {});
         }
@@ -276,15 +303,15 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
       phase: 'revealed',
       revealedAnswer: currentStatement.answer,
     });
-  }, [currentStatement, students, sessionCode, updateGame]);
+  }, [currentStatement, students, sessionCode, classId, updateGame, studentsBasePath]);
 
   // Next statement
   const nextStatement = useCallback(() => {
     // Clear student answers (but keep scores)
-    if (sessionCode) {
+    if (sessionCode || classId) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsBasePath}/${s.id}`), {
           factOpinionAnswer: null,
           factOpinionAnswerTime: null,
         }).catch(() => {});
@@ -317,7 +344,7 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
         shownAt: Date.now(),
       });
     }
-  }, [sessionCode, students, currentStatementIndex, updateGame]);
+  }, [sessionCode, classId, students, currentStatementIndex, updateGame, studentsBasePath]);
 
   // Build sorted leaderboard
   const leaderboard = Object.entries(scores)
@@ -392,7 +419,7 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
                   <span className="px-4 py-2 lg:px-5 lg:py-2.5 2xl:px-6 2xl:py-3 rounded-full text-sm lg:text-lg xl:text-xl 2xl:text-2xl font-medium bg-emerald-500/20 text-emerald-300">Strong or Weak</span>
                   <span className="px-4 py-2 lg:px-5 lg:py-2.5 2xl:px-6 2xl:py-3 rounded-full text-sm lg:text-lg xl:text-xl 2xl:text-2xl font-medium bg-amber-500/20 text-amber-300">Which of the 4 Points</span>
                 </div>
-                <p className="text-sm lg:text-base xl:text-lg 2xl:text-xl text-white/40 mb-4 lg:mb-6">{STATEMENTS.length} questions &middot; +10 points for correct &middot; Speed bonus up to +5</p>
+                <p className="text-sm lg:text-base xl:text-lg 2xl:text-xl text-white/40 mb-4 lg:mb-6">{STATEMENTS.length} questions &middot; +10 points correct &middot; Speed bonus up to +5</p>
 
                 <button
                   onClick={startGame}

@@ -275,7 +275,7 @@ const FactOpinionStudentView = ({ onComplete, isSessionMode = true }) => {
             <span className="text-lg font-black" style={{ color: '#f0b429' }}>{myScore}</span>
           </div>
           <div className="bg-white/10 px-4 py-2 rounded-xl">
-            <div className="text-sm text-indigo-200">{currentStatement + 1}/10</div>
+            <div className="text-sm text-indigo-200">{currentStatement + 1}/15</div>
           </div>
         </div>
       </div>

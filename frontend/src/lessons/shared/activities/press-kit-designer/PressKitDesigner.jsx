@@ -1,17 +1,17 @@
 // PressKitDesigner — Google Slides-style presentation builder with artist discovery.
-// Top bar: tabs (My Press Kit / Discover) + design controls
+// Top bar: tabs (Explore Artists / My Report) + design controls
 // Left: slide thumbnails (press kit view only)
 // Center: canvas OR artist discovery (tabbed, both stay mounted)
-// Right: research board (open by default, collapsible)
 // Bottom: persistent mini audio player
+// Bonus tracks: after completing all 5 main slides, students can add bonus track slides.
 // Optimized for 1366x768 Chromebook resolution.
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { RotateCcw } from 'lucide-react';
+import DirectionsModal from '../../components/DirectionsModal';
 import { getArtistById } from '../artist-discovery/artistDatabase';
 import { AudioProvider, useGlobalAudio } from '../artist-discovery/AudioContext';
 import ArtistDiscovery from '../artist-discovery/ArtistDiscovery';
-// ResearchBoard removed — students use artist auto-populate instead
 import MiniPlayer from '../artist-discovery/profile/MiniPlayer';
 import PressKitTopBar from './components/PressKitTopBar';
 import SlideTabBar from './components/SlideTabBar';
@@ -19,15 +19,16 @@ import SlideCanvas, { AudioTrimPanel } from './components/SlideCanvas';
 import ImagePickerModal from './components/ImagePickerModal';
 import { loadPressKit, savePressKit, getOrCreatePressKit } from './pressKitStorage';
 import { getSelectedArtistId, autoPopulateFields } from './pressKitAutoPopulate';
-import { generateTemplateObjects } from './slideTemplates';
+import { generateTemplateObjects, generateBonusTrackObjects } from './slideTemplates';
+import { SLIDE_CONFIGS, isSlideComplete } from './slideConfigs';
 
 const AUTOSAVE_INTERVAL = 30000;
+const BONUS_STORAGE_KEY = 'mma-press-kit-bonus-tracks';
 
 function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableSlides }) {
   const [pressKit, setPressKit] = useState(null);
   const [activeSlide, setActiveSlide] = useState(1);
   const [saveStatus, setSaveStatus] = useState('idle');
-  const [showAudioTrim, setShowAudioTrim] = useState(false);
   const [activeTab, setActiveTab] = useState('press-kit');
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [artist, setArtist] = useState(null);
@@ -36,9 +37,39 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
   const pressKitRef = useRef(null);
   const imageCallbackRef = useRef(null);
 
+  // Bonus tracks state
+  const [bonusTracks, setBonusTracks] = useState(() => {
+    try {
+      const raw = localStorage.getItem(BONUS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  });
+  const bonusTracksRef = useRef(bonusTracks);
+  useEffect(() => { bonusTracksRef.current = bonusTracks; }, [bonusTracks]);
+
   const audio = useGlobalAudio();
 
+  // Directions modal
+  const directionsKey = 'mma-press-kit-directions-seen';
+  const [showDirections, setShowDirections] = useState(() => !localStorage.getItem(directionsKey));
+  const closeDirections = () => {
+    setShowDirections(false);
+    localStorage.setItem(directionsKey, 'true');
+  };
+
   useEffect(() => { pressKitRef.current = pressKit; }, [pressKit]);
+
+  // Check if all 5 main slides are complete
+  const allMainSlidesComplete = pressKit
+    ? SLIDE_CONFIGS.every((cfg, i) => {
+        const slide = pressKit.slides[i];
+        return slide && isSlideComplete(cfg.number, slide.fields || {});
+      })
+    : false;
+
+  // Is the active slide a bonus track?
+  const isBonusSlide = activeSlide > 5;
+  const bonusIndex = activeSlide - 6; // 0-based index into bonusTracks
 
   // Init
   useEffect(() => {
@@ -62,7 +93,6 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
         }
       });
       const updated = { ...slide, fields: merged };
-      // Always generate template objects if slide is empty — shows sentence starters even without artist
       if (!updated.objects || updated.objects.length === 0) {
         updated.objects = generateTemplateObjects(
           i + 1, merged, slide.image?.url || artistData?.imageUrl || null
@@ -90,6 +120,7 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
       if (pressKitRef.current) {
         setSaveStatus('saving');
         savePressKit(pressKitRef.current);
+        localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(bonusTracksRef.current));
         setTimeout(() => setSaveStatus('saved'), 600);
         setTimeout(() => setSaveStatus('idle'), 2500);
       }
@@ -98,7 +129,10 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
   }, []);
 
   useEffect(() => {
-    return () => { if (pressKitRef.current) savePressKit(pressKitRef.current); };
+    return () => {
+      if (pressKitRef.current) savePressKit(pressKitRef.current);
+      localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(bonusTracksRef.current));
+    };
   }, []);
 
   // Handlers
@@ -106,41 +140,63 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
     if (!pressKit) return;
     setSaveStatus('saving');
     savePressKit(pressKit);
+    localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(bonusTracks));
     setTimeout(() => setSaveStatus('saved'), 400);
     setTimeout(() => setSaveStatus('idle'), 2000);
-  }, [pressKit]);
+  }, [pressKit, bonusTracks]);
 
   const handleUpdateSlide = useCallback((updates) => {
-    setPressKit(prev => {
-      if (!prev) return prev;
-      const idx = activeSlide - 1;
-      const newSlides = [...prev.slides];
-      newSlides[idx] = { ...newSlides[idx], ...updates };
-      return { ...prev, slides: newSlides };
-    });
-  }, [activeSlide]);
+    if (isBonusSlide) {
+      setBonusTracks(prev => {
+        const next = [...prev];
+        if (next[bonusIndex]) {
+          next[bonusIndex] = { ...next[bonusIndex], ...updates };
+        }
+        return next;
+      });
+    } else {
+      setPressKit(prev => {
+        if (!prev) return prev;
+        const idx = activeSlide - 1;
+        const newSlides = [...prev.slides];
+        newSlides[idx] = { ...newSlides[idx], ...updates };
+        return { ...prev, slides: newSlides };
+      });
+    }
+  }, [activeSlide, isBonusSlide, bonusIndex]);
 
   const handleObjectsChange = useCallback((newObjects) => {
     handleUpdateSlide({ objects: newObjects });
   }, [handleUpdateSlide]);
 
   const handleUpdateObject = useCallback((id, updates) => {
-    if (!pressKit) return;
-    const idx = activeSlide - 1;
-    const currentObjects = pressKit.slides[idx]?.objects || [];
-    const newObjects = currentObjects.map(o => o.id === id ? { ...o, ...updates } : o);
-    handleUpdateSlide({ objects: newObjects });
-  }, [pressKit, activeSlide, handleUpdateSlide]);
+    if (isBonusSlide) {
+      const currentObjects = bonusTracks[bonusIndex]?.objects || [];
+      const newObjects = currentObjects.map(o => o.id === id ? { ...o, ...updates } : o);
+      handleUpdateSlide({ objects: newObjects });
+    } else {
+      if (!pressKit) return;
+      const idx = activeSlide - 1;
+      const currentObjects = pressKit.slides[idx]?.objects || [];
+      const newObjects = currentObjects.map(o => o.id === id ? { ...o, ...updates } : o);
+      handleUpdateSlide({ objects: newObjects });
+    }
+  }, [pressKit, activeSlide, handleUpdateSlide, isBonusSlide, bonusIndex, bonusTracks]);
 
   const handleResetTemplate = useCallback(() => {
-    if (!pressKit) return;
-    const idx = activeSlide - 1;
-    const slide = pressKit.slides[idx];
-    const newObjects = generateTemplateObjects(
-      activeSlide, slide.fields || {}, slide.image?.url || artist?.imageUrl || null
-    );
-    handleUpdateSlide({ objects: newObjects });
-  }, [activeSlide, pressKit, artist, handleUpdateSlide]);
+    if (isBonusSlide) {
+      const newObjects = generateBonusTrackObjects(bonusIndex + 1);
+      handleUpdateSlide({ objects: newObjects });
+    } else {
+      if (!pressKit) return;
+      const idx = activeSlide - 1;
+      const slide = pressKit.slides[idx];
+      const newObjects = generateTemplateObjects(
+        activeSlide, slide.fields || {}, slide.image?.url || artist?.imageUrl || null
+      );
+      handleUpdateSlide({ objects: newObjects });
+    }
+  }, [activeSlide, pressKit, artist, handleUpdateSlide, isBonusSlide, bonusIndex]);
 
   const handleImageSelect = useCallback((img) => {
     if (imageCallbackRef.current) {
@@ -153,8 +209,27 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
 
   const handleComplete = useCallback(() => {
     if (pressKit) savePressKit(pressKit);
+    localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(bonusTracks));
     if (onComplete) onComplete();
-  }, [pressKit, onComplete]);
+  }, [pressKit, onComplete, bonusTracks]);
+
+  // Add a new bonus track
+  const addBonusTrack = useCallback(() => {
+    const num = bonusTracks.length + 1;
+    const newBonus = {
+      number: num,
+      palette: 'genre',
+      objects: generateBonusTrackObjects(num),
+      fields: {},
+      image: null,
+    };
+    setBonusTracks(prev => {
+      const next = [...prev, newBonus];
+      localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+    setActiveSlide(5 + num);
+  }, [bonusTracks.length]);
 
   if (!pressKit) {
     return (
@@ -164,12 +239,28 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
     );
   }
 
-  const currentSlide = pressKit.slides[activeSlide - 1];
+  // Current slide data — either main or bonus
+  const currentSlide = isBonusSlide
+    ? bonusTracks[bonusIndex] || { objects: [], palette: 'genre' }
+    : pressKit.slides[activeSlide - 1];
   const genre = artist?.genre || '';
   const hasAudioPlaying = audio?.currentTrack != null;
 
   return (
     <div className="h-screen flex flex-col" style={{ background: '#202530' }}>
+      <DirectionsModal
+        title="Build Your Press Kit"
+        isOpen={showDirections}
+        onClose={closeDirections}
+        steps={[
+          { text: 'Each slide has an example layout filled in for you' },
+          { text: 'Click any text box to edit — delete the example and type your own words' },
+          { text: 'Use the toolbar to add images, change fonts, and style your slides' },
+          { text: 'Switch to "Explore Artists" to browse artists and listen to tracks' },
+          { text: 'Your work saves automatically — click Save anytime to be sure' },
+        ]}
+      />
+
       {/* ── Top Bar (tabs + design controls) ── */}
       <PressKitTopBar
         saveStatus={saveStatus}
@@ -177,6 +268,8 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
         artistName={artist?.name}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        bonusCount={bonusTracks.length}
+        allMainSlidesComplete={allMainSlidesComplete}
       />
 
       {/* ── Main area ── */}
@@ -191,6 +284,8 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
               genre={genre}
               onSelect={setActiveSlide}
               availableSlides={availableSlides}
+              bonusTracks={bonusTracks}
+              onAddBonusTrack={allMainSlidesComplete && !viewMode ? addBonusTrack : null}
             />
           </div>
         )}

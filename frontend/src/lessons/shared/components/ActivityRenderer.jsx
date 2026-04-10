@@ -112,6 +112,9 @@ import { HeadlineWriterStudentView } from '../activities/headline-writer';
 // ✅ ADDED: Sign or Pass (Music Journalist Unit 3 Lesson 2)
 import { SignOrPassSmallGroup } from '../activities/sign-or-pass';
 
+// ✅ ADDED: Would You Sign Them? (Music Journalist Unit 3 Lesson 3 Bonus)
+import { WouldYouSignThem } from '../activities/would-you-sign-them';
+
 // ✅ ADDED: Image Library (Music Journalist Unit 3)
 import { ImageLibrary } from '../activities/image-library';
 
@@ -995,6 +998,16 @@ const ActivityRenderer = ({
       return (
         <SignOrPassSmallGroup
           key={`sign-or-pass-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Would You Sign Them? (Music Journalist Unit 3 Lesson 3 Bonus)
+    case 'would-you-sign-them':
+      return (
+        <WouldYouSignThem
+          key={`would-you-sign-them-${activity.id}`}
           onComplete={onComplete}
           isSessionMode={isSessionMode}
         />

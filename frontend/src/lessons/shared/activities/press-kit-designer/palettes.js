@@ -4,12 +4,12 @@
 import { GENRE_CONFIG } from '../artist-discovery/artistDatabase';
 
 const PALETTES = {
-  midnight: { id: 'midnight', label: 'Midnight',  bg: '#0f172a', accent: '#3b82f6', text: '#f1f5f9', muted: '#64748b' },
-  sunset:   { id: 'sunset',   label: 'Sunset',    bg: '#1c1917', accent: '#f97316', text: '#fef3c7', muted: '#a8a29e' },
-  arctic:   { id: 'arctic',   label: 'Arctic',    bg: '#0c1421', accent: '#06b6d4', text: '#ecfeff', muted: '#67e8f9' },
-  neon:     { id: 'neon',     label: 'Neon',      bg: '#0a0a0a', accent: '#a855f7', text: '#faf5ff', muted: '#c084fc' },
-  earth:    { id: 'earth',    label: 'Earth',     bg: '#1a1814', accent: '#84cc16', text: '#fefce8', muted: '#a3e635' },
-  coral:    { id: 'coral',    label: 'Coral',     bg: '#1a1018', accent: '#f43f5e', text: '#fff1f2', muted: '#fb7185' },
+  midnight: { id: 'midnight', label: 'Midnight',  bg: '#101c36', accent: '#3b82f6', text: '#f1f5f9', muted: '#64748b' },
+  sunset:   { id: 'sunset',   label: 'Sunset',    bg: '#2a1c10', accent: '#f97316', text: '#fef3c7', muted: '#a8a29e' },
+  arctic:   { id: 'arctic',   label: 'Arctic',    bg: '#0c1e30', accent: '#06b6d4', text: '#ecfeff', muted: '#67e8f9' },
+  neon:     { id: 'neon',     label: 'Neon',      bg: '#12061e', accent: '#a855f7', text: '#faf5ff', muted: '#c084fc' },
+  earth:    { id: 'earth',    label: 'Earth',     bg: '#1e1c10', accent: '#84cc16', text: '#fefce8', muted: '#a3e635' },
+  coral:    { id: 'coral',    label: 'Coral',     bg: '#24101c', accent: '#f43f5e', text: '#fff1f2', muted: '#fb7185' },
 };
 
 /**
