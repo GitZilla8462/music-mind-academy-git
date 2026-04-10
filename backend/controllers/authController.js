@@ -51,8 +51,8 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
     const { email, name, password } = req.body;
     
-    // Debug logging
-    console.log('🔍 Login attempt details:', { email, name, password });
+    // Debug logging (never log passwords)
+    console.log('🔍 Login attempt for:', email || name);
     
     try {
         let user;

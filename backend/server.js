@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const cron = require('node-cron');
 require('dotenv').config();
@@ -40,19 +42,50 @@ initFirebase();
 // Create the Express application
 const app = express();
 
-// Middleware to parse JSON bodies and enable CORS
-app.use(express.json({ limit: '5mb' }));
-app.use(cors());
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: false,  // Let Vercel handle CSP for frontend
+  crossOriginEmbedderPolicy: false  // Allow embedded media
+}));
 
-// Add request logging middleware to debug connectivity
+// CORS whitelist - only allow our domains
+const allowedOrigins = [
+  'https://musicmindacademy.com',
+  'https://www.musicmindacademy.com',
+  'https://musicroomtools.org',
+  'https://www.musicroomtools.org',
+  process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : null,
+  process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : null,
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, server-to-server, Vercel rewrites)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
+
+// Rate limiting on auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,  // 15 minutes
+  max: 20,                     // 20 attempts per window
+  message: { error: 'Too many login attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/auth', authLimiter);
+
+// Middleware to parse JSON bodies
+app.use(express.json({ limit: '5mb' }));
+
+// Request logging (sanitized - never log auth headers or request bodies)
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
-  if (req.headers.authorization) {
-    console.log('Auth header present');
-  }
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('Request body:', req.body);
-  }
   next();
 });
 
@@ -297,25 +330,6 @@ mongoose.connection.once('open', async () => {
   app.listen(PORT, '0.0.0.0', () => {
     console.log('=================================');
     console.log(`🌟 Server running on port ${PORT}`);
-    console.log('=================================');
-    console.log('🔐 Default Credentials:');
-    console.log('   Admin Email: admin@musiceducation.com');
-    console.log('   Admin Password: AdminPassword123!');
-    console.log('   ');
-    console.log('   Teacher Email: sarah.johnson@school.edu');
-    console.log('   Teacher Password: teacher123');
-    console.log('   ');
-    console.log('   Student Email: alice.johnson@email.com');
-    console.log('   Student Password: student123');
-    console.log('=================================');
-    console.log('📚 API Endpoints:');
-    console.log('   Lessons: http://localhost:' + PORT + '/api/lessons');
-    console.log('   Film Music: http://localhost:' + PORT + '/api/lessons/category/film-music');
-    console.log('   Music Resources: http://localhost:' + PORT + '/api/musicresources/assignments');
-    console.log('=================================');
-    console.log('💾 BANDWIDTH OPTIMIZATION ENABLED:');
-    console.log('   Audio files cached for 7 days');
-    console.log('   Expected bandwidth savings: 80%+');
     console.log('=================================');
   });
 });

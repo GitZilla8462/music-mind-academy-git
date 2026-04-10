@@ -4,11 +4,18 @@
       "$sessionCode": {
         ".read": true,
         ".write": true,
+        ".validate": "newData.hasChildren(['teacherId', 'lessonId'])",
         "studentsJoined": {
-          ".indexOn": ["joinedAt"]
+          ".indexOn": ["joinedAt"],
+          "$studentId": {
+            ".validate": "newData.hasChildren(['id', 'joinedAt']) && newData.child('id').isString() && newData.child('id').val().length < 100"
+          }
         },
         "studentProgress": {
-          ".indexOn": ["status"]
+          ".indexOn": ["status"],
+          "$studentId": {
+            ".validate": "newData.child('status').isString()"
+          }
         }
       }
     },
@@ -38,14 +45,16 @@
     "compositions": {
       "$shareCode": {
         ".read": true,
-        ".write": true
+        ".write": true,
+        ".validate": "newData.hasChildren(['loops']) && $shareCode.length >= 4 && $shareCode.length <= 20"
       }
     },
 
     "partnerGames": {
       "$code": {
         ".read": true,
-        ".write": true
+        ".write": true,
+        ".validate": "$code.length >= 4 && $code.length <= 30"
       }
     },
 
@@ -53,7 +62,8 @@
       "$sessionCode": {
         "$studentId": {
           ".read": true,
-          ".write": true
+          ".write": true,
+          ".validate": "newData.child('text').isString() && newData.child('text').val().length < 5000"
         }
       }
     },
@@ -63,7 +73,7 @@
       "$site": {
         ".read": "auth != null",
         "$emailKey": {
-          ".read": true
+          ".read": "auth != null"
         }
       }
     },
@@ -134,7 +144,8 @@
         "currentSession": {
           "studentsJoined": {
             "$seatId": {
-              ".write": true
+              ".write": true,
+              ".validate": "newData.child('joinedAt').isNumber()"
             }
           },
           "studentProgress": {
@@ -188,7 +199,8 @@
         ".write": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",
         "$seatNumber": {
           ".read": true,
-          ".write": true
+          ".write": true,
+          ".validate": "newData.hasChildren(['attempts', 'lastAttempt'])"
         }
       }
     },
@@ -206,7 +218,8 @@
         ".write": "auth != null && (auth.uid == $studentUid || root.child('teachers').child(auth.uid).exists())",
         "$activityId": {
           ".read": true,
-          ".write": true
+          ".write": true,
+          ".validate": "newData.hasChildren(['data'])"
         }
       }
     },
@@ -218,7 +231,8 @@
         "$lessonId": {
           "$studentUid": {
             ".read": true,
-            ".write": true
+            ".write": true,
+            ".validate": "newData.hasChildren(['content', 'submittedAt'])"
           }
         }
       }
