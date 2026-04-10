@@ -4,7 +4,6 @@
       "$sessionCode": {
         ".read": true,
         ".write": true,
-        ".validate": "newData.hasChildren(['teacherId', 'lessonId'])",
         "studentsJoined": {
           ".indexOn": ["joinedAt"],
           "$studentId": {
