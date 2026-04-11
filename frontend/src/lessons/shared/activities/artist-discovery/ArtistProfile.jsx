@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Star, Sparkles } from 'lucide-react';
+import { ArrowLeft, Star, Sparkles, Shield, ExternalLink } from 'lucide-react';
 import { GENRE_CONFIG, ARTIST_DATABASE } from './artistDatabase';
 import HeroBanner from './profile/HeroBanner';
 import TrackList from './profile/TrackList';
@@ -94,6 +94,48 @@ const ArtistProfile = ({
 
         {/* Their sound */}
         <TheirSound artist={artist} />
+
+        {/* Licensing & Attribution */}
+        {artist.license && (
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 mb-6">
+            <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Shield size={12} />
+              Licensing & Attribution
+            </h2>
+            <div className="space-y-2">
+              <p className="text-white/70 text-[15px] leading-relaxed">
+                Music by <span className="text-white/90 font-medium">{artist.name}</span> is licensed under{' '}
+                <span className="text-white/90 font-medium">
+                  {artist.license === 'CC0' ? 'Creative Commons Zero (CC0) — Public Domain' :
+                   artist.license === 'CC BY' ? 'Creative Commons Attribution 4.0 (CC BY)' :
+                   artist.license === 'CC BY-SA' ? 'Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA)' :
+                   artist.license}
+                </span>
+              </p>
+              <p className="text-white/40 text-[13px] leading-relaxed">
+                {artist.license === 'CC0'
+                  ? 'This music is in the public domain. No attribution is required, but we credit the artist because they deserve it.'
+                  : artist.license === 'CC BY'
+                    ? 'You are free to share and adapt this music, even commercially, as long as you give appropriate credit to the artist.'
+                    : 'You are free to share and adapt this music, even commercially, as long as you give credit and share under the same license.'
+                }
+              </p>
+              <p className="text-white/30 text-[12px]">
+                Source: Free Music Archive
+                {artist.fmaUrl && (
+                  <a
+                    href={artist.fmaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 ml-2 text-amber-400/60 hover:text-amber-400 transition-colors"
+                  >
+                    View on FMA <ExternalLink size={10} />
+                  </a>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Browse more artists */}
         <div className="mb-8">

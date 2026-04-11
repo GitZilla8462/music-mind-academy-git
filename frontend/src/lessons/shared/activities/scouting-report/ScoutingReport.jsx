@@ -2,7 +2,7 @@
 // Reuses SlideCanvas from PressKitDesigner but with its own slide configs and storage.
 // Paired with Artist Discovery in a tabbed layout so students can browse + build simultaneously.
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Save, Check, BookOpen, Search, RotateCcw, Plus, CheckCircle, Eye } from 'lucide-react';
 import DirectionsModal from '../../components/DirectionsModal';
 import { AudioProvider, useGlobalAudio } from '../artist-discovery/AudioContext';
@@ -40,6 +40,38 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
 
   const audio = useGlobalAudio();
+
+  // Keyboard navigation: Up/Down arrows to switch slides (only when not typing in a text field)
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (activeTab !== 'report') return;
+      const tag = e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveSlide(prev => Math.max(1, prev - 1));
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveSlide(prev => Math.min(slideConfigs.length, prev + 1));
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [activeTab, slideConfigs.length]);
+
+  // Responsive canvas max-width: on short viewports, shrink canvas so 16:9 ratio fits
+  const [viewportH, setViewportH] = useState(typeof window !== 'undefined' ? window.innerHeight : 800);
+  useEffect(() => {
+    const onResize = () => setViewportH(window.innerHeight);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  // Budget: top bar ~44px, journal strip ~36px, toolbar ~36px, padding ~24px = ~140px overhead
+  const canvasMaxWidth = useMemo(() => {
+    const available = viewportH - 140;
+    const widthFromHeight = available * (960 / 540);
+    return Math.min(780, Math.max(400, Math.round(widthFromHeight)));
+  }, [viewportH]);
 
   // Directions modal
   const directionsKey = `mma-${variant || 'scouting-report'}-directions-seen`;
@@ -281,9 +313,9 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
       />
 
       {/* Top bar */}
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 border-b border-white/10" style={{ background: '#0f1b2e' }}>
-        <div className="flex items-center gap-3">
-          <h1 className="text-lg font-bold text-white flex items-center gap-2">
+      <div className="flex-shrink-0 flex items-center justify-between px-3 py-1 border-b border-white/10" style={{ background: '#0f1b2e' }}>
+        <div className="flex items-center gap-2">
+          <h1 className="text-sm font-bold text-white flex items-center gap-1.5">
             <BookOpen size={18} className="text-amber-400" />
             {activityTitle}
           </h1>
@@ -317,12 +349,23 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
           {/* Progress text */}
           {totalReportsComplete === 0 && !allSlidesDone ? (
             <span className={`text-xs font-bold ${slidesCompleted === 0 ? 'text-red-400' : 'text-amber-400'}`}>
-              {slidesCompleted}/{totalSlides} Slides Completed
+              {slidesCompleted}/{totalSlides} Slides Complete
             </span>
           ) : (
-            <span className="text-xs font-bold text-emerald-400">
-              {totalReportsComplete} Scouting Report{totalReportsComplete !== 1 ? 's' : ''} Complete — keep making more until time is up!
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-emerald-400">
+                {totalReportsComplete} Scouting Report{totalReportsComplete !== 1 ? 's' : ''} Complete — keep making more until time is up!
+              </span>
+              {allSlidesDone && !viewMode && (
+                <button
+                  onClick={startNewReport}
+                  className="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition-colors"
+                  title="Start a new Scouting Report"
+                >
+                  <Plus size={14} />
+                </button>
+              )}
+            </div>
           )}
         </div>
 
@@ -416,7 +459,7 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
 
           <div className="flex-1 flex overflow-hidden min-h-0">
           {/* Slide thumbnails */}
-          <div className="flex-shrink-0 flex flex-col gap-2 p-2 overflow-y-auto border-r border-white/[0.06]" style={{ width: 140, background: '#0f1b2e' }}>
+          <div className="flex-shrink-0 flex flex-col gap-2 p-2 overflow-y-auto min-h-0 h-full border-r border-white/[0.06]" style={{ width: 140, background: '#0f1b2e' }}>
             {(() => {
               const displayReport = isViewingCompleted ? completedReports[viewingReportIndex]?.report : report;
               const displaySlidesDone = isViewingCompleted ? completedReports[viewingReportIndex]?.slidesDone || {} : slidesDone;
@@ -497,13 +540,13 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
           </div>
 
           {/* Canvas */}
-          <div className="flex-1 flex flex-col items-center justify-center p-3 min-h-0 overflow-y-auto" style={{ background: '#202530' }}>
+          <div className="flex-1 flex flex-col items-center justify-center p-1.5 min-h-0 overflow-y-auto" style={{ background: '#202530' }}>
             {isViewingCompleted && (
               <div className="mb-2 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-400/20 text-blue-300 text-xs font-medium flex items-center gap-1.5">
                 <Eye size={12} /> Editing completed report
               </div>
             )}
-            <div className="w-full" style={{ maxWidth: 780 }}>
+            <div className="w-full" style={{ maxWidth: canvasMaxWidth }}>
               <SlideCanvas
                 objects={(() => {
                   const displayReport = isViewingCompleted ? completedReports[viewingReportIndex]?.report : report;

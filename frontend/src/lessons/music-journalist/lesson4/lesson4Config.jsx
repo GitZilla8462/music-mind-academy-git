@@ -15,12 +15,11 @@ export const lessonSections = [
   {
     id: 'introduction',
     title: '1. Introduction',
-    subtitle: 'Hook + The 5-Slide Structure',
+    subtitle: 'Hook',
     color: 'blue',
-    estimatedTime: 8,
+    estimatedTime: 3,
     stages: [
-      { id: 'hook', type: 'summary', label: 'Hook', description: 'Show a real press kit example.', duration: 3 },
-      { id: 'five-slide-structure', type: 'summary', label: 'The 5-Slide Structure', description: 'Teach: Meet, Story, Sound, Why Sign, Listen.', duration: 5 }
+      { id: 'hook', type: 'summary', label: 'Hook', description: 'Show a real press kit example.', duration: 3 }
     ]
   },
   {
@@ -99,49 +98,8 @@ export const lessonStages = [
     }
   },
   {
-    id: 'five-slide-structure', label: 'The 5-Slide Structure', type: 'summary', duration: 5,
-    presentationView: {
-      type: 'summary', title: 'The 5-Slide Press Kit', subtitle: 'Every Slide Has a Job',
-      sections: [
-        { heading: 'Slide 1: "Meet [Artist Name]"', bullets: [
-          'Photo, name, genre, location',
-          'One HOOK sentence: "The 19-year-old producer redefining bedroom pop"'
-        ]},
-        { heading: 'Slide 2: "Their Story"', bullets: [
-          'Where they\'re from, how they started, what drives them',
-          '3-4 bullet points from your Research Board',
-          'Must include at least one specific fact (date, number, place)'
-        ]},
-        { heading: 'Slide 3: "Their Sound"', bullets: [
-          'Your Sound Statement from Lesson 3',
-          'Instruments, genre, influences, mood',
-          '"If you like ___, you\'ll love ___"',
-          'Must reference a specific song by name'
-        ]},
-        { heading: 'Slide 4: "Why Sign Them?"', bullets: [
-          'Your 3 evidence-based reasons',
-          'Streaming numbers, press coverage, growth',
-          'CALL TO ACTION: "This artist deserves attention because ___"'
-        ]},
-        { heading: 'Slide 5: "Listen"', bullets: [
-          'Song title + album/EP name',
-          'Why you picked THIS specific song',
-          'Teacher will play the track during your live presentation'
-        ]}
-      ]
-    }
-  },
-  {
     id: 'build-press-kit', label: 'Build Press Kit', type: 'activity', duration: 25, hasTimer: true, trackProgress: true,
     presentationView: { type: 'press-kit-build-teacher' },
-    studentDirections: [
-      { text: 'Open your Press Kit — you have 5 slides to complete' },
-      { text: 'Slide 1: "Meet [Artist Name]" — photo, genre, location, one hook sentence' },
-      { text: 'Slide 2: "Their Story" — where they\'re from, how they started, include a specific fact' },
-      { text: 'Slide 3: "Their Sound" — your Sound Statement, instruments, mood, "If you like ___, you\'ll love ___"' },
-      { text: 'Slide 4: "Why Sign Them?" — 3 evidence-based reasons + call to action' },
-      { text: 'Slide 5: "Listen" — song title, why you picked it' },
-    ],
   },
   {
     id: 'peer-review', label: 'Peer Review', type: 'activity', duration: 5, hasTimer: true, trackProgress: true,
@@ -194,7 +152,6 @@ export const lessonStages = [
 export const getActivityForStage = (stage) => ({
   'join-code': 'waiting',
   'hook': 'summary',
-  'five-slide-structure': 'summary',
   'build-press-kit': 'mj-press-kit',
   'peer-review': 'mj-peer-feedback',
   'revise': 'mj-press-kit',

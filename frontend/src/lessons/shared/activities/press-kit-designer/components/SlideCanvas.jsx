@@ -184,7 +184,7 @@ function AudioClipWidget({ obj, scale, onUpdate }) {
   const startPct = (clipStart / trackDuration) * 100;
   const endPct = (clipEnd / trackDuration) * 100;
   const playPct = playing ? ((clipStart + currentSec) / trackDuration) * 100 : 0;
-  const handleSize = 10 * scale;
+  const handleSize = 14 * scale;
 
   return (
     <div
@@ -268,8 +268,9 @@ function AudioClipWidget({ obj, scale, onUpdate }) {
             style={{
               position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)',
               left: `${startPct}%`, width: handleSize, height: handleSize,
-              borderRadius: '50%', background: '#4285f4', border: '2px solid #fff',
+              borderRadius: '50%', background: '#4285f4', border: `${2 * scale}px solid #fff`,
               cursor: 'ew-resize', zIndex: 2, touchAction: 'none',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
             }}
           />
         )}
@@ -280,8 +281,9 @@ function AudioClipWidget({ obj, scale, onUpdate }) {
             style={{
               position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)',
               left: `${endPct}%`, width: handleSize, height: handleSize,
-              borderRadius: '50%', background: '#4285f4', border: '2px solid #fff',
+              borderRadius: '50%', background: '#4285f4', border: `${2 * scale}px solid #fff`,
               cursor: 'ew-resize', zIndex: 2, touchAction: 'none',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
             }}
           />
         )}
@@ -479,7 +481,7 @@ function FixedToolbar({
   return (
     <div
       ref={dropdownRef}
-      className="flex items-center gap-0.5 px-2 py-1.5 bg-[#1a1f2e] border-b border-white/10 rounded-t-lg relative z-[500]"
+      className="flex items-center gap-0.5 px-2 py-1 bg-[#1a1f2e] border-b border-white/10 rounded-t-lg relative z-[500]"
       onPointerDown={e => e.stopPropagation()}
     >
       {/* Undo / Redo */}
@@ -520,7 +522,7 @@ function FixedToolbar({
             {PALETTE_OPTIONS.map(p => (
               <button
                 key={p.id}
-                onClick={() => { onPaletteChange(p.id); setOpenMenu(null); }}
+                onClick={() => { onPaletteChange?.(p.id); setOpenMenu(null); }}
                 className={`w-full flex items-center gap-2 px-3 py-1.5 text-[12px] hover:bg-white/10 transition-colors ${
                   paletteId === p.id ? 'text-amber-400' : 'text-white/70'
                 }`}
@@ -702,6 +704,29 @@ function AudioTrimPanel({ obj, onUpdate }) {
   const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
   const clipDuration = clipEnd - clipStart;
 
+  // Parse "M:SS" input → seconds, returns null if invalid
+  const parseTimeInput = (str) => {
+    const match = str.trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return null;
+    return parseInt(match[1]) * 60 + parseInt(match[2]);
+  };
+
+  // Handle start time input
+  const handleStartChange = (e) => {
+    const val = parseTimeInput(e.target.value);
+    if (val === null) return;
+    const clamped = Math.max(0, Math.min(val, clipEnd - 1));
+    onUpdate(obj.id, { clipStart: clamped });
+  };
+
+  // Handle end time input
+  const handleEndChange = (e) => {
+    const val = parseTimeInput(e.target.value);
+    if (val === null) return;
+    const clamped = Math.max(clipStart + 1, Math.min(val, Math.floor(trackDuration)));
+    onUpdate(obj.id, { clipEnd: clamped });
+  };
+
   // Handle drag on the track bar
   const handleBarInteraction = (e, handle) => {
     e.preventDefault();
@@ -734,6 +759,11 @@ function AudioTrimPanel({ obj, onUpdate }) {
     window.addEventListener('pointercancel', onUp);
   };
 
+  // "Play full song" — reset clip to full track
+  const playFullTrack = () => {
+    onUpdate(obj.id, { clipStart: 0, clipEnd: Math.floor(trackDuration) });
+  };
+
   const startPct = (clipStart / trackDuration) * 100;
   const endPct = (clipEnd / trackDuration) * 100;
   const playPct = playing ? (playPos / trackDuration) * 100 : 0;
@@ -747,23 +777,57 @@ function AudioTrimPanel({ obj, onUpdate }) {
         <div
           role="button"
           onClick={togglePreview}
-          className="w-7 h-7 rounded-full bg-blue-500 hover:bg-blue-400 flex items-center justify-center cursor-pointer flex-shrink-0 transition-colors"
+          className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-400 flex items-center justify-center cursor-pointer flex-shrink-0 transition-colors"
         >
           {playing
-            ? <Pause size={12} color="#fff" fill="#fff" />
-            : <Play size={12} color="#fff" fill="#fff" style={{ marginLeft: 1 }} />
+            ? <Pause size={14} color="#fff" fill="#fff" />
+            : <Play size={14} color="#fff" fill="#fff" style={{ marginLeft: 1 }} />
           }
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-[11px] text-white/70 font-medium truncate">{obj.trackTitle}</div>
           <div className="text-[10px] text-white/40">
-            Clip: {fmtTime(clipStart)} – {fmtTime(clipEnd)} ({Math.round(clipDuration)}s)
+            {Math.round(clipDuration)}s clip · Full track: {fmtTime(trackDuration)}
           </div>
         </div>
       </div>
 
+      {/* Start / End time inputs */}
+      <div className="flex items-center gap-2 mb-2">
+        <div className="flex-1">
+          <label className="text-[9px] text-white/40 uppercase tracking-wider font-semibold block mb-0.5">Start</label>
+          <input
+            type="text"
+            defaultValue={fmtTime(clipStart)}
+            key={`start-${clipStart}`}
+            onBlur={handleStartChange}
+            onKeyDown={e => e.key === 'Enter' && e.target.blur()}
+            className="w-full bg-white/10 border border-white/10 rounded px-2 py-1.5 text-white text-xs text-center font-mono focus:outline-none focus:border-blue-400"
+          />
+        </div>
+        <span className="text-white/30 text-xs mt-3">–</span>
+        <div className="flex-1">
+          <label className="text-[9px] text-white/40 uppercase tracking-wider font-semibold block mb-0.5">End</label>
+          <input
+            type="text"
+            defaultValue={fmtTime(clipEnd)}
+            key={`end-${clipEnd}`}
+            onBlur={handleEndChange}
+            onKeyDown={e => e.key === 'Enter' && e.target.blur()}
+            className="w-full bg-white/10 border border-white/10 rounded px-2 py-1.5 text-white text-xs text-center font-mono focus:outline-none focus:border-blue-400"
+          />
+        </div>
+        <button
+          onClick={playFullTrack}
+          className="mt-3 px-2 py-1.5 bg-white/10 hover:bg-white/15 border border-white/10 rounded text-[10px] text-white/60 hover:text-white/80 font-semibold transition-colors whitespace-nowrap"
+          title="Use full track"
+        >
+          Full
+        </button>
+      </div>
+
       {/* Range slider track */}
-      <div className="relative" style={{ height: 28 }}>
+      <div className="relative" style={{ height: 32 }}>
         {/* Full track background */}
         <div
           ref={trackBarRef}
@@ -790,22 +854,22 @@ function AudioTrimPanel({ obj, onUpdate }) {
           />
         )}
 
-        {/* Start handle */}
+        {/* Start handle — larger for Chromebook touch */}
         <div
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 cursor-ew-resize"
-          style={{ left: `${startPct}%` }}
+          style={{ left: `${startPct}%`, touchAction: 'none' }}
           onPointerDown={e => handleBarInteraction(e, 'start')}
         >
-          <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow" />
+          <div className="w-5 h-5 rounded-full bg-blue-500 border-2 border-white shadow-lg" />
         </div>
 
-        {/* End handle */}
+        {/* End handle — larger for Chromebook touch */}
         <div
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 cursor-ew-resize"
-          style={{ left: `${endPct}%` }}
+          style={{ left: `${endPct}%`, touchAction: 'none' }}
           onPointerDown={e => handleBarInteraction(e, 'end')}
         >
-          <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow" />
+          <div className="w-5 h-5 rounded-full bg-blue-500 border-2 border-white shadow-lg" />
         </div>
       </div>
 
@@ -1310,6 +1374,12 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
 
   const addAudioFromTrack = (track) => {
     pushUndo(objects);
+    // Parse duration string like "3:30" → 210 seconds; default to full track
+    let fullDuration = 180;
+    if (track.duration) {
+      const parts = track.duration.split(':');
+      if (parts.length === 2) fullDuration = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    }
     const obj = {
       id: genId(),
       type: 'audio',
@@ -1319,7 +1389,7 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
       audioUrl: track.audioUrl,
       trackTitle: track.title,
       clipStart: 0,
-      clipEnd: 15,
+      clipEnd: fullDuration,
       zIndex: objects.length + 1,
     };
     onChange([...objects, obj]);

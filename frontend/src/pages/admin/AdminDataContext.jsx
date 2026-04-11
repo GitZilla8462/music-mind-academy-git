@@ -57,8 +57,6 @@ export const AdminDataProvider = ({ children }) => {
   const [dripResult, setDripResult] = useState(null);
   const [isBackfilling, setIsBackfilling] = useState(false);
   const [backfillResult, setBackfillResult] = useState(null);
-  const [hubspotSyncing, setHubspotSyncing] = useState(false);
-  const [hubspotSyncResult, setHubspotSyncResult] = useState(null);
 
   const database = getDatabase();
   const isAdmin = user && ADMIN_EMAILS.includes(user.email?.toLowerCase());
@@ -278,13 +276,6 @@ export const AdminDataProvider = ({ children }) => {
         school: app.schoolName, approvedAt: now, source: 'pilot-application'
       });
       await sendTeacherEmail(app.personalEmail || schoolEmail, app.firstName, 'drip-1', { name: app.firstName });
-
-      try {
-        await fetch('/api/hubspot/update-status', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: schoolEmail, displayName: `${app.firstName} ${app.lastName}`, status: 'approved' })
-        });
-      } catch (hsErr) { console.error('HubSpot sync failed:', hsErr); }
 
       setSuccess(`Approved ${app.firstName} ${app.lastName} — welcome email sent`);
     } catch (err) {
@@ -645,57 +636,6 @@ export const AdminDataProvider = ({ children }) => {
     } finally { setIsBackfilling(false); }
   };
 
-  const syncToHubSpot = async () => {
-    const teacherLessonData = {};
-    pilotSessions.forEach(session => {
-      const email = session.teacherEmail;
-      if (!email) return;
-      let lessonNum = null;
-      if (session.lessonRoute?.includes('lesson1')) lessonNum = 1;
-      else if (session.lessonRoute?.includes('lesson2')) lessonNum = 2;
-      else if (session.lessonRoute?.includes('lesson3')) lessonNum = 3;
-      else if (session.lessonRoute?.includes('lesson4')) lessonNum = 4;
-      else if (session.lessonRoute?.includes('lesson5')) lessonNum = 5;
-      if (!lessonNum) return;
-
-      const stageTimes = session.stageTimes || {};
-      const activeTimeMs = Object.values(stageTimes).reduce((sum, t) => sum + (t || 0), 0);
-      const activeTimeMins = Math.round(activeTimeMs / 60000);
-      const stageCount = Object.keys(stageTimes).length;
-      const isReal = activeTimeMins >= 10 && stageCount >= 3;
-
-      if (!teacherLessonData[email]) teacherLessonData[email] = { email, highestLesson: 0 };
-      if (isReal && lessonNum > teacherLessonData[email].highestLesson) {
-        teacherLessonData[email].highestLesson = lessonNum;
-      }
-    });
-
-    const teacherPayload = Object.values(teacherLessonData).map(t => ({
-      email: t.email, displayName: '', lessonReached: t.highestLesson
-    }));
-
-    const sessionEmails = new Set(Object.keys(teacherLessonData).map(e => e.toLowerCase()));
-    registeredUsers.forEach(u => {
-      if (u.email && !sessionEmails.has(u.email.toLowerCase())) {
-        teacherPayload.push({ email: u.email, displayName: u.displayName || '', lessonReached: 0 });
-      }
-    });
-
-    if (!confirm(`Sync ${teacherPayload.length} teachers to HubSpot?`)) return;
-    setHubspotSyncing(true);
-    setHubspotSyncResult(null);
-    try {
-      const res = await fetch('/api/hubspot/batch-sync', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teachers: teacherPayload })
-      });
-      const result = await res.json();
-      setHubspotSyncResult(result);
-      setSuccess(`HubSpot sync: ${result.updated || 0} updated, ${result.created || 0} created, ${result.failed || 0} failed`);
-    } catch (err) {
-      setError('HubSpot sync failed: ' + err.message);
-    } finally { setHubspotSyncing(false); }
-  };
 
   const exportToExcel = () => {
     const workbook = XLSX.utils.book_new();
@@ -1008,7 +948,6 @@ export const AdminDataProvider = ({ children }) => {
     teacherOutreach, emailsSent, emailUnsubscribes, applications,
     approvingId, dripProcessing, dripResult,
     isBackfilling, backfillResult, setBackfillResult,
-    hubspotSyncing, hubspotSyncResult,
     nameFixing, nameFixResult, setNameFixResult,
     // Actions
     handleApproveApplication, handleRejectApplication,
@@ -1016,7 +955,7 @@ export const AdminDataProvider = ({ children }) => {
     handleAddEmail, handleBatchAdd,
     handleRemoveEmail, handleBulkDelete, handleBulkDeleteUsers, removeTeacherCompletely,
     mergeTeacherEntries, updatePersonalEmail,
-    backfillStudentCounts, syncToHubSpot, exportToExcel, fixTeacherNames,
+    backfillStudentCounts, exportToExcel, fixTeacherNames,
     // Utilities
     formatDate, formatDuration, getLessonName,
     SITE_TYPES,

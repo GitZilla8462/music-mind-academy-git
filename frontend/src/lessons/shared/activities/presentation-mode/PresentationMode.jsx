@@ -109,10 +109,10 @@ const PresentationMode = ({ onComplete, viewMode = false, isSessionMode = false 
 
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key === 'ArrowRight' || e.key === ' ') {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
         e.preventDefault();
         goNext();
-      } else if (e.key === 'ArrowLeft') {
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         e.preventDefault();
         goPrev();
       } else if (e.key === 'Escape') {

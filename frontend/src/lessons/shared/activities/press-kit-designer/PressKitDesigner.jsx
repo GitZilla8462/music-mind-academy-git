@@ -6,9 +6,8 @@
 // Bonus tracks: after completing all 5 main slides, students can add bonus track slides.
 // Optimized for 1366x768 Chromebook resolution.
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { RotateCcw } from 'lucide-react';
-import DirectionsModal from '../../components/DirectionsModal';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { RotateCcw, X } from 'lucide-react';
 import { getArtistById } from '../artist-discovery/artistDatabase';
 import { AudioProvider, useGlobalAudio } from '../artist-discovery/AudioContext';
 import ArtistDiscovery from '../artist-discovery/ArtistDiscovery';
@@ -20,7 +19,7 @@ import ImagePickerModal from './components/ImagePickerModal';
 import { loadPressKit, savePressKit, getOrCreatePressKit } from './pressKitStorage';
 import { getSelectedArtistId, autoPopulateFields } from './pressKitAutoPopulate';
 import { generateTemplateObjects, generateBonusTrackObjects } from './slideTemplates';
-import { SLIDE_CONFIGS, isSlideComplete } from './slideConfigs';
+import { SLIDE_CONFIGS } from './slideConfigs';
 
 const AUTOSAVE_INTERVAL = 30000;
 const BONUS_STORAGE_KEY = 'mma-press-kit-bonus-tracks';
@@ -49,23 +48,39 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
 
   const audio = useGlobalAudio();
 
-  // Directions modal
-  const directionsKey = 'mma-press-kit-directions-seen';
-  const [showDirections, setShowDirections] = useState(() => !localStorage.getItem(directionsKey));
-  const closeDirections = () => {
-    setShowDirections(false);
-    localStorage.setItem(directionsKey, 'true');
-  };
+  // Responsive canvas max-width: on short viewports, shrink canvas so 16:9 ratio fits
+  const [viewportH, setViewportH] = useState(typeof window !== 'undefined' ? window.innerHeight : 800);
+  useEffect(() => {
+    const onResize = () => setViewportH(window.innerHeight);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  // Budget: top bar ~38px, toolbar ~36px, padding ~20px, reset button ~24px = ~118px overhead
+  const canvasMaxWidth = useMemo(() => {
+    const available = viewportH - 118;
+    const widthFromHeight = available * (960 / 540); // 16:9 inverse
+    return Math.min(720, Math.max(400, Math.round(widthFromHeight)));
+  }, [viewportH]);
+
+  // Directions modal — always shows on mount
+  const [showDirections, setShowDirections] = useState(true);
 
   useEffect(() => { pressKitRef.current = pressKit; }, [pressKit]);
 
-  // Check if all 5 main slides are complete
-  const allMainSlidesComplete = pressKit
-    ? SLIDE_CONFIGS.every((cfg, i) => {
-        const slide = pressKit.slides[i];
-        return slide && isSlideComplete(cfg.number, slide.fields || {});
-      })
-    : false;
+  // Manual slide completion tracking (like ScoutingReport)
+  const completionKey = 'mma-press-kit-completed';
+  const [slidesDone, setSlidesDone] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(completionKey)) || {}; } catch { return {}; }
+  });
+  const toggleSlideDone = useCallback((slideNum) => {
+    setSlidesDone(prev => {
+      const next = { ...prev, [slideNum]: !prev[slideNum] };
+      localStorage.setItem(completionKey, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+  const slidesCompleted = SLIDE_CONFIGS.filter((_, i) => slidesDone[i + 1]).length;
+  const allMainSlidesComplete = slidesCompleted === SLIDE_CONFIGS.length;
 
   // Is the active slide a bonus track?
   const isBonusSlide = activeSlide > 5;
@@ -82,20 +97,12 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
       kit = getOrCreatePressKit(artistId);
     }
 
-    // Auto-populate fields from artist data if available, then generate template objects
-    const autoFields = artistId ? autoPopulateFields(artistId, kit.slides) : kit.slides.map(() => ({}));
+    // Generate template objects with prompt placeholders — students write their own content
     kit.slides = kit.slides.map((slide, i) => {
-      const auto = autoFields[i];
-      const merged = { ...auto };
-      Object.keys(slide.fields || {}).forEach(key => {
-        if (slide.customOverrides?.[key] || (slide.fields[key] && slide.fields[key] !== '')) {
-          merged[key] = slide.fields[key];
-        }
-      });
-      const updated = { ...slide, fields: merged };
+      const updated = { ...slide };
       if (!updated.objects || updated.objects.length === 0) {
         updated.objects = generateTemplateObjects(
-          i + 1, merged, slide.image?.url || artistData?.imageUrl || null
+          i + 1, slide.fields || {}, slide.image?.url || artistData?.imageUrl || null
         );
       }
       return updated;
@@ -248,19 +255,6 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
 
   return (
     <div className="h-screen flex flex-col" style={{ background: '#202530' }}>
-      <DirectionsModal
-        title="Build Your Press Kit"
-        isOpen={showDirections}
-        onClose={closeDirections}
-        steps={[
-          { text: 'Each slide has an example layout filled in for you' },
-          { text: 'Click any text box to edit — delete the example and type your own words' },
-          { text: 'Use the toolbar to add images, change fonts, and style your slides' },
-          { text: 'Switch to "Explore Artists" to browse artists and listen to tracks' },
-          { text: 'Your work saves automatically — click Save anytime to be sure' },
-        ]}
-      />
-
       {/* ── Top Bar (tabs + design controls) ── */}
       <PressKitTopBar
         saveStatus={saveStatus}
@@ -270,6 +264,10 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
         onTabChange={setActiveTab}
         bonusCount={bonusTracks.length}
         allMainSlidesComplete={allMainSlidesComplete}
+        onShowDirections={() => setShowDirections(true)}
+        slidesCompleted={slidesCompleted}
+        totalSlides={SLIDE_CONFIGS.length}
+        onAddBonusTrack={allMainSlidesComplete && !viewMode ? addBonusTrack : null}
       />
 
       {/* ── Main area ── */}
@@ -277,7 +275,7 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
 
         {/* ── Left: Slide thumbnails (only in press-kit view) ── */}
         {activeTab === 'press-kit' && (
-          <div className="flex-shrink-0 border-r border-white/[0.06] overflow-y-auto" style={{ background: '#181c24' }}>
+          <div className="flex-shrink-0 border-r border-white/[0.06] overflow-y-auto min-h-0 h-full" style={{ background: '#181c24' }}>
             <SlideTabBar
               activeSlide={activeSlide}
               slides={pressKit.slides}
@@ -286,21 +284,58 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
               availableSlides={availableSlides}
               bonusTracks={bonusTracks}
               onAddBonusTrack={allMainSlidesComplete && !viewMode ? addBonusTrack : null}
+              slidesDone={slidesDone}
+              onToggleSlideDone={toggleSlideDone}
+              readOnly={viewMode}
             />
           </div>
         )}
 
         {/* ── Center ── */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          {/* Directions overlay — absolute within center area only */}
+          {showDirections && (
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100]">
+              <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden mx-4">
+                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-3 flex items-center justify-between">
+                  <h2 className="text-lg font-black text-white">Build Your Press Kit</h2>
+                  <button onClick={() => setShowDirections(false)} className="text-white/70 hover:text-white">
+                    <X size={18} />
+                  </button>
+                </div>
+                <div className="px-5 py-3 space-y-2.5">
+                  {[
+                    'You have 5 slides — click any text to replace it with your own words',
+                    'Each slide tells you what to write in the placeholder text',
+                    'Your work saves automatically',
+                  ].map((step, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <span className="text-lg font-black text-purple-600 w-6 text-center flex-shrink-0">{i + 1}</span>
+                      <p className="text-sm sm:text-base text-gray-700">{step}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="px-5 pb-4">
+                  <button
+                    onClick={() => setShowDirections(false)}
+                    className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-base font-bold rounded-xl transition-colors"
+                  >
+                    Got it!
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Press Kit canvas */}
           <div
-            className="flex-1 flex flex-col items-center justify-center p-2 overflow-y-auto"
+            className="flex-1 flex flex-col items-center justify-center p-1 overflow-y-auto"
             style={{
               background: '#202530',
               display: activeTab === 'press-kit' ? 'flex' : 'none',
             }}
           >
-            <div className="w-full" style={{ maxWidth: 720 }}>
+            <div className="w-full" style={{ maxWidth: canvasMaxWidth }}>
               <SlideCanvas
                 objects={currentSlide.objects || []}
                 paletteId={currentSlide.palette}

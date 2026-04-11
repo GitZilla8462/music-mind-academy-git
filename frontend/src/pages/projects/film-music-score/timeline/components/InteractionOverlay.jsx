@@ -66,7 +66,7 @@ const InteractionOverlay = ({
   setHoveredTrack
 }) => {
   // UNIFIED CURSOR: Get global cursor state from context
-  const { isChromebook, isDraggingFromLibrary, isCustomCursorEnabled, cursorKey } = useCursor();
+  const { isChromebook, isDraggingFromLibrary, isCustomCursorEnabled, cursorKey, registerDropHandler, registerHoverHandler } = useCursor();
 
   // CHROMEBOOK FIX: Use ref instead of state for cursor to prevent flicker on re-renders
   // State changes cause re-renders which briefly reset cursor to default
@@ -950,6 +950,46 @@ const InteractionOverlay = ({
     
     setHoveredTrack?.(null);
   }, [getMousePosition, getTrackIndexFromY, pixelToTime, onLoopDrop, setHoveredTrack]);
+
+  // ============================================================================
+  // POINTER-DRAG FROM LIBRARY (iPad/touch support)
+  // Registers handlers so LoopLibrary can drop loops via pointer events
+  // ============================================================================
+
+  useEffect(() => {
+    // Drop handler: receives loop data + pointer position, places on timeline
+    registerDropHandler((loopData, clientX, clientY) => {
+      if (!overlayRef.current) return;
+      const rect = overlayRef.current.getBoundingClientRect();
+      const x = clientX - rect.left + (timelineScrollRef?.current?.scrollLeft || 0);
+      const y = clientY - rect.top;
+      const trackIndex = getTrackIndexFromY(y);
+      const startTime = pixelToTime(x);
+      if (trackIndex >= 0 && trackIndex < TIMELINE_CONSTANTS.NUM_TRACKS && startTime >= 0) {
+        onLoopDrop?.(loopData, trackIndex, startTime);
+      }
+      setHoveredTrack?.(null);
+    });
+
+    // Hover handler: shows blue track highlight during drag
+    registerHoverHandler((clientX, clientY) => {
+      if (!overlayRef.current) return;
+      const rect = overlayRef.current.getBoundingClientRect();
+      // Check if pointer is within the overlay bounds
+      if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
+        setHoveredTrack?.(null);
+        return;
+      }
+      const y = clientY - rect.top;
+      const trackIndex = getTrackIndexFromY(y);
+      setHoveredTrack?.(trackIndex >= 0 ? trackIndex : null);
+    });
+
+    return () => {
+      registerDropHandler(null);
+      registerHoverHandler(null);
+    };
+  }, [registerDropHandler, registerHoverHandler, getTrackIndexFromY, pixelToTime, onLoopDrop, setHoveredTrack, timelineScrollRef]);
 
   // ============================================================================
   // RENDER

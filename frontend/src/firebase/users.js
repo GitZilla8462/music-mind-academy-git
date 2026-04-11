@@ -41,28 +41,7 @@ export const getOrCreateUser = async (googleUser) => {
     await set(userRef, userData);
     console.log('✅ New user created:', googleUser.email);
 
-    // Notify HubSpot that this teacher registered (fire-and-forget)
-    notifyHubSpotRegistered(googleUser.email, googleUser.displayName)
-      .catch(err => console.warn('HubSpot sync skipped:', err.message));
-
     return userData;
-  }
-};
-
-/**
- * Notify the backend to update HubSpot contact status to "registered".
- * Non-blocking — failures are logged but never break the login flow.
- */
-const notifyHubSpotRegistered = async (email, displayName) => {
-  try {
-    await fetch('/api/hubspot/update-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, displayName })
-    });
-    console.log('✅ HubSpot notified:', email);
-  } catch (err) {
-    console.warn('⚠️ HubSpot notification failed (non-critical):', err.message);
   }
 };
 

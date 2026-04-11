@@ -167,7 +167,7 @@ export const logSessionEnded = async (sessionCode, lastStage, studentsJoined, cl
 
   console.log(`📊 Logged session ended: ${sessionCode}, duration: ${Math.round(duration / 60000)} min`);
 
-  // Check if this was a real class and sync lesson progress to HubSpot
+  // Check if this was a real class
   const stageTimes = sessionData.stageTimes || {};
   const activeTimeMs = Object.values(stageTimes).reduce((sum, t) => sum + (t || 0), 0);
   const activeTimeMins = Math.round(activeTimeMs / 60000);
@@ -188,18 +188,6 @@ export const logSessionEnded = async (sessionCode, lastStage, studentsJoined, cl
   const unitNames = { 1: 'Film Music', 2: 'Listening Lab' };
   const studentCount = sessionData.studentsJoined || 0;
 
-  if (isRealClass && sessionData.teacherEmail && lessonNum) {
-    // Fire-and-forget HubSpot update
-    fetch('/api/hubspot/update-lesson', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: sessionData.teacherEmail,
-        lessonReached: lessonNum,
-        unit: unitNum
-      })
-    }).catch(err => console.warn('HubSpot lesson sync skipped:', err.message));
-  }
 
   // Auto-survey emails disabled — re-enable when ready to collect feedback
   // if (sessionData.teacherEmail && studentCount >= 5) {

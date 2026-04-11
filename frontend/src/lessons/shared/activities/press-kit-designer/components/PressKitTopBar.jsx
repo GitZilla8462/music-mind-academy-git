@@ -4,7 +4,7 @@
 // Matches ScoutingReport tab style for consistency across lessons.
 
 import React from 'react';
-import { Save, Check, Rocket, Search, BookOpen } from 'lucide-react';
+import { Save, Check, Rocket, Search, BookOpen, HelpCircle, Plus } from 'lucide-react';
 
 const PressKitTopBar = ({
   saveStatus,
@@ -14,9 +14,13 @@ const PressKitTopBar = ({
   onTabChange,
   bonusCount = 0,
   allMainSlidesComplete = false,
+  onShowDirections,
+  slidesCompleted = 0,
+  totalSlides = 5,
+  onAddBonusTrack,
 }) => {
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 border-b border-white/[0.08]" style={{ background: '#0d1520' }}>
+    <div className="flex-shrink-0 flex items-center gap-2 px-3 py-1 border-b border-white/[0.08]" style={{ background: '#0d1520' }}>
       {/* App branding */}
       <div className="flex items-center gap-1.5 flex-shrink-0 mr-1">
         <Rocket size={16} className="text-amber-400" />
@@ -53,17 +57,26 @@ const PressKitTopBar = ({
 
       {/* Progress text */}
       {allMainSlidesComplete ? (
-        <span className="text-xs font-bold text-emerald-400 flex-shrink-0">
-          Press kit complete!{bonusCount > 0
-            ? ` ${bonusCount} bonus track${bonusCount !== 1 ? 's' : ''} added`
-            : ' Add bonus tracks until time runs out!'
-          }
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <span className="text-xs font-bold text-emerald-400">
+            Press Kit Complete — keep adding bonus tracks until time is up!
+            {bonusCount > 0 && ` (${bonusCount} added)`}
+          </span>
+          {onAddBonusTrack && (
+            <button
+              onClick={onAddBonusTrack}
+              className="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition-colors"
+              title="Add bonus track"
+            >
+              <Plus size={14} />
+            </button>
+          )}
+        </div>
+      ) : (
+        <span className={`text-xs font-bold flex-shrink-0 ${slidesCompleted === 0 ? 'text-red-400' : 'text-amber-400'}`}>
+          {slidesCompleted}/{totalSlides} Slides Complete
         </span>
-      ) : artistName ? (
-        <span className="text-[11px] text-white/30 flex-shrink-0">
-          Representing: <span className="text-white/50 font-medium">{artistName}</span>
-        </span>
-      ) : null}
+      )}
 
       {/* Spacer */}
       <div className="flex-1" />
@@ -73,6 +86,16 @@ const PressKitTopBar = ({
         {saveStatus === 'saving' && <><Save size={10} className="animate-pulse" /> Saving...</>}
         {saveStatus === 'saved' && <><Check size={10} className="text-green-400" /> Saved</>}
       </span>
+
+      {/* Directions button */}
+      {onShowDirections && (
+        <button
+          onClick={onShowDirections}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-white/70 hover:bg-white/15 hover:text-white transition-colors min-h-[30px] flex-shrink-0"
+        >
+          <HelpCircle size={13} /> Directions
+        </button>
+      )}
 
       {/* Save button */}
       <button

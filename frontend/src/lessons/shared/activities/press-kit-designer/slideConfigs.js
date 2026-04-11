@@ -48,7 +48,7 @@ const SLIDE_CONFIGS = [
     fields: [
       { key: 'reason1', label: 'Reason 1', type: 'textarea', hint: 'What musical element (instrumentation, rhythm, vocals) makes this artist stand out?', placeholder: 'One thing that makes their sound unique is...', maxLength: 250 },
       { key: 'reason2', label: 'Reason 2', type: 'textarea', hint: 'What evidence shows this artist is growing? Use a number, quote, or fact.', placeholder: 'You can tell they\'re on the rise because...', maxLength: 250 },
-      { key: 'reason3', label: 'Reason 3', type: 'textarea', hint: 'How does this artist connect to what\'s happening in music right now?', placeholder: 'This artist fits into a bigger trend because...', maxLength: 250 },
+      { key: 'reason3', label: 'Reason 3', type: 'textarea', hint: 'Why do listeners keep coming back to this artist?', placeholder: 'People connect with this artist because...', maxLength: 250 },
     ],
     requiredFields: ['reason1', 'reason2', 'reason3'],
   },

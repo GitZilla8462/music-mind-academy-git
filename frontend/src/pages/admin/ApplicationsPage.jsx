@@ -358,7 +358,9 @@ const ApplicationsPage = () => {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredApps.map((app) => {
-                const isPending = app.status === 'pending' || app.status === 'imported';
+                const st = (app.status || '').toLowerCase();
+                const isPending = st === 'pending' || st === 'imported';
+                const isApproved = st === 'approved';
                 const expanded = expandedApplications[app.id];
                 return (
                   <React.Fragment key={app.id}>
@@ -389,13 +391,15 @@ const ApplicationsPage = () => {
                         {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--'}
                       </td>
                       <td className="px-2 py-2 text-center" onClick={(e) => e.stopPropagation()}>
-                        {isPending && (
+                        {(isPending || isApproved) && (
                           <button
                             onClick={() => handleApproveApplication(app)}
                             disabled={approvingId === app.id}
-                            className="px-2 py-1 bg-green-500 text-white rounded text-xs font-medium hover:bg-green-600 disabled:opacity-50"
+                            className={`px-2 py-1 text-white rounded text-xs font-medium disabled:opacity-50 ${
+                              isApproved ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'
+                            }`}
                           >
-                            {approvingId === app.id ? '...' : 'OK'}
+                            {approvingId === app.id ? '...' : isApproved ? 'Re' : 'OK'}
                           </button>
                         )}
                       </td>
@@ -440,8 +444,10 @@ const ApplicationsPage = () => {
         /* ============ CARD VIEW ============ */
         <div className="divide-y divide-gray-100">
           {filteredApps.map((app) => {
-            const isPending = app.status === 'pending';
-            const isImported = app.status === 'imported';
+            const cst = (app.status || '').toLowerCase();
+            const isPending = cst === 'pending';
+            const isImported = cst === 'imported';
+            const isApprovedCard = cst === 'approved';
             const expanded = expandedApplications[app.id];
 
             return (
@@ -474,14 +480,16 @@ const ApplicationsPage = () => {
                     >
                       {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                     </button>
-                    {(isPending || isImported) && (
+                    {(isPending || isImported || isApprovedCard) && (
                       <>
                         <button
                           onClick={() => handleApproveApplication(app)}
                           disabled={approvingId === app.id}
-                          className="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 disabled:opacity-50"
+                          className={`px-4 py-2 text-white rounded-lg text-sm font-medium disabled:opacity-50 ${
+                            isApprovedCard ? 'bg-blue-500 hover:bg-blue-600' : 'bg-green-500 hover:bg-green-600'
+                          }`}
                         >
-                          {approvingId === app.id ? 'Approving...' : 'Approve'}
+                          {approvingId === app.id ? 'Approving...' : isApprovedCard ? 'Re-approve' : 'Approve'}
                         </button>
                         <button
                           onClick={() => handleRejectApplication(app)}

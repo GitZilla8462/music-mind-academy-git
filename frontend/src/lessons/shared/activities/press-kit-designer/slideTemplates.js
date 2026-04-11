@@ -48,27 +48,29 @@ export function generateSlide1Objects(fields = {}, imageUrl = null) {
   const objects = [];
 
   objects.push(text(60, 100,
-    fields.artistName || 'Artist Name',
-    56, { bold: true }
+    fields.artistName || 'Artist Name Here',
+    56, { bold: true, width: 800 }
   ));
 
   objects.push(text(60, 185,
-    fields.genre || 'Genre / Subgenre',
+    fields.genre || 'Insert Music Genre Here',
     18, { color: '#fbbf24', bold: true }
   ));
 
   objects.push(text(60, 225,
-    fields.location || 'City, State or Country',
+    fields.location || 'Insert City, State Here',
     16, { color: '#ffffffaa', italic: true }
   ));
 
   objects.push(text(60, 310,
-    fields.hookLine || 'This artist stands out because...',
+    fields.hookLine || 'Write two sentences that tell an interesting fact about your artist.',
     20, { color: '#ffffffcc' }
   ));
 
   if (imageUrl) {
     objects.push(img(600, 70, 280, 280, imageUrl));
+  } else {
+    objects.push(text(620, 180, 'Insert Image Here', 16, { color: '#ffffff33', italic: true, width: 240 }));
   }
 
   return objects;
@@ -87,7 +89,7 @@ export function generateSlide2Objects(fields = {}) {
   ));
 
   objects.push(text(80, 120,
-    fields.soundStatement || 'Their music sounds like... because...',
+    fields.soundStatement || 'Describe what this artist\'s music sounds like in 2-3 sentences.',
     22, { italic: true, color: '#ffffffdd' }
   ));
 
@@ -129,9 +131,9 @@ export function generateSlide3Objects(fields = {}) {
   ));
 
   const reasons = [
-    { num: '1.', text: fields.reason1 || 'One thing that makes their sound unique is...' },
-    { num: '2.', text: fields.reason2 || 'You can tell they\'re on the rise because...' },
-    { num: '3.', text: fields.reason3 || 'This artist fits into a bigger trend because...' },
+    { num: '1.', text: fields.reason1 || 'What makes their sound different from other artists?' },
+    { num: '2.', text: fields.reason2 || 'What evidence shows they are growing? Use a number or fact.' },
+    { num: '3.', text: fields.reason3 || 'Why do listeners keep coming back to this artist?' },
   ];
 
   reasons.forEach((r, i) => {
@@ -155,19 +157,21 @@ export function generateSlide4Objects(fields = {}, imageUrl = null) {
   ));
 
   objects.push(text(CANVAS_W / 2 - 150, 120,
-    fields.trackTitle || 'Song Title',
+    fields.trackTitle || 'Song Title Here',
     42, { bold: true }
   ));
 
   objects.push(text(CANVAS_W / 2 - 100, 195,
-    fields.albumTitle || 'Album or EP Title',
+    fields.albumTitle || 'Album or EP Title Here',
     18, { color: '#ffffff88' }
   ));
 
   objects.push(text(80, 300,
-    fields.whatToListenFor || 'Listen for the part where... because it shows...',
+    fields.whatToListenFor || 'What should the audience listen for in this song? Be specific.',
     18, { color: '#ffffffcc', italic: true }
   ));
+
+  objects.push(text(CANVAS_W / 2 - 80, 420, 'Insert Audio Here', 16, { color: '#ffffff33', italic: true, width: 200 }));
 
   if (imageUrl) {
     objects.push(img(640, 80, 240, 240, imageUrl));
@@ -189,22 +193,24 @@ export function generateSlide5Objects(fields = {}, imageUrl = null) {
   ));
 
   objects.push(text(80, 150,
-    fields.closingPitch || 'This artist deserves to be signed because...',
+    fields.closingPitch || 'Why does this artist deserve to be signed? Write 2-3 sentences.',
     26, { color: '#ffffffee' }
   ));
 
   objects.push(text(CANVAS_W / 2 - 180, 310,
-    fields.callToAction || 'Don\'t miss your chance to...',
+    fields.callToAction || 'What do you want the audience to do? (e.g. Follow them, stream the album)',
     22, { bold: true, color: '#fbbf24' }
   ));
 
   objects.push(text(80, 430,
-    fields.memorableFact || 'One thing most people don\'t know is...',
+    fields.memorableFact || 'What is one surprising fact most people don\'t know?',
     16, { italic: true, color: '#ffffff77' }
   ));
 
   if (imageUrl) {
     objects.push(img(620, 60, 260, 260, imageUrl));
+  } else {
+    objects.push(text(640, 160, 'Insert Image Here', 16, { color: '#ffffff33', italic: true, width: 220 }));
   }
 
   return objects;

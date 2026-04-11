@@ -747,30 +747,30 @@ const PresentationContent = ({
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 p-6 lg:p-16">
         {/* Welcome Header */}
-        <h1 className="text-5xl lg:text-8xl font-black text-gray-900 mb-6 lg:mb-12">Welcome to Music Class!</h1>
+        <h1 className="text-4xl lg:text-6xl font-black text-gray-900 mb-4 lg:mb-8">Welcome to Music Class!</h1>
 
         {/* Steps + Mock Login Side by Side */}
-        <div className="flex items-center gap-8 lg:gap-20 max-w-6xl w-full">
+        <div className="flex items-center gap-6 lg:gap-14 max-w-5xl w-full">
           {/* Left: Steps */}
-          <div className="flex-1 space-y-4 lg:space-y-7">
-            <div className="flex items-center gap-4 lg:gap-5">
-              <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl lg:text-3xl flex-shrink-0">1</div>
-              <div className="text-2xl lg:text-4xl font-bold text-gray-800">Get your login card<br/><span className="text-xl lg:text-3xl text-gray-500">or login info from your teacher</span></div>
+          <div className="flex-1 space-y-3 lg:space-y-5">
+            <div className="flex items-center gap-3 lg:gap-4">
+              <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg lg:text-2xl flex-shrink-0">1</div>
+              <div className="text-xl lg:text-3xl font-bold text-gray-800">Get your login card<br/><span className="text-lg lg:text-2xl text-gray-500">or login info from your teacher</span></div>
             </div>
 
-            <div className="flex items-center gap-4 lg:gap-5">
-              <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl lg:text-3xl flex-shrink-0">2</div>
-              <div className="text-2xl lg:text-4xl font-bold text-gray-800">Go to <span className="text-blue-600">{joinUrl}</span></div>
+            <div className="flex items-center gap-3 lg:gap-4">
+              <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg lg:text-2xl flex-shrink-0">2</div>
+              <div className="text-xl lg:text-3xl font-bold text-gray-800">Go to <span className="text-blue-600">{joinUrl}</span></div>
             </div>
 
-            <div className="flex items-center gap-4 lg:gap-5">
-              <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xl lg:text-3xl flex-shrink-0">3</div>
-              <div className="text-2xl lg:text-4xl font-bold text-gray-800">Enter your username & password</div>
+            <div className="flex items-center gap-3 lg:gap-4">
+              <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg lg:text-2xl flex-shrink-0">3</div>
+              <div className="text-xl lg:text-3xl font-bold text-gray-800">Enter your username & password</div>
             </div>
 
-            <div className="flex items-center gap-4 lg:gap-5 mt-2 lg:mt-3">
-              <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xl lg:text-3xl flex-shrink-0">!</div>
-              <div className="text-xl lg:text-3xl font-semibold text-gray-600">When Chrome asks "Save password?" — click Save</div>
+            <div className="flex items-center gap-3 lg:gap-4 mt-1 lg:mt-2">
+              <div className="w-10 h-10 lg:w-14 lg:h-14 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-lg lg:text-2xl flex-shrink-0">!</div>
+              <div className="text-lg lg:text-2xl font-semibold text-gray-600">When Chrome asks "Save password?" — click Save</div>
             </div>
           </div>
 
@@ -795,8 +795,8 @@ const PresentationContent = ({
         </div>
 
         {/* Student Count */}
-        <div className="flex items-center gap-3 text-xl lg:text-2xl text-gray-500 mt-6 lg:mt-10">
-          <Users size={26} />
+        <div className="flex items-center gap-2 text-lg lg:text-xl text-gray-500 mt-4 lg:mt-6">
+          <Users size={22} />
           <span>
             {studentCount === 0
               ? 'Waiting for students...'
@@ -1792,13 +1792,6 @@ const PresentationContent = ({
         <div className="absolute inset-0 overflow-hidden">
           <style>{`
             .teacher-embed-activity .h-screen { height: 100% !important; }
-            .teacher-embed-activity button, .teacher-embed-activity a { font-size: 1rem !important; }
-            .teacher-embed-activity .text-xs { font-size: 0.95rem !important; }
-            .teacher-embed-activity .text-sm { font-size: 1.1rem !important; }
-            .teacher-embed-activity .py-2 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
-            .teacher-embed-activity .px-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
-            .teacher-embed-activity select { font-size: 1.1rem !important; min-height: 48px !important; }
-            .teacher-embed-activity h2 { font-size: 1.75rem !important; }
           `}</style>
           <div className="h-full teacher-embed-activity">
             <IndependentListeningActivity
@@ -1818,11 +1811,6 @@ const PresentationContent = ({
         <div className="absolute inset-0 overflow-hidden">
           <style>{`
             .teacher-embed-activity .h-screen { height: 100% !important; }
-            .teacher-embed-activity button, .teacher-embed-activity a { font-size: 1rem !important; }
-            .teacher-embed-activity .text-xs { font-size: 0.95rem !important; }
-            .teacher-embed-activity .text-sm { font-size: 1.1rem !important; }
-            .teacher-embed-activity select { font-size: 1.1rem !important; min-height: 48px !important; }
-            .teacher-embed-activity h2 { font-size: 1.75rem !important; }
           `}</style>
           <div className="h-full teacher-embed-activity relative">
             <ActivityRenderer
@@ -1843,11 +1831,6 @@ const PresentationContent = ({
         <div className="absolute inset-0 overflow-hidden">
           <style>{`
             .teacher-embed-activity .h-screen { height: 100% !important; }
-            .teacher-embed-activity button, .teacher-embed-activity a { font-size: 1rem !important; }
-            .teacher-embed-activity .text-xs { font-size: 0.95rem !important; }
-            .teacher-embed-activity .text-sm { font-size: 1.1rem !important; }
-            .teacher-embed-activity select { font-size: 1.1rem !important; min-height: 48px !important; }
-            .teacher-embed-activity h2 { font-size: 1.75rem !important; }
           `}</style>
           <div className="h-full teacher-embed-activity">
             <ClaimArtistReport
@@ -1861,24 +1844,18 @@ const PresentationContent = ({
       );
     }
 
-    // Share Out (Music Journalist Lesson 3) — scouting report underneath + share overlay on top
+    // Share Out (Music Journalist Lesson 3) — share overlay only (no scouting report directions)
     if (type === 'claim-artist-share-teacher') {
       return (
         <div className="absolute inset-0 overflow-hidden">
           <style>{`
             .teacher-embed-activity .h-screen { height: 100% !important; }
-            .teacher-embed-activity button, .teacher-embed-activity a { font-size: 1rem !important; }
-            .teacher-embed-activity .text-xs { font-size: 0.95rem !important; }
-            .teacher-embed-activity .text-sm { font-size: 1.1rem !important; }
-            .teacher-embed-activity select { font-size: 1.1rem !important; min-height: 48px !important; }
-            .teacher-embed-activity h2 { font-size: 1.75rem !important; }
           `}</style>
           <div className="h-full teacher-embed-activity relative">
             <ClaimArtistReport
               onComplete={() => {}}
               viewMode={false}
               isSessionMode={false}
-              forceShowDirections={true}
             />
             <ClaimArtistShareOverlay />
           </div>
@@ -1892,11 +1869,6 @@ const PresentationContent = ({
         <div className="absolute inset-0 overflow-hidden">
           <style>{`
             .teacher-embed-activity .h-screen { height: 100% !important; }
-            .teacher-embed-activity button, .teacher-embed-activity a { font-size: 1rem !important; }
-            .teacher-embed-activity .text-xs { font-size: 0.95rem !important; }
-            .teacher-embed-activity .text-sm { font-size: 1.1rem !important; }
-            .teacher-embed-activity select { font-size: 1.1rem !important; min-height: 48px !important; }
-            .teacher-embed-activity h2 { font-size: 1.75rem !important; }
           `}</style>
           <div className="h-full teacher-embed-activity relative">
             <PressKitDesigner
@@ -1904,7 +1876,6 @@ const PresentationContent = ({
               viewMode={false}
               isSessionMode={false}
             />
-            <PressKitBuildOverlay />
           </div>
         </div>
       );
@@ -4400,7 +4371,7 @@ const ShareOutOverlay = () => {
   const [dismissed, setDismissed] = React.useState(false);
   if (dismissed) return null;
   return (
-    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-10">
+    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000]">
       <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden mx-4">
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
           <div>
@@ -4436,7 +4407,7 @@ const ClaimArtistShareOverlay = () => {
   const [dismissed, setDismissed] = React.useState(false);
   if (dismissed) return null;
   return (
-    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-10">
+    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000]">
       <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden mx-4">
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
           <div>
@@ -4535,7 +4506,7 @@ const TeacherLessonView = ({
   const [viewMode, setViewMode] = useState('teacher'); // 'teacher' or 'student'
   const [copied, setCopied] = useState(false);
   const [sessionData, setSessionData] = useState(null);
-  const [timerVisible, setTimerVisible] = useState(true);
+  const [timerVisible, setTimerVisible] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [pairShareDismissed, setPairShareDismissed] = useState(false);
   const [pendingStageId, setPendingStageId] = useState(null); // Track stage to navigate to after save
@@ -4552,8 +4523,8 @@ const TeacherLessonView = ({
   const { isMuted, toggleMute, playTimerEndSound } = useTimerSound();
 
   // Resizable panel state
-  const [sidebarWidth, setSidebarWidth] = useState(280);
-  const [bottomPanelHeight, setBottomPanelHeight] = useState(300);
+  const [sidebarWidth, setSidebarWidth] = useState(() => window.innerWidth <= 1366 ? 230 : 280);
+  const [bottomPanelHeight, setBottomPanelHeight] = useState(() => window.innerHeight <= 768 ? 200 : 300);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
   const [isResizingBottom, setIsResizingBottom] = useState(false);
   const resizeStartY = useRef(0);
@@ -5088,7 +5059,7 @@ const TeacherLessonView = ({
           style={sidebarCollapsed ? {} : { width: `${sidebarWidth}px` }}
         >
           {/* Join Info - Top of Sidebar */}
-          <div className={`border-b border-slate-200 flex-shrink-0 ${sidebarCollapsed ? 'p-2' : 'p-4'}`}>
+          <div className={`border-b border-slate-200 flex-shrink-0 ${sidebarCollapsed ? 'p-2' : 'px-3 py-2'}`}>
             {sidebarCollapsed ? (
               <div className="flex flex-col items-center gap-2">
                 <button
@@ -5124,9 +5095,9 @@ const TeacherLessonView = ({
             ) : (
               /* Quick session sidebar — show code */
               <>
-                <div className="text-slate-500 text-sm mb-1">{getJoinUrl()}</div>
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-3xl font-bold font-mono tracking-wider text-blue-600">
+                <div className="text-slate-500 text-xs mb-1">{getJoinUrl()}</div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl font-bold font-mono tracking-wider text-blue-600">
                     {displayCode}
                   </span>
                   <button
@@ -5151,50 +5122,50 @@ const TeacherLessonView = ({
 
           {/* Navigation Buttons - AT TOP */}
           {!sidebarCollapsed && (
-            <div className="p-3 border-b border-slate-200 flex-shrink-0">
+            <div className="px-2 py-1.5 border-b border-slate-200 flex-shrink-0">
               {isOnJoinCode ? (
                 <div>
                   <button
                     onClick={handleStartLesson}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-lg font-bold text-lg bg-emerald-500 hover:bg-emerald-600 text-white transition-colors shadow-lg animate-pulse"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg font-bold text-base bg-emerald-500 hover:bg-emerald-600 text-white transition-colors shadow-lg animate-pulse"
                   >
-                    <Play size={20} />
+                    <Play size={18} />
                     Start Lesson
                   </button>
                 </div>
               ) : (
                 <div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1.5">
                     <button
                       onClick={goToPrevStage}
                       disabled={isFirstStage}
-                      className={`flex items-center justify-center gap-1 px-3 py-2.5 rounded-lg font-medium transition-colors ${
+                      className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                         isFirstStage
                           ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
                           : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
                       }`}
                       title="Previous stage"
                     >
-                      <ChevronLeft size={18} />
+                      <ChevronLeft size={14} />
                       Back
                     </button>
-                    
+
                     <button
                       onClick={goToNextStage}
                       disabled={isLastStage}
-                      className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-semibold transition-colors ${
+                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
                         isLastStage
                           ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
                           : 'bg-blue-600 hover:bg-blue-700 text-white'
                       }`}
                     >
                       Next
-                      <ChevronRight size={18} />
+                      <ChevronRight size={14} />
                     </button>
                   </div>
-                  
-                  <div className="mt-2 text-xs text-slate-400 text-center">
-                    or use ← → arrow keys
+
+                  <div className="mt-1 text-[10px] text-slate-400 text-center">
+                    ← → arrow keys
                   </div>
                 </div>
               )}
@@ -5311,7 +5282,7 @@ const TeacherLessonView = ({
                       {/* Section Header */}
                       <button
                         onClick={() => toggleSection(section.id)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors ${
+                        className={`w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-colors ${
                           status === 'active'
                             ? 'bg-blue-50 text-blue-700'
                             : status === 'completed'
@@ -5324,7 +5295,7 @@ const TeacherLessonView = ({
                         ) : (
                           <ChevronRight size={16} />
                         )}
-                        <span className="font-semibold text-sm flex-1">
+                        <span className="font-semibold text-xs flex-1 leading-tight">
                           {section.title}
                         </span>
                         {status === 'completed' && (
@@ -5334,7 +5305,7 @@ const TeacherLessonView = ({
 
                       {/* Section Stages */}
                       {isExpanded && (
-                        <div className="ml-4 mt-1 space-y-0.5 overflow-x-auto">
+                        <div className="ml-3 mt-1 space-y-0.5">
                           {section.stages.map((stage) => {
                             const stageStatus = getStageStatus(stage.id);
                             const isActive = stage.id === currentStage;
@@ -5343,7 +5314,7 @@ const TeacherLessonView = ({
                               <div
                                 key={stage.id}
                                 onClick={() => handleStageClick(stage.id)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors min-w-max ${
+                                className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer transition-colors ${
                                   isActive
                                     ? 'bg-blue-100 text-blue-700'
                                     : stageStatus === 'completed'
@@ -5385,30 +5356,19 @@ const TeacherLessonView = ({
             )}
           </div>
 
-          {/* Vertical Resize Divider */}
+          {/* View Mode Toggle + Timer - AT BOTTOM (auto-sized, no drag handle) */}
           {!sidebarCollapsed && (
-            <div
-              className="h-1 bg-slate-200 hover:bg-blue-400 cursor-row-resize transition-colors flex-shrink-0"
-              onMouseDown={startBottomResize}
-            />
-          )}
-
-          {/* View Mode Toggle + Mini Preview - AT BOTTOM */}
-          {!sidebarCollapsed && (
-            <div
-              className="border-t border-slate-200 p-3 overflow-y-auto flex-shrink-0"
-              style={{ height: `${bottomPanelHeight}px` }}
-            >
+            <div className="border-t border-slate-200 p-2 flex-shrink-0">
               {/* Timer */}
               {timerVisible ? (
-                <div className={`rounded-xl p-3 mb-3 transition-colors ${
+                <div className={`rounded-xl p-2 mb-2 transition-colors ${
                   classroomTimer.timeRemaining === 0 && !classroomTimer.isRunning
                     ? 'bg-red-100 border border-red-300 animate-pulse'
                     : classroomTimer.isRunning
                       ? 'bg-blue-50 border border-blue-200'
                       : 'bg-slate-100 border border-slate-200'
                 }`}>
-                  <div className={`text-2xl font-bold font-mono text-center mb-2 ${
+                  <div className={`text-xl font-bold font-mono text-center mb-1 ${
                     classroomTimer.timeRemaining === 0 && !classroomTimer.isRunning
                       ? 'text-red-600'
                       : classroomTimer.isRunning
@@ -5481,7 +5441,7 @@ const TeacherLessonView = ({
               ) : (
                 <button
                   onClick={() => setTimerVisible(true)}
-                  className="w-full flex items-center justify-center gap-2 py-1.5 mb-3 rounded-lg bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors text-sm font-medium"
+                  className="w-full flex items-center justify-center gap-1.5 py-1 mb-1.5 rounded-lg bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-colors text-xs font-medium"
                 >
                   <Clock size={14} />
                   <span>Timer</span>
@@ -5489,49 +5449,25 @@ const TeacherLessonView = ({
                 </button>
               )}
 
-              {/* Teacher/Student View Toggle */}
-              <div className="flex bg-slate-100 rounded-lg p-1 mb-3">
-                <button
-                  onClick={() => setViewMode('teacher')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'teacher'
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-slate-600 hover:text-slate-800'
-                  }`}
-                >
-                  <Monitor size={16} />
-                  <span>Teacher</span>
-                </button>
-                <button
-                  onClick={() => setViewMode('student')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                    viewMode === 'student'
-                      ? 'bg-white text-emerald-600 shadow-sm'
-                      : 'text-slate-600 hover:text-slate-800'
-                  }`}
-                >
-                  <Smartphone size={16} />
-                  <span>Student</span>
-                </button>
-              </div>
+              {/* View Toggle — single button */}
+              <button
+                onClick={() => setViewMode(viewMode === 'teacher' ? 'student' : 'teacher')}
+                className={`w-full flex items-center justify-center gap-1.5 py-1.5 mb-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  viewMode === 'teacher'
+                    ? 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+                }`}
+              >
+                {viewMode === 'teacher' ? <Smartphone size={13} /> : <Monitor size={13} />}
+                {viewMode === 'teacher' ? 'See Student View' : 'Back to Teacher View'}
+              </button>
 
-              {/* Mini Live Preview of Opposite View - TALLER */}
-              <MiniPreview
-                viewMode={viewMode}
-                sessionCode={sessionCode}
-                classCode={classCode}
-                currentStage={currentStage}
-                currentStageData={currentStageData}
-                sessionData={sessionData}
-                config={config}
-                onSwitch={() => setViewMode(viewMode === 'teacher' ? 'student' : 'teacher')}
-                isPreviewMode={isPreviewMode}
-              />
+              {/* Mini preview removed — takes too much vertical space on small screens */}
             </div>
           )}
 
           {/* Footer Actions */}
-          <div className={`border-t border-slate-200 flex-shrink-0 ${sidebarCollapsed ? 'p-2' : 'p-3'}`}>
+          <div className={`border-t border-slate-200 flex-shrink-0 ${sidebarCollapsed ? 'p-2' : 'px-2 py-1.5'}`}>
             {sidebarCollapsed ? (
               <div className="flex flex-col gap-1">
                 <button
@@ -5539,28 +5475,28 @@ const TeacherLessonView = ({
                   className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors"
                   title="End Session"
                 >
-                  <LogOut size={18} />
+                  <LogOut size={16} />
                 </button>
                 <button
                   onClick={() => setSidebarCollapsed(false)}
                   className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
                   title="Expand sidebar"
                 >
-                  <PanelLeft size={18} />
+                  <PanelLeft size={16} />
                 </button>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <button
                   onClick={handleEndSession}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
+                  className="w-full flex items-center gap-1.5 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition-colors"
                 >
-                  <LogOut size={16} />
+                  <LogOut size={14} />
                   End Session
                 </button>
                 <button
                   onClick={() => setSidebarCollapsed(true)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="w-full flex items-center gap-1.5 px-2 py-1.5 text-xs text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   <PanelLeftClose size={16} />
                   Collapse

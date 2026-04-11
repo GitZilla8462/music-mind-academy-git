@@ -26,6 +26,7 @@ import CustomCursor from '../timeline/components/CustomCursor';
 import { CursorProvider, useCursor } from '../shared/CursorContext';
 import DAWLoadingScreen from '../shared/DAWLoadingScreen';
 import FullScreenPreview from '../shared/FullScreenPreview';
+import LibraryDragPreview from '../shared/LibraryDragPreview';
 
 // CHROMEBOOK FIX: Wrapper component that uses context to get cursorKey for forced remount
 // This fixes the cursor disappearing after dropdown selection bug
@@ -1088,6 +1089,7 @@ const MusicComposer = ({
           <DAWLoadingScreen />
         </div>
       )}
+      <LibraryDragPreview />
       </div>
     </CursorProvider>
   );

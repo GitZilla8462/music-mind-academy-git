@@ -80,8 +80,26 @@ const LoopLibrary = ({
     isChromebook: isChromebookFromContext,
     // CHROMEBOOK FIX: Select dropdown tracking to prevent two cursors
     onSelectOpen,
-    onSelectClose
+    onSelectClose,
+    // Library pointer-drag (iPad/touch support)
+    startLibraryDrag,
+    updateLibraryDrag,
+    endLibraryDrag,
+    cancelLibraryDrag,
+    libraryDragActive
   } = useCursor();
+
+  // Pointer-drag state refs (no re-renders during drag)
+  const pointerDragRef = useRef({
+    active: false,
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    loopData: null,
+    started: false, // true once movement threshold exceeded
+    touchMoveHandler: null,
+  });
+  const DRAG_THRESHOLD = 8; // px before drag starts (distinguishes tap from drag)
 
 
   // CHROMEBOOK FIX: Track when we've applied cursor styles to avoid spam
@@ -408,28 +426,102 @@ const LoopLibrary = ({
     }
   };
 
-  // Handle drag start
+  // ── Pointer-based drag (works on iPad, Chromebook, and desktop) ──
+
+  const handleLoopPointerDown = (e, loop) => {
+    // Don't start drag from buttons (play, delete, etc.)
+    if (e.target.closest('button')) return;
+    if (lockFeatures.allowLoopDrag === false || isLoopRestricted(loop)) return;
+    if (pointerDragRef.current.active) return;
+    // Only track primary pointer
+    if (!e.isPrimary) return;
+
+    pointerDragRef.current = {
+      active: true,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      loopData: loop,
+      started: false,
+      touchMoveHandler: null,
+    };
+
+    // Prevent iOS scroll during potential drag — we add a touchmove handler
+    // that calls preventDefault once the threshold is exceeded
+    const touchMoveHandler = (te) => {
+      if (pointerDragRef.current.started) {
+        te.preventDefault();
+      }
+    };
+    pointerDragRef.current.touchMoveHandler = touchMoveHandler;
+    document.addEventListener('touchmove', touchMoveHandler, { passive: false });
+
+    document.addEventListener('pointermove', handleLibraryPointerMove);
+    document.addEventListener('pointerup', handleLibraryPointerUp);
+    document.addEventListener('pointercancel', handleLibraryPointerCancel);
+  };
+
+  const handleLibraryPointerMove = (e) => {
+    if (!e.isPrimary) return;
+    const drag = pointerDragRef.current;
+    if (!drag.active) return;
+
+    if (!drag.started) {
+      const dx = e.clientX - drag.startX;
+      const dy = e.clientY - drag.startY;
+      if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+      // Threshold exceeded — start the visual drag
+      drag.started = true;
+      startLibraryDrag(drag.loopData, e.clientX, e.clientY);
+      if (onLoopDragStart) onLoopDragStart(drag.loopData);
+    } else {
+      updateLibraryDrag(e.clientX, e.clientY);
+    }
+  };
+
+  const handleLibraryPointerUp = (e) => {
+    if (!e.isPrimary) return;
+    const drag = pointerDragRef.current;
+    cleanupPointerDrag();
+    if (drag.started) {
+      endLibraryDrag(e.clientX, e.clientY);
+    }
+  };
+
+  const handleLibraryPointerCancel = () => {
+    const drag = pointerDragRef.current;
+    cleanupPointerDrag();
+    if (drag.started) {
+      cancelLibraryDrag();
+    }
+  };
+
+  const cleanupPointerDrag = () => {
+    const drag = pointerDragRef.current;
+    if (drag.touchMoveHandler) {
+      document.removeEventListener('touchmove', drag.touchMoveHandler);
+    }
+    document.removeEventListener('pointermove', handleLibraryPointerMove);
+    document.removeEventListener('pointerup', handleLibraryPointerUp);
+    document.removeEventListener('pointercancel', handleLibraryPointerCancel);
+    pointerDragRef.current = { active: false, pointerId: null, startX: 0, startY: 0, loopData: null, started: false, touchMoveHandler: null };
+  };
+
+  // Legacy HTML5 drag handlers (kept for desktop browsers that support it)
   const handleDragStart = (e, loop) => {
     if (lockFeatures.allowLoopDrag === false || isLoopRestricted(loop)) {
       e.preventDefault();
       return;
     }
-
-    // UNIFIED CURSOR: Disable custom cursor during drag to prevent "cursor in two places"
     disableCustomCursor();
-
     e.dataTransfer.effectAllowed = 'copy';
     e.dataTransfer.setData('application/json', JSON.stringify(loop));
 
-    // CHROMEBOOK FIX: Use custom drag image to avoid cursor being captured in preview
-    // Use context-based detection with fallback to local detection
     const useChromebookDragImage = isChromebookFromContext || isChromebook;
     if (useChromebookDragImage) {
-      // Clean up any existing drag preview first
       if (dragPreviewRef.current && dragPreviewRef.current.parentNode) {
         document.body.removeChild(dragPreviewRef.current);
       }
-
       const dragPreview = e.target.cloneNode(true);
       dragPreview.style.position = 'absolute';
       dragPreview.style.top = '-1000px';
@@ -437,30 +529,16 @@ const LoopLibrary = ({
       dragPreview.style.cursor = 'none';
       dragPreview.style.pointerEvents = 'none';
       dragPreview.style.width = `${e.target.offsetWidth}px`;
-      // CHROMEBOOK FIX: Add ID for debugging and ensure it stays in DOM during drag
       dragPreview.id = 'drag-preview-element';
       document.body.appendChild(dragPreview);
-
-      // Store reference for cleanup on dragend (not setTimeout)
       dragPreviewRef.current = dragPreview;
-
-      // Set drag image offset to center of element
       e.dataTransfer.setDragImage(dragPreview, e.target.offsetWidth / 2, 15);
-
-      // CHROMEBOOK FIX: Don't remove immediately - keep it around during the entire drag
-      // It will be cleaned up in handleDragEnd instead
     }
-
-    if (onLoopDragStart) {
-      onLoopDragStart(loop);
-    }
+    if (onLoopDragStart) onLoopDragStart(loop);
   };
 
-  // Handle drag end - re-enable custom cursor and clean up drag preview
   const handleDragEnd = () => {
     enableCustomCursor();
-
-    // CHROMEBOOK FIX: Clean up drag preview element now that drag is complete
     if (dragPreviewRef.current && dragPreviewRef.current.parentNode) {
       document.body.removeChild(dragPreviewRef.current);
       dragPreviewRef.current = null;
@@ -478,6 +556,8 @@ const LoopLibrary = ({
         document.body.removeChild(dragPreviewRef.current);
         dragPreviewRef.current = null;
       }
+      // Clean up pointer drag listeners
+      cleanupPointerDrag();
     };
   }, []);
 
@@ -650,6 +730,7 @@ const LoopLibrary = ({
                     draggable={!isLoading && lockFeatures.allowLoopDrag !== false}
                     onDragStart={(e) => !isLoading && handleDragStart(e, loop)}
                     onDragEnd={handleDragEnd}
+                    onPointerDown={(e) => !isLoading && handleLoopPointerDown(e, loop)}
                   >
                     <div className="flex items-center justify-between gap-1.5">
                       <div className="flex-1 min-w-0">
@@ -760,6 +841,7 @@ const LoopLibrary = ({
                 draggable={lockFeatures.allowLoopDrag !== false && !restricted}
                 onDragStart={(e) => handleDragStart(e, loop)}
                 onDragEnd={handleDragEnd}
+                onPointerDown={(e) => handleLoopPointerDown(e, loop)}
               >
                 <div className="flex items-center justify-between gap-1.5">
                   <div className="flex-1 min-w-0">

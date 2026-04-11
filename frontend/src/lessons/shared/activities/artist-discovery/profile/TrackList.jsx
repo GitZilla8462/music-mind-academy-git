@@ -36,7 +36,7 @@ const TrackList = ({
       <div className="flex items-center gap-2 mb-2 px-1">
         <Music size={14} className="text-white/40" />
         <span className="text-white/50 text-xs font-medium uppercase tracking-wider">
-          {albumTitle || 'Tracks'}
+          {albumTitle ? <>Album: <span className="text-white/70">{albumTitle}</span></> : 'Tracks'}
         </span>
       </div>
 

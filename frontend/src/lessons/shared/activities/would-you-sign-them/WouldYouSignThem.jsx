@@ -154,10 +154,17 @@ const WouldYouSignThem = ({ onComplete, isSessionMode = true }) => {
       const groupData = snapshot.val();
       if (groupData.game?.phase === 'finished') { setError('Game is over. Ask the host to start a new one.'); return; }
       const memberCount = groupData.members ? Object.keys(groupData.members).length : 0;
-      if (memberCount >= 3) { setError('Group is full (max 3 players).'); return; }
+      if (memberCount >= 5) { setError('Group is full (max 5 players).'); return; }
       await update(ref(db, `${getGroupPath(code)}/members/${userId}`), {
         name: playerName, color: playerColor, emoji: playerEmoji, score: 0, joinedAt: Date.now()
       });
+      // If game already started, add late joiner to memberOrder
+      const currentOrder = groupData.game?.memberOrder || [];
+      if (currentOrder.length > 0 && !currentOrder.includes(userId)) {
+        await update(ref(db, `${getGroupPath(code)}/game`), {
+          memberOrder: [...currentOrder, userId]
+        });
+      }
       setGroupCode(code);
       setHasJoinedGroup(true);
       subscribeToGroup(code);
@@ -546,9 +553,10 @@ const WouldYouSignThem = ({ onComplete, isSessionMode = true }) => {
 
     return (
       <div className="h-screen bg-gradient-to-br from-slate-950 via-amber-950 to-orange-950 flex flex-col items-center justify-center p-4">
-        <div className="bg-white/10 rounded-2xl px-8 py-4 mb-6 text-center border border-white/20">
-          <p className="text-sm text-amber-300 font-semibold mb-1">Group Code</p>
-          <p className="text-5xl font-mono font-bold text-white tracking-[0.3em]">{groupCode}</p>
+        <p className="text-sm text-amber-300 font-semibold mb-2 uppercase tracking-wider">Share this code with your group</p>
+        <div className="bg-white/10 rounded-2xl px-10 py-5 mb-4 text-center border-2 border-amber-400/40 shadow-lg shadow-amber-500/10">
+          <p className="text-[10px] text-amber-400 font-bold uppercase tracking-widest mb-1">Group Code</p>
+          <p className="text-6xl sm:text-7xl font-mono font-black text-white tracking-[0.4em] leading-none">{groupCode}</p>
         </div>
 
         <h2 className="text-xl font-bold text-white mb-4">
@@ -603,7 +611,11 @@ const WouldYouSignThem = ({ onComplete, isSessionMode = true }) => {
       <div className="h-screen bg-gradient-to-br from-slate-950 via-amber-950 to-orange-950 flex flex-col p-4">
         {/* Top bar */}
         <div className="flex items-center justify-between mb-3">
-          <div className="text-xs text-amber-300/70 font-mono">Group {groupCode} | Q{currentRound + 1}/{TOTAL_ROUNDS}</div>
+          <div className="bg-amber-500/20 border border-amber-400/30 rounded-lg px-3 py-1.5 flex items-center gap-2">
+            <span className="text-[10px] text-amber-400 font-bold uppercase">Code</span>
+            <span className="text-lg font-mono font-black text-white tracking-wider">{groupCode}</span>
+          </div>
+          <div className="text-xs text-amber-300/70 font-mono">Q{currentRound + 1}/{TOTAL_ROUNDS}</div>
           <div className="flex items-center gap-3">
             {countdown !== null && !answerLocked && (
               <span className={`text-sm font-bold ${countdown <= 5 ? 'text-red-400 animate-pulse' : 'text-amber-300'}`}>
@@ -685,8 +697,12 @@ const WouldYouSignThem = ({ onComplete, isSessionMode = true }) => {
     return (
       <div className="h-screen bg-gradient-to-br from-slate-950 via-amber-950 to-orange-950 flex flex-col p-4 overflow-y-auto">
         <div className="max-w-lg mx-auto w-full">
-          <div className="text-xs text-amber-300/70 font-mono mb-3 text-center">
-            Group {groupCode} | Q{currentRound + 1}/{TOTAL_ROUNDS}
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="bg-amber-500/20 border border-amber-400/30 rounded-lg px-3 py-1 flex items-center gap-2">
+              <span className="text-[10px] text-amber-400 font-bold uppercase">Code</span>
+              <span className="text-base font-mono font-black text-white tracking-wider">{groupCode}</span>
+            </div>
+            <span className="text-xs text-amber-300/70 font-mono">Q{currentRound + 1}/{TOTAL_ROUNDS}</span>
           </div>
 
           {/* Statement reminder */}

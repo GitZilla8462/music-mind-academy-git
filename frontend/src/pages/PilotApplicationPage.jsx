@@ -61,7 +61,7 @@ const PilotApplicationPage = () => {
         anythingElse: anythingElse.trim()
       };
 
-      // Submit through backend (handles Firebase write, admin email, HubSpot)
+      // Submit through backend (handles Firebase write, admin email)
       const res = await fetch('/api/applications/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

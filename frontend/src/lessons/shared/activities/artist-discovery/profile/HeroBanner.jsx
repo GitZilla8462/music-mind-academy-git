@@ -37,7 +37,7 @@ const HeroBanner = ({ artist, genreConfig }) => {
             className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white"
             style={{ backgroundColor: genreConfig?.color || '#6b7280' }}
           >
-            {artist.genre}
+            Genre: {artist.genre}
           </span>
           {artist.moods?.slice(0, 3).map(mood => (
             <span

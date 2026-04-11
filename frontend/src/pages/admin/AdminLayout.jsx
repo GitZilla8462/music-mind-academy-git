@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Inbox, Users, UserCheck, BarChart3, BookOpen, Play, MessageSquare, AlertTriangle, Mail, ArrowLeft, Shield, Download, RefreshCw, ArrowUpDown, DatabaseBackup } from 'lucide-react';
+import { LayoutDashboard, Inbox, Users, UserCheck, BarChart3, BookOpen, Play, MessageSquare, AlertTriangle, Mail, ArrowLeft, Shield, Download, RefreshCw, DatabaseBackup } from 'lucide-react';
 import { AdminDataProvider, useAdminData } from './AdminDataContext';
 
 const AdminLayoutInner = () => {
@@ -10,7 +10,6 @@ const AdminLayoutInner = () => {
     applications, error, setError, success, setSuccess,
     backfillResult, setBackfillResult,
     isBackfilling, backfillStudentCounts,
-    hubspotSyncing, syncToHubSpot,
     exportToExcel
   } = useAdminData();
 
@@ -167,14 +166,6 @@ const AdminLayoutInner = () => {
             >
               {isBackfilling ? <RefreshCw size={14} className="animate-spin" /> : <DatabaseBackup size={14} />}
               {isBackfilling ? 'Backfilling...' : 'Recover Students'}
-            </button>
-            <button
-              disabled={hubspotSyncing}
-              onClick={syncToHubSpot}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              {hubspotSyncing ? <RefreshCw size={14} className="animate-spin" /> : <ArrowUpDown size={14} />}
-              {hubspotSyncing ? 'Syncing...' : 'HubSpot Sync'}
             </button>
             <button
               onClick={exportToExcel}

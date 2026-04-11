@@ -11,7 +11,7 @@ import { getPalette } from '../palettes';
 const THUMB_W = 110;
 const THUMB_SCALE = THUMB_W / CANVAS_W;
 
-const SlideTabBar = ({ activeSlide, slides, genre, onSelect, availableSlides, bonusTracks = [], onAddBonusTrack }) => {
+const SlideTabBar = ({ activeSlide, slides, genre, onSelect, availableSlides, bonusTracks = [], onAddBonusTrack, slidesDone = {}, onToggleSlideDone, readOnly }) => {
   return (
     <div className="flex flex-col gap-1.5 p-1.5 overflow-y-auto" style={{ width: 130 }}>
       {/* Main slides (1-5) */}
@@ -24,8 +24,8 @@ const SlideTabBar = ({ activeSlide, slides, genre, onSelect, availableSlides, bo
         const palette = getPalette(slide?.palette || 'genre', genre);
 
         return (
+          <div key={slideNum} className="flex flex-col gap-0.5">
           <button
-            key={slideNum}
             onClick={() => onSelect(slideNum)}
             className={`
               relative flex flex-col rounded-lg overflow-hidden transition-all
@@ -87,6 +87,24 @@ const SlideTabBar = ({ activeSlide, slides, genre, onSelect, availableSlides, bo
               {cfg.title}
             </div>
           </button>
+          {!readOnly && onToggleSlideDone && (
+            <button
+              onClick={() => onToggleSlideDone(slideNum)}
+              className={`flex items-center justify-center gap-1 w-full py-1 rounded text-[10px] font-medium transition-all ${
+                slidesDone[slideNum]
+                  ? 'bg-emerald-500/20 text-emerald-400'
+                  : 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
+              }`}
+            >
+              <div className={`w-3 h-3 rounded border flex items-center justify-center ${
+                slidesDone[slideNum] ? 'border-emerald-400 bg-emerald-500/30' : 'border-red-400/50'
+              }`}>
+                {slidesDone[slideNum] && <Check size={8} />}
+              </div>
+              {slidesDone[slideNum] ? 'Done' : 'Mark done'}
+            </button>
+          )}
+          </div>
         );
       })}
 

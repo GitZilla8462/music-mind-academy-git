@@ -22,7 +22,7 @@ export function HeroOverlay({ fields, palette, image }) {
         <div className="flex items-center gap-2 mb-2">
           {genre && (
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider" style={{ background: palette.accent + '33', color: palette.accent }}>
-              {genre}
+              Genre: {genre}
             </span>
           )}
         </div>
@@ -60,7 +60,7 @@ export function ImageLeft({ fields, palette, image }) {
       <div className="flex-1 flex flex-col justify-center p-6 sm:p-8">
         {genre && (
           <span className="self-start px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider mb-3" style={{ background: palette.accent + '22', color: palette.accent }}>
-            {genre}
+            Genre: {genre}
           </span>
         )}
         <h1 className="text-3xl sm:text-4xl font-bold mb-2" style={{ color: palette.text }}>
@@ -99,7 +99,7 @@ export function Centered({ fields, palette, image }) {
       </h1>
       {genre && (
         <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2" style={{ background: palette.accent + '22', color: palette.accent }}>
-          {genre}
+          Genre: {genre}
         </span>
       )}
       {location && (

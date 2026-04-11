@@ -48,7 +48,17 @@ export const useCursor = () => {
       // CHROMEBOOK FIX: Direct position access
       getLastMousePosition: () => ({ x: 0, y: 0 }),
       // CHROMEBOOK FIX: Cursor remount key
-      cursorKey: 0
+      cursorKey: 0,
+      // Library pointer-drag fallbacks
+      libraryDragActive: false,
+      startLibraryDrag: () => {},
+      updateLibraryDrag: () => {},
+      endLibraryDrag: () => {},
+      cancelLibraryDrag: () => {},
+      registerDropHandler: () => {},
+      registerHoverHandler: () => {},
+      getLibraryDragData: () => null,
+      getLibraryDragPos: () => ({ x: 0, y: 0 })
     };
   }
   return context;
@@ -115,6 +125,45 @@ export const CursorProvider = ({ children }) => {
     dragStartTime: 0,
     dropPosition: null // Track where the drop happened
   });
+
+  // ── Library pointer-drag state (iPad/touch support) ──
+  const libraryDragDataRef = useRef(null);
+  const libraryDragPosRef = useRef({ x: 0, y: 0 });
+  const [libraryDragActive, setLibraryDragActive] = useState(false);
+  const dropHandlerRef = useRef(null);
+  const hoverHandlerRef = useRef(null);
+
+  const startLibraryDrag = useCallback((loopData, clientX, clientY) => {
+    libraryDragDataRef.current = loopData;
+    libraryDragPosRef.current = { x: clientX, y: clientY };
+    setLibraryDragActive(true);
+    disableCustomCursor();
+  }, [disableCustomCursor]);
+
+  const updateLibraryDrag = useCallback((clientX, clientY) => {
+    libraryDragPosRef.current = { x: clientX, y: clientY };
+    hoverHandlerRef.current?.(clientX, clientY);
+  }, []);
+
+  const endLibraryDrag = useCallback((clientX, clientY) => {
+    if (libraryDragDataRef.current && clientX != null) {
+      dropHandlerRef.current?.(libraryDragDataRef.current, clientX, clientY);
+    }
+    libraryDragDataRef.current = null;
+    setLibraryDragActive(false);
+    enableCustomCursor();
+  }, [enableCustomCursor]);
+
+  const cancelLibraryDrag = useCallback(() => {
+    libraryDragDataRef.current = null;
+    setLibraryDragActive(false);
+    enableCustomCursor();
+  }, [enableCustomCursor]);
+
+  const registerDropHandler = useCallback((fn) => { dropHandlerRef.current = fn; }, []);
+  const registerHoverHandler = useCallback((fn) => { hoverHandlerRef.current = fn; }, []);
+  const getLibraryDragData = useCallback(() => libraryDragDataRef.current, []);
+  const getLibraryDragPos = useCallback(() => libraryDragPosRef.current, []);
 
   // CHROMEBOOK FIX: Track last known mouse position for synthetic events
   const lastMousePosition = useRef({ x: 0, y: 0 });
@@ -263,7 +312,17 @@ export const CursorProvider = ({ children }) => {
     // CHROMEBOOK FIX: Direct position access for immediate cursor positioning
     getLastMousePosition,
     // CHROMEBOOK FIX: Key to force cursor remount after dropdown
-    cursorKey
+    cursorKey,
+    // Library pointer-drag (iPad/touch support)
+    libraryDragActive,
+    startLibraryDrag,
+    updateLibraryDrag,
+    endLibraryDrag,
+    cancelLibraryDrag,
+    registerDropHandler,
+    registerHoverHandler,
+    getLibraryDragData,
+    getLibraryDragPos
   };
 
   return (

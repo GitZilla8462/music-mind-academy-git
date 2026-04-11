@@ -22,7 +22,7 @@ function PlayerPlaceholder({ palette, trackTitle, albumTitle }) {
           {trackTitle || 'Track Title'}
         </p>
         <p className="text-xs truncate" style={{ color: palette.muted }}>
-          {albumTitle || 'Album Title'}
+          Album: {albumTitle || 'Album Title'}
         </p>
       </div>
       <Headphones size={16} style={{ color: palette.muted }} />
@@ -39,7 +39,7 @@ export function PlayerCenter({ fields, palette }) {
       <h2 className="text-2xl sm:text-3xl font-bold mb-1 text-center" style={{ color: palette.text }}>
         {trackTitle || 'Track Title'}
       </h2>
-      <p className="text-sm mb-6" style={{ color: palette.muted }}>{albumTitle || 'Album Title'}</p>
+      <p className="text-sm mb-6" style={{ color: palette.muted }}>Album: {albumTitle || 'Album Title'}</p>
       <div className="w-full max-w-md mb-6">
         <PlayerPlaceholder palette={palette} trackTitle={trackTitle} albumTitle={albumTitle} />
       </div>
@@ -74,7 +74,7 @@ export function AlbumArtLeft({ fields, palette, image }) {
         <h2 className="text-2xl sm:text-3xl font-bold mb-1" style={{ color: palette.text }}>
           {trackTitle || 'Track Title'}
         </h2>
-        <p className="text-sm mb-5" style={{ color: palette.muted }}>{albumTitle || 'Album Title'}</p>
+        <p className="text-sm mb-5" style={{ color: palette.muted }}>Album: {albumTitle || 'Album Title'}</p>
         <div className="mb-5">
           <PlayerPlaceholder palette={palette} trackTitle={trackTitle} albumTitle={albumTitle} />
         </div>
@@ -100,7 +100,7 @@ export function Minimal({ fields, palette }) {
       <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-center" style={{ color: palette.text }}>
         {trackTitle || 'Track Title'}
       </h2>
-      <p className="text-sm mb-8" style={{ color: palette.muted }}>{albumTitle || 'Album Title'}</p>
+      <p className="text-sm mb-8" style={{ color: palette.muted }}>Album: {albumTitle || 'Album Title'}</p>
       <div className="w-full max-w-sm mb-6">
         <PlayerPlaceholder palette={palette} trackTitle={trackTitle} albumTitle={albumTitle} />
       </div>
