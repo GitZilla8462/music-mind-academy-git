@@ -243,7 +243,7 @@ const FactOpinionStudentView = ({ onComplete, isSessionMode = true }) => {
     return (
       <div className="h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center p-6">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Fact or Opinion?</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">Artists Worth Signing</h1>
           <p className="text-xl text-indigo-200 mb-8">Waiting for teacher to start...</p>
 
           <div className="bg-white/10 rounded-2xl p-6 inline-block">
@@ -275,7 +275,7 @@ const FactOpinionStudentView = ({ onComplete, isSessionMode = true }) => {
             <span className="text-lg font-black" style={{ color: '#f0b429' }}>{myScore}</span>
           </div>
           <div className="bg-white/10 px-4 py-2 rounded-xl">
-            <div className="text-sm text-indigo-200">{currentStatement + 1}/15</div>
+            <div className="text-sm text-indigo-200">Q{currentStatement + 1}</div>
           </div>
         </div>
       </div>

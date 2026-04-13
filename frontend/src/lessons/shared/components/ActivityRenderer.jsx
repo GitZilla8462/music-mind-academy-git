@@ -1069,6 +1069,7 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
+          forceShowDirections={activity.id !== 'share-out'}
         />
       );
 
@@ -1091,6 +1092,7 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
+          forceShowDirections={true}
         />
       );
 
@@ -1124,11 +1126,13 @@ const ActivityRenderer = ({
           key={`independent-listening-${activity.id}`}
           onComplete={onComplete}
           isSessionMode={isSessionMode}
+          forceShowDirections={activity.id !== 'listening-share'}
         />
       );
 
-    // ✅ Launch Day — combined student view for presentations, feedback, voting (MJ Lesson 5)
+    // ✅ Launch Day — student view for presentations (MJ Lesson 5)
     case 'launch-day':
+    case 'class-vote':
       return (
         <LaunchDayStudent
           key={`launch-day-${activity.id}`}
@@ -1171,6 +1175,7 @@ const ActivityRenderer = ({
           viewMode={viewMode}
           isSessionMode={isSessionMode}
           availableSlides={activity.availableSlides}
+          peerReviewMode={activity.id === 'peer-review'}
         />
       );
 

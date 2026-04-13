@@ -69,6 +69,8 @@ const Lesson2 = () => {
   const viewReflectionMode = searchParams.get('view') === 'reflection';
   const viewGuidedListeningMode = searchParams.get('view') === 'guided-listening' ||
     (viewSavedMode && searchParams.get('activity') === 'guided-listening');
+  const viewIndependentListeningMode = searchParams.get('view') === 'independent-listening' ||
+    (viewSavedMode && searchParams.get('activity') === 'independent-listening');
   const isPreviewMode = searchParams.get('preview') === 'true';
   const isMuted = searchParams.get('muted') === 'true';
 
@@ -335,6 +337,19 @@ const Lesson2 = () => {
   // ========================================
   // NORMAL MODE (NO SESSION)
   // ========================================
+
+  // View saved independent listening
+  if (viewIndependentListeningMode) {
+    return (
+      <ActivityRenderer
+        activity={{ type: 'independent-listening', id: 'independent-listening-view' }}
+        onComplete={() => navigate(-1)}
+        viewMode={false}
+        isSessionMode={false}
+        lessonConfig={lessonConfig}
+      />
+    );
+  }
 
   // View saved guided listening
   if (viewGuidedListeningMode) {

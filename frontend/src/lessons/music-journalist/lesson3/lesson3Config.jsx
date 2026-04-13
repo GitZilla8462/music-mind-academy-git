@@ -38,12 +38,12 @@ export const lessonSections = [
   },
   {
     id: 'game',
-    title: '2. Fact or Opinion',
+    title: '2. Artists Worth Signing Game',
     subtitle: 'Full Class Game',
     color: 'blue',
     estimatedTime: 7,
     stages: [
-      { id: 'fact-opinion-game', type: 'activity', label: 'Fact or Opinion', description: 'STUDENTS PLAY: Fact/Opinion, Strong/Weak, 4-Point categories!', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true },
+      { id: 'fact-opinion-game', type: 'activity', label: 'Artists Worth Signing Game', description: 'STUDENTS PLAY: Fact/Opinion, Strong/Weak, 4-Point categories!', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true },
       { id: 'fact-opinion-results', type: 'activity', label: 'Results', description: 'View class leaderboard and celebrate top scorers.', duration: 2 }
     ]
   },
@@ -95,7 +95,7 @@ export const lesson3Config = {
   ],
   lessonSections,
   activities: [
-    { id: 1, type: 'fact-opinion-sorter', title: 'Fact or Opinion', estimatedTime: '7 min' },
+    { id: 1, type: 'fact-opinion-sorter', title: 'Artists Worth Signing Game', estimatedTime: '7 min' },
     { id: 2, type: 'claim-artist-report', title: 'Scouting Report', estimatedTime: '15 min' }
   ]
 };
@@ -182,7 +182,7 @@ export const lessonStages = [
     }
   },
   {
-    id: 'fact-opinion-game', label: 'Fact or Opinion', type: 'activity', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true,
+    id: 'fact-opinion-game', label: 'Artists Worth Signing Game', type: 'activity', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true,
     presentationView: { type: 'fact-opinion-sorter-teacher-game' }
   },
   {
@@ -218,7 +218,7 @@ export const lessonStages = [
         { heading: 'What You Did Today', bullets: [
           'Learned the 4-Point Checklist for evaluating artists',
           'Practiced spotting strong vs weak evidence',
-          'Played Fact or Opinion with three question types',
+          'Played Artists Worth Signing with three question types',
           'Built a Scouting Report using real evidence'
         ]},
         { heading: 'Come Ready for Lesson 4', bullets: ['You\'ll pick your OWN artist and start building your press kit presentation'] }

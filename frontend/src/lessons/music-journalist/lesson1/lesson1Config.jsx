@@ -92,7 +92,7 @@ export const lessonSections = [
     title: '4. Genre Scouts',
     subtitle: 'Explore + Find One Artist Per Genre',
     color: 'blue',
-    estimatedTime: 15,
+    estimatedTime: 22,
     stages: [
       {
         id: 'genre-scouts-intro',
@@ -106,7 +106,7 @@ export const lessonSections = [
         type: 'activity',
         label: 'Genre Scouts',
         description: 'STUDENTS BUILD: Explore artists + complete 3 slides (Genre Lineup, Surprise Discovery, Sound Snapshot).',
-        duration: 13,
+        duration: 20,
         hasTimer: true,
         trackProgress: true
       }
@@ -117,14 +117,14 @@ export const lessonSections = [
     title: '5. Share + Preview',
     subtitle: 'Discussion + What\'s Next',
     color: 'blue',
-    estimatedTime: 5,
+    estimatedTime: 8,
     stages: [
       {
-        id: 'share-discoveries',
-        type: 'discussion',
-        label: 'Share Discoveries',
+        id: 'share-out',
+        type: 'activity',
+        label: 'Share Out',
         description: 'STUDENTS: Share your genre lineup and surprise discovery with a partner.',
-        duration: 3
+        duration: 6
       },
       {
         id: 'lesson-preview',
@@ -169,7 +169,7 @@ export const lesson1Config = {
       id: 3,
       type: 'genre-scouts',
       title: 'Genre Scouts',
-      estimatedTime: '13 min'
+      estimatedTime: '20 min'
     }
   ]
 };
@@ -223,25 +223,17 @@ export const lessonStages = [
     duration: 2,
     presentationView: {
       type: 'summary',
-      title: 'What Does a Music Agent Do?',
-      subtitle: 'The People Behind the Artists',
+      title: 'You Are a Music Agent',
+      subtitle: 'Find the next big artist',
       sections: [
-        {
-          heading: 'Key Roles',
-          bullets: [
-            'A&R (Artists & Repertoire) \u2014 the person who DISCOVERS new talent for a label',
-            'MUSIC AGENT \u2014 represents and PROMOTES an artist\'s career',
-            'They listen to hundreds of artists to find the few with real potential'
-          ]
-        },
         {
           heading: 'Your 5-Lesson Mission',
           bullets: [
-            'Lesson 1 (TODAY): Explore genres and artists, create your scouting report',
-            'Lesson 2: LISTEN like an agent \u2014 learn to describe what you hear',
-            'Lesson 3: CLAIM your artist and start researching their story',
-            'Lesson 4: BUILD your press kit \u2014 a 5-slide presentation',
-            'Lesson 5: PITCH DAY \u2014 present to the class, class votes!'
+            'EXPLORE \u2014 Browse genres and discover new artists',
+            'LISTEN \u2014 Learn to describe what makes an artist unique',
+            'CLAIM \u2014 Pick your artist and research their story',
+            'BUILD \u2014 Create a press kit presentation',
+            'PITCH \u2014 Present to the class and pitch your artist!'
           ]
         }
       ]
@@ -285,9 +277,9 @@ export const lessonStages = [
         {
           heading: 'Your Mission',
           bullets: [
-            'Browse the artist library \u2014 listen to tracks across different genres',
-            'Find ONE artist that represents each genre',
-            'Switch to "My Report" to build your 3 slides'
+            'Start by clicking "My Report" \u2014 read the example text on each slide',
+            'Click "Explore Artists" to browse the library and listen to music',
+            'Go back and forth until all 3 slides are complete'
           ]
         },
         {
@@ -301,7 +293,7 @@ export const lessonStages = [
         {
           heading: '',
           bullets: [
-            'You have 13 minutes \u2014 start exploring, then switch to your report!',
+            'You have 20 minutes \u2014 start by looking at your report, then explore artists!',
           ]
         }
       ]
@@ -312,45 +304,28 @@ export const lessonStages = [
     label: 'Genre Scouts',
     description: 'STUDENTS BUILD: Explore artists + complete 3 slides (Genre Lineup, Surprise Discovery, Sound Snapshot).',
     type: 'activity',
-    duration: 13,
+    duration: 20,
     hasTimer: true,
     trackProgress: true,
     presentationView: {
-      type: 'activity-banner',
-      title: 'Genre Scouts',
-      subtitle: 'Explore artists and build your 3 slides: Genre Lineup, Surprise Discovery, Sound Snapshot'
+      type: 'genre-scouts-teacher'
     }
   },
   {
-    id: 'share-discoveries',
-    label: 'Share Discoveries',
+    id: 'share-out',
+    label: 'Share Out',
     description: 'STUDENTS: Share your genre lineup and surprise discovery with a partner.',
-    type: 'discussion',
-    duration: 3,
+    type: 'activity',
+    duration: 6,
     presentationView: {
-      type: 'summary',
-      title: 'Share Your Discoveries',
-      subtitle: 'Find a Partner',
-      sections: [
-        {
-          heading: 'Instructions',
-          bullets: [
-            'Find a partner near you',
-            'Show them your Genre Lineup \u2014 who did you pick for each genre?',
-            'Share your Surprise Discovery \u2014 which genre caught you off guard?',
-            'Listen to your partner \u2014 did anyone pick the same artists?'
-          ]
-        },
-        {
-          heading: 'Discussion Questions',
-          bullets: [
-            'Which genre surprised you the most today?',
-            'Did you and your partner pick different artists for the same genre?',
-            'What made certain artists stand out in their genre?'
-          ]
-        }
-      ]
-    }
+      type: 'genre-scouts-share-teacher',
+    },
+    studentDirections: [
+      { text: 'Find a partner or small group near you' },
+      { text: 'Show them your Genre Lineup \u2014 who did you pick for each genre?' },
+      { text: 'Share your Surprise Discovery \u2014 which genre caught you off guard?' },
+      { text: 'Listen to your partner \u2014 did anyone pick the same artists?' },
+    ],
   },
   {
     id: 'lesson-preview',
@@ -416,7 +391,7 @@ export const getActivityForStage = (stage) => {
     'genre-match-game': 'genre-match',
     'genre-scouts-intro': 'summary',
     'genre-scouts': 'genre-scouts',
-    'share-discoveries': 'discussion',
+    'share-out': 'genre-scouts',
     'lesson-preview': 'summary',
     'lesson-complete': 'summary'
   };

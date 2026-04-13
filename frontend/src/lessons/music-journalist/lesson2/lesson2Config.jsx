@@ -25,11 +25,11 @@ export const GUIDED_TRACKS = [
   },
   {
     id: 'guided-2',
-    title: "Jenny's Theme",
+    title: 'Acoustic Blues',
     artist: 'Jason Shaw',
     artistId: 'jason-shaw',
     genre: 'Country / Acoustic',
-    audioUrl: 'https://media.musicmindacademy.com/artists/jason-shaw/jennys-theme.mp3',
+    audioUrl: 'https://media.musicmindacademy.com/artists/jason-shaw/acoustic-blues.mp3',
     playDuration: 60,
   },
   {
@@ -107,7 +107,7 @@ export const lessonSections = [
     stages: [
       { id: 'guided-listening-intro', type: 'summary', label: 'Guided Listening Intro', description: 'Set up the 3 guided listenings.', duration: 2 },
       { id: 'guided-listening-1', type: 'activity', label: 'Guided Listening 1', description: 'Ketsa — "Trench Work" (Jazz / Soul / Trip-Hop)', duration: 5, hasTimer: true, trackProgress: true },
-      { id: 'guided-listening-2', type: 'activity', label: 'Guided Listening 2', description: 'Jason Shaw — "Jenny\'s Theme" (Country / Acoustic)', duration: 5, hasTimer: true, trackProgress: true },
+      { id: 'guided-listening-2', type: 'activity', label: 'Guided Listening 2', description: 'Jason Shaw — "Acoustic Blues" (Country / Acoustic)', duration: 5, hasTimer: true, trackProgress: true },
       { id: 'guided-listening-3', type: 'activity', label: 'Guided Listening 3', description: 'Soft and Furious — "Horizon Ending" (Synth Pop)', duration: 5, hasTimer: true, trackProgress: true },
       { id: 'independent-listening', type: 'activity', label: 'Independent Listening', description: 'Students pick 1 of 5 tracks and analyze on their own.', duration: 10, hasTimer: true, trackProgress: true },
       { id: 'listening-share', type: 'discussion', label: 'Share Out', description: 'Students share their analysis with the class.', duration: 5 }

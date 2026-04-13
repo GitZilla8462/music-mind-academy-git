@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { ArrowLeft, Star, Sparkles, Shield, ExternalLink } from 'lucide-react';
 import { GENRE_CONFIG, ARTIST_DATABASE } from './artistDatabase';
 import HeroBanner from './profile/HeroBanner';
@@ -23,8 +23,41 @@ const ArtistProfile = ({
 
   const isThisArtistPlaying = playerArtistId === artist.id;
 
+  // Scroll to top when artist changes
+  const containerRef = useRef(null);
+  useEffect(() => {
+    // Scroll self, then try parent scroll container
+    if (containerRef.current) containerRef.current.scrollTop = 0;
+    const parent = containerRef.current?.parentElement;
+    if (parent) parent.scrollTop = 0;
+  }, [artist.id]);
+
+  // Curated "more artists": similar artists first, then same genre, capped at 6
+  const browseMore = (() => {
+    const seen = new Set([artist.id]);
+    const result = [];
+    // Similar artists first
+    if (artist.similarArtists) {
+      for (const id of artist.similarArtists) {
+        const a = ARTIST_DATABASE.find(x => x.id === id);
+        if (a && !seen.has(a.id)) { result.push(a); seen.add(a.id); }
+      }
+    }
+    // Then same-genre artists
+    for (const a of ARTIST_DATABASE) {
+      if (result.length >= 6) break;
+      if (!seen.has(a.id) && a.genre === artist.genre) { result.push(a); seen.add(a.id); }
+    }
+    // Fill remaining slots with other artists
+    for (const a of ARTIST_DATABASE) {
+      if (result.length >= 6) break;
+      if (!seen.has(a.id)) { result.push(a); seen.add(a.id); }
+    }
+    return result;
+  })();
+
   return (
-    <div className="min-h-screen bg-[#0f1419]" style={{ paddingBottom: player?.currentTrack ? '72px' : '0' }}>
+    <div ref={containerRef} className="min-h-screen bg-[#0f1419]" style={{ paddingBottom: player?.currentTrack ? '72px' : '0' }}>
       {/* Sticky header */}
       <div className="sticky top-0 z-30 bg-[#0f1419]/95 backdrop-blur-sm border-b border-white/[0.08] px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
@@ -109,6 +142,7 @@ const ArtistProfile = ({
                   {artist.license === 'CC0' ? 'Creative Commons Zero (CC0) — Public Domain' :
                    artist.license === 'CC BY' ? 'Creative Commons Attribution 4.0 (CC BY)' :
                    artist.license === 'CC BY-SA' ? 'Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA)' :
+                   artist.license === 'Used with Permission' ? 'Used with Permission from the Artist' :
                    artist.license}
                 </span>
               </p>
@@ -117,11 +151,13 @@ const ArtistProfile = ({
                   ? 'This music is in the public domain. No attribution is required, but we credit the artist because they deserve it.'
                   : artist.license === 'CC BY'
                     ? 'You are free to share and adapt this music, even commercially, as long as you give appropriate credit to the artist.'
-                    : 'You are free to share and adapt this music, even commercially, as long as you give credit and share under the same license.'
+                    : artist.license === 'Used with Permission'
+                      ? 'This artist has granted Music Mind Academy permission to use their music for educational purposes.'
+                      : 'You are free to share and adapt this music, even commercially, as long as you give credit and share under the same license.'
                 }
               </p>
               <p className="text-white/30 text-[12px]">
-                Source: Free Music Archive
+                {artist.fmaUrl ? 'Source: Free Music Archive' : artist.bandcampUrl ? 'Source: Bandcamp' : ''}
                 {artist.fmaUrl && (
                   <a
                     href={artist.fmaUrl}
@@ -132,18 +168,28 @@ const ArtistProfile = ({
                     View on FMA <ExternalLink size={10} />
                   </a>
                 )}
+                {!artist.fmaUrl && artist.bandcampUrl && (
+                  <a
+                    href={artist.bandcampUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 ml-2 text-amber-400/60 hover:text-amber-400 transition-colors"
+                  >
+                    View on Bandcamp <ExternalLink size={10} />
+                  </a>
+                )}
               </p>
             </div>
           </div>
         )}
 
-        {/* Browse more artists */}
+        {/* Browse more artists — curated: similar + same genre, max 6 */}
         <div className="mb-8">
           <h2 className="text-white/60 text-xs uppercase tracking-wider font-semibold mb-3">
-            Browse More Artists
+            More Artists to Explore
           </h2>
           <div className="grid grid-cols-3 gap-3">
-            {ARTIST_DATABASE.filter(a => a.id !== artist.id).map(other => {
+            {browseMore.map(other => {
               const otherGenreConfig = GENRE_CONFIG[other.genre] || { color: '#6b7280', bg: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)' };
               return (
                 <button
@@ -151,7 +197,7 @@ const ArtistProfile = ({
                   onClick={() => onViewArtist?.(other.id)}
                   className="text-left group min-h-[44px]"
                 >
-                  <div className="aspect-square rounded-lg overflow-hidden mb-1.5">
+                  <div className="aspect-square rounded-lg overflow-hidden mb-1.5 ring-1 ring-white/[0.06] group-hover:ring-white/20 transition-all">
                     {other.imageUrl ? (
                       <img
                         src={other.imageUrl}

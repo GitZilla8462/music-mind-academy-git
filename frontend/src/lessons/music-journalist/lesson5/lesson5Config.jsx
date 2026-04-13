@@ -26,11 +26,12 @@ export const lessonSections = [
   {
     id: 'launch',
     title: '2. Launch Day',
-    subtitle: 'Pitches, Feedback & Vote',
+    subtitle: 'Pitches + Vote',
     color: 'blue',
     estimatedTime: 33,
     stages: [
-      { id: 'launch-day', type: 'activity', label: 'Agent Pitch', description: 'Presentations → Feedback → Vote → Results. All managed from one screen.', duration: 33, hasTimer: false, trackProgress: true }
+      { id: 'launch-day', type: 'activity', label: 'Agent Pitch', description: 'Teacher displays each student\'s presentation for the class.', duration: 25, hasTimer: false, trackProgress: true },
+      // { id: 'class-vote', type: 'activity', label: 'Class Vote', description: 'Students vote for their favorite artist. Results + awards revealed.', duration: 8, hasTimer: true, trackProgress: true }
     ]
   },
   {
@@ -109,9 +110,13 @@ export const lessonStages = [
     }
   },
   {
-    id: 'launch-day', label: 'Launch Day', type: 'activity', duration: 33, hasTimer: false, trackProgress: true,
+    id: 'launch-day', label: 'Agent Pitch', type: 'activity', duration: 25, hasTimer: false, trackProgress: true,
     presentationView: { type: 'launch-day-teacher' }
   },
+  // {
+  //   id: 'class-vote', label: 'Class Vote', type: 'activity', duration: 8, hasTimer: true, trackProgress: true,
+  //   presentationView: { type: 'class-vote-teacher' }
+  // },
   {
     id: 'reflection', label: 'Reflection', type: 'discussion', duration: 4,
     presentationView: {
@@ -168,6 +173,7 @@ export const getActivityForStage = (stage) => ({
   'welcome': 'summary',
   'expectations': 'summary',
   'launch-day': 'launch-day',
+  // 'class-vote': 'class-vote',
   'reflection': 'discussion',
   'celebration': 'summary',
   'lesson-complete': 'summary'

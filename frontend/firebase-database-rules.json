@@ -228,10 +228,14 @@
         ".read": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",
         ".write": "auth != null && root.child('classes').child($classId).child('teacherUid').val() == auth.uid",
         "$lessonId": {
-          "$studentUid": {
+          "$activityId": {
             ".read": true,
             ".write": true,
-            ".validate": "newData.hasChildren(['content', 'submittedAt'])"
+            "$studentUid": {
+              ".read": true,
+              ".write": true,
+              ".validate": "newData.hasChildren(['submittedAt'])"
+            }
           }
         }
       }

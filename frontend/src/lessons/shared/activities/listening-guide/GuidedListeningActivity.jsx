@@ -405,9 +405,6 @@ const GuidedListeningActivity = ({ onComplete, isSessionMode, highlightTrack, si
                       <div className="min-w-0">
                         <p className="text-white font-bold text-sm truncate">{artistData.name}</p>
                         <p className="text-white/40 text-xs truncate">"{track.title}" &middot; {track.genre}</p>
-                        {artistData.whyInteresting && (
-                          <p className="text-white/30 text-xs mt-0.5 line-clamp-1">{artistData.whyInteresting}</p>
-                        )}
                       </div>
                     </div>
                   ) : null;

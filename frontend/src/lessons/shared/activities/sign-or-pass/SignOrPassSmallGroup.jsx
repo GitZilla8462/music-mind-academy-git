@@ -16,6 +16,9 @@ import DirectionsModal, { DirectionsReopenButton } from '../../components/Direct
 // Time between clips during auto-play
 const BETWEEN_CLIP_DELAY = 3000; // 3s transition between clips
 
+// Capitalize first letter of each word in a song title
+const capitalizeTitle = (title) => title?.replace(/\b\w/g, c => c.toUpperCase()) || '';
+
 const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
   const { sessionCode, userId: contextUserId } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
@@ -181,9 +184,6 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
 
     const artist = artistsRef.current[autoPlayIndex];
     if (!artist) return;
-
-    const amHost = memberOrderRef.current.length > 0 && memberOrderRef.current[0] === userId;
-    if (!amHost) return;
 
     const startFrom = artist.clipStart || 0;
     if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; }
@@ -506,27 +506,36 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
     return () => { if (rankingTimeoutRef.current) clearTimeout(rankingTimeoutRef.current); };
   }, [gamePhase, roundStartTime, memberOrder, doReveal]);
 
-  // ============ READY FOR NEXT ROUND ============
+  // ============ AUTO-ADVANCE AFTER REVEAL (10s timer) ============
 
-  const markReady = async () => {
-    if (imReady) return;
-    setImReady(true);
-    const db = getDatabase();
-    await update(ref(db, `sessions/${effectiveSessionCode}/signOrPassGroups/${groupCode}/game/readyForNext`), { [userId]: true });
-  };
+  const [revealCountdown, setRevealCountdown] = useState(null);
 
-  // Host advances when all members are ready
   useEffect(() => {
-    if (gamePhase !== 'revealed') return;
-    const amHost = memberOrder.length > 0 && memberOrder[0] === userId;
-    if (!amHost) return;
+    if (gamePhase !== 'revealed') { setRevealCountdown(null); return; }
 
-    const allReady = memberOrder.length > 0 && memberOrder.every(id => readyForNext[id]);
-    if (allReady) {
-      const timer = setTimeout(() => advanceRound(), 500);
-      return () => clearTimeout(timer);
+    setRevealCountdown(10);
+    const interval = setInterval(() => {
+      setRevealCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // Host auto-advances after 10s
+    const amHost = memberOrder.length > 0 && memberOrder[0] === userId;
+    let advanceTimer;
+    if (amHost) {
+      advanceTimer = setTimeout(() => advanceRound(), 10000);
     }
-  }, [gamePhase, readyForNext, memberOrder, userId]);
+
+    return () => {
+      clearInterval(interval);
+      if (advanceTimer) clearTimeout(advanceTimer);
+    };
+  }, [gamePhase, memberOrder, userId]);
 
   // ============ GAME CONTROL FUNCTIONS ============
 
@@ -841,115 +850,78 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
       : PREVIEW_DURATION;
 
     return (
-      <div className="h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 flex flex-col p-4">
+      <div className="h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 flex flex-col p-3 overflow-hidden">
         <audio ref={audioRef} preload="auto" />
 
-        <div className="flex items-center justify-between mb-3">
-          <div className="text-xs text-blue-300/70 font-mono">Group {groupCode} | Round {currentRound + 1}/{TOTAL_ROUNDS}</div>
-          <div className="bg-white/10 px-3 py-1 rounded-lg">
-            <span className="text-yellow-300 font-bold">{myScore}</span>
-            <span className="text-blue-300 text-xs ml-1">pts</span>
+        {/* Top bar: group code + round */}
+        <div className="flex items-center justify-between mb-1 shrink-0">
+          <div className="text-xs text-blue-300/70 font-mono">Code: {groupCode} | Round {currentRound + 1}/{TOTAL_ROUNDS}</div>
+          <div className="bg-white/10 px-2 py-1 rounded-lg shrink-0">
+            <span className="text-yellow-300 font-bold text-sm">{myScore}</span>
+            <span className="text-blue-300 text-[10px] ml-1">pts</span>
           </div>
         </div>
 
-        {/* Volume banner for the host (DJ) / listening info for others */}
-        {memberOrder[0] === userId ? (
-          <div className="bg-amber-500/20 border border-amber-400/30 rounded-lg px-3 py-2 mb-2 text-center flex items-center justify-center gap-2">
-            <Volume2 size={16} className="text-amber-300" />
-            <p className="text-amber-300 text-sm font-bold">Turn up your volume so the group can hear!</p>
+        {/* Artist photo + name */}
+        <div className="flex items-center gap-3 mb-2 shrink-0">
+          {artists[0]?.imageUrl && (
+            <img src={artists[0].imageUrl} alt={artists[0].name} className="w-10 h-10 rounded-full object-cover border-2 border-white/20 shrink-0" onError={(e) => { e.target.style.display = 'none'; }} />
+          )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-bold text-white truncate">{artists[0]?.name || 'Loading...'}</h1>
+            <p className="text-blue-200 text-xs">Which song is the best? Listen to all 3.</p>
           </div>
-        ) : (
-          <div className="bg-blue-500/20 border border-blue-400/30 rounded-lg px-3 py-2 mb-2 text-center flex items-center justify-center gap-2">
-            <Volume2 size={16} className="text-blue-300" />
-            <p className="text-blue-300 text-sm font-bold">Playing music from {members[memberOrder[0]]?.name || 'host'}'s device</p>
-          </div>
-        )}
-
-        <div className="text-center mb-3">
-          <h1 className="text-xl font-bold text-white mb-1">
-            {artists[0]?.name || 'Loading...'}
-          </h1>
-          <p className="text-blue-200 text-sm">3 tracks — which one goes to the meeting?</p>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center max-w-lg mx-auto w-full">
-          {/* Track cards — show all 3 with current one highlighted */}
-          <div className="w-full space-y-3 mb-6">
-            {artists.map((artist, idx) => {
-              const isCurrentlyPlaying = idx === autoPlayIndex && autoPlayStartedAt;
-              const isPlayed = idx < autoPlayIndex || (idx === autoPlayIndex && playProgress <= 0);
-              const isUpcoming = idx > autoPlayIndex;
+        {/* Song cards */}
+        <div className="flex-1 flex flex-col justify-center gap-2 max-w-lg mx-auto w-full min-h-0">
+          {artists.map((artist, idx) => {
+            const isCurrentlyPlaying = idx === autoPlayIndex && autoPlayStartedAt;
+            const isPlayed = idx < autoPlayIndex || (idx === autoPlayIndex && playProgress <= 0);
 
-              return (
-                <div
-                  key={artist.id}
-                  className={`relative rounded-xl overflow-hidden transition-all duration-500 ${
-                    isCurrentlyPlaying ? 'ring-2 ring-green-400 shadow-lg shadow-green-500/20 scale-[1.02]' :
-                    isPlayed ? 'opacity-40' :
-                    'opacity-30'
-                  }`}
-                  style={{ backgroundColor: '#1e293b' }}
-                >
-                  {/* Status badge */}
-                  <div className={`absolute top-2 right-2 z-10 px-2.5 py-1 rounded-full text-xs font-bold ${
-                    isCurrentlyPlaying ? 'bg-green-500 text-white animate-pulse' :
-                    isPlayed ? 'bg-white/20 text-white/60' :
-                    'bg-white/10 text-white/30'
+            return (
+              <div
+                key={artist.id}
+                className={`rounded-xl transition-all duration-500 shrink-0 ${
+                  isCurrentlyPlaying ? 'ring-2 ring-green-400 shadow-lg shadow-green-500/20' :
+                  isPlayed ? 'opacity-50' :
+                  'opacity-30'
+                }`}
+                style={{ backgroundColor: '#1e293b' }}
+              >
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-black shrink-0 ${
+                    isCurrentlyPlaying ? 'bg-green-500 text-white' :
+                    isPlayed ? 'bg-white/15 text-white/50' :
+                    'bg-white/10 text-white/20'
                   }`}>
-                    {isCurrentlyPlaying && <><Volume2 size={12} className="inline mr-1" />Now Playing</>}
-                    {isPlayed && <><Check size={12} className="inline mr-1" />Played</>}
-                    {isUpcoming && `Demo ${idx + 1}`}
+                    {idx + 1}
                   </div>
-
-                  <div className="flex items-center gap-3 p-3">
-                    {/* Artist artwork or placeholder */}
-                    <div className={`w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 ${
-                      isCurrentlyPlaying ? 'ring-2 ring-green-400' :
-                      isPlayed ? 'opacity-40' : ''
-                    }`}>
-                      {(isPlayed || isCurrentlyPlaying) && artist.imageUrl ? (
-                        <img src={artist.imageUrl} alt={artist.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
-                      ) : (
-                        <div className={`w-full h-full flex items-center justify-center text-xl font-black ${
-                          isCurrentlyPlaying ? 'bg-green-500 text-white' :
-                          isPlayed ? 'bg-white/10 text-white/30' :
-                          'bg-white/10 text-white/20'
-                        }`}>
-                          {isPlayed ? <Check size={20} /> : idx + 1}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      {isPlayed || isCurrentlyPlaying ? (
-                        <>
-                          <p className="text-white font-bold text-base truncate">{artist.name}</p>
-                          <p className="text-gray-400 text-xs truncate">"{artist.trackTitle}"</p>
-                          <p className="text-gray-500 text-xs truncate">{artist.genre}</p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-white/60 font-bold text-base">Track {idx + 1}</p>
-                          <p className="text-gray-500 text-xs">Coming up...</p>
-                        </>
-                      )}
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-bold text-base ${isCurrentlyPlaying ? 'text-white' : isPlayed ? 'text-white/60' : 'text-white/30'}`}>
+                      Song {idx + 1}{(isPlayed || isCurrentlyPlaying) ? `: ${capitalizeTitle(artist.trackTitle)}` : ''}
+                    </p>
                   </div>
-
-                  {/* Countdown timer */}
                   {isCurrentlyPlaying && (
-                    <div className="px-3 pb-3 text-center">
-                      <span className="text-green-300 text-2xl font-mono font-bold">{playProgress}s</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Volume2 size={14} className="text-green-400 animate-pulse" />
+                      <span className="text-green-300 text-sm font-mono font-bold">{playProgress}s</span>
                     </div>
                   )}
+                  {isPlayed && !isCurrentlyPlaying && (
+                    <Check size={14} className="text-white/30 shrink-0" />
+                  )}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
+        </div>
 
-          <p className="text-blue-300/60 text-sm text-center">
+        {/* Bottom status */}
+        <div className="shrink-0 pt-2">
+          <p className="text-blue-300/60 text-xs text-center">
             {autoPlayIndex >= 0 && autoPlayIndex < artists.length
-              ? `Playing track ${autoPlayIndex + 1} of ${artists.length}...`
+              ? `Playing song ${autoPlayIndex + 1} of ${artists.length}...`
               : 'Get ready to rank!'}
           </p>
         </div>
@@ -963,82 +935,73 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
     const totalMembers = memberOrder.length;
 
     return (
-      <div className="h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 flex flex-col p-4">
+      <div className="h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 flex flex-col p-3 overflow-hidden">
         <audio ref={audioRef} preload="auto" />
-
-        <div className="flex items-center justify-between mb-2">
-          <div className="text-xs text-blue-300/70 font-mono">Group {groupCode} | R{currentRound + 1}/{TOTAL_ROUNDS}</div>
-          <div className="flex items-center gap-3">
-            {countdown !== null && !rankingLocked && (
-              <span className={`text-sm font-bold ${countdown <= 10 ? 'text-red-400' : 'text-blue-300'}`}>
-                {countdown}s
-              </span>
-            )}
-            <div className="bg-white/10 px-3 py-1 rounded-lg">
-              <span className="text-yellow-300 font-bold">{myScore}</span>
-              <span className="text-blue-300 text-xs ml-1">pts</span>
-            </div>
-          </div>
-        </div>
 
         {!rankingLocked ? (
           <>
+            {/* Top bar: group code + round + timer */}
+            <div className="flex items-center justify-between mb-1 shrink-0">
+              <div className="text-xs text-blue-300/70 font-mono">Code: {groupCode} | Round {currentRound + 1}/{TOTAL_ROUNDS}</div>
+              <div className="flex items-center gap-2">
+                {countdown !== null && (
+                  <span className={`text-sm font-bold ${countdown <= 10 ? 'text-red-400' : 'text-blue-300'}`}>
+                    {countdown}s
+                  </span>
+                )}
+                <div className="bg-white/10 px-2 py-1 rounded-lg">
+                  <span className="text-yellow-300 font-bold text-sm">{myScore}</span>
+                  <span className="text-blue-300 text-[10px] ml-1">pts</span>
+                </div>
+              </div>
+            </div>
+
             {/* Secret banner */}
-            <div className="bg-red-500/20 border border-red-400/30 rounded-lg px-3 py-2 mb-3 text-center">
-              <p className="text-red-300 text-sm font-bold">Hide your screen from fellow agents!</p>
+            <div className="bg-red-500/20 border border-red-400/30 rounded-lg px-2 py-1 mb-1 text-center shrink-0">
+              <p className="text-red-300 text-xs font-bold">Hide your screen from fellow agents!</p>
             </div>
 
-            <div className="text-center mb-4">
-              <h1 className="text-xl font-bold text-white mb-1">Pick the Best Track</h1>
-              <p className="text-blue-200 text-xs">Which track would you bring to the meeting? Rank 1st, 2nd, 3rd.</p>
+            <div className="text-center mb-2 shrink-0">
+              <h1 className="text-lg font-bold text-white">Rank the Songs</h1>
+              <p className="text-blue-200 text-xs">Which {artists[0]?.name || ''} song is the best?</p>
             </div>
 
-            <div className="flex-1 flex flex-col justify-center gap-3 max-w-lg mx-auto w-full">
-              {artists.map((artist) => {
+            {/* Song cards */}
+            <div className="flex-1 flex flex-col justify-center gap-2 max-w-lg mx-auto w-full min-h-0">
+              {artists.map((artist, idx) => {
                 const myRank = getRankForArtist(artist.id);
                 const rankInfo = myRank ? RANK_LABELS[myRank] : null;
 
                 return (
                   <div
                     key={artist.id}
-                    className={`rounded-xl overflow-hidden transition-all ${
+                    className={`rounded-xl overflow-hidden transition-all shrink-0 ${
                       myRank ? `ring-2 ${rankInfo.border}` : ''
                     }`}
                     style={{ backgroundColor: '#1e293b' }}
                   >
-                    <div className="flex items-center gap-3 p-3">
-                      {/* Artist image with play button overlay */}
+                    <div className="flex items-center gap-2 px-3 py-2.5">
+                      {/* Replay button */}
                       <button
                         onClick={() => togglePreview(artist)}
-                        className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-gray-700 relative group"
-                      >
-                        {artist.imageUrl ? (
-                          <img src={artist.imageUrl} alt={artist.name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Music size={24} className="text-gray-500" />
-                          </div>
-                        )}
-                        <div className={`absolute inset-0 flex items-center justify-center transition-all ${
+                        className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${
                           previewingArtistId === artist.id
-                            ? 'bg-green-500/60'
-                            : 'bg-black/40 group-hover:bg-black/50'
-                        }`}>
-                          {previewingArtistId === artist.id
-                            ? <Pause size={18} className="text-white" />
-                            : <Play size={18} className="text-white ml-0.5" />}
-                        </div>
+                            ? 'bg-green-500 text-white'
+                            : 'bg-white/10 text-white/60 hover:bg-white/20'
+                        }`}
+                      >
+                        {previewingArtistId === artist.id
+                          ? <Pause size={16} />
+                          : <Play size={16} className="ml-0.5" />}
                       </button>
 
-                      {/* Info */}
+                      {/* Song info */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-white font-bold text-sm truncate">{artist.name}</p>
-                        <p className="text-gray-400 text-xs truncate">"{artist.trackTitle}"</p>
-                        <p className="text-gray-500 text-xs truncate">{artist.genre}</p>
+                        <p className="text-white font-bold text-sm truncate">Song {idx + 1}: {capitalizeTitle(artist.trackTitle)}</p>
                       </div>
 
                       {/* 1st / 2nd / 3rd buttons */}
-                      <div className="flex gap-1.5 flex-shrink-0">
+                      <div className="flex gap-1 shrink-0">
                         {[1, 2, 3].map(rank => {
                           const rl = RANK_LABELS[rank];
                           const ordinal = rank === 1 ? '1st' : rank === 2 ? '2nd' : '3rd';
@@ -1049,7 +1012,7 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
                             <button
                               key={rank}
                               onClick={() => assignRank(artist.id, rank)}
-                              className={`px-3 h-10 rounded-lg font-bold text-sm transition-all min-h-[44px] ${
+                              className={`px-2.5 py-2 rounded-lg font-bold text-xs transition-all min-h-[44px] ${
                                 isAssignedHere
                                   ? `${rl.bgActive} ${rl.textActive} scale-105 shadow-lg`
                                   : isTakenElsewhere
@@ -1068,17 +1031,17 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
               })}
             </div>
 
-            {/* Lock In button */}
-            <div className="mt-4 max-w-lg mx-auto w-full">
+            {/* Lock In button — always visible at bottom */}
+            <div className="shrink-0 pt-2 max-w-lg mx-auto w-full">
               {allRanksAssigned ? (
                 <button
                   onClick={submitRanking}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-3.5 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-3 rounded-xl font-bold text-base transition-all flex items-center justify-center gap-2"
                 >
-                  <Check size={20} /> Lock In Rankings
+                  <Check size={18} /> Lock In Rankings
                 </button>
               ) : (
-                <p className="text-blue-300/40 text-sm text-center">
+                <p className="text-blue-300/40 text-xs text-center py-2">
                   Assign 1st, 2nd, and 3rd to lock in
                 </p>
               )}
@@ -1086,26 +1049,26 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center bg-white/10 rounded-2xl p-8">
-              <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-3">
-                <Check size={32} className="text-white" />
+            <div className="text-center bg-white/10 rounded-2xl p-6">
+              <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-2">
+                <Check size={24} className="text-white" />
               </div>
-              <p className="text-xl font-bold text-white mb-2">Locked In!</p>
-              <p className="text-blue-300 text-sm mb-4">
+              <p className="text-lg font-bold text-white mb-1">Locked In!</p>
+              <p className="text-blue-300 text-sm mb-3">
                 {rankedCount}/{totalMembers} have submitted
               </p>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {[1, 2, 3].map(rank => {
                   const artistId = Object.keys(rankAssignments).find(id => rankAssignments[id] === rank);
                   const artist = artists.find(a => a.id === artistId);
                   const rl = RANK_LABELS[rank];
                   if (!artist) return null;
                   return (
-                    <div key={rank} className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2">
-                      <span className={`w-8 h-8 rounded-full ${rl.bgActive} ${rl.textActive} flex items-center justify-center font-bold text-sm`}>
+                    <div key={rank} className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-1.5">
+                      <span className={`w-7 h-7 rounded-full ${rl.bgActive} ${rl.textActive} flex items-center justify-center font-bold text-xs`}>
                         {rank}
                       </span>
-                      <span className="text-white text-sm font-semibold">"{artist.trackTitle}"</span>
+                      <span className="text-white text-sm font-semibold">"{capitalizeTitle(artist.trackTitle)}"</span>
                       <span className="text-gray-500 text-xs ml-auto">{rl.label}</span>
                     </div>
                   );
@@ -1121,28 +1084,24 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
   // ============ RENDER: REVEALED PHASE ============
 
   if (gamePhase === 'revealed') {
-    const readyCount = Object.keys(readyForNext).length;
-    const totalMembers = memberOrder.length;
-
     const myRanking = rankings[userId] || {};
     const getArtistLabel = (artistId) => {
       const a = artists.find(x => x.id === artistId);
-      return a ? `"${a.trackTitle}"` : '?';
+      return a ? `"${capitalizeTitle(a.trackTitle)}"` : '?';
     };
 
     return (
-      <div className="h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 flex flex-col p-4 overflow-y-auto">
+      <div className="h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 flex flex-col p-3 overflow-hidden">
         <audio ref={audioRef} preload="auto" />
-        <div className="max-w-lg mx-auto w-full">
-          <div className="text-xs text-blue-300/70 font-mono mb-3 text-center">
-            Group {groupCode} | Round {currentRound + 1}/{TOTAL_ROUNDS}
+        <div className="flex-1 min-h-0 overflow-y-auto max-w-lg mx-auto w-full">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs text-blue-300/70 font-mono">Code: {groupCode} | Round {currentRound + 1}/{TOTAL_ROUNDS}</div>
           </div>
-
-          <h1 className="text-2xl font-bold text-white text-center mb-4">The Reveal!</h1>
+          <h1 className="text-lg font-bold text-white text-center mb-2">The Reveal!</h1>
 
           {/* Everyone's Picks — green = matched you, red = didn't */}
-          <div className="bg-white/5 rounded-xl p-3 mb-4">
-            <p className="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wider">Everyone's Picks</p>
+          <div className="bg-white/5 rounded-xl p-2.5 mb-3">
+            <p className="text-[10px] text-gray-400 font-semibold mb-1.5 uppercase tracking-wider">Everyone's Picks</p>
             {/* Header */}
             <div className="flex items-center gap-1.5 mb-2 px-1">
               <div className="w-20" />
@@ -1193,8 +1152,8 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
           </div>
 
           {/* Total Score */}
-          <div className="bg-white/5 rounded-xl p-3 mb-4">
-            <p className="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wider">Total Score</p>
+          <div className="bg-white/5 rounded-xl p-2.5 mb-2">
+            <p className="text-[10px] text-gray-400 font-semibold mb-1.5 uppercase tracking-wider">Total Score</p>
             <div className="space-y-1.5">
               {memberOrder
                 .map(id => ({ id, ...getMember(id), roundPts: roundScores[id] || 0 }))
@@ -1219,27 +1178,21 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
             </div>
           </div>
 
-          {/* Spacer for sticky button */}
-          <div className="h-20 flex-shrink-0" />
         </div>
 
-        {/* Sticky OK button at bottom */}
-        <div className="sticky bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent pt-6">
-          <div className="max-w-lg mx-auto">
-            {!imReady ? (
-              <button
-                onClick={markReady}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-3.5 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20"
-              >
-                <Check size={20} /> OK — Next Round
-              </button>
-            ) : (
-              <div className="text-center">
-                <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-300 px-4 py-2.5 rounded-xl font-semibold text-sm">
-                  <Check size={16} /> Waiting for others... ({readyCount}/{totalMembers})
-                </div>
-              </div>
-            )}
+        {/* Countdown bar — always visible at bottom */}
+        <div className="shrink-0 pt-2 max-w-lg mx-auto w-full">
+          <div className="bg-white/10 rounded-xl px-4 py-2.5 text-center">
+            <div className="flex items-center justify-center gap-2 text-blue-300 font-semibold text-sm mb-1.5">
+              <ChevronRight size={14} />
+              Next round in {revealCountdown ?? 0}s...
+            </div>
+            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-400 rounded-full transition-all duration-1000"
+                style={{ width: `${((revealCountdown ?? 0) / 10) * 100}%` }}
+              />
+            </div>
           </div>
         </div>
       </div>

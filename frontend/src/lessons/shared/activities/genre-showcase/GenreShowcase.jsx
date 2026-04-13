@@ -28,12 +28,12 @@ const GENRES = [
     name: 'Hip-Hop',
     color: '#8b5cf6',
     icon: '🎤',
-    artist: 'HoliznaCC0',
+    artist: 'Kellee Maize',
     location: 'Pittsburgh, PA',
-    imageUrl: 'https://freemusicarchive.org/image/?file=artist_image%2FlM2G8yAdu4LWzK5a3ZHKeJQnMkMe1u9qQzZvJ5HY.png&width=290&height=290&type=artist',
-    audio: 'https://media.musicmindacademy.com/artists/holiznacc0/foggy-headed.mp3',
-    startTime: 4,
-    trackTitle: 'Foggy Headed',
+    imageUrl: 'https://freemusicarchive.org/image/?file=images%2Fartists%2FKellee_Maize_-_2016082183441482.png&width=290&height=290&type=artist',
+    audio: 'https://media.musicmindacademy.com/artists/kellee-maize/in-tune-remix-2.mp3',
+    startTime: 105,
+    trackTitle: 'In Tune (Remix 2)',
     bullets: [
       'Beats, rhymes, and storytelling over sampled or electronic production',
       'One of the most influential genres — dominates streaming charts worldwide',
@@ -126,7 +126,7 @@ const TEACHER_SCRIPT = {
   intro: "Before you start scouting artists, you need to know your genres. A great agent doesn't just listen to what they like — they know EVERY corner of music. Let's hear what 7 major genres sound like.",
   perGenre: [
     "POP — catchy, polished, designed for everyone. This is Soft and Furious — synth pop with electronic beats and dreamy melodies. Pop is the biggest genre in the world for a reason.",
-    "HIP-HOP — beats, rhymes, and storytelling. This is HoliznaCC0 from Pittsburgh. Lo-fi hip-hop is one of the biggest subgenres online right now. Listen to those chill beats.",
+    "HIP-HOP — beats, rhymes, and storytelling. This is Kellee Maize from Pittsburgh. She raps about empowerment and positivity over creative beats. Listen to how the rhythm drives the energy.",
     "ROCK — guitars, drums, and raw energy. This is Cullah from Milwaukee. He mixes rock with funk, rap, and folk. Rock grew out of blues in the 1950s and changed music forever.",
     "COUNTRY — acoustic instruments and storytelling. This is Jason Shaw from Pittsburgh. Country music connects to American folk and blues traditions — and today it blends with pop and hip-hop too.",
     "JAZZ — improvisation and complex harmony. This is Ketsa from London. He blends jazz with soul, hip-hop, and Latin. Jazz isn't old or boring — it's the foundation of modern music.",
@@ -184,7 +184,12 @@ const GenreShowcase = ({ sessionData }) => {
       }
       audioRef.current.currentTime = genre.startTime || 0;
       audioRef.current.volume = 0.8;
-      audioRef.current.play().catch(err => console.error('Audio play error:', err));
+      // Small delay to let previous pause() settle before playing
+      setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.play().catch(() => {});
+        }
+      }, 50);
     }
 
     // Update progress bar
@@ -261,6 +266,7 @@ const GenreShowcase = ({ sessionData }) => {
           Know Your Genres
         </h1>
         <p className="text-lg text-slate-400 text-center mt-1">A great agent knows every corner of music</p>
+        <p className="text-sm text-amber-400/70 text-center mt-1">Remember: one artist can fit multiple genres — we're showing the main one</p>
       </div>
 
       {/* Teacher script */}

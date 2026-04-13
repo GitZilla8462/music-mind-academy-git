@@ -82,7 +82,7 @@ export const summarySlides = {
 
   // Build Time
   buildTime: {
-    title: 'Build Your Press Kit',
+    title: 'Build Your Story',
     subtitle: '25 Minutes — Make It Count',
     tips: [
       {

@@ -21,7 +21,7 @@ import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 // ============================================================
 const QUESTION_TYPES = {
   'fact-opinion': {
-    label: 'Fact or Opinion?',
+    label: 'Artists Worth Signing',
     options: [
       { value: 'fact', label: 'FACT', color: '#3B82F6' },
       { value: 'opinion', label: 'OPINION', color: '#8B5CF6' },
@@ -46,7 +46,7 @@ const QUESTION_TYPES = {
 };
 
 const STATEMENTS = [
-  // --- Fact or Opinion (5 questions — includes tricky ones) ---
+  // --- Fact or Opinion (3 questions) ---
   {
     id: 's1', questionType: 'fact-opinion',
     text: "Most people agree this is the best album of the year.",
@@ -63,78 +63,66 @@ const STATEMENTS = [
     id: 's3', questionType: 'fact-opinion',
     text: "They blend jazz chords with trap beats in a way nobody has done before.",
     answer: 'opinion',
-    explanation: "OPINION — 'nobody has done before' is a claim you can't prove. Other artists may have blended these styles. The description of the sound is factual, but 'nobody has done before' makes it an opinion."
+    explanation: "OPINION — 'nobody has done before' is a claim you can't prove. Other artists may have blended these styles."
   },
+  // --- Strong or Weak Evidence (5 questions) ---
   {
-    id: 's4', questionType: 'fact-opinion',
-    text: "The music video has been viewed 2.3 million times since it was uploaded in January.",
-    answer: 'fact',
-    explanation: "FACT — specific view count + specific month. Even though 2.3 million sounds impressive, it's a verifiable number."
-  },
-  {
-    id: 's5', questionType: 'fact-opinion',
-    text: "Their lyrics are deeper than most artists in the genre.",
-    answer: 'opinion',
-    explanation: "OPINION — 'deeper' is subjective. What counts as deep to you might not to someone else. There's no way to measure 'depth.'"
-  },
-  // --- Strong or Weak Evidence (5 questions — includes tricky ones) ---
-  {
-    id: 's6', questionType: 'strong-weak',
+    id: 's4', questionType: 'strong-weak',
     text: "A lot of people on social media are talking about them.",
     answer: 'weak',
     explanation: "WEAK — 'a lot of people' is vague. How many? Which platform? Without specifics, this could mean 5 people or 5,000."
   },
   {
-    id: 's7', questionType: 'strong-weak',
+    id: 's5', questionType: 'strong-weak',
     text: "They were nominated for 'Best New Artist' at the BET Awards in 2024.",
     answer: 'strong',
     explanation: "STRONG — specific award name, specific year. This is concrete, verifiable, and impressive."
   },
   {
-    id: 's8', questionType: 'strong-weak',
+    id: 's6', questionType: 'strong-weak',
     text: "I played their song for my friends and everyone loved it.",
     answer: 'weak',
     explanation: "WEAK — your friend group isn't a representative sample. 'Everyone loved it' is vague — how many friends? What did they actually say?"
   },
   {
-    id: 's9', questionType: 'strong-weak',
+    id: 's7', questionType: 'strong-weak',
     text: "They've gained 12,000 new monthly listeners since their song went viral on TikTok in September.",
     answer: 'strong',
     explanation: "STRONG — specific number, specific platform, specific timeframe. Measurable and verifiable."
   },
   {
-    id: 's10', questionType: 'strong-weak',
+    id: 's8', questionType: 'strong-weak',
     text: "Their production quality is way better than it was on their first album.",
     answer: 'weak',
     explanation: "WEAK — 'way better' is a vague comparison. Better how? Cleaner mix? More instruments? Without specifics, this is just a feeling."
   },
-  // --- Which of the 4 Points (5 questions — includes tricky ones) ---
+  // --- Which of the 4 Points (5 questions) ---
   {
-    id: 's11', questionType: 'which-point',
+    id: 's9', questionType: 'which-point',
     text: "She taught herself to produce beats using free software while living in a homeless shelter at 15.",
     answer: 'compelling-story',
     explanation: "COMPELLING STORY — this is about her personal background and what she overcame. It makes you care about the person behind the music."
   },
   {
-    id: 's12', questionType: 'which-point',
+    id: 's10', questionType: 'which-point',
     text: "Their first EP got 500 plays. Their second got 15,000. Their third just hit 120,000.",
     answer: 'signs-of-growth',
     explanation: "SIGNS OF GROWTH — the numbers show a clear upward trend. Each release is reaching more people — that's momentum."
   },
   {
-    id: 's13', questionType: 'which-point',
+    id: 's11', questionType: 'which-point',
     text: "They mix traditional West African kora with electronic bass music — I've never heard anything like it.",
     answer: 'unique-sound',
     explanation: "UNIQUE SOUND — the specific combination of kora + electronic bass describes what makes their sound different from everyone else."
   },
   {
-    id: 's14', questionType: 'which-point',
+    id: 's12', questionType: 'which-point',
     text: "Every time I listen to this artist, I find something new in the track I didn't notice before.",
     answer: 'gut-feeling',
     explanation: "GUT FEELING — this is about your personal, instinctive reaction. You can't point to data — something just keeps pulling you back."
   },
   {
-    id: 's15', questionType: 'which-point',
+    id: 's13', questionType: 'which-point',
     text: "They went from 200 Instagram followers to being reposted by Chance the Rapper in under a year.",
     answer: 'signs-of-growth',
     explanation: "SIGNS OF GROWTH — going from unknown to getting a major co-sign shows rapid momentum. The specific timeline and numbers prove they're on the rise."
@@ -210,8 +198,18 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
           answerTime: s.factOpinionAnswerTime || null,
         }));
 
-      setStudents(list);
-      setVotedCount(list.filter(s => s.answer).length);
+      // Deduplicate by name — keep the entry with the most data
+      const byName = {};
+      list.forEach(s => {
+        const existing = byName[s.name];
+        if (!existing || s.score > existing.score || (s.answer && !existing.answer)) {
+          byName[s.name] = s;
+        }
+      });
+      const dedupedList = Object.values(byName);
+
+      setStudents(dedupedList);
+      setVotedCount(dedupedList.filter(s => s.answer).length);
 
       // Count votes per option (dynamic based on question type)
       const counts = {};
@@ -346,12 +344,18 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
     }
   }, [sessionCode, classId, students, currentStatementIndex, updateGame, studentsBasePath]);
 
-  // Build sorted leaderboard
-  const leaderboard = Object.entries(scores)
-    .map(([id, data]) => ({ id, ...data }))
-    .sort((a, b) => b.score - a.score);
+  // Build sorted leaderboard (deduplicate by name — keep highest score)
+  const leaderboard = (() => {
+    const byName = {};
+    Object.entries(scores).forEach(([id, data]) => {
+      const existing = byName[data.name];
+      if (!existing || data.score > existing.score) {
+        byName[data.name] = { id, ...data };
+      }
+    });
+    return Object.values(byName).sort((a, b) => b.score - a.score);
+  })();
 
-  const totalVoters = Object.values(voteCounts).reduce((a, b) => a + b, 0);
   const currentQType = currentStatement ? QUESTION_TYPES[currentStatement.questionType] : null;
   const currentOptions = currentQType?.options || [];
 
@@ -359,268 +363,205 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
     <div className="min-h-screen h-full flex flex-col bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 text-white overflow-hidden">
       <ActivityBanner />
 
-      <div className="flex-1 p-4 lg:p-6 2xl:p-8 overflow-hidden flex flex-col min-h-0">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3 lg:mb-4 flex-shrink-0">
-          <div className="flex items-center gap-4">
-            <span className="text-3xl lg:text-4xl 2xl:text-5xl">{'\u2696\uFE0F'}</span>
-            <h1 className="text-2xl lg:text-3xl 2xl:text-4xl font-bold">Fact or Opinion?</h1>
-            {gamePhase !== 'setup' && gamePhase !== 'finished' && (
-              <span className="bg-white/10 px-4 py-2 rounded-full text-xl lg:text-2xl 2xl:text-3xl">
-                {currentStatementIndex + 1}/{STATEMENTS.length}
-              </span>
-            )}
+      <div className="flex-1 p-4 lg:p-6 2xl:p-8 overflow-hidden flex min-h-0">
+        {/* Main content area */}
+        <div className="flex-1 flex flex-col min-h-0 min-w-0">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-3 lg:mb-4 flex-shrink-0">
+            <div className="flex items-center gap-4">
+              <span className="text-3xl lg:text-4xl">{'\u2696\uFE0F'}</span>
+              <h1 className="text-2xl lg:text-3xl font-bold">Artists Worth Signing</h1>
+              {gamePhase !== 'setup' && gamePhase !== 'finished' && (
+                <span className="bg-white/10 px-4 py-2 rounded-full text-xl lg:text-2xl">
+                  Q{currentStatementIndex + 1}/{STATEMENTS.length}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-2xl">
+              <Users size={24} />
+              <span>{students.length}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2 text-2xl lg:text-3xl 2xl:text-4xl">
-            <Users size={28} />
-            <span>{students.length}</span>
+
+          {/* Main content */}
+          <div className="flex-1 min-h-0">
+            <div className="bg-black/20 rounded-2xl p-6 flex flex-col items-center justify-center min-h-0 h-full">
+
+              {/* ==================== SETUP ==================== */}
+              {gamePhase === 'setup' && (
+                <div className="text-center max-w-4xl mx-auto px-8">
+                  <div className="text-5xl lg:text-7xl mb-4">{'\u2696\uFE0F'}</div>
+                  <h2 className="text-3xl lg:text-5xl font-bold mb-4">Artists Worth Signing</h2>
+                  <p className="text-lg lg:text-2xl text-white/80 mb-6 leading-relaxed">As a music agent, you need to back up your claims with <strong className="text-amber-400">real evidence</strong>. Can you tell the difference?</p>
+                  <p className="text-sm lg:text-base text-white/40 mb-6">{STATEMENTS.length} questions &middot; +10 points correct &middot; Speed bonus up to +5</p>
+                  <button
+                    onClick={startGame}
+                    className="px-6 py-3 rounded-xl text-lg font-bold hover:scale-105 transition-all flex items-center gap-2 mx-auto"
+                    style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
+                  >
+                    <Play size={20} /> Start Game
+                  </button>
+                </div>
+              )}
+
+              {/* ==================== SHOWING (voting) ==================== */}
+              {gamePhase === 'showing' && currentStatement && (
+                <div className="w-full h-full flex flex-col">
+                  <div className="flex-1 flex items-center justify-center min-h-0">
+                    <div className="w-full max-w-4xl">
+                      <div className="text-center mb-3">
+                        <span className="inline-block px-5 py-2 rounded-full text-lg font-bold bg-white/10 text-white/70 uppercase tracking-wider">
+                          {currentQType?.label || 'Question'}
+                        </span>
+                      </div>
+                      <div className="rounded-3xl p-8 mb-6 text-center" style={{ backgroundColor: '#1a2744', border: '3px solid rgba(240, 180, 41, 0.4)' }}>
+                        <div className="text-3xl lg:text-5xl font-black leading-tight" style={{ color: '#f0b429' }}>
+                          &ldquo;{currentStatement.text}&rdquo;
+                        </div>
+                      </div>
+                      {/* Answered count */}
+                      <div className="text-center">
+                        <span className="text-2xl font-black text-green-400">{votedCount}</span>
+                        <span className="text-lg text-white/70"> / {students.length} answered</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-3 flex-shrink-0">
+                    <button
+                      onClick={reveal}
+                      className="px-6 py-3 rounded-2xl text-lg font-bold flex items-center gap-2 hover:scale-105 transition-all"
+                      style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
+                    >
+                      <Eye size={24} /> Reveal Answer
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ==================== REVEALED ==================== */}
+              {gamePhase === 'revealed' && currentStatement && (() => {
+                const correctOpt = currentOptions.find(o => o.value === currentStatement.answer);
+                return (
+                <div className="w-full h-full flex flex-col">
+                  <div className="flex-1 flex items-center justify-center min-h-0">
+                    <div className="w-full max-w-4xl">
+                      <div className="text-center mb-4">
+                        <span
+                          className="inline-flex items-center gap-3 px-8 py-4 rounded-full text-3xl lg:text-4xl font-black text-white"
+                          style={{ backgroundColor: correctOpt?.color || '#3B82F6' }}
+                        >
+                          <CheckCircle size={36} />
+                          {correctOpt?.label || currentStatement.answer}
+                        </span>
+                      </div>
+                      <div className="rounded-2xl p-6 mb-4 text-center" style={{ backgroundColor: '#1a2744', border: '2px solid rgba(255,255,255,0.1)' }}>
+                        <div className="text-2xl lg:text-3xl font-bold text-white/70 leading-tight">
+                          &ldquo;{currentStatement.text}&rdquo;
+                        </div>
+                      </div>
+                      <div
+                        className="rounded-2xl p-6 text-center"
+                        style={{
+                          backgroundColor: `${correctOpt?.color || '#3B82F6'}15`,
+                          border: `2px solid ${correctOpt?.color || '#3B82F6'}40`
+                        }}
+                      >
+                        <div className="text-xl lg:text-2xl font-medium text-white/90">{currentStatement.explanation}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex justify-end mt-3 flex-shrink-0">
+                    <button
+                      onClick={nextStatement}
+                      className="px-6 py-3 rounded-2xl text-lg font-bold hover:scale-105 transition-all flex items-center gap-2"
+                      style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
+                    >
+                      {currentStatementIndex >= STATEMENTS.length - 1 ? (
+                        <>Finish Game <ChevronRight size={28} /></>
+                      ) : (
+                        <>Next Question <ChevronRight size={28} /></>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ); })()}
+
+              {/* ==================== FINISHED ==================== */}
+              {gamePhase === 'finished' && (
+                <div className="w-full h-full flex flex-col items-center justify-center overflow-auto">
+                  <div className="text-center mb-6">
+                    <div className="text-5xl lg:text-6xl mb-3">{'\uD83C\uDFC6'}</div>
+                    <h2 className="text-3xl lg:text-5xl font-black mb-2">Game Complete!</h2>
+                    <p className="text-lg lg:text-2xl text-white/70">Final Leaderboard</p>
+                  </div>
+                  {leaderboard.length > 0 && (
+                    <div className="w-full max-w-lg lg:max-w-2xl">
+                      {leaderboard.slice(0, 10).map((entry, idx) => {
+                        const rankIcon = idx === 0 ? <Trophy size={28} className="text-yellow-400" /> :
+                                         idx === 1 ? <Award size={28} className="text-gray-300" /> :
+                                         idx === 2 ? <Medal size={28} className="text-amber-600" /> : null;
+                        return (
+                          <div
+                            key={entry.id}
+                            className={`flex items-center gap-4 px-6 py-3 rounded-xl mb-2 ${
+                              idx === 0 ? 'bg-yellow-500/20 ring-2 ring-yellow-400' :
+                              idx === 1 ? 'bg-gray-400/10 ring-1 ring-gray-400' :
+                              idx === 2 ? 'bg-amber-600/10 ring-1 ring-amber-600' :
+                              'bg-white/5'
+                            }`}
+                          >
+                            <div className="w-8 text-center">
+                              {rankIcon || <span className="text-lg font-bold text-white/50">{idx + 1}</span>}
+                            </div>
+                            <div className="flex-1 text-lg lg:text-2xl font-bold truncate">{entry.name}</div>
+                            <div className="text-2xl lg:text-3xl font-black" style={{ color: '#f0b429' }}>{entry.score}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <button
+                    onClick={() => onComplete?.()}
+                    className="mt-8 px-10 py-5 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3"
+                    style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
+                  >
+                    Continue <ChevronRight size={28} />
+                  </button>
+                </div>
+              )}
+
+            </div>
           </div>
         </div>
 
-        {/* Progress bar */}
+        {/* Right sidebar — Scoreboard (visible during gameplay) */}
         {gamePhase !== 'setup' && gamePhase !== 'finished' && (
-          <div className="flex gap-1 mb-3 lg:mb-4 flex-shrink-0">
-            {STATEMENTS.map((s, idx) => {
-              const isComplete = idx < currentStatementIndex || (idx === currentStatementIndex && gamePhase === 'revealed');
-              const isCurrent = idx === currentStatementIndex && gamePhase === 'showing';
-              return (
+          <div className="w-64 ml-4 bg-black/20 rounded-2xl p-4 flex flex-col min-h-0 flex-shrink-0">
+            <div className="flex items-center gap-3 mb-3">
+              <Trophy className="text-yellow-400" size={24} />
+              <h2 className="text-xl font-bold">Scoreboard</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto space-y-1.5">
+              {leaderboard.map((entry, idx) => (
                 <div
-                  key={s.id}
-                  className={`flex-1 h-8 lg:h-10 2xl:h-12 rounded-lg flex items-center justify-center text-xs lg:text-sm 2xl:text-base font-bold transition-all ${
-                    isCurrent ? 'ring-2 ring-white scale-105' : ''
+                  key={entry.id}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                    idx === 0 ? 'bg-yellow-500/20' : 'bg-white/5'
                   }`}
-                  style={{
-                    backgroundColor: isComplete
-                      ? (QUESTION_TYPES[s.questionType]?.options.find(o => o.value === s.answer)?.color || '#3B82F6')
-                      : 'rgba(255,255,255,0.1)',
-                    opacity: isComplete ? 1 : isCurrent ? 0.7 : 0.3
-                  }}
                 >
-                  {isComplete ? '\u2713' : idx + 1}
+                  <span className="w-6 text-center font-bold text-sm text-white/50">
+                    {idx === 0 ? '\uD83E\uDD47' : idx === 1 ? '\uD83E\uDD48' : idx === 2 ? '\uD83E\uDD49' : `${idx + 1}`}
+                  </span>
+                  <span className="flex-1 text-sm font-medium truncate">{entry.name}</span>
+                  <span className="text-sm font-black" style={{ color: '#f0b429' }}>{entry.score}</span>
                 </div>
-              );
-            })}
+              ))}
+              {leaderboard.length === 0 && (
+                <p className="text-sm text-white/30 text-center mt-4">Waiting for answers...</p>
+              )}
+            </div>
           </div>
         )}
-
-        {/* Main content */}
-        <div className="flex-1 min-h-0">
-          <div className="bg-black/20 rounded-2xl p-6 flex flex-col items-center justify-center min-h-0 h-full">
-
-            {/* ==================== SETUP ==================== */}
-            {gamePhase === 'setup' && (
-              <div className="text-center max-w-5xl mx-auto px-8">
-                <div className="text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-4 lg:mb-6">{'\u2696\uFE0F'}</div>
-                <h2 className="text-3xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold mb-4 lg:mb-6">Fact or Opinion?</h2>
-                <p className="text-lg lg:text-2xl xl:text-3xl 2xl:text-4xl text-white/80 mb-4 lg:mb-6 2xl:mb-8 leading-relaxed">As a music agent, you can&rsquo;t just say &ldquo;this artist is good.&rdquo; You need to back it up with <strong className="text-amber-400">real evidence</strong> — facts, numbers, and specifics that prove your artist is worth signing.</p>
-                <p className="text-base lg:text-xl xl:text-2xl 2xl:text-3xl text-white/60 mb-4 lg:mb-6">Can you tell the difference between a strong fact and a vague opinion?</p>
-                <div className="flex flex-wrap justify-center gap-3 lg:gap-4 2xl:gap-5 mb-4 lg:mb-6 2xl:mb-8 mt-4">
-                  <span className="px-4 py-2 lg:px-5 lg:py-2.5 2xl:px-6 2xl:py-3 rounded-full text-sm lg:text-lg xl:text-xl 2xl:text-2xl font-medium bg-blue-500/20 text-blue-300">Fact or Opinion</span>
-                  <span className="px-4 py-2 lg:px-5 lg:py-2.5 2xl:px-6 2xl:py-3 rounded-full text-sm lg:text-lg xl:text-xl 2xl:text-2xl font-medium bg-emerald-500/20 text-emerald-300">Strong or Weak</span>
-                  <span className="px-4 py-2 lg:px-5 lg:py-2.5 2xl:px-6 2xl:py-3 rounded-full text-sm lg:text-lg xl:text-xl 2xl:text-2xl font-medium bg-amber-500/20 text-amber-300">Which of the 4 Points</span>
-                </div>
-                <p className="text-sm lg:text-base xl:text-lg 2xl:text-xl text-white/40 mb-4 lg:mb-6">{STATEMENTS.length} questions &middot; +10 points correct &middot; Speed bonus up to +5</p>
-
-                <button
-                  onClick={startGame}
-                  className="px-5 py-2.5 rounded-xl text-base font-bold hover:scale-105 transition-all flex items-center gap-2 mx-auto"
-                  style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
-                >
-                  <Play size={20} /> Start Game
-                </button>
-              </div>
-            )}
-
-            {/* ==================== SHOWING (voting) ==================== */}
-            {gamePhase === 'showing' && currentStatement && (
-              <div className="w-full h-full flex flex-col">
-                {/* Statement card */}
-                <div className="flex-1 flex items-center justify-center min-h-0">
-                  <div className="w-full max-w-5xl 2xl:max-w-6xl">
-                    {/* Question type label */}
-                    <div className="text-center mb-3 lg:mb-4">
-                      <span className="inline-block px-4 py-1.5 lg:px-6 lg:py-2 2xl:px-8 2xl:py-3 rounded-full text-sm lg:text-lg xl:text-xl 2xl:text-2xl font-bold bg-white/10 text-white/70 uppercase tracking-wider">
-                        {currentQType?.label || 'Question'}
-                      </span>
-                    </div>
-                    {/* The statement */}
-                    <div className="rounded-3xl p-6 lg:p-8 2xl:p-10 mb-4 lg:mb-6 text-center" style={{ backgroundColor: '#1a2744', border: '3px solid rgba(240, 180, 41, 0.4)' }}>
-                      <div className="text-base lg:text-lg 2xl:text-xl text-white/50 mb-3 uppercase tracking-widest font-medium">#{currentStatementIndex + 1} of {STATEMENTS.length}</div>
-                      <div className="text-2xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-black leading-tight" style={{ color: '#f0b429' }}>
-                        &ldquo;{currentStatement.text}&rdquo;
-                      </div>
-                    </div>
-
-                    {/* Live vote bars — dynamic based on question type */}
-                    <div className={`grid gap-3 lg:gap-4 2xl:gap-5 mb-4 ${currentOptions.length <= 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
-                      {currentOptions.map(opt => {
-                        const count = voteCounts[opt.value] || 0;
-                        return (
-                          <div key={opt.value} className="rounded-2xl p-4 lg:p-5 2xl:p-6 text-center" style={{ backgroundColor: `${opt.color}20` }}>
-                            <div className="text-sm lg:text-xl 2xl:text-2xl font-bold mb-1" style={{ color: opt.color }}>{opt.label}</div>
-                            <div className="text-3xl lg:text-5xl 2xl:text-6xl font-black" style={{ color: opt.color }}>{count}</div>
-                            <div className="text-xs lg:text-base 2xl:text-lg text-white/50 mt-1">{count === 1 ? 'vote' : 'votes'}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom bar: vote count + reveal button */}
-                <div className="flex items-center justify-between mt-3 flex-shrink-0">
-                  <div className="bg-white/10 rounded-2xl px-6 py-3 lg:px-8 lg:py-4">
-                    <span className="text-3xl lg:text-4xl 2xl:text-5xl font-black text-green-400">{votedCount}</span>
-                    <span className="text-lg lg:text-xl 2xl:text-2xl text-white/70"> / {students.length} voted</span>
-                  </div>
-                  <button
-                    onClick={reveal}
-                    className="px-6 py-3 lg:px-8 lg:py-4 rounded-2xl text-lg lg:text-xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
-                    style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
-                  >
-                    <Eye size={24} /> Reveal Answer
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* ==================== REVEALED ==================== */}
-            {gamePhase === 'revealed' && currentStatement && (() => {
-              const correctOpt = currentOptions.find(o => o.value === currentStatement.answer);
-              return (
-              <div className="w-full h-full flex flex-col">
-                <div className="flex-1 flex items-center justify-center min-h-0">
-                  <div className="w-full max-w-5xl 2xl:max-w-6xl">
-                    {/* Answer badge */}
-                    <div className="text-center mb-4 lg:mb-5">
-                      <span
-                        className="inline-flex items-center gap-3 px-8 py-4 lg:px-10 lg:py-5 rounded-full text-3xl lg:text-4xl 2xl:text-5xl font-black text-white"
-                        style={{ backgroundColor: correctOpt?.color || '#3B82F6' }}
-                      >
-                        <CheckCircle size={36} className="lg:w-10 lg:h-10 2xl:w-12 2xl:h-12" />
-                        {correctOpt?.label || currentStatement.answer}
-                      </span>
-                    </div>
-
-                    {/* Statement (dimmed) */}
-                    <div className="rounded-2xl p-6 lg:p-8 2xl:p-10 mb-4 lg:mb-5 text-center" style={{ backgroundColor: '#1a2744', border: '2px solid rgba(255,255,255,0.1)' }}>
-                      <div className="text-2xl lg:text-3xl 2xl:text-4xl font-bold text-white/70 leading-tight">
-                        &ldquo;{currentStatement.text}&rdquo;
-                      </div>
-                    </div>
-
-                    {/* Explanation */}
-                    <div
-                      className="rounded-2xl p-6 lg:p-8 mb-4 lg:mb-5 text-center"
-                      style={{
-                        backgroundColor: `${correctOpt?.color || '#3B82F6'}15`,
-                        border: `2px solid ${correctOpt?.color || '#3B82F6'}40`
-                      }}
-                    >
-                      <div className="text-xl lg:text-2xl 2xl:text-3xl font-medium text-white/90">{currentStatement.explanation}</div>
-                    </div>
-
-                    {/* Vote breakdown — dynamic */}
-                    <div className={`grid gap-3 lg:gap-4 ${currentOptions.length <= 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
-                      {currentOptions.map(opt => {
-                        const count = voteCounts[opt.value] || 0;
-                        const pct = totalVoters > 0 ? Math.round((count / totalVoters) * 100) : 0;
-                        const isCorrect = opt.value === currentStatement.answer;
-                        return (
-                          <div key={opt.value} className={`rounded-2xl p-4 lg:p-5 2xl:p-6 text-center ${isCorrect ? 'ring-2 ring-green-400' : ''}`}
-                            style={{ backgroundColor: `${opt.color}20` }}>
-                            <div className="text-sm lg:text-lg 2xl:text-xl font-bold" style={{ color: opt.color }}>{opt.label}</div>
-                            <div className="text-2xl lg:text-4xl 2xl:text-5xl font-black" style={{ color: opt.color }}>{pct}%</div>
-                            <div className="text-xs lg:text-sm 2xl:text-base text-white/50">{count} {count === 1 ? 'vote' : 'votes'}</div>
-                            {isCorrect && <CheckCircle size={18} className="text-green-400 mx-auto mt-1" />}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom bar */}
-                <div className="flex items-center justify-between mt-3 flex-shrink-0">
-                  <div className="text-xl lg:text-2xl 2xl:text-3xl text-white/70">
-                    {(() => {
-                      const correctVotes = voteCounts[currentStatement.answer] || 0;
-                      return (
-                        <>
-                          {correctVotes} of {totalVoters} got it right!
-                          {correctVotes > 0 && totalVoters > 0 && (
-                            <span className="ml-2 text-green-400">
-                              ({Math.round((correctVotes / totalVoters) * 100)}%)
-                            </span>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
-                  <button
-                    onClick={nextStatement}
-                    className="px-6 py-3 lg:px-8 lg:py-4 rounded-2xl text-lg lg:text-xl font-bold hover:scale-105 transition-all flex items-center gap-2"
-                    style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
-                  >
-                    {currentStatementIndex >= STATEMENTS.length - 1 ? (
-                      <>Finish Game <ChevronRight size={28} /></>
-                    ) : (
-                      <>Next Statement <ChevronRight size={28} /></>
-                    )}
-                  </button>
-                </div>
-              </div>
-            ); })()}
-
-            {/* ==================== FINISHED ==================== */}
-            {gamePhase === 'finished' && (
-              <div className="w-full h-full flex flex-col items-center justify-center overflow-auto">
-                <div className="text-center mb-6 lg:mb-8">
-                  <div className="text-5xl lg:text-6xl 2xl:text-7xl mb-3">{'\uD83C\uDFC6'}</div>
-                  <h2 className="text-3xl lg:text-5xl 2xl:text-6xl font-black mb-2">Game Complete!</h2>
-                  <p className="text-lg lg:text-2xl 2xl:text-3xl text-white/70">Final Leaderboard</p>
-                </div>
-
-                {/* Leaderboard */}
-                {leaderboard.length > 0 && (
-                  <div className="w-full max-w-lg lg:max-w-2xl 2xl:max-w-3xl">
-                    {leaderboard.slice(0, 10).map((entry, idx) => {
-                      const rankIcon = idx === 0 ? <Trophy size={28} className="text-yellow-400" /> :
-                                       idx === 1 ? <Award size={28} className="text-gray-300" /> :
-                                       idx === 2 ? <Medal size={28} className="text-amber-600" /> : null;
-                      return (
-                        <div
-                          key={entry.id}
-                          className={`flex items-center gap-4 lg:gap-5 px-6 py-3 lg:px-8 lg:py-4 2xl:px-10 2xl:py-5 rounded-xl mb-2 lg:mb-3 ${
-                            idx === 0 ? 'bg-yellow-500/20 ring-2 ring-yellow-400' :
-                            idx === 1 ? 'bg-gray-400/10 ring-1 ring-gray-400' :
-                            idx === 2 ? 'bg-amber-600/10 ring-1 ring-amber-600' :
-                            'bg-white/5'
-                          }`}
-                        >
-                          <div className="w-8 lg:w-10 text-center">
-                            {rankIcon || <span className="text-lg lg:text-xl 2xl:text-2xl font-bold text-white/50">{idx + 1}</span>}
-                          </div>
-                          <div className="flex-1 text-lg lg:text-2xl 2xl:text-3xl font-bold truncate">{entry.name}</div>
-                          <div className="text-2xl lg:text-3xl 2xl:text-4xl font-black" style={{ color: '#f0b429' }}>{entry.score}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                <button
-                  onClick={() => onComplete?.()}
-                  className="mt-8 px-10 py-5 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-3"
-                  style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
-                >
-                  Continue <ChevronRight size={28} />
-                </button>
-              </div>
-            )}
-
-          </div>
-        </div>
       </div>
     </div>
   );

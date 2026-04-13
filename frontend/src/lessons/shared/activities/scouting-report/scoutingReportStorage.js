@@ -45,10 +45,9 @@ export function saveScoutingReport(report, key = DEFAULT_STORAGE_KEY, activityId
     report.lastSaved = new Date().toISOString();
     localStorage.setItem(key, JSON.stringify(report));
 
-    // Also sync to Firebase if in a class session
+    // Sync to Firebase if in a class session
     const auth = getClassAuthInfo();
-    if (auth?.studentUid) {
-      const totalComplete = (completedReports?.length || 0) + (report.slides?.length > 0 ? 0 : 0);
+    if (auth?.uid) {
       const data = {
         slides: report.slides,
         lastSaved: report.lastSaved,
@@ -60,9 +59,17 @@ export function saveScoutingReport(report, key = DEFAULT_STORAGE_KEY, activityId
           artistName: cr.artistName,
           completedAt: cr.completedAt,
         }));
-        data.totalReports = completedReports.length + 1; // +1 for current
+        data.totalReports = completedReports.length + 1;
       }
-      saveStudentWork(lessonId, activityId, data).catch(() => {});
+      saveStudentWork(activityId, {
+        title: activityId === 'mj-genre-scouts' ? 'Genre Scouts Report' : 'Scouting Report',
+        emoji: '\uD83D\uDD0D',
+        viewRoute: null,
+        category: 'Music Journalist',
+        lessonId,
+        type: 'scouting-report',
+        data,
+      }, null, auth);
     }
   } catch (err) {
     console.error('Failed to save scouting report:', err);

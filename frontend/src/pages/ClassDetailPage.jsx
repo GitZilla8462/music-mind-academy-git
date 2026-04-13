@@ -48,6 +48,7 @@ const getActivityIcon = (type) => {
   switch (type) {
     case 'game': return Gamepad2;
     case 'composition': return Music;
+    case 'scouting-report': return FileText;
     case 'reflection': return FileText;
     case 'exit-ticket': return ClipboardList;
     default: return FileText;
@@ -600,10 +601,10 @@ const ClassDetailPage = () => {
                                   >
                                     <div className="flex items-center gap-3">
                                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                        activity.type === 'composition' ? 'bg-blue-100' : 'bg-gray-100'
+                                        activity.type === 'composition' || activity.type === 'scouting-report' ? 'bg-blue-100' : 'bg-gray-100'
                                       }`}>
                                         <Icon size={16} className={
-                                          activity.type === 'composition' ? 'text-blue-600' : 'text-gray-600'
+                                          activity.type === 'composition' || activity.type === 'scouting-report' ? 'text-blue-600' : 'text-gray-600'
                                         } />
                                       </div>
                                       <div>
@@ -641,7 +642,7 @@ const ClassDetailPage = () => {
                                           Grade
                                         </button>
                                       )}
-                                      {activity.type === 'composition' && activity.stats.submitted > 0 && (
+                                      {activity.type === 'composition' && activity.stats.submitted > 0 && unit.id === 'film-music' && (
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
@@ -736,6 +737,7 @@ const ClassDetailPage = () => {
               for (const activity of gradableActivities) {
                 let shortLabel;
                 if (activity.type === 'composition') shortLabel = 'Comp';
+                else if (activity.type === 'scouting-report') shortLabel = 'Report';
                 else if (activity.type === 'reflection') shortLabel = 'Refl';
                 else if (activity.id.includes('listening-journey')) shortLabel = 'Journey';
                 else shortLabel = activity.name.split(' ')[0];

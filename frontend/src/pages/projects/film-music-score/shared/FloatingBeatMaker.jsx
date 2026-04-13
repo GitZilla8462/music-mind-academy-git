@@ -99,7 +99,7 @@ const FloatingBeatMaker = ({
         {/* Custom Drag Handle Header */}
         <div
           className={`drag-handle flex-shrink-0 bg-gray-800 border-b border-gray-700 px-3 py-2 select-none ${isChromebook ? '' : 'cursor-move'}`}
-          style={isChromebook ? { cursor: 'none' } : undefined}
+          style={{ touchAction: 'none', WebkitTouchCallout: 'none', ...(isChromebook ? { cursor: 'none' } : {}) }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

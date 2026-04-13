@@ -20,11 +20,13 @@ import { loadPressKit, savePressKit, getOrCreatePressKit } from './pressKitStora
 import { getSelectedArtistId, autoPopulateFields } from './pressKitAutoPopulate';
 import { generateTemplateObjects, generateBonusTrackObjects } from './slideTemplates';
 import { SLIDE_CONFIGS } from './slideConfigs';
+import { getDatabase, ref, onValue } from 'firebase/database';
+import { getClassAuthInfo } from '../../../../utils/studentWorkStorage';
 
 const AUTOSAVE_INTERVAL = 30000;
 const BONUS_STORAGE_KEY = 'mma-press-kit-bonus-tracks';
 
-function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableSlides }) {
+function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableSlides, peerReviewMode }) {
   const [pressKit, setPressKit] = useState(null);
   const [activeSlide, setActiveSlide] = useState(1);
   const [saveStatus, setSaveStatus] = useState('idle');
@@ -141,6 +143,33 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
       localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(bonusTracksRef.current));
     };
   }, []);
+
+  // Listen for teacher "Save All" command
+  const componentMountTimeRef = useRef(Date.now());
+  const lastSaveCommandRef = useRef(null);
+  useEffect(() => {
+    if (!isSessionMode || viewMode) return;
+    const auth = getClassAuthInfo();
+    if (!auth?.classId) return;
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${auth.classId}/saveCommand`);
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const cmd = snapshot.val();
+      if (!cmd || cmd <= componentMountTimeRef.current) {
+        lastSaveCommandRef.current = cmd;
+        return;
+      }
+      if (cmd !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = cmd;
+        console.log('\uD83D\uDCBE Teacher save command received for press kit');
+        if (pressKitRef.current) {
+          savePressKit(pressKitRef.current);
+          localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(bonusTracksRef.current));
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [isSessionMode, viewMode]);
 
   // Handlers
   const handleSave = useCallback(() => {
@@ -298,17 +327,23 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100]">
               <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden mx-4">
                 <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-3 flex items-center justify-between">
-                  <h2 className="text-lg font-black text-white">Build Your Press Kit</h2>
+                  <h2 className="text-lg font-black text-white">{peerReviewMode ? 'Peer Review + Revise' : 'Build Your Story'}</h2>
                   <button onClick={() => setShowDirections(false)} className="text-white/70 hover:text-white">
                     <X size={18} />
                   </button>
                 </div>
                 <div className="px-5 py-3 space-y-2.5">
-                  {[
+                  {(peerReviewMode ? [
+                    'Swap Chromebooks with a partner',
+                    'Read through their 5 slides — which slide is strongest?',
+                    'What\'s missing or could be stronger?',
+                    'Would YOU sign this artist based on the press kit?',
+                    'Swap back and use their feedback to make final edits',
+                  ] : [
                     'You have 5 slides — click any text to replace it with your own words',
                     'Each slide tells you what to write in the placeholder text',
                     'Your work saves automatically',
-                  ].map((step, i) => (
+                  ]).map((step, i) => (
                     <div key={i} className="flex items-start gap-2.5">
                       <span className="text-lg font-black text-purple-600 w-6 text-center flex-shrink-0">{i + 1}</span>
                       <p className="text-sm sm:text-base text-gray-700">{step}</p>

@@ -3,7 +3,7 @@
 // Paired with Artist Discovery in a tabbed layout so students can browse + build simultaneously.
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Save, Check, BookOpen, Search, RotateCcw, Plus, CheckCircle, Eye } from 'lucide-react';
+import { Save, Check, BookOpen, Search, RotateCcw, Plus, CheckCircle, Eye, HelpCircle } from 'lucide-react';
 import DirectionsModal from '../../components/DirectionsModal';
 import { AudioProvider, useGlobalAudio } from '../artist-discovery/AudioContext';
 import ArtistDiscovery from '../artist-discovery/ArtistDiscovery';
@@ -16,6 +16,8 @@ import { SCOUTING_SLIDE_CONFIGS, generateScoutingTemplateObjects } from './scout
 import { GENRE_SCOUTS_SLIDE_CONFIGS, generateGenreScoutsTemplateObjects } from './genreScoutsConfig';
 import { CLAIM_ARTIST_SLIDE_CONFIGS, generateClaimArtistTemplateObjects } from './claimArtistConfig';
 import { loadScoutingReport, saveScoutingReport, getOrCreateScoutingReport } from './scoutingReportStorage';
+import { getDatabase, ref, onValue } from 'firebase/database';
+import { getClassAuthInfo } from '../../../../utils/studentWorkStorage';
 
 const AUTOSAVE_INTERVAL = 30000;
 const THUMB_W = 110;
@@ -33,7 +35,7 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
   const [report, setReport] = useState(null);
   const [activeSlide, setActiveSlide] = useState(1);
   const [saveStatus, setSaveStatus] = useState('idle');
-  const [activeTab, setActiveTab] = useState('discover'); // start on discover so they browse first
+  const [activeTab, setActiveTab] = useState(isGenreScouts ? 'report' : 'discover');
   const reportRef = useRef(null);
   const saveTimerRef = useRef(null);
   const imageCallbackRef = useRef(null);
@@ -93,11 +95,11 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
       ]
     : isGenreScouts
     ? [
-        { text: 'Browse artists and listen to tracks across different genres' },
-        { text: 'Star artists that catch your ear' },
-        { text: 'Switch to "My Report" to build your slides' },
-        { text: 'Each slide has example text — click a text box, delete it, and type your own words' },
-        { text: 'Fill in all 3 slides — your progress shows at the top' },
+        { text: 'Start by clicking "My Report" — look at your 3 slides and read the example text' },
+        { text: 'Each slide has example text filled in — click a text box, delete it, and type your own words' },
+        { text: 'Click "Explore Artists" to browse the library and listen to music across genres' },
+        { text: 'Go back and forth between exploring and your report until all 3 slides are complete' },
+        { text: 'Done early? Start a bonus report for another artist!' },
       ]
     : [
         { text: 'Browse the artist library — listen to tracks across genres' },
@@ -161,6 +163,32 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
     return () => { if (reportRef.current) saveScoutingReport(reportRef.current, storageKey, activityId, lessonId, completedReportsRef.current); };
   }, [storageKey, activityId, lessonId]);
 
+  // Listen for teacher "Save All" command
+  const componentMountTimeRef = useRef(Date.now());
+  const lastSaveCommandRef = useRef(null);
+  useEffect(() => {
+    if (!isSessionMode || viewMode) return;
+    const auth = getClassAuthInfo();
+    if (!auth?.classId) return;
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${auth.classId}/saveCommand`);
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const cmd = snapshot.val();
+      if (!cmd || cmd <= componentMountTimeRef.current) {
+        lastSaveCommandRef.current = cmd;
+        return;
+      }
+      if (cmd !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = cmd;
+        console.log('\uD83D\uDCBE Teacher save command received for scouting report');
+        if (reportRef.current) {
+          saveScoutingReport(reportRef.current, storageKey, activityId, lessonId, completedReportsRef.current);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, [isSessionMode, viewMode, storageKey, activityId, lessonId]);
+
   const handleSave = useCallback(() => {
     if (!report) return;
     setSaveStatus('saving');
@@ -203,8 +231,10 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
       return next;
     });
   }, [completionKey]);
-  const slidesCompleted = slideConfigs.filter((_, i) => slidesDone[i + 1]).length;
-  const totalSlides = slideConfigs.length;
+  // Use actual report slide count (may differ from slideConfigs for bonus reports)
+  const currentSlideCount = report?.slides?.length || slideConfigs.length;
+  const slidesCompleted = Array.from({ length: currentSlideCount }, (_, i) => i + 1).filter(n => slidesDone[n]).length;
+  const totalSlides = currentSlideCount;
   const allSlidesDone = slidesCompleted === totalSlides;
 
   // ── Multi-report support (like Listening Guide's multi-entry pattern) ──
@@ -271,11 +301,19 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
     setCompletedReports(updated);
     localStorage.setItem(reportsKey, JSON.stringify(updated));
 
-    // Reset current report
-    const fresh = getOrCreateScoutingReport(null, slideConfigs); // create in-memory, don't load from storage
+    // For genre scouts bonus: only 1 slide (Sound Snapshot)
+    // For other variants: full slide set
+    const bonusConfigs = isGenreScouts
+      ? [{ ...slideConfigs[slideConfigs.length - 1], number: 1 }] // Sound Snapshot as slide 1
+      : slideConfigs;
+
+    const fresh = getOrCreateScoutingReport(null, bonusConfigs);
     fresh.slides = fresh.slides.map((slide, i) => ({
       ...slide,
-      objects: generateTemplateObjects(i + 1, {}),
+      title: bonusConfigs[i]?.title || `Slide ${i + 1}`,
+      objects: isGenreScouts
+        ? generateTemplateObjects(slideConfigs.length, {}) // use Sound Snapshot generator (slide 3)
+        : generateTemplateObjects(i + 1, {}),
     }));
     fresh.createdAt = new Date().toISOString();
     setReport(fresh);
@@ -370,6 +408,12 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowDirections(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-purple-500/15 text-purple-300 hover:bg-purple-500/25 transition-colors"
+          >
+            <HelpCircle size={12} /> Directions
+          </button>
           {/* Save status */}
           <span className="text-[10px] text-white/30">
             {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : ''}
@@ -464,9 +508,12 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
               const displayReport = isViewingCompleted ? completedReports[viewingReportIndex]?.report : report;
               const displaySlidesDone = isViewingCompleted ? completedReports[viewingReportIndex]?.slidesDone || {} : slidesDone;
               if (!displayReport) return null;
-              return slideConfigs.map((cfg, i) => {
-                const slideNum = cfg.number;
-                const slide = displayReport.slides[i];
+              // Use the report's actual slides (may be fewer than slideConfigs for bonus reports)
+              const displaySlides = displayReport.slides || [];
+              return displaySlides.map((slide, i) => {
+                const slideNum = i + 1;
+                // Prefer slide-stored title (for bonus reports), then config, then fallback
+                const cfgTitle = slide?.title || slideConfigs[i]?.title || `Slide ${slideNum}`;
                 const isActive = activeSlide === slideNum;
 
                 return (
@@ -505,7 +552,7 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
                         ))}
                         {(!slide?.objects || slide.objects.length === 0) && (
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-[10px] text-white/20">{cfg.title}</span>
+                            <span className="text-[10px] text-white/20">{cfgTitle}</span>
                           </div>
                         )}
                       </div>
@@ -513,7 +560,7 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
                       <div className={`px-1.5 py-1 text-[10px] font-medium truncate ${
                         isActive ? 'text-amber-400' : 'text-white/40'
                       }`} style={{ background: '#0d1520' }}>
-                        {cfg.title}
+                        {cfgTitle}
                       </div>
                     </button>
                     {!viewMode && (

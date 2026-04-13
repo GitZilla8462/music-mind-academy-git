@@ -42,8 +42,10 @@ import { useTimerSound } from '../hooks/useTimerSound';
 import ActivityRenderer from './ActivityRenderer';
 import DirectionsModal from './DirectionsModal';
 import LaunchDayTeacher from '../activities/launch-day/LaunchDayTeacher';
+import ClassVoteTeacher from '../activities/launch-day/ClassVoteTeacher';
 import IndependentListeningActivity from '../activities/listening-guide/IndependentListeningActivity';
 import ClaimArtistReport from '../activities/scouting-report/ClaimArtistReport';
+import { ScoutingReport } from '../activities/scouting-report';
 import { PressKitDesigner } from '../activities/press-kit-designer';
 
 // ============================================
@@ -1814,7 +1816,7 @@ const PresentationContent = ({
           `}</style>
           <div className="h-full teacher-embed-activity relative">
             <ActivityRenderer
-              activity={{ type: 'independent-listening', id: 'teacher-share-preview' }}
+              activity={{ type: 'independent-listening', id: 'listening-share' }}
               onComplete={() => {}}
               viewMode={false}
               isSessionMode={false}
@@ -1844,6 +1846,46 @@ const PresentationContent = ({
       );
     }
 
+    // Genre Scouts (Music Journalist Lesson 1) — teacher sees same activity as students
+    if (type === 'genre-scouts-teacher') {
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <style>{`
+            .teacher-embed-activity .h-screen { height: 100% !important; }
+          `}</style>
+          <div className="h-full teacher-embed-activity">
+            <ScoutingReport
+              onComplete={() => {}}
+              viewMode={false}
+              isSessionMode={false}
+              variant="genre-scouts"
+              forceShowDirections={true}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // Share Out (Music Journalist Lesson 1) — genre scouts + share overlay
+    if (type === 'genre-scouts-share-teacher') {
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <style>{`
+            .teacher-embed-activity .h-screen { height: 100% !important; }
+          `}</style>
+          <div className="h-full teacher-embed-activity relative">
+            <ScoutingReport
+              onComplete={() => {}}
+              viewMode={false}
+              isSessionMode={false}
+              variant="genre-scouts"
+            />
+            <GenreScoutsShareOverlay />
+          </div>
+        </div>
+      );
+    }
+
     // Share Out (Music Journalist Lesson 3) — share overlay only (no scouting report directions)
     if (type === 'claim-artist-share-teacher') {
       return (
@@ -1858,6 +1900,25 @@ const PresentationContent = ({
               isSessionMode={false}
             />
             <ClaimArtistShareOverlay />
+          </div>
+        </div>
+      );
+    }
+
+    // Peer Review + Revise (Music Journalist Lesson 4) — press kit with peer review directions
+    if (type === 'press-kit-peer-review-teacher') {
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <style>{`
+            .teacher-embed-activity .h-screen { height: 100% !important; }
+          `}</style>
+          <div className="h-full teacher-embed-activity">
+            <PressKitDesigner
+              onComplete={() => {}}
+              viewMode={false}
+              isSessionMode={false}
+              peerReviewMode={true}
+            />
           </div>
         </div>
       );
@@ -2637,7 +2698,7 @@ const PresentationContent = ({
       return <StringsDynamicsLabDirections StringsDynamicsLabComponent={StringsDynamicsLab} dismissedRef={stringsDynamicsDirDismissedRef} />;
     }
 
-    // Launch Day Teacher — full presentation controller (Music Journalist Lesson 5)
+    // Launch Day Teacher — presentation controller (Music Journalist Lesson 5)
     if (type === 'launch-day-teacher') {
       const launchSessionCode = classCode || sessionCode;
       const urlClassId = new URLSearchParams(window.location.search).get('classId');
@@ -2647,6 +2708,16 @@ const PresentationContent = ({
             sessionCode={launchSessionCode}
             classId={urlClassId}
           />
+        </div>
+      );
+    }
+
+    // Class Vote Teacher — voting + results (Music Journalist Lesson 5)
+    if (type === 'class-vote-teacher') {
+      const launchSessionCode = classCode || sessionCode;
+      return (
+        <div className="absolute inset-0">
+          <ClassVoteTeacher sessionCode={launchSessionCode} />
         </div>
       );
     }
@@ -3725,7 +3796,7 @@ const FinalPilotSurvey = ({
 // ============================================
 const GUIDED_LISTENING_TRACKS_DATA = [
   { id: 'guided-1', title: 'Trench Work', artist: 'Ketsa', genre: 'Jazz / Soul / Trip-Hop', audioUrl: 'https://media.musicmindacademy.com/artists/ketsa/trench-work.mp3', color: '#3b82f6', playDuration: 0 },
-  { id: 'guided-2', title: "Jenny's Theme", artist: 'Jason Shaw', genre: 'Country / Acoustic', audioUrl: 'https://media.musicmindacademy.com/artists/jason-shaw/jennys-theme.mp3', color: '#f97316', playDuration: 0 },
+  { id: 'guided-2', title: 'Acoustic Blues', artist: 'Jason Shaw', genre: 'Country / Acoustic', audioUrl: 'https://media.musicmindacademy.com/artists/jason-shaw/acoustic-blues.mp3', color: '#f97316', playDuration: 0 },
   { id: 'guided-3', title: 'Horizon Ending', artist: 'Soft and Furious', genre: 'Synth Pop / Electronic', audioUrl: 'https://media.musicmindacademy.com/artists/soft-and-furious/horizon-ending.mp3', color: '#8b5cf6', playDuration: 0 },
 ];
 
@@ -4403,6 +4474,42 @@ const ShareOutOverlay = () => {
   );
 };
 
+const GenreScoutsShareOverlay = () => {
+  const [dismissed, setDismissed] = React.useState(false);
+  if (dismissed) return null;
+  return (
+    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000]">
+      <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden mx-4">
+        <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-white">Share Out</h2>
+            <p className="text-amber-100 text-sm">Talk to Your Partner</p>
+          </div>
+          <button onClick={() => setDismissed(true)} className="text-white/70 hover:text-white text-2xl font-bold leading-none">{'\u2715'}</button>
+        </div>
+        <div className="px-6 py-5 space-y-4">
+          {[
+            'Find a partner or small group near you',
+            'Show them your Genre Lineup \u2014 who did you pick for each genre?',
+            'Share your Surprise Discovery \u2014 which genre caught you off guard?',
+            'Listen to your partner \u2014 did anyone pick the same artists?',
+          ].map((step, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <span className="text-2xl font-black text-amber-600 w-8 text-center flex-shrink-0">{i + 1}</span>
+              <p className="text-lg text-gray-700">{step}</p>
+            </div>
+          ))}
+        </div>
+        <div className="px-6 pb-5">
+          <button onClick={() => setDismissed(true)} className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-lg font-bold rounded-xl hover:from-amber-600 hover:to-orange-600">
+            Got it!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ClaimArtistShareOverlay = () => {
   const [dismissed, setDismissed] = React.useState(false);
   if (dismissed) return null;
@@ -4447,14 +4554,14 @@ const PressKitBuildOverlay = () => {
       <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden mx-4">
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-black text-white">Build Your Press Kit</h2>
+            <h2 className="text-2xl font-black text-white">Build Your Story</h2>
             <p className="text-purple-100 text-sm">5 Slides — Make It Count</p>
           </div>
           <button onClick={() => setDismissed(true)} className="text-white/70 hover:text-white text-2xl font-bold leading-none">{'\u2715'}</button>
         </div>
         <div className="px-6 py-5 space-y-4">
           {[
-            'Open your Press Kit — you have 5 slides to complete',
+            'Open your presentation — you have 5 slides to complete',
             'Slide 1: "Meet [Artist Name]" — photo, genre, location, one hook sentence',
             'Slide 2: "Their Story" — where they\'re from, how they started, include a specific fact',
             'Slide 3: "Their Sound" — your Sound Statement, instruments, mood, "If you like ___, you\'ll love ___"',
@@ -4897,6 +5004,11 @@ const TeacherLessonView = ({
      currentStageData?.id === 'exit-ticket' ||
      currentStageData?.id === 'guided-listening-3' ||
      currentStageData?.id === 'independent-listening' ||
+     currentStageData?.id === 'genre-scouts' ||
+     currentStageData?.id === 'share-out' ||
+     currentStageData?.id === 'scouting-report' ||
+     currentStageData?.id === 'build-press-kit' ||
+     currentStageData?.id === 'peer-review' ||
      currentStageData?.id?.includes('reflection'));
 
   // Send save command to all students via Firebase

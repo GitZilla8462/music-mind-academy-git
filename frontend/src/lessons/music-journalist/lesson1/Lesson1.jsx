@@ -20,9 +20,11 @@ import { useActivityTimers } from '../../shared/hooks/useActivityTimers';
 import LessonStartScreen from '../../shared/components/LessonStartScreen';
 import TeacherLessonView from '../../shared/components/TeacherLessonView';
 import ActivityRenderer from '../../shared/components/ActivityRenderer';
+import DirectionsModal from '../../shared/components/DirectionsModal';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
 import ExitSessionButton from '../../../components/ExitSessionButton';
+import useDirectionsModal from '../../shared/hooks/useDirectionsModal';
 
 const LESSON_PROGRESS_KEY = 'music-journalist-lesson1-progress';
 const LESSON_TIMER_KEY = 'music-journalist-lesson1-timer';
@@ -74,6 +76,12 @@ const Lesson1 = () => {
   // Memoize currentStageData
   const currentStageData = useMemo(() => {
     return lessonStages.find(stage => stage.id === currentStage);
+  }, [currentStage]);
+
+  // Directions modal for activity stages with studentDirections
+  const activityDirections = useDirectionsModal(currentStage);
+  useEffect(() => {
+    if (currentStageData?.studentDirections) activityDirections.triggerIfUnseen();
   }, [currentStage]);
 
   // Mute audio in preview mode
@@ -232,6 +240,14 @@ const Lesson1 = () => {
             lessonConfig={lessonConfig}
             currentStage={currentStage}
           />
+          {currentStageData.studentDirections && (
+            <DirectionsModal
+              title={currentStageData.label || 'Directions'}
+              isOpen={activityDirections.isOpen}
+              onClose={activityDirections.close}
+              steps={currentStageData.studentDirections}
+            />
+          )}
           {showTransition && (
             <TransitionOverlay
               message="Great work! Moving to the next section..."
@@ -319,9 +335,13 @@ const Lesson1 = () => {
 
   // View saved work mode
   if (viewSavedMode || viewReflectionMode) {
+    const activityParam = searchParams.get('activity');
+    let activityType = viewReflectionMode ? 'music-journalist-reflection' : 'article-reader';
+    if (activityParam === 'mj-genre-scouts') activityType = 'genre-scouts';
+
     return (
       <ActivityRenderer
-        activity={{ type: viewReflectionMode ? 'music-journalist-reflection' : 'article-reader', id: 'saved-view' }}
+        activity={{ type: activityType, id: 'saved-view' }}
         onComplete={() => navigate(-1)}
         viewMode={false}
         isSessionMode={false}

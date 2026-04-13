@@ -15,6 +15,7 @@ import {
   Key,
 } from 'lucide-react';
 import { getStudentWorkForTeacher } from '../../firebase/studentWork';
+import { getDatabase, ref, onValue } from 'firebase/database';
 import { gradeSubmission } from '../../firebase/grades';
 // import { getAnswerKey } from '../../firebase/answerKeys';
 import { useFirebaseAuth } from '../../context/FirebaseAuthContext';
@@ -26,6 +27,8 @@ const LazyLJPreview = lazy(() => import('./ListeningJourneyPreview'));
 const LazyCompositionPreview = lazy(() => import('./CompositionPreview'));
 // Lazy-load Press Kit preview (5-slide presentation view)
 const LazyPressKitPreview = lazy(() => import('./PressKitGradingPreview'));
+// Lazy-load Scouting Report preview (field-based card layout)
+const LazyScoutingPreview = lazy(() => import('./ScoutingReportGradingPreview'));
 
 // Must match GradeForm LEVELS pct values
 const LEVELS_PCT = [1.0, 0.75, 0.5, 0.25];
@@ -176,6 +179,20 @@ const ActivityGradingView = ({
       fetchWork(currentStudent);
     }
   }, [isOpen, selectedIndex, currentStudent, fetchWork]);
+
+  // Real-time listener: update work cache when student saves from dashboard
+  useEffect(() => {
+    if (!isOpen || !currentStudent?.submission?.workKey || !currentStudent?.uid) return;
+    const db = getDatabase();
+    const workRef = ref(db, `studentWork/${currentStudent.uid}/${currentStudent.submission.workKey}`);
+    const unsubscribe = onValue(workRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setWorkCache(prev => ({ ...prev, [currentStudent.uid]: data }));
+      }
+    });
+    return () => unsubscribe();
+  }, [isOpen, currentStudent?.uid, currentStudent?.submission?.workKey]);
 
   // Scroll sidebar to keep selected student visible
   useEffect(() => {
@@ -368,17 +385,26 @@ const ActivityGradingView = ({
       return renderCapstonePreview(workData.data);
     }
     if (workData.data?.entries && typeof workData.data.entries === 'object') {
+      const isArray = Array.isArray(workData.data.entries);
+      const isIndependent = isArray || workData.title?.includes('Independent') || workData.title?.includes('Journal');
+      const entryList = isArray
+        ? workData.data.entries.map((e, i) => [`entry-${i}`, e])
+        : Object.entries(workData.data.entries);
       return (
         <div className="flex-1 overflow-auto p-4">
           <div className="max-w-2xl mx-auto space-y-3">
-            <h3 className="text-lg font-bold text-gray-900 text-center mb-3">Guided Listening</h3>
-            {Object.entries(workData.data.entries).map(([trackId, e]) => {
+            <h3 className="text-lg font-bold text-gray-900 text-center mb-3">
+              {isIndependent ? 'Independent Listening' : 'Guided Listening'}
+            </h3>
+            {entryList.map(([trackId, e], idx) => {
               if (!e) return null;
-              const trackNum = trackId.replace('guided-', '');
+              const label = isIndependent
+                ? (e.artistName && e.trackTitle ? `${e.artistName} — ${e.trackTitle}` : `Entry ${idx + 1}`)
+                : `Track ${trackId.replace('guided-', '')}`;
               const hasAny = e.tempo || (Array.isArray(e.dynamics) ? e.dynamics.length > 0 : e.dynamics) || e.moods?.length > 0 || e.instruments?.length > 0 || e.texture || e.hook;
               return (
                 <div key={trackId} className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                  <h4 className="font-bold text-gray-800 text-sm mb-2">Track {trackNum}</h4>
+                  <h4 className="font-bold text-gray-800 text-sm mb-2">{label}</h4>
                   {!hasAny ? (
                     <p className="text-gray-400 text-sm italic">No responses</p>
                   ) : (
@@ -487,7 +513,7 @@ const ActivityGradingView = ({
     if (workData.data?.slides && Array.isArray(workData.data.slides)) {
       return (
         <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 text-gray-400 animate-spin" /></div>}>
-          <LazyPressKitPreview workData={workData} />
+          <LazyScoutingPreview workData={workData} />
         </Suspense>
       );
     }
@@ -871,6 +897,52 @@ const ActivityGradingView = ({
                 submittedAt={currentStudent.submission?.submittedAt}
               />
             </Suspense>
+          ) : currentWork?.data?.slides && Array.isArray(currentWork.data.slides) ? (
+            <Suspense fallback={<div className="flex-1 flex items-center justify-center"><Loader2 className="w-10 h-10 text-gray-400 animate-spin" /></div>}>
+              <LazyScoutingPreview workData={currentWork} />
+            </Suspense>
+          ) : currentWork?.data?.completedAt && currentWork?.data?.durationSeconds !== undefined ? (
+            <div className="flex-1 flex items-center justify-center p-6">
+              <div className="bg-gray-700/50 border border-gray-600 rounded-xl p-8 max-w-sm w-full text-center">
+                <div className="text-4xl mb-3">🎤</div>
+                <h3 className="text-lg font-bold text-white mb-4">Presentation Complete</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between text-gray-300">
+                    <span>Slides presented</span>
+                    <span className="font-medium text-white">{currentWork.data.slideCount || '—'}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-300">
+                    <span>Duration</span>
+                    <span className="font-medium text-white">
+                      {Math.floor(currentWork.data.durationSeconds / 60)}:{String(currentWork.data.durationSeconds % 60).padStart(2, '0')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-gray-300">
+                    <span>Completed</span>
+                    <span className="font-medium text-white">{new Date(currentWork.data.completedAt).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : currentWork?.data?.feedbackEntries ? (
+            <div className="flex-1 overflow-auto p-6">
+              <div className="max-w-2xl mx-auto space-y-3">
+                <h3 className="text-lg font-bold text-white text-center mb-4">
+                  Peer Feedback ({currentWork.data.feedbackEntries.length} entr{currentWork.data.feedbackEntries.length === 1 ? 'y' : 'ies'})
+                </h3>
+                {currentWork.data.feedbackEntries.map((entry, i) => (
+                  <div key={i} className="bg-gray-700/50 border border-gray-600 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-blue-400">To: {entry.presenterName}</span>
+                      {entry.timestamp && (
+                        <span className="text-xs text-gray-500">{new Date(entry.timestamp).toLocaleString()}</span>
+                      )}
+                    </div>
+                    <p className="text-gray-200 text-sm leading-relaxed whitespace-pre-wrap">{entry.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : currentWork?.data?.answers || currentWork?.data?.entries ? (
             renderWorkContent(currentWork)
           ) : currentWork ? (

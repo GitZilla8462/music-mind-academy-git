@@ -69,7 +69,7 @@ const TimelineContent = forwardRef(({
 
   // Handle time ruler scrubbing (click/drag to seek)
   const handleTimeRulerMouseDown = useCallback((e) => {
-    if (e.button !== 0) return; // Left click only
+    if (e.button != null && e.button !== 0) return; // Left click only (touch has no button)
 
     const rect = e.currentTarget.getBoundingClientRect();
     const scrollLeft = timeHeaderRef?.current?.scrollLeft || 0;
@@ -280,11 +280,11 @@ const TimelineContent = forwardRef(({
         <div
           ref={timeHeaderRef}
           className="flex-1 overflow-x-hidden bg-gray-800 border-b border-gray-700 select-none"
-          style={{ height: TIMELINE_CONSTANTS.HEADER_HEIGHT, cursor: isScrubbing ? 'col-resize' : 'pointer' }}
+          style={{ height: TIMELINE_CONSTANTS.HEADER_HEIGHT, cursor: isScrubbing ? 'col-resize' : 'pointer', touchAction: 'none' }}
           onScroll={onTimeHeaderScroll}
-          onMouseDown={handleTimeRulerMouseDown}
-          onMouseMove={handleTimeRulerMouseMove}
-          onMouseUp={handleTimeRulerMouseUp}
+          onPointerDown={handleTimeRulerMouseDown}
+          onPointerMove={handleTimeRulerMouseMove}
+          onPointerUp={handleTimeRulerMouseUp}
         >
           <div
             className="relative bg-gray-800"

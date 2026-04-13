@@ -1,17 +1,57 @@
 // PressKitGradingPreview — Read-only slide preview for teacher grading view.
 // Renders all 5 press kit slides in a scrollable column using the same
 // renderSlideObject() used by the student editor, so WYSIWYG is guaranteed.
+// Also handles Scouting Report / Genre Scouts / Claim Your Artist slides.
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { renderSlideObject } from '../../lessons/shared/activities/press-kit-designer/components/SlideCanvas';
 import { getPalette } from '../../lessons/shared/activities/press-kit-designer/palettes';
+import { generateGenreScoutsTemplateObjects } from '../../lessons/shared/activities/scouting-report/genreScoutsConfig';
+import { generateClaimArtistTemplateObjects } from '../../lessons/shared/activities/scouting-report/claimArtistConfig';
+import { generateScoutingTemplateObjects } from '../../lessons/shared/activities/scouting-report/scoutingReportConfig';
 
 const CANVAS_W = 960;
 const CANVAS_H = 540;
 
-const SLIDE_LABELS = ['Meet the Artist', 'Their Sound', 'Why Sign Them?', 'Press Play', 'Make Them Go Viral'];
+const PRESS_KIT_LABELS = ['Meet the Artist', 'Their Sound', 'Why Sign Them?', 'Press Play', 'Make Them Go Viral'];
+const GENRE_SCOUTS_LABELS = ['Genre Lineup', 'Surprise Discovery', 'Sound Snapshot'];
+const CLAIM_ARTIST_LABELS = ['Artist Overview', 'The Four Points', 'Fact or Opinion'];
+const SCOUTING_LABELS = ['Genre Lineup', 'Surprise Discovery', 'Sound Snapshot'];
 
-const SlidePreview = ({ slide, index, isActive, onClick }) => {
+function getSlideLabels(workData) {
+  const type = workData?.type || workData?.data?.type || '';
+  const title = workData?.title || '';
+  const slideCount = workData?.data?.slides?.length || 0;
+
+  if (title.includes('Genre Scouts') || type === 'genre-scouts') return GENRE_SCOUTS_LABELS;
+  if (title.includes('Claim') || type === 'claim-artist') return CLAIM_ARTIST_LABELS;
+  if (type === 'scouting-report' && slideCount === 3) return SCOUTING_LABELS;
+  return PRESS_KIT_LABELS;
+}
+
+function getObjectGenerator(workData) {
+  const type = workData?.type || workData?.data?.type || '';
+  const title = workData?.title || '';
+
+  if (title.includes('Genre Scouts') || type === 'genre-scouts') return generateGenreScoutsTemplateObjects;
+  if (title.includes('Claim') || type === 'claim-artist') return generateClaimArtistTemplateObjects;
+  if (type === 'scouting-report') return generateScoutingTemplateObjects;
+  return null;
+}
+
+// Ensure slides have objects — scouting reports save fields but may have empty objects arrays.
+// Regenerate from fields so the teacher sees the student's actual content.
+function ensureSlideObjects(slides, generator) {
+  if (!generator) return slides;
+  return slides.map((slide, i) => {
+    if (!slide.objects || slide.objects.length === 0) {
+      return { ...slide, objects: generator(i + 1, slide.fields || {}) };
+    }
+    return slide;
+  });
+}
+
+const SlidePreview = ({ slide, index, isActive, onClick, slideLabels }) => {
   const palette = getPalette(slide.palette || 'midnight', slide.genre);
   const objects = slide.objects || [];
   const scale = isActive ? 0.65 : 0.25;
@@ -58,7 +98,7 @@ const SlidePreview = ({ slide, index, isActive, onClick }) => {
       </div>
       {!isActive && (
         <div className="text-xs text-gray-500 text-center mt-1">
-          {index + 1}. {SLIDE_LABELS[index] || `Slide ${index + 1}`}
+          {index + 1}. {(slideLabels || PRESS_KIT_LABELS)[index] || `Slide ${index + 1}`}
         </div>
       )}
     </div>
@@ -66,13 +106,18 @@ const SlidePreview = ({ slide, index, isActive, onClick }) => {
 };
 
 const PressKitGradingPreview = ({ workData }) => {
-  const slides = workData?.data?.slides || [];
+  const rawSlides = workData?.data?.slides || [];
   const [activeSlide, setActiveSlide] = useState(0);
+  const slideLabels = getSlideLabels(workData);
+  const generator = getObjectGenerator(workData);
+
+  // Regenerate objects from fields for scouting reports if objects are empty
+  const slides = useMemo(() => ensureSlideObjects(rawSlides, generator), [rawSlides, generator]);
 
   if (slides.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-gray-400">
-        <p>No slides in this press kit</p>
+        <p>No slides submitted</p>
       </div>
     );
   }
@@ -91,6 +136,7 @@ const PressKitGradingPreview = ({ workData }) => {
             index={i}
             isActive={i === activeSlide}
             onClick={() => setActiveSlide(i)}
+            slideLabels={slideLabels}
           />
         ))}
       </div>
@@ -98,13 +144,14 @@ const PressKitGradingPreview = ({ workData }) => {
       {/* Active slide large preview */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 bg-gray-100 overflow-auto">
         <div className="text-sm font-semibold text-gray-500 mb-2">
-          Slide {activeSlide + 1}: {SLIDE_LABELS[activeSlide] || ''}
+          Slide {activeSlide + 1}: {slideLabels[activeSlide] || ''}
         </div>
         <SlidePreview
           slide={current}
           index={activeSlide}
           isActive={true}
           onClick={() => {}}
+          slideLabels={slideLabels}
         />
         {/* Slide fields summary */}
         {current?.fields && Object.keys(current.fields).length > 0 && (

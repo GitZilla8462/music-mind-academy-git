@@ -1031,6 +1031,8 @@ const InteractionOverlay = ({
           // GPU acceleration
           transform: 'translateZ(0)',
           touchAction: 'none',
+          WebkitTouchCallout: 'none',
+          WebkitUserSelect: 'none',
           WebkitBackfaceVisibility: 'hidden',
           isolation: 'isolate'
         }}

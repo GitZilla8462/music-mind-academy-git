@@ -3,7 +3,7 @@
 // Teacher clicks student names, controls slides, opens/closes feedback, manages awards
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Users, MessageSquare, Vote, Trophy, Clock, Play, Pause, User, Check, Star, X, Award } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, MessageSquare, Vote, Trophy, Clock, Play, Pause, User, Check, Star, X, Award, HelpCircle } from 'lucide-react';
 import { getDatabase, ref, update, onValue, get, set, remove } from 'firebase/database';
 import { getStudentWorkForTeacher } from '../../../../firebase/studentWork';
 import SlideRenderer from '../press-kit-designer/layouts/SlideRenderer';
@@ -23,11 +23,111 @@ const AWARDS = [
 ];
 
 // ---------------------------------------------------------------------------
+// Directions Modal
+// ---------------------------------------------------------------------------
+const DIRECTIONS_STEPS = [
+  { emoji: '1️⃣', text: 'Click a student\'s name to start their presentation' },
+  { emoji: '2️⃣', text: 'Their press kit slides appear on screen — they present live (2-3 min)' },
+  { emoji: '3️⃣', text: 'Click "Open Feedback" — students get 60 seconds to type feedback on their Chromebooks' },
+  { emoji: '4️⃣', text: 'Click "Close Feedback & Next" — pick the next presenter' },
+  { emoji: '5️⃣', text: 'When everyone has presented, click "Start Voting" — students vote for their favorite artist' },
+  { emoji: '6️⃣', text: 'Click "Reveal Results" — the class sees who went viral, then you assign bonus awards' },
+];
+
+const AgentPitchDirections = ({ isOpen, onClose }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[1000] p-4">
+      <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
+        <div className="bg-gradient-to-r from-[#1a2744] to-[#2a3f6e] px-6 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-white">Agent Pitch</h2>
+            <p className="text-blue-200 text-sm">How Launch Day Works</p>
+          </div>
+          <button onClick={onClose} className="text-white/70 hover:text-white text-2xl font-bold leading-none">{'\u2715'}</button>
+        </div>
+        <div className="px-6 py-5 space-y-3">
+          {DIRECTIONS_STEPS.map((step, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <span className="text-xl flex-shrink-0 w-8 text-center">{step.emoji}</span>
+              <p className="text-base text-gray-700">{step.text}</p>
+            </div>
+          ))}
+        </div>
+        <div className="px-6 pb-5">
+          <button onClick={onClose} className="w-full py-3 bg-gradient-to-r from-[#1a2744] to-[#2a3f6e] text-white text-lg font-bold rounded-xl hover:opacity-90 transition-all">
+            Got it!
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Student sidebar — persistent list on the left during all phases
+// ---------------------------------------------------------------------------
+const StudentSidebar = ({ presenterList, artistNames, presented, presenterIndex, phase, onSelectPresenter }) => {
+  const currentPresenter = presenterList[presenterIndex];
+  return (
+    <div className="w-52 flex-shrink-0 h-full flex flex-col bg-[#0d1520] border-r border-white/10">
+      {/* Sidebar header */}
+      <div className="px-3 py-2.5 border-b border-white/10 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Users size={14} className="text-white/40" />
+          <span className="text-white/60 text-xs font-semibold">{presented.size}/{presenterList.length}</span>
+        </div>
+        <span className="text-[10px] text-white/30 uppercase tracking-wider">Roster</span>
+      </div>
+
+      {/* Student list */}
+      <div className="flex-1 overflow-y-auto py-1">
+        {presenterList.map((student, idx) => {
+          const hasDone = presented.has(student.uid);
+          const isActive = currentPresenter?.uid === student.uid && (phase === 'presenting' || phase === 'feedback');
+          const artistName = artistNames[student.uid];
+          return (
+            <button
+              key={student.uid}
+              onClick={() => onSelectPresenter(idx)}
+              disabled={hasDone || isActive}
+              className={`w-full px-3 py-2 text-left flex items-center gap-2 transition-all ${
+                isActive ? 'bg-[#f0b429]/20 border-l-2 border-[#f0b429]' :
+                hasDone ? 'opacity-40' :
+                'hover:bg-white/5'
+              }`}
+            >
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold ${
+                isActive ? 'bg-[#f0b429] text-[#1a2744]' :
+                hasDone ? 'bg-green-500/30 text-green-300' :
+                'bg-white/10 text-white/40'
+              }`}>
+                {hasDone ? <Check size={10} /> : idx + 1}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className={`text-xs font-semibold truncate ${isActive ? 'text-[#f0b429]' : hasDone ? 'text-white/40' : 'text-white/80'}`}>
+                  {student.name}
+                </p>
+                {artistName && (
+                  <p className={`text-[10px] truncate ${isActive ? 'text-[#f0b429]/60' : 'text-white/30'}`}>{artistName}</p>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 const LaunchDayTeacher = ({ sessionCode, classId }) => {
-  // Phase: 'roster' | 'presenting' | 'feedback' | 'voting' | 'results'
+  // Phase: 'roster' | 'presenting'
   const [phase, setPhase] = useState('roster');
+  const [showDirections, setShowDirections] = useState(true);
   const [presenterIndex, setPresenterIndex] = useState(-1);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [pressKitData, setPressKitData] = useState(null);
@@ -37,16 +137,11 @@ const LaunchDayTeacher = ({ sessionCode, classId }) => {
   const [timerRunning, setTimerRunning] = useState(false);
   const timerRef = useRef(null);
 
-  // Voting state
-  const [votes, setVotes] = useState({});
-  const [manualAwards, setManualAwards] = useState({});
-  const [showAwardPicker, setShowAwardPicker] = useState(null);
-
   // Build presenter list from Firebase class roster
   const [presenterList, setPresenterList] = useState([]);
   const [artistNames, setArtistNames] = useState({}); // uid -> artistName
 
-  // Load roster from Firebase on mount — use realtime listener so late joiners appear
+  // Load full class roster from Firebase (all students, not just who's online)
   useEffect(() => {
     if (!classId) {
       console.log('🎤 LaunchDayTeacher: no classId, skipping roster load');
@@ -54,42 +149,51 @@ const LaunchDayTeacher = ({ sessionCode, classId }) => {
     }
     const db = getDatabase();
 
-    // Listen to students joined in the current session (realtime so late joiners appear)
-    const studentsRef = ref(db, `classes/${classId}/currentSession/studentsJoined`);
-    const unsub = onValue(studentsRef, (snap) => {
-      if (!snap.exists()) {
-        console.log('🎤 LaunchDayTeacher: no students joined yet');
+    const loadRoster = async () => {
+      // Load the permanent class roster (all enrolled students)
+      const rosterRef = ref(db, `classRosters/${classId}`);
+      const rosterSnap = await get(rosterRef);
+
+      if (!rosterSnap.exists()) {
+        console.log('🎤 LaunchDayTeacher: no students in class roster');
         return;
       }
-      const data = snap.val();
-      console.log('🎤 LaunchDayTeacher: loaded roster', Object.keys(data).length, 'students');
-      const list = Object.entries(data).map(([seatId, student]) => ({
-        uid: seatId,
-        name: student.name || student.displayName || seatId,
-        seatNumber: student.seatNumber,
+
+      const seats = [];
+      rosterSnap.forEach((child) => {
+        const seat = child.val();
+        if (seat.status === 'active') seats.push(seat);
+      });
+      seats.sort((a, b) => a.seatNumber - b.seatNumber);
+
+      console.log('🎤 LaunchDayTeacher: loaded class roster', seats.length, 'students');
+
+      const list = seats.map(seat => ({
+        uid: `seat-${classId}-${seat.seatNumber}`,
+        name: seat.displayName || `Seat ${seat.seatNumber}`,
+        seatNumber: seat.seatNumber,
       }));
       setPresenterList(list);
 
-      // Try to load artist names from each student's press kit data
+      // Load artist names from each student's press kit data
       list.forEach(async (student) => {
         try {
-          const keys = ['unknown-mj-press-kit', 'mj-lesson4-mj-press-kit', 'mj-lesson4-mj-slide-builder'];
-          for (const key of keys) {
-            const d = await getStudentWorkForTeacher(student.uid, key);
-            if (d?.data?.slides?.[0]) {
-              const slide1 = d.data.slides[0];
-              const artistName = slide1.fields?.artistName || slide1.fields?.hookLine || '';
-              if (artistName) {
-                setArtistNames(prev => ({ ...prev, [student.uid]: artistName }));
-              }
-              break;
+          const key = 'mj-lesson4-mj-press-kit';
+          const d = await getStudentWorkForTeacher(student.uid, key);
+          if (d?.data?.slides?.[0]) {
+            const slide1 = d.data.slides[0];
+            // Try multiple fields where artist name might be stored
+            const artistObj = slide1.objects?.find(o => o.type === 'text' && o.role === 'artistName');
+            const artistName = artistObj?.text || slide1.fields?.artistName || slide1.fields?.hookLine || '';
+            if (artistName) {
+              setArtistNames(prev => ({ ...prev, [student.uid]: artistName }));
             }
           }
         } catch { /* skip */ }
       });
-    });
+    };
 
-    return () => unsub();
+    loadRoster();
   }, [classId]);
 
   // Timer
@@ -125,13 +229,9 @@ const LaunchDayTeacher = ({ sessionCode, classId }) => {
     setCurrentSlide(0);
 
     try {
-      const keys = ['unknown-mj-press-kit', 'mj-lesson4-mj-press-kit', 'mj-lesson4-mj-slide-builder'];
-      for (const key of keys) {
-        const data = await getStudentWorkForTeacher(studentUid, key);
-        if (data?.data?.slides?.length > 0) {
-          setPressKitData(data.data);
-          break;
-        }
+      const data = await getStudentWorkForTeacher(studentUid, 'mj-lesson4-mj-press-kit');
+      if (data?.data?.slides?.length > 0) {
+        setPressKitData(data.data);
       }
     } catch (err) {
       console.error('Failed to load press kit:', err);
@@ -160,86 +260,17 @@ const LaunchDayTeacher = ({ sessionCode, classId }) => {
     });
   }, [presenterList, artistNames, loadPressKit, broadcastState]);
 
-  // Open feedback for current presenter
-  const openFeedback = useCallback(() => {
-    setPhase('feedback');
-    setTimerRunning(false);
-    const student = presenterList[presenterIndex];
-    broadcastState({
-      phase: 'feedback',
-      presenterUid: student?.uid,
-      presenterName: student?.name,
-      artistName: artistNames[student?.uid] || '',
-      feedbackOpen: true,
-    });
-  }, [presenterIndex, presenterList, artistNames, broadcastState]);
-
-  // Close feedback and mark presenter as done
-  const closeFeedback = useCallback(() => {
+  // Mark presenter as done and go back to roster
+  const finishPresenter = useCallback(() => {
     const student = presenterList[presenterIndex];
     setPresented(prev => new Set([...prev, student?.uid]));
     setPhase('roster');
     setTimerRunning(false);
     broadcastState({
       phase: 'roster',
-      feedbackOpen: false,
       presenterUid: null,
     });
   }, [presenterIndex, presenterList, broadcastState]);
-
-  // Start voting phase
-  const startVoting = useCallback(() => {
-    setPhase('voting');
-
-    // Build artist list for students
-    const artists = presenterList
-      .filter(s => presented.has(s.uid))
-      .map(s => ({
-        uid: s.uid,
-        name: s.name,
-        artistName: artistNames[s.uid] || 'Unknown Artist',
-      }));
-
-    broadcastState({
-      phase: 'voting',
-      feedbackOpen: false,
-      presenterUid: null,
-      artists: artists,
-    });
-  }, [presenterList, presented, artistNames, broadcastState]);
-
-  // Listen for votes from Firebase
-  useEffect(() => {
-    if (!sessionCode || phase !== 'voting') return;
-    const db = getDatabase();
-    const votesRef = ref(db, `sessions/${sessionCode}/artistVotes`);
-    const unsub = onValue(votesRef, (snap) => {
-      setVotes(snap.val() || {});
-    });
-    return () => unsub();
-  }, [sessionCode, phase]);
-
-  // Show results
-  const showResults = useCallback(() => {
-    setPhase('results');
-    broadcastState({ phase: 'results', feedbackOpen: false });
-  }, [broadcastState]);
-
-  // Calculate vote tallies
-  const voteTallies = {};
-  Object.values(votes).forEach(v => {
-    if (v.artistName) {
-      voteTallies[v.artistName] = (voteTallies[v.artistName] || 0) + 1;
-    }
-  });
-  const sortedArtists = Object.entries(voteTallies).sort((a, b) => b[1] - a[1]);
-  const winner = sortedArtists[0];
-
-  // Assign manual award
-  const assignAward = (awardId, presenterUid) => {
-    setManualAwards(prev => ({ ...prev, [awardId]: presenterUid }));
-    setShowAwardPicker(null);
-  };
 
   // Current presenter info
   const currentPresenter = presenterList[presenterIndex];
@@ -250,60 +281,43 @@ const LaunchDayTeacher = ({ sessionCode, classId }) => {
   // ─── Render: Roster Phase ──────────────────────────────────────
   if (phase === 'roster') {
     return (
-      <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-[#1a2744] via-[#0f1a2e] to-[#1a2744]">
-        {/* Header */}
-        <div className="flex-shrink-0 px-6 py-4 border-b border-white/10 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black text-white">Agent Pitch</h1>
-            <p className="text-white/50 text-sm">{presented.size} of {presenterList.length} presented</p>
-          </div>
-          {presented.size > 0 && (
-            <button
-              onClick={startVoting}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#f0b429] text-[#1a2744] rounded-xl font-bold text-sm hover:bg-[#f0b429]/90 transition-all"
-            >
-              <Vote size={16} />
-              Start Voting ({presented.size} presenters)
-            </button>
-          )}
-        </div>
+      <div className="absolute inset-0 flex bg-gradient-to-br from-[#1a2744] via-[#0f1a2e] to-[#1a2744]">
+        <AgentPitchDirections isOpen={showDirections} onClose={() => setShowDirections(false)} />
 
-        {/* Roster Grid */}
-        <div className="flex-1 overflow-auto p-6">
-          <div className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {presenterList.map((student, idx) => {
-              const hasDone = presented.has(student.uid);
-              const artistName = artistNames[student.uid];
-              return (
-                <button
-                  key={student.uid}
-                  onClick={() => startPresenter(idx)}
-                  disabled={hasDone}
-                  className={`relative p-4 rounded-xl border text-left transition-all ${
-                    hasDone
-                      ? 'bg-green-900/20 border-green-500/30 opacity-60'
-                      : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-[#f0b429]/50 active:scale-[0.98]'
-                  }`}
-                >
-                  {hasDone && (
-                    <div className="absolute top-2 right-2">
-                      <Check size={16} className="text-green-400" />
-                    </div>
-                  )}
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-                      <User size={18} className="text-white/50" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-white font-semibold text-sm truncate">{student.name}</div>
-                      {artistName && (
-                        <div className="text-[#f0b429] text-xs truncate">{artistName}</div>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+        {/* Student sidebar */}
+        <StudentSidebar
+          presenterList={presenterList}
+          artistNames={artistNames}
+          presented={presented}
+          presenterIndex={presenterIndex}
+          phase={phase}
+          onSelectPresenter={startPresenter}
+        />
+
+        {/* Main area — waiting for selection */}
+        <div className="flex-1 flex flex-col">
+          <div className="flex-shrink-0 px-6 py-3 border-b border-white/10 flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-black text-white">Agent Pitch</h1>
+              <p className="text-white/50 text-xs">{presented.size} of {presenterList.length} presented</p>
+            </div>
+            <button
+              onClick={() => setShowDirections(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all text-sm"
+            >
+              <HelpCircle size={16} /> How it works
+            </button>
+          </div>
+
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-6xl mb-4">🎤</div>
+              <h2 className="text-2xl font-bold text-white mb-2">Select a Student to Present</h2>
+              <p className="text-white/40 text-sm">Click a name in the sidebar to start their pitch</p>
+              {presenterList.length === 0 && (
+                <p className="text-amber-400/60 text-sm mt-4">Waiting for students to join...</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -311,42 +325,45 @@ const LaunchDayTeacher = ({ sessionCode, classId }) => {
   }
 
   // ─── Render: Presenting / Feedback Phase ─────────────────────────
-  if (phase === 'presenting' || phase === 'feedback') {
+  if (phase === 'presenting') {
     return (
-      <div className="absolute inset-0 flex flex-col bg-[#0d1520]">
-        {/* Top bar */}
-        <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 bg-[#111c33] border-b border-white/10">
-          {/* Back to roster */}
-          <button
-            onClick={closeFeedback}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-all text-sm"
-          >
-            <ChevronLeft size={16} />
-            Roster
-          </button>
+      <div className="absolute inset-0 flex bg-[#0d1520]">
+        {/* Student sidebar */}
+        <StudentSidebar
+          presenterList={presenterList}
+          artistNames={artistNames}
+          presented={presented}
+          presenterIndex={presenterIndex}
+          phase={phase}
+          onSelectPresenter={startPresenter}
+        />
 
-          {/* Presenter info */}
-          <div className="text-center">
-            <div className="text-white font-bold text-sm">{currentPresenter?.name}</div>
-            <div className="text-[#f0b429] text-xs">{artistNames[currentPresenter?.uid] || ''}</div>
-          </div>
+        {/* Main presenting area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Top bar */}
+          <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 bg-[#111c33] border-b border-white/10">
+            {/* Presenter info */}
+            <div>
+              <div className="text-white font-bold text-sm">{currentPresenter?.name}</div>
+              <div className="text-[#f0b429] text-xs">{artistNames[currentPresenter?.uid] || ''}</div>
+            </div>
 
-          {/* Timer + slide counter */}
-          <div className="flex items-center gap-4">
-            <span className="text-white/50 text-sm">
-              {slides.length > 0 ? `Slide ${currentSlide + 1}/${slides.length}` : ''}
-            </span>
-            <div className="flex items-center gap-1.5">
-              <Clock size={14} className={elapsedSeconds > 180 ? 'text-red-400' : 'text-white/50'} />
-              <span className={`text-sm font-mono ${elapsedSeconds > 180 ? 'text-red-400' : 'text-white/50'}`}>
-                {formatTime(elapsedSeconds)}
+            {/* Timer + slide counter */}
+            <div className="flex items-center gap-4">
+              <span className="text-white/50 text-sm">
+                {slides.length > 0 ? `Slide ${currentSlide + 1}/${slides.length}` : ''}
               </span>
+              <div className="flex items-center gap-1.5">
+                <Clock size={14} className={elapsedSeconds > 180 ? 'text-red-400' : 'text-white/50'} />
+                <span className={`text-sm font-mono ${elapsedSeconds > 180 ? 'text-red-400' : 'text-white/50'}`}>
+                  {formatTime(elapsedSeconds)}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Slide area */}
-        <div className="flex-1 flex items-center justify-center px-8 py-4 overflow-hidden relative">
+          {/* Slide area */}
+          <div className="flex-1 flex items-center justify-center px-8 py-4 overflow-hidden relative">
           {loadingKit ? (
             <div className="text-white/40">Loading press kit...</div>
           ) : !slide ? (
@@ -414,186 +431,22 @@ const LaunchDayTeacher = ({ sessionCode, classId }) => {
           )}
         </div>
 
-        {/* Bottom bar — feedback controls */}
-        <div className="flex-shrink-0 px-4 py-3 bg-[#111c33] border-t border-white/10 flex items-center justify-between">
-          {phase === 'presenting' ? (
-            <>
-              <div className="text-white/40 text-sm">
-                Student is presenting — Chromebooks closed
-              </div>
-              <button
-                onClick={openFeedback}
-                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-all"
-              >
-                <MessageSquare size={16} />
-                Open Feedback (60 sec)
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center gap-2 text-blue-400 text-sm">
-                <MessageSquare size={16} className="animate-pulse" />
-                Students are submitting feedback...
-              </div>
-              <button
-                onClick={closeFeedback}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#f0b429] text-[#1a2744] rounded-xl font-bold text-sm hover:bg-[#f0b429]/90 transition-all"
-              >
-                <ChevronRight size={16} />
-                Close Feedback & Next
-              </button>
-            </>
-          )}
+        {/* Bottom bar — done with this presenter */}
+        <div className="flex-shrink-0 px-4 py-3 bg-[#111c33] border-t border-white/10 flex items-center justify-end">
+          <button
+            onClick={finishPresenter}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#f0b429] text-[#1a2744] rounded-xl font-bold text-sm hover:bg-[#f0b429]/90 transition-all"
+          >
+            <Check size={16} />
+            Done — Next Student
+          </button>
+        </div>
         </div>
       </div>
     );
   }
 
-  // ─── Render: Voting Phase ────────────────────────────────────────
-  if (phase === 'voting') {
-    const totalVotes = Object.keys(votes).length;
-    return (
-      <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-[#1a2744] via-[#0f1a2e] to-[#1a2744]">
-        <div className="flex-shrink-0 px-6 py-4 border-b border-white/10 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black text-white">🗳️ Voting Open</h1>
-            <p className="text-white/50 text-sm">Which artist deserves to go viral?</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-white/50 text-sm">{totalVotes} vote{totalVotes !== 1 ? 's' : ''} received</span>
-            <button
-              onClick={showResults}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#f0b429] text-[#1a2744] rounded-xl font-bold text-sm hover:bg-[#f0b429]/90 transition-all"
-            >
-              <Trophy size={16} />
-              Reveal Results
-            </button>
-          </div>
-        </div>
-
-        {/* Live vote tally */}
-        <div className="flex-1 overflow-auto p-6">
-          <div className="max-w-2xl mx-auto space-y-3">
-            {sortedArtists.length === 0 ? (
-              <div className="text-center py-12">
-                <Vote size={48} className="text-white/20 mx-auto mb-4" />
-                <p className="text-white/40 text-lg">Waiting for votes...</p>
-                <p className="text-white/25 text-sm mt-1">Students are voting on their Chromebooks</p>
-              </div>
-            ) : (
-              sortedArtists.map(([artistName, count], idx) => {
-                const maxVotes = sortedArtists[0]?.[1] || 1;
-                const pct = (count / maxVotes) * 100;
-                return (
-                  <div key={artistName} className="relative bg-white/5 border border-white/10 rounded-xl p-4 overflow-hidden">
-                    <div
-                      className="absolute inset-y-0 left-0 bg-[#f0b429]/10 transition-all duration-500"
-                      style={{ width: `${pct}%` }}
-                    />
-                    <div className="relative flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {idx === 0 && <span className="text-2xl">🚀</span>}
-                        <span className="text-white font-bold text-lg">{artistName}</span>
-                      </div>
-                      <span className="text-[#f0b429] font-bold text-xl">{count} vote{count !== 1 ? 's' : ''}</span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Render: Results Phase ───────────────────────────────────────
-  if (phase === 'results') {
-    return (
-      <div className="absolute inset-0 flex flex-col bg-gradient-to-br from-[#1a2744] via-[#0f1a2e] to-[#1a2744] overflow-auto">
-        <div className="flex-shrink-0 px-6 py-4 border-b border-white/10">
-          <h1 className="text-3xl font-black text-white text-center">🏆 The Results Are In</h1>
-        </div>
-
-        <div className="flex-1 overflow-auto p-6">
-          <div className="max-w-3xl mx-auto space-y-6">
-            {/* Gone Viral — auto from votes */}
-            {winner && (
-              <div className="bg-gradient-to-r from-[#f0b429]/20 to-[#f0b429]/5 border-2 border-[#f0b429]/50 rounded-2xl p-6 text-center">
-                <div className="text-4xl mb-2">🚀</div>
-                <h2 className="text-2xl font-black text-[#f0b429] mb-1">GONE VIRAL</h2>
-                <p className="text-white text-3xl font-bold mb-1">{winner[0]}</p>
-                <p className="text-white/50 text-sm">{winner[1]} vote{winner[1] !== 1 ? 's' : ''}</p>
-              </div>
-            )}
-
-            {/* Manual awards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {AWARDS.filter(a => a.id !== 'gone-viral').map(award => {
-                const assignedUid = manualAwards[award.id];
-                const assignedStudent = presenterList.find(s => s.uid === assignedUid);
-                return (
-                  <div
-                    key={award.id}
-                    className="bg-white/5 border border-white/10 rounded-xl p-4 cursor-pointer hover:bg-white/10 transition-all"
-                    onClick={() => setShowAwardPicker(award.id)}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-2xl">{award.emoji}</span>
-                      <div>
-                        <div className="text-white font-bold text-sm">{award.label}</div>
-                        <div className="text-white/40 text-xs">{award.description}</div>
-                      </div>
-                    </div>
-                    {assignedStudent ? (
-                      <div className="bg-[#f0b429]/10 border border-[#f0b429]/30 rounded-lg px-3 py-2 text-[#f0b429] font-semibold text-sm">
-                        {assignedStudent.name} — {artistNames[assignedStudent.uid] || ''}
-                      </div>
-                    ) : (
-                      <div className="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white/30 text-sm">
-                        Tap to assign
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Award picker modal */}
-        {showAwardPicker && (
-          <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-            <div className="bg-[#1a2744] rounded-2xl border border-white/20 max-w-sm w-full max-h-[80vh] overflow-auto">
-              <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
-                <h3 className="text-white font-bold text-sm">
-                  {AWARDS.find(a => a.id === showAwardPicker)?.label}
-                </h3>
-                <button onClick={() => setShowAwardPicker(null)} className="text-white/40 hover:text-white">
-                  <X size={18} />
-                </button>
-              </div>
-              <div className="p-2">
-                {presenterList.filter(s => presented.has(s.uid)).map(student => (
-                  <button
-                    key={student.uid}
-                    onClick={() => assignAward(showAwardPicker, student.uid)}
-                    className="w-full px-4 py-3 text-left rounded-lg hover:bg-white/10 transition-colors flex items-center gap-3"
-                  >
-                    <User size={16} className="text-white/40" />
-                    <div>
-                      <div className="text-white text-sm font-medium">{student.name}</div>
-                      <div className="text-[#f0b429] text-xs">{artistNames[student.uid] || ''}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
+  // Voting and Results are handled by the separate ClassVote stage
 
   return null;
 };

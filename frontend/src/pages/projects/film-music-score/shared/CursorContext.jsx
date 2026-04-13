@@ -126,6 +126,52 @@ export const CursorProvider = ({ children }) => {
     dropPosition: null // Track where the drop happened
   });
 
+  // CHROMEBOOK FIX: Track last known mouse position for synthetic events
+  const lastMousePosition = useRef({ x: 0, y: 0 });
+
+  // CHROMEBOOK FIX: Track pending synthetic mousemove timeout
+  // This allows us to cancel it if a new dropdown opens before it fires
+  const pendingSyntheticMousemoveRef = useRef(null);
+
+  // Disable custom cursor (called when HTML5 drag starts)
+  // IMPORTANT: Must be declared BEFORE startLibraryDrag which depends on it
+  const disableCustomCursor = useCallback(() => {
+    logCursor('disableCustomCursor CALLED (drag start)');
+    dragStateRef.current.isDragging = true;
+    dragStateRef.current.dragStartTime = Date.now();
+    setIsCustomCursorEnabled(false);
+    setDraggingFromLibrary(true);
+
+    // Set grabbing cursor on body during drag
+    if (isChromebook) {
+      document.body.style.cursor = 'grabbing';
+      logCursor('disableCustomCursor SET body cursor to grabbing');
+    }
+  }, []);
+
+  // Re-enable custom cursor (called when drag ends)
+  // IMPORTANT: Must be declared BEFORE endLibraryDrag/cancelLibraryDrag which depend on it
+  // PERF OPTIMIZED: Removed double-RAF, use single RAF for minimal latency
+  const enableCustomCursor = useCallback(() => {
+    logCursor('enableCustomCursor CALLED (drag end)');
+    dragStateRef.current.isDragging = false;
+
+    // CHROMEBOOK FIX: Immediately show default cursor to prevent invisible cursor gap
+    if (isChromebook) {
+      document.body.style.cursor = 'default';
+      logCursor('enableCustomCursor SET body cursor to default');
+    }
+
+    // PERF: Single RAF is sufficient - no need for double RAF
+    requestAnimationFrame(() => {
+      if (!dragStateRef.current.isDragging) {
+        logCursor('enableCustomCursor RAF complete, re-enabling custom cursor');
+        setIsCustomCursorEnabled(isChromebook);
+        setDraggingFromLibrary(false);
+      }
+    });
+  }, []);
+
   // ── Library pointer-drag state (iPad/touch support) ──
   const libraryDragDataRef = useRef(null);
   const libraryDragPosRef = useRef({ x: 0, y: 0 });
@@ -164,50 +210,6 @@ export const CursorProvider = ({ children }) => {
   const registerHoverHandler = useCallback((fn) => { hoverHandlerRef.current = fn; }, []);
   const getLibraryDragData = useCallback(() => libraryDragDataRef.current, []);
   const getLibraryDragPos = useCallback(() => libraryDragPosRef.current, []);
-
-  // CHROMEBOOK FIX: Track last known mouse position for synthetic events
-  const lastMousePosition = useRef({ x: 0, y: 0 });
-
-  // CHROMEBOOK FIX: Track pending synthetic mousemove timeout
-  // This allows us to cancel it if a new dropdown opens before it fires
-  const pendingSyntheticMousemoveRef = useRef(null);
-
-  // Disable custom cursor (called when HTML5 drag starts)
-  const disableCustomCursor = useCallback(() => {
-    logCursor('disableCustomCursor CALLED (drag start)');
-    dragStateRef.current.isDragging = true;
-    dragStateRef.current.dragStartTime = Date.now();
-    setIsCustomCursorEnabled(false);
-    setDraggingFromLibrary(true);
-
-    // Set grabbing cursor on body during drag
-    if (isChromebook) {
-      document.body.style.cursor = 'grabbing';
-      logCursor('disableCustomCursor SET body cursor to grabbing');
-    }
-  }, []);
-
-  // Re-enable custom cursor (called when drag ends)
-  // PERF OPTIMIZED: Removed double-RAF, use single RAF for minimal latency
-  const enableCustomCursor = useCallback(() => {
-    logCursor('enableCustomCursor CALLED (drag end)');
-    dragStateRef.current.isDragging = false;
-
-    // CHROMEBOOK FIX: Immediately show default cursor to prevent invisible cursor gap
-    if (isChromebook) {
-      document.body.style.cursor = 'default';
-      logCursor('enableCustomCursor SET body cursor to default');
-    }
-
-    // PERF: Single RAF is sufficient - no need for double RAF
-    requestAnimationFrame(() => {
-      if (!dragStateRef.current.isDragging) {
-        logCursor('enableCustomCursor RAF complete, re-enabling custom cursor');
-        setIsCustomCursorEnabled(isChromebook);
-        setDraggingFromLibrary(false);
-      }
-    });
-  }, []);
 
   // CHROMEBOOK FIX: Handle native select dropdown open/close
   // SIMPLIFIED: Don't disable custom cursor on dropdown open - just track the state

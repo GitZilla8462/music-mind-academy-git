@@ -175,7 +175,7 @@ const StudentClasswork = () => {
       const lessonNumber = li + 1;
       const assignments = [];
       for (const activity of lesson.activities) {
-        if (activity.type !== 'composition' && activity.type !== 'reflection' && activity.type !== 'exit-ticket') continue;
+        if (activity.type !== 'composition' && activity.type !== 'reflection' && activity.type !== 'exit-ticket' && activity.type !== 'scouting-report') continue;
         // Exit tickets always show if lesson was conducted (so absent students can complete them)
         if (activity.type !== 'exit-ticket' && !hasSubmission(lesson.id, activity.id)) continue;
 

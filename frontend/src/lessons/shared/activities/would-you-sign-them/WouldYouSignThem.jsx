@@ -339,17 +339,39 @@ const WouldYouSignThem = ({ onComplete, isSessionMode = true }) => {
     await update(ref(db, `${getGroupPath(groupCode)}/game/readyForNext`), { [userId]: true });
   };
 
-  // Host advances when all members are ready
-  useEffect(() => {
-    if (gamePhase !== 'revealed') return;
-    const amHost = memberOrder.length > 0 && memberOrder[0] === userId;
-    if (!amHost) return;
+  // Host advances when all members are ready OR after 5-second auto-advance timer
+  const [revealCountdown, setRevealCountdown] = useState(null);
 
+  useEffect(() => {
+    if (gamePhase !== 'revealed') {
+      setRevealCountdown(null);
+      return;
+    }
+    const amHost = memberOrder.length > 0 && memberOrder[0] === userId;
+
+    // Manual ready check (still works if someone clicks early)
     const allReady = memberOrder.length > 0 && memberOrder.every(id => readyForNext[id]);
-    if (allReady) {
+    if (amHost && allReady) {
       const timer = setTimeout(() => advanceRound(), 500);
       return () => clearTimeout(timer);
     }
+
+    // 5-second auto-advance countdown
+    if (!amHost) return;
+    setRevealCountdown(5);
+    const countdown = setInterval(() => {
+      setRevealCountdown(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(countdown);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    const autoTimer = setTimeout(() => {
+      advanceRound();
+    }, 5000);
+    return () => { clearInterval(countdown); clearTimeout(autoTimer); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gamePhase, readyForNext, memberOrder, userId]);
 
@@ -791,23 +813,17 @@ const WouldYouSignThem = ({ onComplete, isSessionMode = true }) => {
           <div className="h-20 flex-shrink-0" />
         </div>
 
-        {/* Sticky OK button */}
+        {/* Auto-advance countdown */}
         <div className="sticky bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent pt-6">
-          <div className="max-w-lg mx-auto">
-            {!imReady ? (
-              <button
-                onClick={markReady}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white py-3.5 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-green-500/20"
-              >
-                <Check size={20} /> {currentRound + 1 >= TOTAL_ROUNDS ? 'OK — See Results' : 'OK — Next Question'}
-              </button>
-            ) : (
-              <div className="text-center">
-                <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-300 px-4 py-2.5 rounded-xl font-semibold text-sm">
-                  <Check size={16} /> Waiting for others... ({readyCount}/{totalMembers})
-                </div>
-              </div>
-            )}
+          <div className="max-w-lg mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 px-5 py-2.5 rounded-xl font-semibold text-sm">
+              {revealCountdown !== null && revealCountdown > 0
+                ? `Next question in ${revealCountdown}s...`
+                : currentRound + 1 >= TOTAL_ROUNDS
+                  ? 'Loading results...'
+                  : 'Moving on...'
+              }
+            </div>
           </div>
         </div>
       </div>

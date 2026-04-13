@@ -32,9 +32,9 @@ export const GENRE_SCOUTS_SLIDE_CONFIGS = [
       { id: 'centered', label: 'Centered', desc: 'Centered layout' },
     ],
     fields: [
-      { key: 'surpriseGenre', label: 'Genre That Surprised You', type: 'text', placeholder: 'Which genre did you NOT expect to like?', maxLength: 60 },
-      { key: 'surpriseArtist', label: 'The Artist', type: 'text', placeholder: 'Who changed your mind?', maxLength: 60 },
-      { key: 'whySurprised', label: 'Why?', type: 'textarea', placeholder: 'What about them surprised you? What did you hear that you didn\'t expect?', maxLength: 200 },
+      { key: 'surpriseGenre', label: 'Which genre stood out?', type: 'text', placeholder: 'Which genre stood out to you?', maxLength: 60 },
+      { key: 'surpriseArtist', label: 'Who made an impression?', type: 'text', placeholder: 'Who made a big impression?', maxLength: 60 },
+      { key: 'whySurprised', label: 'Why?', type: 'textarea', placeholder: 'What about their music or profile stands out to you?', maxLength: 200 },
     ],
     requiredFields: ['surpriseGenre', 'whySurprised'],
   },
@@ -91,7 +91,7 @@ function generateSlide1Objects(fields = {}) {
 
   genres.forEach((g, i) => {
     objects.push(text(80, 100 + i * 52, g.label, 14, { bold: true, color: '#fbbf24' }));
-    objects.push(text(80, 118 + i * 52, fields[g.key] || '____________________', 20, { color: '#ffffffcc' }));
+    objects.push(text(80, 118 + i * 52, fields[g.key] || 'Type artist name here', 20, { color: '#ffffff44' }));
   });
 
   return objects;
@@ -101,14 +101,14 @@ function generateSlide2Objects(fields = {}) {
   const objects = [];
   objects.push(text(CANVAS_W / 2 - 140, 30, 'Surprise Discovery', 38, { bold: true }));
 
-  objects.push(text(80, 120, 'Genre:', 14, { bold: true, color: '#fbbf24' }));
-  objects.push(text(80, 145, fields.surpriseGenre || 'Which genre surprised you?', 24, { color: '#ffffffcc' }));
+  objects.push(text(80, 110, 'Which genre stood out to you?', 16, { bold: true, color: '#fbbf24' }));
+  objects.push(text(80, 140, fields.surpriseGenre || 'Type genre here', 24, { color: fields.surpriseGenre ? '#ffffffcc' : '#ffffff44' }));
 
-  objects.push(text(80, 200, 'Artist:', 14, { bold: true, color: '#fbbf24' }));
-  objects.push(text(80, 225, fields.surpriseArtist || 'Who changed your mind?', 24, { color: '#ffffffcc' }));
+  objects.push(text(80, 200, 'Who made a big impression?', 16, { bold: true, color: '#fbbf24' }));
+  objects.push(text(80, 230, fields.surpriseArtist || 'Type artist name here', 24, { color: fields.surpriseArtist ? '#ffffffcc' : '#ffffff44' }));
 
-  objects.push(text(80, 290, 'Why?', 14, { bold: true, color: '#fbbf24' }));
-  objects.push(text(80, 315, fields.whySurprised || 'What surprised you about their sound?', 18, { color: '#ffffffcc' }));
+  objects.push(text(80, 300, 'What about their music or profile stands out to you?', 16, { bold: true, color: '#fbbf24' }));
+  objects.push(text(80, 330, fields.whySurprised || 'Type your answer here', 18, { color: fields.whySurprised ? '#ffffffcc' : '#ffffff44' }));
 
   return objects;
 }

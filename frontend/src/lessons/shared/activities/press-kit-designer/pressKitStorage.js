@@ -139,7 +139,7 @@ function savePressKit(data) {
   const auth = getClassAuthInfo();
   if (auth?.uid) {
     saveStudentWork(ACTIVITY_ID, {
-      title: 'Press Kit',
+      title: 'Agent Presentation Capstone',
       emoji: '\uD83C\uDFA4',
       viewRoute: '/lessons/music-journalist/lesson4?view=saved',
       category: 'Music Journalist',

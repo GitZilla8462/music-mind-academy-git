@@ -156,6 +156,7 @@ export const CURRICULUM = [
         concept: 'Analyze music news — identify facts, opinions, and key details',
         route: '/lessons/music-journalist/lesson1',
         activities: [
+          { id: 'mj-genre-scouts', name: 'Genre Scouts Report', type: 'scouting-report' },
           { id: 'fact-opinion-sorter', name: 'Fact or Opinion Sorter', type: 'game' },
           { id: 'mj-lesson1-reflection', name: 'Article Reflection', type: 'reflection' }
         ]
@@ -168,8 +169,8 @@ export const CURRICULUM = [
         route: '/lessons/music-journalist/lesson2',
         activities: [
           { id: 'guided-listening', name: 'Guided Listening', type: 'composition' },
-          { id: 'sign-or-pass', name: 'Sign or Pass', type: 'game' },
-          { id: 'mj-lesson2-reflection', name: 'Listening Reflection', type: 'reflection' }
+          { id: 'independent-listening', name: 'Independent Listening', type: 'composition' },
+          { id: 'sign-or-pass', name: 'Sign or Pass', type: 'game' }
         ]
       },
       {
@@ -179,6 +180,7 @@ export const CURRICULUM = [
         concept: 'Choose an artist, research their story, build a research board',
         route: '/lessons/music-journalist/lesson3',
         activities: [
+          { id: 'mj-claim-artist', name: 'Scouting Report', type: 'scouting-report' },
           { id: 'fact-opinion-sorter', name: 'Fact or Opinion', type: 'game' },
           { id: 'headline-writer', name: 'Headline Writer', type: 'game' },
           { id: 'mj-lesson3-reflection', name: 'Research Reflection', type: 'reflection' }
@@ -191,7 +193,7 @@ export const CURRICULUM = [
         concept: 'Turn research into a 4-slide presentation',
         route: '/lessons/music-journalist/lesson4',
         activities: [
-          { id: 'mj-press-kit', name: 'Press Kit', type: 'composition' }
+          { id: 'mj-press-kit', name: 'Agent Presentation Capstone', type: 'composition' }
         ]
       },
       {
@@ -200,10 +202,7 @@ export const CURRICULUM = [
         shortName: 'Present',
         concept: 'Present your story and give peer feedback',
         route: '/lessons/music-journalist/lesson5',
-        activities: [
-          { id: 'mj-presentation', name: 'Music Journalist Presentation', type: 'composition' },
-          { id: 'mj-peer-feedback', name: 'Peer Feedback', type: 'reflection' }
-        ]
+        activities: []
       }
     ]
   },

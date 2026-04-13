@@ -334,9 +334,13 @@ const Lesson3 = () => {
 
   // View saved work mode
   if (viewSavedMode || viewReflectionMode) {
+    const activityParam = searchParams.get('activity');
+    let activityType = viewReflectionMode ? 'discussion' : 'article-reader';
+    if (activityParam === 'mj-claim-artist') activityType = 'claim-artist-report';
+
     return (
       <ActivityRenderer
-        activity={{ type: viewReflectionMode ? 'discussion' : 'article-reader', id: 'saved-view' }}
+        activity={{ type: activityType, id: 'saved-view' }}
         onComplete={() => navigate(-1)}
         viewMode={false}
         isSessionMode={false}

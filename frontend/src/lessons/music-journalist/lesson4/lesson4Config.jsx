@@ -1,5 +1,5 @@
 // File: /lessons/music-journalist/lesson4/lesson4Config.jsx
-// Lesson 4: Build the Press Kit
+// Lesson 4: Build Your Story
 // "How do you tell someone's story in a way that makes people care?"
 //
 // Standards:
@@ -25,22 +25,21 @@ export const lessonSections = [
   {
     id: 'build',
     title: '2. Build Time',
-    subtitle: 'Create Your Press Kit',
+    subtitle: 'Create Your Presentation',
     color: 'blue',
     estimatedTime: 25,
     stages: [
-      { id: 'build-press-kit', type: 'activity', label: 'Build Press Kit', description: 'STUDENTS: Build 5-slide press kit in the Slide Builder.', duration: 25, hasTimer: true, trackProgress: true }
+      { id: 'build-press-kit', type: 'activity', label: 'Build Your Story', description: 'STUDENTS: Build 5-slide presentation in the Slide Builder.', duration: 25, hasTimer: true, trackProgress: true }
     ]
   },
   {
     id: 'peer-review',
-    title: '3. Peer Review',
-    subtitle: 'Swap + Feedback',
+    title: '3. Peer Review + Revise',
+    subtitle: 'Swap, Feedback, Final Edits',
     color: 'blue',
     estimatedTime: 9,
     stages: [
-      { id: 'peer-review', type: 'activity', label: 'Peer Review', description: 'STUDENTS: Swap with partner, give feedback.', duration: 5, hasTimer: true, trackProgress: true },
-      { id: 'revise', type: 'activity', label: 'Revise', description: 'STUDENTS: Make final edits based on feedback.', duration: 4, hasTimer: true }
+      { id: 'peer-review', type: 'activity', label: 'Peer Review + Revise', description: 'STUDENTS: Swap with partner, give feedback, then make final edits.', duration: 9, hasTimer: true, trackProgress: true }
     ]
   },
   {
@@ -58,7 +57,7 @@ export const lessonSections = [
 export const lesson4Config = {
   id: 'music-journalist-lesson4',
   lessonPath: '/lessons/music-journalist/lesson4',
-  title: 'Build the Press Kit',
+  title: 'Build Your Story',
   subtitle: 'How do you tell someone\'s story in a way that makes people care?',
   duration: 45,
   themeColor: '#1a2744',
@@ -71,7 +70,7 @@ export const lesson4Config = {
   ],
   lessonSections,
   activities: [
-    { id: 1, type: 'mj-press-kit', title: 'Build Press Kit', estimatedTime: '25 min' },
+    { id: 1, type: 'mj-press-kit', title: 'Agent Presentation Capstone', estimatedTime: '25 min' },
     { id: 2, type: 'mj-peer-feedback', title: 'Peer Review', estimatedTime: '5 min' }
   ]
 };
@@ -81,7 +80,7 @@ export const lessonStages = [
   {
     id: 'hook', label: 'Hook', type: 'summary', duration: 3,
     presentationView: {
-      type: 'summary', title: 'Build the Press Kit', subtitle: 'From Agent Notes to Professional Presentation',
+      type: 'summary', title: 'Build Your Story', subtitle: 'From Agent Notes to Professional Presentation',
       sections: [
         { heading: 'What Is a Press Kit?', bullets: [
           'A PRESS KIT is what gets sent to record labels, festival bookers, and playlist curators',
@@ -98,16 +97,12 @@ export const lessonStages = [
     }
   },
   {
-    id: 'build-press-kit', label: 'Build Press Kit', type: 'activity', duration: 25, hasTimer: true, trackProgress: true,
+    id: 'build-press-kit', label: 'Build Your Story', type: 'activity', duration: 25, hasTimer: true, trackProgress: true,
     presentationView: { type: 'press-kit-build-teacher' },
   },
   {
-    id: 'peer-review', label: 'Peer Review', type: 'activity', duration: 5, hasTimer: true, trackProgress: true,
-    presentationView: { type: 'activity-banner', title: 'Peer Review', subtitle: 'Swap with a partner. Answer: Strongest slide? What\'s missing? Would you sign this artist?' }
-  },
-  {
-    id: 'revise', label: 'Revise', type: 'activity', duration: 4, hasTimer: true,
-    presentationView: { type: 'activity-banner', title: 'Final Edits', subtitle: 'Use your partner\'s feedback to polish your press kit.' }
+    id: 'peer-review', label: 'Peer Review + Revise', type: 'activity', duration: 9, hasTimer: true, trackProgress: true,
+    presentationView: { type: 'press-kit-peer-review-teacher' }
   },
   {
     id: 'presentation-prep', label: 'Presentation Prep', type: 'summary', duration: 3,
@@ -153,8 +148,7 @@ export const getActivityForStage = (stage) => ({
   'join-code': 'waiting',
   'hook': 'summary',
   'build-press-kit': 'mj-press-kit',
-  'peer-review': 'mj-peer-feedback',
-  'revise': 'mj-press-kit',
+  'peer-review': 'mj-press-kit',
   'presentation-prep': 'summary',
   'lesson-complete': 'summary'
 })[stage];
