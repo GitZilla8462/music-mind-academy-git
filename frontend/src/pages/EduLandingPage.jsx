@@ -77,31 +77,6 @@ const EduLandingPage = () => {
         </div>
       </nav>
 
-      {/* Hero - Personal Story */}
-      <section className="py-16 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="font-display text-4xl md:text-5xl font-extrabold leading-tight mb-6">
-            <span className="gradient-text">Music Room Tools</span>
-          </h1>
-          
-          <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-2xl mx-auto">
-            Hello! I'm a middle school music teacher in New York. I built this because I wanted my students 
-            to experience the joy of creating music—without needing expensive software or musical training. 
-            Now I'm sharing it with you.
-          </p>
-          
-          <button
-            onClick={goToLogin}
-            className="btn-primary px-8 py-4 rounded-full font-semibold text-lg text-white inline-flex items-center gap-2"
-          >
-            Get Started
-          </button>
-
-          <p className="text-slate-500 text-sm mt-4">
-            Teachers sign in with email and password. Students log in with a username and PIN.
-          </p>
-        </div>
-      </section>
 
       {/* What It Is - Simple */}
       <section className="py-16 px-6 bg-slate-50">
