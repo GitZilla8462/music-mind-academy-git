@@ -384,6 +384,35 @@ const CityCompositionActivity = ({
     };
   }, [isSessionMode, viewMode]);
 
+  // Save when page becomes hidden (Chromebook lid close, tab switch)
+  useEffect(() => {
+    if (viewMode) return;
+    const handleVisibilityChange = () => {
+      if (document.hidden && placedLoopsRef.current.length > 0 && studentIdRef.current && selectedVideoRef.current) {
+        console.log('💾 Saving city composition on visibility hidden...');
+        const authInfo = getClassAuthInfo();
+        saveStudentWork('city-composition', {
+          title: selectedVideoRef.current.title || 'City Soundscape',
+          emoji: selectedVideoRef.current.emoji || '🏙️',
+          viewRoute: '/lessons/film-music-project/lesson2?view=saved',
+          subtitle: `${placedLoopsRef.current.length} loops`,
+          category: 'Film Music Project',
+          data: {
+            placedLoops: placedLoopsRef.current,
+            videoDuration: videoDurationRef.current,
+            videoId: selectedVideoRef.current.id,
+            videoTitle: selectedVideoRef.current.title,
+            videoPath: selectedVideoRef.current.videoPath,
+            videoEmoji: selectedVideoRef.current.emoji,
+            timestamp: Date.now()
+          }
+        }, studentIdRef.current, authInfo);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [viewMode]);
+
   // ✅ Listen for teacher's save command from Firebase
   // Uses refs to avoid stale closures — listener set up once, always reads latest state
   useEffect(() => {

@@ -1887,21 +1887,11 @@ const PresentationContent = ({
       );
     }
 
-    // Share Out (Music Journalist Lesson 3) — share overlay only (no scouting report directions)
+    // Share Out (Music Journalist Lesson 3) — share overlay only, no scouting report behind it
     if (type === 'claim-artist-share-teacher') {
       return (
-        <div className="absolute inset-0 overflow-hidden">
-          <style>{`
-            .teacher-embed-activity .h-screen { height: 100% !important; }
-          `}</style>
-          <div className="h-full teacher-embed-activity relative">
-            <ClaimArtistReport
-              onComplete={() => {}}
-              viewMode={false}
-              isSessionMode={false}
-            />
-            <ClaimArtistShareOverlay />
-          </div>
+        <div className="absolute inset-0 overflow-hidden" style={{ background: '#1a2744' }}>
+          <ClaimArtistShareOverlay />
         </div>
       );
     }
@@ -4514,9 +4504,28 @@ const GenreScoutsShareOverlay = () => {
 
 const ClaimArtistShareOverlay = () => {
   const [dismissed, setDismissed] = React.useState(false);
-  if (dismissed) return null;
+
+  const steps = [
+    'Find a partner or small group near you',
+    'Which of the four points felt strongest for this artist?',
+    'What was your best piece of strong evidence?',
+    'Would you sign them \u2014 yes or no?',
+  ];
+
+  if (dismissed) {
+    return (
+      <button
+        onClick={() => setDismissed(false)}
+        className="absolute top-3 left-3 z-50 flex items-center gap-1.5 px-3 py-2 bg-white/90 hover:bg-white rounded-xl shadow-lg border border-gray-200 text-gray-700 hover:text-gray-900 transition-all cursor-pointer"
+      >
+        <HelpCircle size={16} />
+        <span className="text-sm font-semibold">Directions</span>
+      </button>
+    );
+  }
+
   return (
-    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000]">
+    <div className="absolute inset-0 flex items-center justify-center z-[1000]">
       <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden mx-4">
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
           <div>
@@ -4526,12 +4535,7 @@ const ClaimArtistShareOverlay = () => {
           <button onClick={() => setDismissed(true)} className="text-white/70 hover:text-white text-2xl font-bold leading-none">{'\u2715'}</button>
         </div>
         <div className="px-6 py-5 space-y-4">
-          {[
-            'Find a partner or small group near you',
-            'Which of the four points felt strongest for this artist?',
-            'What was your best piece of strong evidence?',
-            'Would you sign them \u2014 yes or no?',
-          ].map((step, i) => (
+          {steps.map((step, i) => (
             <div key={i} className="flex items-start gap-3">
               <span className="text-2xl font-black text-purple-600 w-8 text-center flex-shrink-0">{i + 1}</span>
               <p className="text-lg text-gray-700">{step}</p>
@@ -4539,7 +4543,7 @@ const ClaimArtistShareOverlay = () => {
           ))}
         </div>
         <div className="px-6 pb-5">
-          <button onClick={() => setDismissed(true)} className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-bold rounded-xl hover:from-purple-700 hover:to-indigo-700">
+          <button onClick={() => setDismissed(true)} className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-bold rounded-xl hover:from-purple-700 hover:to-indigo-700 cursor-pointer">
             Got it!
           </button>
         </div>

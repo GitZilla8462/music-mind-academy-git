@@ -23,7 +23,7 @@ const AUTOSAVE_INTERVAL = 30000;
 const THUMB_W = 110;
 const THUMB_SCALE = THUMB_W / CANVAS_W;
 
-function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 'scouting-report', forceShowDirections }) {
+function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 'scouting-report', forceShowDirections, hideDirectionsButton }) {
   const isGenreScouts = variant === 'genre-scouts';
   const isClaimArtist = variant === 'claim-your-artist';
   const slideConfigs = isClaimArtist ? CLAIM_ARTIST_SLIDE_CONFIGS : isGenreScouts ? GENRE_SCOUTS_SLIDE_CONFIGS : SCOUTING_SLIDE_CONFIGS;
@@ -163,6 +163,25 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
   useEffect(() => {
     return () => { if (reportRef.current) saveScoutingReport(reportRef.current, storageKey, activityId, lessonId, completedReportsRef.current); };
   }, [storageKey, activityId, lessonId]);
+
+  // Save when page becomes hidden (Chromebook lid close, tab switch)
+  useEffect(() => {
+    if (viewMode) return;
+    const handleVisibilityChange = () => {
+      if (document.hidden && reportRef.current) {
+        saveScoutingReport(reportRef.current, storageKey, activityId, lessonId, completedReportsRef.current);
+      }
+    };
+    const handleBeforeUnload = () => {
+      if (reportRef.current) saveScoutingReport(reportRef.current, storageKey, activityId, lessonId, completedReportsRef.current);
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [viewMode, storageKey, activityId, lessonId]);
 
   // Listen for teacher "Save All" command
   const componentMountTimeRef = useRef(Date.now());
@@ -399,9 +418,8 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
             {!viewMode && (
               <button
                 onClick={() => {
+                  // Auto-mark all slides as done when starting a new report
                   if (!allSlidesDone) {
-                    if (!window.confirm(`You have ${totalSlides - slidesCompleted} slide${totalSlides - slidesCompleted !== 1 ? 's' : ''} not marked as done. Start a new report anyway?`)) return;
-                    // Mark all slides as done before starting new report
                     const allDone = {};
                     for (let i = 1; i <= totalSlides; i++) allDone[i] = true;
                     setSlidesDone(allDone);
@@ -419,12 +437,14 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowDirections(true)}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-purple-500/15 text-purple-300 hover:bg-purple-500/25 transition-colors"
-          >
-            <HelpCircle size={12} /> Directions
-          </button>
+          {!hideDirectionsButton && (
+            <button
+              onClick={() => setShowDirections(true)}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-purple-500/15 text-purple-300 hover:bg-purple-500/25 transition-colors"
+            >
+              <HelpCircle size={12} /> Directions
+            </button>
+          )}
           {/* Save status */}
           <span className="text-[10px] text-white/30">
             {saveStatus === 'saving' ? 'Saving...' : saveStatus === 'saved' ? 'Saved' : ''}
@@ -672,9 +692,9 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
   );
 }
 
-const ScoutingReport = ({ variant, forceShowDirections, ...props }) => (
+const ScoutingReport = ({ variant, forceShowDirections, hideDirectionsButton, ...props }) => (
   <AudioProvider>
-    <ScoutingReportInner {...props} variant={variant} forceShowDirections={forceShowDirections} />
+    <ScoutingReportInner {...props} variant={variant} forceShowDirections={forceShowDirections} hideDirectionsButton={hideDirectionsButton} />
   </AudioProvider>
 );
 

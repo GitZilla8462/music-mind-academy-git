@@ -480,6 +480,32 @@ const GameCompositionActivity = ({
     };
   }, [viewMode]);
 
+  // Save when page becomes hidden (Chromebook lid close, tab switch)
+  useEffect(() => {
+    if (viewMode) return;
+    const handleVisibilityChange = () => {
+      if (document.hidden && placedLoopsRef.current.length > 0 && studentIdRef.current && selectedVideoRef.current) {
+        console.log('💾 Saving game composition on visibility hidden...');
+        saveStudentWork('game-composition', {
+          title: selectedVideoRef.current.title,
+          emoji: selectedVideoRef.current.emoji || '🎮',
+          viewRoute: '/lessons/film-music-project/lesson5?view=saved',
+          subtitle: `${placedLoopsRef.current.length} loops`,
+          category: 'Film Music Project',
+          data: {
+            videoId: selectedVideoRef.current.id,
+            videoTitle: selectedVideoRef.current.title,
+            videoDuration: selectedVideoRef.current.duration,
+            placedLoops: placedLoopsRef.current,
+            savedAt: new Date().toISOString()
+          }
+        }, studentIdRef.current);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [viewMode]);
+
   // Load saved work on mount — Firebase-first for authenticated (PIN login) students
   useEffect(() => {
     if (!studentId || !selectedVideo) return;

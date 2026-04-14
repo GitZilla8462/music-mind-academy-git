@@ -1092,7 +1092,8 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
-          forceShowDirections={true}
+          forceShowDirections={activity.id !== 'share-out'}
+          hideDirectionsButton={activity.id === 'share-out'}
         />
       );
 

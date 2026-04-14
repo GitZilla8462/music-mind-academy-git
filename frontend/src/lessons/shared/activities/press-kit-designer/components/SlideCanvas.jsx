@@ -369,7 +369,7 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
   return (
     <div
       onPointerDown={(e) => { e.stopPropagation(); wasSelectedRef.current = isSelected; onSelect(obj.id); if (!isEditing) onDragStart(e, obj.id, 'move'); }}
-      onClick={(e) => { e.stopPropagation(); if (obj.type === 'text' && !isEditing) onEdit(obj.id); }}
+      onClick={(e) => { e.stopPropagation(); if (obj.type === 'text' && !isEditing && wasSelectedRef.current) onEdit(obj.id); }}
       draggable={false}
       style={{
         position: 'absolute',

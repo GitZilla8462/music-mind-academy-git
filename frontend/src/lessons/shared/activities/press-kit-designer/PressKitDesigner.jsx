@@ -123,7 +123,7 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
     return () => window.removeEventListener('press-kit-add-image', handler);
   }, []);
 
-  // Autosave
+  // Autosave every 30s
   useEffect(() => {
     saveTimerRef.current = setInterval(() => {
       if (pressKitRef.current) {
@@ -137,12 +137,36 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
     return () => clearInterval(saveTimerRef.current);
   }, []);
 
+  // Save on unmount (teacher advances stage)
   useEffect(() => {
     return () => {
       if (pressKitRef.current) savePressKit(pressKitRef.current);
       localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(bonusTracksRef.current));
     };
   }, []);
+
+  // Save when page becomes hidden (Chromebook lid close, tab switch)
+  useEffect(() => {
+    if (viewMode) return;
+    const handleVisibilityChange = () => {
+      if (document.hidden && pressKitRef.current) {
+        savePressKit(pressKitRef.current);
+        localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(bonusTracksRef.current));
+      }
+    };
+    const handleBeforeUnload = () => {
+      if (pressKitRef.current) {
+        savePressKit(pressKitRef.current);
+        localStorage.setItem(BONUS_STORAGE_KEY, JSON.stringify(bonusTracksRef.current));
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [viewMode]);
 
   // Listen for teacher "Save All" command
   const componentMountTimeRef = useRef(Date.now());

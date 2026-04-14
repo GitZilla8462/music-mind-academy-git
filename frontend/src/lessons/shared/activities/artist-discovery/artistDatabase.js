@@ -628,7 +628,7 @@ const ARTISTS = [
     license: 'Used with Permission',
     bandcampUrl: 'https://mrphelps.bandcamp.com/album/the-mr-phelps-era',
     albumTitle: 'The Mr. Phelps Era',
-    imageUrl: '/audio/artists/mr-phelps/cover.png',
+    imageUrl: 'https://media.musicmindacademy.com/artists/mr-phelps/mr._phelps.jpg',
     bio: 'Mr. Phelps is a New York-based rapper and producer whose debut album "The Mr. Phelps Era" spans trap bangers, feel-good party tracks, and faith-driven anthems. His music empowers listeners to be themselves unapologetically.',
     whyInteresting: 'He refuses to be boxed into one style — the same album has hard-hitting trap, Latin-flavored beats, and gospel-inspired ballads. That range is rare.',
     tags: ['christian-rap', 'hip-hop', 'trap', 'party-rap', 'positive', 'new-york'],

@@ -116,6 +116,11 @@
             "$seatId": {
               ".write": true
             }
+          },
+          "tempoCharadesGroups": {
+            "$groupCode": {
+              ".write": true
+            }
           }
         }
       }
