@@ -157,16 +157,43 @@ export const getStudentDisplayName = async (userId, sessionCode, studentsPath) =
       const namePath = studentsPath ? `${studentsPath}/${userId}/name` : path;
       const snapshot = await get(ref(db, namePath));
       if (snapshot.exists()) {
-        name = snapshot.val();
+        const val = snapshot.val();
+        // Skip fallback names like "Seat 5" or "Student"
+        if (val && !val.startsWith('Seat ') && val !== 'Student') {
+          name = val;
+        }
       }
     } catch {
       // Fall through
     }
   }
 
-  // Try localStorage fallback
+  // Try localStorage (set during joinSession)
   if (!name) {
-    name = localStorage.getItem('current-session-studentName');
+    const stored = localStorage.getItem('current-session-studentName');
+    if (stored && !stored.startsWith('Seat ') && stored !== 'Student') {
+      name = stored;
+    }
+  }
+
+  // Try URL username param (always set for class-based sessions from StudentHome)
+  if (!name) {
+    try {
+      const urlName = new URLSearchParams(window.location.search).get('username');
+      if (urlName && !urlName.startsWith('seat')) {
+        name = urlName;
+      }
+    } catch {
+      // Fall through
+    }
+  }
+
+  // Try classroom-username from localStorage
+  if (!name) {
+    const classroomName = localStorage.getItem('classroom-username');
+    if (classroomName) {
+      name = classroomName;
+    }
   }
 
   // Format as "FirstName L." or fall back to generated name
