@@ -8,9 +8,10 @@
 // 3. Revealed - Show correct answer
 // 4. Finished - Final scores
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Pause, Users, Trophy, Eye, ChevronRight, Headphones } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { useSession } from '../../../../context/SessionContext';
 import { TEMPO_OPTIONS, AUDIO_CLIPS, CLIP_DURATION, SCORING, generateQuestions, getTempoBySymbol, calculateSpeedBonus } from './tempoCharadesConfig';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
@@ -27,8 +28,23 @@ const ActivityBanner = () => (
 );
 
 const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
+  const { sessionCode: contextSessionCode, classId } = useSession();
+  // For quick sessions, sessionCode comes from session data or URL. For class sessions, use classId.
   const urlParams = new URLSearchParams(window.location.search);
-  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+
+  // Compute Firebase paths based on session type
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/tempoCharades`;
+    if (sessionCode) return `sessions/${sessionCode}/tempoCharades`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
 
   // Game state
   const [gamePhase, setGamePhase] = useState('setup'); // setup, guessing, revealed, finished
@@ -68,27 +84,27 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
-    if (!sessionCode) return;
+    if (!gamePath) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/tempoCharades`), data);
-  }, [sessionCode]);
+    update(ref(db, gamePath), data);
+  }, [gamePath]);
 
   // On mount, reset Firebase game state so students see "Waiting" (clears stale data from previous run)
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!gamePath) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/tempoCharades`), {
+    update(ref(db, gamePath), {
       phase: 'setup',
       audioPlayed: false,
       correctAnswer: null
     });
-  }, [sessionCode]);
+  }, [gamePath]);
 
   // Firebase: Subscribe to students
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -110,7 +126,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   // Play audio clip — plain HTML5 Audio, no Web Audio API
   // Calls play() synchronously within the user gesture to satisfy Chrome autoplay policy
@@ -167,10 +183,10 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
     setCorrectCount(0);
 
     // Reset student answers and scores
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           tempoCharadesAnswer: null,
           tempoCharadesScore: 0
         }).catch(err => console.error(`Failed to reset student ${s.id}:`, err));
@@ -186,7 +202,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
       audioPlayed: false
     });
 
-  }, [sessionCode, students, updateGame]);
+  }, [studentsPath, students, updateGame]);
 
   // Replay clip
   const replayClip = useCallback(() => {
@@ -232,10 +248,10 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
   // Next question
   const nextQuestion = useCallback(() => {
     // Clear student answers
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           tempoCharadesAnswer: null
         }).catch(err => console.error(`Failed to clear answer for ${s.id}:`, err));
       });
@@ -261,7 +277,7 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
       });
 
     }
-  }, [sessionCode, students, currentQuestion, questions, updateGame]);
+  }, [studentsPath, students, currentQuestion, questions, updateGame]);
 
   const question = questions[currentQuestion];
   const correctTempo = question ? getTempoBySymbol(question.correctAnswer) : null;

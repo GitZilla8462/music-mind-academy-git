@@ -3,18 +3,31 @@
 // Students listen to audio on teacher's speakers, then guess the tempo on their device
 // 5 tempo buttons showing Italian term + BPM
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Check, Trophy } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
-import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji, formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
+import { getPlayerColor, getPlayerEmoji, getStudentDisplayName } from '../layer-detective/nameGenerator';
 import { TEMPO_OPTIONS, SCORING, calculateSpeedBonus, getTempoBySymbol } from './tempoCharadesConfig';
 
 const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
-  const { sessionCode, userId: contextUserId } = useSession();
+  const { sessionCode, classId, userId: contextUserId } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  // Compute Firebase paths based on session type (class-based vs quick session)
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/tempoCharades`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/tempoCharades`;
+    return null;
+  }, [classId, effectiveSessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/studentsJoined`;
+    return null;
+  }, [classId, effectiveSessionCode]);
 
   // Player info
   const [playerName, setPlayerName] = useState('');
@@ -52,43 +65,23 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
   const wasCorrectRef = useRef(null);
   const playStartTimeRef = useRef(null);
 
-  // Get player name on mount - use real name (first name last initial) from session data
+  // Get player name on mount - use real name (first name last initial)
   useEffect(() => {
     if (!userId) return;
 
     const assignPlayerName = async () => {
-      const db = getDatabase();
       const color = getPlayerColor(userId);
       const emoji = getPlayerEmoji(userId);
-      let name;
+      const name = await getStudentDisplayName(userId, null, studentsPath);
 
-      // Try to get real student name from session data or localStorage
-      if (effectiveSessionCode) {
-        try {
-          const studentRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}/name`);
-          const snapshot = await get(studentRef);
-          if (snapshot.exists()) {
-            name = snapshot.val();
-          }
-        } catch {
-          // Fall through to localStorage fallback
-        }
-      }
-
-      if (!name) {
-        name = localStorage.getItem('current-session-studentName');
-      }
-
-      // Format as "FirstName L." or fall back to generated name
-      const displayName = name ? formatFirstNameLastInitial(name) : generateUniquePlayerName(userId, []);
-
-      setPlayerName(displayName);
+      setPlayerName(name);
       setPlayerColor(color);
       setPlayerEmoji(emoji);
 
-      if (effectiveSessionCode) {
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
-          displayName: displayName,
+      if (studentsPath) {
+        const db = getDatabase();
+        update(ref(db, `${studentsPath}/${userId}`), {
+          displayName: name,
           playerColor: color,
           playerEmoji: emoji
         });
@@ -96,7 +89,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     };
 
     assignPlayerName();
-  }, [userId, effectiveSessionCode]);
+  }, [userId, studentsPath]);
 
   // Keep refs in sync
   useEffect(() => { scoreRef.current = score; }, [score]);
@@ -107,10 +100,10 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
 
   // Listen for game state updates from teacher
   useEffect(() => {
-    if (!effectiveSessionCode) return;
+    if (!gamePath) return;
 
     const db = getDatabase();
-    const gameRef = ref(db, `sessions/${effectiveSessionCode}/tempoCharades`);
+    const gameRef = ref(db, gamePath);
 
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
@@ -166,8 +159,8 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
       // Restore score from Firebase if remounted
       if (data.phase === 'finished') {
         const effectiveUserId = userId || localStorage.getItem('current-session-userId');
-        if (effectiveUserId && scoreRef.current === 0) {
-          get(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${effectiveUserId}/tempoCharadesScore`))
+        if (effectiveUserId && scoreRef.current === 0 && studentsPath) {
+          get(ref(db, `${studentsPath}/${effectiveUserId}/tempoCharadesScore`))
             .then(snap => {
               const fbScore = snap.val() || 0;
               if (fbScore > 0) {
@@ -209,8 +202,8 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
           setScore(newScore);
 
           const effectiveUserId = userId || localStorage.getItem('current-session-userId');
-          if (effectiveSessionCode && effectiveUserId) {
-            update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${effectiveUserId}`), {
+          if (studentsPath && effectiveUserId) {
+            update(ref(db, `${studentsPath}/${effectiveUserId}`), {
               tempoCharadesScore: newScore
             });
           }
@@ -219,14 +212,14 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     });
 
     return () => unsubscribe();
-  }, [effectiveSessionCode, userId]);
+  }, [gamePath, studentsPath, userId]);
 
   // Listen for leaderboard
   useEffect(() => {
-    if (!effectiveSessionCode) return;
+    if (!studentsPath) return;
 
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -250,7 +243,7 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     });
 
     return () => unsubscribe();
-  }, [effectiveSessionCode, userId]);
+  }, [studentsPath, userId]);
 
   // Submit answer
   const submitAnswer = (tempoSymbol) => {
@@ -260,9 +253,9 @@ const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
     setSelectedAnswer(tempoSymbol);
     setAnswerSubmitted(true);
 
-    if (effectiveSessionCode && userId) {
+    if (studentsPath && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `${studentsPath}/${userId}`), {
         tempoCharadesAnswer: tempoSymbol,
         tempoCharadesAnswerTime: Date.now()
       });

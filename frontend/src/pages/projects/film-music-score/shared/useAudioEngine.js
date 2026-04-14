@@ -453,6 +453,12 @@ export const useAudioEngine = (videoDuration = 60) => {
       const transportTime = Math.max(0, loop.startTime - schedulingStartTime);
       const startWhen = transportTime <= 0.01 ? audioContext.currentTime : audioContext.currentTime + transportTime;
 
+      // Guard against non-finite values reaching Web Audio API
+      if (!isFinite(startWhen) || !isFinite(remainingTimeline) || !isFinite(effectiveVolume)) {
+        console.warn('⚠️ Skipping loop with non-finite audio values:', loop.id);
+        return;
+      }
+
       // ============================================================
       // FADE IN/OUT - Apply gain automation from track settings
       // ============================================================

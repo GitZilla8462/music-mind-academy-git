@@ -8,7 +8,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Users, Trophy, Play, Pause, Check, X, RotateCcw, Crown, Headphones } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get, set } from 'firebase/database';
-import { generateUniquePlayerName, getPlayerColor, getPlayerEmoji, formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
+import { getPlayerColor, getPlayerEmoji, getStudentDisplayName } from '../layer-detective/nameGenerator';
 import { TEMPO_OPTIONS, AUDIO_CLIPS, CLIP_DURATION, shuffleArray, calculateSpeedBonus, getTempoBySymbol } from './tempoCharadesConfig';
 import DirectionsModal, { DirectionsReopenButton } from '../../components/DirectionsModal';
 
@@ -19,10 +19,17 @@ const ANSWER_TIME = 20000; // 20s to answer after clip finishes
 const GUESS_TIMEOUT = (CLIP_DURATION * 1000) + ANSWER_TIME;
 
 const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
-  const { sessionCode, userId: contextUserId } = useSession();
+  const { sessionCode, classId, userId: contextUserId } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  // Compute Firebase paths based on session type (class-based vs quick session)
+  const studentsPath = React.useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/studentsJoined`;
+    return null;
+  }, [classId, effectiveSessionCode]);
 
   // Player info
   const [playerName, setPlayerName] = useState('');
@@ -88,43 +95,22 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
   useEffect(() => { currentRoundRef.current = currentRound; }, [currentRound]);
   useEffect(() => { gamePhaseRef.current = gamePhase; }, [gamePhase]);
 
-  // Get player identity on mount - use real name (first name last initial) from session data
+  // Get player identity on mount - use real name (first name last initial)
   useEffect(() => {
     if (!userId) return;
 
     const assignPlayerName = async () => {
       const color = getPlayerColor(userId);
       const emoji = getPlayerEmoji(userId);
-      let name;
+      const name = await getStudentDisplayName(userId, null, studentsPath);
 
-      // Try to get real student name from session data or localStorage
-      if (effectiveSessionCode) {
-        try {
-          const db = getDatabase();
-          const studentRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}/name`);
-          const snapshot = await get(studentRef);
-          if (snapshot.exists()) {
-            name = snapshot.val();
-          }
-        } catch {
-          // Fall through to localStorage fallback
-        }
-      }
-
-      if (!name) {
-        name = localStorage.getItem('current-session-studentName');
-      }
-
-      // Format as "FirstName L." or fall back to generated name
-      const displayName = name ? formatFirstNameLastInitial(name) : generateUniquePlayerName(userId, []);
-
-      setPlayerName(displayName);
+      setPlayerName(name);
       setPlayerColor(color);
       setPlayerEmoji(emoji);
     };
 
     assignPlayerName();
-  }, [userId, effectiveSessionCode]);
+  }, [userId, studentsPath]);
 
   // Web Audio API setup
   const ensureAudioContext = useCallback(() => {
@@ -201,8 +187,9 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
 
   // Helper: get Firebase group path
   const getGroupPath = useCallback((code) => {
+    if (classId) return `classes/${classId}/currentSession/tempoCharadesGroups/${code}`;
     return `sessions/${effectiveSessionCode}/tempoCharadesGroups/${code}`;
-  }, [effectiveSessionCode]);
+  }, [classId, effectiveSessionCode]);
 
   // Helper: check if current user is the host
   const isHost = useCallback(() => {
@@ -538,10 +525,10 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
     await update(ref(db, getGroupPath(groupCode)), updates);
 
     // Update session leaderboard
-    if (effectiveSessionCode) {
+    if (studentsPath) {
       const allMembers = (await get(ref(db, `${getGroupPath(groupCode)}/members`))).val() || {};
       for (const [memberId, memberData] of Object.entries(allMembers)) {
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${memberId}`), {
+        update(ref(db, `${studentsPath}/${memberId}`), {
           tempoCharadesScore: memberData.score || 0
         }).catch(() => {});
       }

@@ -688,8 +688,16 @@ export const SessionProvider = ({ children }) => {
       
       return true;
     } catch (error) {
-      console.error('❌ Error joining session:', error);
-      logger.error('Failed to join session', { error: error.message });
+      // Expected cases: session ended, no active session — don't trigger critical alerts
+      const expectedErrors = ['Session has ended', 'No active session'];
+      const isExpected = expectedErrors.some(msg => error.message?.includes(msg));
+
+      if (isExpected) {
+        console.log('⚠️ Could not join session:', error.message);
+      } else {
+        console.error('❌ Error joining session:', error);
+        logger.error('Failed to join session', { error: error.message });
+      }
       return false;
     }
   };
@@ -755,7 +763,14 @@ export const SessionProvider = ({ children }) => {
       
       return true;
     } catch (error) {
-      console.error('❌ Error joining with musical name:', error);
+      const expectedErrors = ['Session has ended', 'Session not found', 'No active session'];
+      const isExpected = expectedErrors.some(msg => error.message?.includes(msg));
+
+      if (isExpected) {
+        console.log('⚠️ Could not join session:', error.message);
+      } else {
+        console.error('❌ Error joining with musical name:', error);
+      }
       return false;
     }
   };
@@ -816,15 +831,26 @@ export const SessionProvider = ({ children }) => {
       return;
     }
 
+    // Guard against writing to /sessions/null/ after session cleanup
+    if (!sessionCode) {
+      console.log('⚠️ Skipping progress update — session already ended');
+      return;
+    }
+
     try {
       await updateStudentProgress(sessionCode, userId, activityId, status);
     } catch (error) {
-      console.error('❌ Error updating progress:', error);
-      logger.error('Failed to update progress', { 
-        activityId, 
-        status, 
-        error: error.message 
-      });
+      // PERMISSION_DENIED is expected if session ended while student was in an activity
+      if (error.message?.includes('PERMISSION_DENIED') || error.code === 'PERMISSION_DENIED') {
+        console.log('⚠️ Could not save progress — session may have ended:', activityId);
+      } else {
+        console.error('❌ Error updating progress:', error);
+        logger.error('Failed to update progress', {
+          activityId,
+          status,
+          error: error.message
+        });
+      }
     }
   };
 
