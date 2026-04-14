@@ -5,6 +5,7 @@
 // Optimized for 1366x768 Chromebook screens
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { HelpCircle, X, Check } from 'lucide-react';
 import { stringInstruments, dynamics, scoring, calcStreakBonus, getResultMessage } from './stringsDynamicsLabData';
 import {
   createPartnerGame,
@@ -113,6 +114,7 @@ const StringsDynamicsLabActivity = ({ onComplete }) => {
   const [listened, setListened] = useState(false);
   const [localPlayCount, setLocalPlayCount] = useState(0);
   const [confetti, setConfetti] = useState(false);
+  const [showDirections, setShowDirections] = useState(true);
 
   // Audio refs
   const audioRef = useRef(null);
@@ -370,9 +372,65 @@ const StringsDynamicsLabActivity = ({ onComplete }) => {
 
   // ========== JOIN SCREEN ==========
   if (!gameCode) {
+    const directions = [
+      { num: '1', text: <>Find a <span className="font-bold text-white">partner</span> and sit next to each other</> },
+      { num: '2', text: <>One person taps <span className="font-bold text-white">Create Game</span> and shares the 4-digit code</> },
+      { num: '3', text: <>Your partner taps <span className="font-bold text-white">Join Game</span> and enters the code</> },
+      { num: '4', text: <>Take turns — the <span className="font-bold text-purple-300">Builder</span> picks an instrument and dynamic, the <span className="font-bold text-amber-300">Listener</span> guesses both</> },
+      { num: '5', text: <><span className="font-bold text-white">8 rounds</span> — get points for correct guesses, highest score wins!</> },
+    ];
+
     return (
       <div className="min-h-screen h-full bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <style>{animationStyles}</style>
+
+        {/* Directions button (top-left) - shows when modal is dismissed */}
+        {!showDirections && (
+          <button
+            onClick={() => setShowDirections(true)}
+            className="absolute top-3 left-3 z-50 flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 text-white/70 hover:text-white transition-all cursor-pointer"
+          >
+            <HelpCircle size={16} />
+            <span className="text-sm font-semibold">Directions</span>
+          </button>
+        )}
+
+        {/* Floating directions modal */}
+        {showDirections && (
+          <div className="absolute top-4 left-4 z-50 w-[340px] bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-2xl select-none">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <div className="text-xl">🎻</div>
+                <h3 className="text-lg font-bold text-white">How to Play</h3>
+              </div>
+              <button
+                onClick={() => setShowDirections(false)}
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-red-500 flex items-center justify-center transition-colors group cursor-pointer"
+              >
+                <X size={14} className="text-white/50 group-hover:text-white" />
+              </button>
+            </div>
+            <div className="px-5 py-4 space-y-3">
+              {directions.map((d) => (
+                <div key={d.num} className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                    {d.num}
+                  </div>
+                  <span className="text-sm text-white/80 leading-relaxed">{d.text}</span>
+                </div>
+              ))}
+            </div>
+            <div className="px-5 pb-4">
+              <button
+                onClick={() => setShowDirections(false)}
+                className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Check size={14} /> Got it!
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="w-full max-w-md text-center">
           <div className="text-5xl mb-3 anim-bounce">🎻</div>
           <h1 className="text-3xl font-black text-white mb-2">Strings & Dynamics Lab</h1>
