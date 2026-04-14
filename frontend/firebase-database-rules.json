@@ -69,10 +69,10 @@
 
     "approvedEmails": {
       ".write": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')",
+      ".read": "auth != null && (auth.token.email == 'robtaube90@gmail.com' || auth.token.email == 'robtaube92@gmail.com')",
       "$site": {
-        ".read": "auth != null",
         "$emailKey": {
-          ".read": "auth != null"
+          ".read": true
         }
       }
     },

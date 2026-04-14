@@ -38,13 +38,12 @@ export const lessonSections = [
   },
   {
     id: 'game',
-    title: '2. Artists Worth Signing Game',
-    subtitle: 'Full Class Game',
+    title: '2. Fact or Opinion',
+    subtitle: 'Writing Activity',
     color: 'blue',
-    estimatedTime: 7,
+    estimatedTime: 5,
     stages: [
-      { id: 'fact-opinion-game', type: 'activity', label: 'Artists Worth Signing Game', description: 'STUDENTS PLAY: Fact/Opinion, Strong/Weak, 4-Point categories!', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true },
-      { id: 'fact-opinion-results', type: 'activity', label: 'Results', description: 'View class leaderboard and celebrate top scorers.', duration: 2 }
+      { id: 'fact-opinion-game', type: 'activity', label: 'Fact or Opinion', description: 'STUDENTS: Write one fact and one opinion about your artist.', duration: 5, hasTimer: true, trackProgress: true, hasProgress: true }
     ]
   },
   {
@@ -95,7 +94,7 @@ export const lesson3Config = {
   ],
   lessonSections,
   activities: [
-    { id: 1, type: 'fact-opinion-sorter', title: 'Artists Worth Signing Game', estimatedTime: '7 min' },
+    { id: 1, type: 'fact-opinion-sorter', title: 'Fact or Opinion', estimatedTime: '5 min' },
     { id: 2, type: 'claim-artist-report', title: 'Scouting Report', estimatedTime: '15 min' }
   ]
 };
@@ -182,13 +181,9 @@ export const lessonStages = [
     }
   },
   {
-    id: 'fact-opinion-game', label: 'Artists Worth Signing Game', type: 'activity', duration: 7, hasTimer: true, trackProgress: true, hasProgress: true,
+    id: 'fact-opinion-game', label: 'Fact or Opinion', type: 'activity', duration: 5, hasTimer: true, trackProgress: true, hasProgress: true,
+    description: 'STUDENTS: Write one fact and one opinion about your artist.',
     presentationView: { type: 'fact-opinion-sorter-teacher-game' }
-  },
-  {
-    id: 'fact-opinion-results', label: 'Results', type: 'activity', duration: 2,
-    description: 'View class leaderboard and celebrate top scorers.',
-    presentationView: { type: 'fact-opinion-sorter-results' }
   },
   {
     id: 'scouting-report', label: 'Scouting Report', type: 'activity', duration: 15, hasTimer: true, trackProgress: true,
@@ -217,8 +212,7 @@ export const lessonStages = [
       sections: [
         { heading: 'What You Did Today', bullets: [
           'Learned the 4-Point Checklist for evaluating artists',
-          'Practiced spotting strong vs weak evidence',
-          'Played Artists Worth Signing with three question types',
+          'Practiced telling facts from opinions about your artist',
           'Built a Scouting Report using real evidence'
         ]},
         { heading: 'Come Ready for Lesson 4', bullets: ['You\'ll pick your OWN artist and start building your press kit presentation'] }
@@ -237,7 +231,6 @@ export const getActivityForStage = (stage) => {
     'checklist-3': 'summary',
     'checklist-4': 'summary',
     'fact-opinion-game': 'fact-opinion-sorter',
-    'fact-opinion-results': 'fact-opinion-sorter',
     'scouting-report': 'claim-artist-report',
     'share-out': 'claim-artist-report',
     'would-you-sign-them': 'would-you-sign-them',

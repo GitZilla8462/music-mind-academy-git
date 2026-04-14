@@ -26,7 +26,7 @@ const ArtistCard = ({ artist, onClick, isSelected, isLocked }) => {
           <img
             src={artist.imageUrl}
             alt={artist.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
           />
         ) : (

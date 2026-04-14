@@ -24,6 +24,7 @@ export const useSessionMode = () => {
   const requestedRole = searchParams.get('role');
   const urlClassId = searchParams.get('classId');
   const urlClassCode = searchParams.get('classCode'); // Permanent class code for display
+  const urlSeatId = searchParams.get('seatId'); // Present when student already joined via StudentHome
   const isPreviewMode = searchParams.get('preview') === 'true';
 
   // Verify teacher role: must have Firebase auth (Google/Microsoft sign-in)
@@ -69,11 +70,14 @@ export const useSessionMode = () => {
         if (isPreviewMode) {
           console.log('👀 Preview mode - skipping student join to avoid counting teacher as student');
         } else {
-          // Get or create a persistent student ID (fixes bug where refreshes created new IDs)
+          // Get student ID: use seatId from URL if student already joined via StudentHome/JoinWithCode,
+          // otherwise create a persistent ID for quick-session students
           let studentId;
           let studentName;
           try {
-            studentId = localStorage.getItem('classroom-user-id');
+            // seatId in URL means student already joined via class roster — use the same ID
+            // to avoid creating a duplicate entry in studentsJoined
+            studentId = urlSeatId || localStorage.getItem('classroom-user-id');
             if (!studentId) {
               studentId = 'student-' + Date.now();
               localStorage.setItem('classroom-user-id', studentId);
@@ -82,14 +86,14 @@ export const useSessionMode = () => {
             // Use PIN-auth student name first (from class roster), then fall back to classroom-username
             studentName = currentStudentInfo?.displayName || localStorage.getItem('classroom-username') || 'Student';
           } catch (e) {
-            studentId = 'student-' + Date.now();
+            studentId = urlSeatId || 'student-' + Date.now();
             studentName = currentStudentInfo?.displayName || 'Student';
           }
           // Use classCode for class-based sessions, sessionCode for quick sessions
           const codeToJoin = urlClassCode || urlSessionCode;
           if (codeToJoin) {
             joinSession(codeToJoin, studentId, studentName);
-            console.log('Student joining session');
+            console.log('Student joining session with ID:', studentId);
           } else {
             console.warn('⚠️ No session code or class code found for student join');
           }

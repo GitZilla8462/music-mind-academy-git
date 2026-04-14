@@ -304,7 +304,7 @@ function PressKitDesignerInner({ onComplete, viewMode, isSessionMode, availableS
 
         {/* ── Left: Slide thumbnails (only in press-kit view) ── */}
         {activeTab === 'press-kit' && (
-          <div className="flex-shrink-0 border-r border-white/[0.06] overflow-y-auto min-h-0 h-full" style={{ background: '#181c24' }}>
+          <div className="flex-shrink-0 border-r border-white/[0.06] overflow-y-auto min-h-0 h-full scrollbar-prominent" style={{ background: '#181c24' }}>
             <SlideTabBar
               activeSlide={activeSlide}
               slides={pressKit.slides}

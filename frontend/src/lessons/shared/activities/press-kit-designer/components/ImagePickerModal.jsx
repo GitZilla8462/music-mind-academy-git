@@ -36,7 +36,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="w-full max-w-2xl max-h-[80vh] rounded-xl overflow-hidden flex flex-col" style={{ background: '#141a24' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]">
@@ -50,7 +50,7 @@ const ImagePickerModal = ({ isOpen, onClose, onSelect }) => {
         </div>
 
         {/* Category tabs */}
-        <div className="flex gap-1 px-3 py-2 border-b border-white/[0.06] overflow-x-auto">
+        <div className="flex flex-wrap gap-1 px-3 py-2 border-b border-white/[0.06]">
           {categories.map(([key, cat]) => (
             <button
               key={key}

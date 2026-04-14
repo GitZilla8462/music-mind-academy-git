@@ -1,14 +1,16 @@
 /**
- * Curated database of 10 Creative Commons licensed artists across multiple genres.
- * All artists are CC BY, CC BY-SA, or CC0 — safe for commercial use.
+ * Curated database of emerging artists across multiple genres.
+ * Most artists are Creative Commons licensed (CC BY, CC BY-SA, or CC0).
+ * Some artists have granted Music Mind Academy direct permission to use their music.
  *
  * Audio files are self-hosted on media.musicmindacademy.com (Cloudflare R2).
  * When adding audio, set each track's audioUrl to the R2 path.
  *
  * Attribution format per license:
- *   CC BY:    "Music by [Artist] — licensed under CC BY 4.0"
- *   CC BY-SA: "Music by [Artist] — licensed under CC BY-SA 4.0"
- *   CC0:      No attribution required (but nice to credit anyway)
+ *   CC BY:              "Music by [Artist] — licensed under CC BY 4.0"
+ *   CC BY-SA:           "Music by [Artist] — licensed under CC BY-SA 4.0"
+ *   CC0:                No attribution required (but nice to credit anyway)
+ *   Used with Permission: Artist has granted written permission for educational use
  */
 
 const ARTISTS = [
@@ -614,6 +616,39 @@ const ARTISTS = [
       { title: 'The Interview', duration: '4:00', audioUrl: 'https://media.musicmindacademy.com/artists/austin-moffa/the-interview.mp3' },
       { title: 'Some Kind of Morning', duration: '3:30', audioUrl: 'https://media.musicmindacademy.com/artists/austin-moffa/some-kind-of-morning.mp3' },
       { title: 'Silver Dagger', duration: '3:15', audioUrl: 'https://media.musicmindacademy.com/artists/austin-moffa/silver-dagger.mp3' },
+    ],
+  },
+  // ── CHRISTIAN HIP-HOP (Used with Permission) ──────────────────────────────
+  {
+    id: 'mr-phelps',
+    name: 'Mr. Phelps',
+    genre: 'Hip-Hop',
+    subgenre: 'Christian Rap / Trap / Party Rap',
+    location: 'New York',
+    license: 'Used with Permission',
+    bandcampUrl: 'https://mrphelps.bandcamp.com/album/the-mr-phelps-era',
+    albumTitle: 'The Mr. Phelps Era',
+    imageUrl: '/audio/artists/mr-phelps/cover.png',
+    bio: 'Mr. Phelps is a New York-based rapper and producer whose debut album "The Mr. Phelps Era" spans trap bangers, feel-good party tracks, and faith-driven anthems. His music empowers listeners to be themselves unapologetically.',
+    whyInteresting: 'He refuses to be boxed into one style — the same album has hard-hitting trap, Latin-flavored beats, and gospel-inspired ballads. That range is rare.',
+    tags: ['christian-rap', 'hip-hop', 'trap', 'party-rap', 'positive', 'new-york'],
+    formed: '2023',
+    members: 'Solo',
+    totalAlbums: 1,
+    instruments: ['Vocals', 'Beat Production', 'Synthesizers', 'Drum Programming'],
+    moods: ['Energetic', 'Uplifting', 'Confident'],
+    influences: ['Lecrae', 'Travis Scott', 'Chance the Rapper'],
+    similarArtists: ['holiznacc0', 'kellee-maize'],
+    funFacts: [
+      'His debut album "The Mr. Phelps Era" dropped in June 2024 with 13 tracks spanning 5 different styles',
+      'Features collaborations with vocalists Angela Sheik, Cinder Shine, Ty Avery, and Primah',
+      'Granted Music Mind Academy direct permission to feature his music in classrooms across the country',
+    ],
+    tracks: [
+      { title: 'This What We Do', duration: '2:29', audioUrl: 'https://media.musicmindacademy.com/artists/mr-phelps/Mr.%20Phelps%20-%20The%20Mr.%20Phelps%20Era%20-%2004%20This%20What%20We%20Do.mp3' },
+      { title: 'Feels Good (ft. Angela Sheik)', duration: '2:52', audioUrl: 'https://media.musicmindacademy.com/artists/mr-phelps/Mr.%20Phelps%20-%20The%20Mr.%20Phelps%20Era%20-%2011%20Feels%20Good%20Feat.%20Angela%20Sheik.mp3' },
+      { title: 'Whole Lot Betta (ft. Cinder Shine)', duration: '2:22', audioUrl: 'https://media.musicmindacademy.com/artists/mr-phelps/Mr.%20Phelps%20-%20The%20Mr.%20Phelps%20Era%20-%2012%20Whole%20Lot%20Betta%20Feat.%20Cinder%20Shine.mp3' },
+      { title: 'Watches Over Me', duration: '2:06', audioUrl: 'https://media.musicmindacademy.com/artists/mr-phelps/Mr.%20Phelps%20-%20The%20Mr.%20Phelps%20Era%20-%2013%20Watches%20Over%20Me.mp3' },
     ],
   },
 ];

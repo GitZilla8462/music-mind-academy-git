@@ -91,6 +91,7 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
         { text: 'Slide 1: Artist name, track, location, genre' },
         { text: 'Slide 2: Fill in the Four Points with specific details' },
         { text: 'Slide 3: Classify each statement as Fact/Opinion + Strong/Weak' },
+        { text: 'Be sure to click "Mark as Done" under each slide when you are done' },
         { text: 'Done? Start a new report for another artist!' },
       ]
     : isGenreScouts
@@ -385,26 +386,36 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
             </button>
           </div>
           {/* Progress text */}
-          {totalReportsComplete === 0 && !allSlidesDone ? (
-            <span className={`text-xs font-bold ${slidesCompleted === 0 ? 'text-red-400' : 'text-amber-400'}`}>
-              {slidesCompleted}/{totalSlides} Slides Complete
-            </span>
-          ) : (
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            {totalReportsComplete === 0 && !allSlidesDone ? (
+              <span className={`text-xs font-bold ${slidesCompleted === 0 ? 'text-red-400' : 'text-amber-400'}`}>
+                {slidesCompleted}/{totalSlides} Slides Complete
+              </span>
+            ) : (
               <span className="text-xs font-bold text-emerald-400">
                 {totalReportsComplete} Scouting Report{totalReportsComplete !== 1 ? 's' : ''} Complete — keep making more until time is up!
               </span>
-              {allSlidesDone && !viewMode && (
-                <button
-                  onClick={startNewReport}
-                  className="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition-colors"
-                  title="Start a new Scouting Report"
-                >
-                  <Plus size={14} />
-                </button>
-              )}
-            </div>
-          )}
+            )}
+            {!viewMode && (
+              <button
+                onClick={() => {
+                  if (!allSlidesDone) {
+                    if (!window.confirm(`You have ${totalSlides - slidesCompleted} slide${totalSlides - slidesCompleted !== 1 ? 's' : ''} not marked as done. Start a new report anyway?`)) return;
+                    // Mark all slides as done before starting new report
+                    const allDone = {};
+                    for (let i = 1; i <= totalSlides; i++) allDone[i] = true;
+                    setSlidesDone(allDone);
+                    localStorage.setItem(completionKey, JSON.stringify(allDone));
+                  }
+                  startNewReport();
+                }}
+                className="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition-colors"
+                title="Start a new Scouting Report"
+              >
+                <Plus size={14} />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -453,7 +464,7 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
           style={{ display: activeTab === 'report' ? 'flex' : 'none' }}
         >
           {/* Journal strip — shows completed reports + current */}
-          {(completedReports.length > 0 || allSlidesDone) && (
+          {(completedReports.length > 0 || slidesCompleted > 0) && (
             <div className="shrink-0 px-3 py-2 bg-[#0d1117] border-b border-white/[0.06]">
               <div className="flex items-center gap-2 overflow-x-auto">
                 {completedReports.map((cr, i) => (
@@ -488,9 +499,18 @@ function ScoutingReportInner({ onComplete, viewMode, isSessionMode, variant = 's
                   </span>
                 </button>
                 {/* Plus button — start new report */}
-                {allSlidesDone && !viewMode && (
+                {!viewMode && (
                   <button
-                    onClick={startNewReport}
+                    onClick={() => {
+                      if (!allSlidesDone) {
+                        if (!window.confirm(`You have ${totalSlides - slidesCompleted} slide${totalSlides - slidesCompleted !== 1 ? 's' : ''} not marked as done. Start a new report anyway?`)) return;
+                        const allDone = {};
+                        for (let i = 1; i <= totalSlides; i++) allDone[i] = true;
+                        setSlidesDone(allDone);
+                        localStorage.setItem(completionKey, JSON.stringify(allDone));
+                      }
+                      startNewReport();
+                    }}
                     className="shrink-0 flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-colors"
                     title="Start a new Scouting Report for another artist"
                   >

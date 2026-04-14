@@ -11,7 +11,7 @@ const HeroBanner = ({ artist, genreConfig }) => {
         <img
           src={artist.imageUrl}
           alt={artist.name}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover object-top"
         />
       ) : (
         <div
@@ -39,14 +39,6 @@ const HeroBanner = ({ artist, genreConfig }) => {
           >
             Genre: {artist.genre}
           </span>
-          {artist.moods?.slice(0, 3).map(mood => (
-            <span
-              key={mood}
-              className="px-2 py-0.5 rounded-full text-[10px] text-white/60 bg-white/[0.15]"
-            >
-              {mood}
-            </span>
-          ))}
         </div>
       </div>
     </div>

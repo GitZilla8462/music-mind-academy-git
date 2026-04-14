@@ -81,6 +81,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
   const [showComment, setShowComment] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   const saveTimerRef = useRef(null);
   const savedTimerRef = useRef(null);
@@ -101,6 +102,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
     setComment(g?.feedback || '');
     setSaved(false);
     setSaving(false);
+    setSaveError(false);
     setShowComment(!!g?.feedback);
 
     if (g?.rubricCriteria?.length) {
@@ -172,6 +174,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
 
     setSaving(true);
     setSaved(false);
+    setSaveError(false);
 
     try {
       const gradeData = {
@@ -200,6 +203,9 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
       onSave(effectiveUid, lesson.id, result);
     } catch (err) {
       console.error('Error saving grade:', err);
+      setSaveError(true);
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      savedTimerRef.current = setTimeout(() => setSaveError(false), 5000);
     } finally {
       setSaving(false);
     }
@@ -405,6 +411,7 @@ const GradeForm = ({ student, lesson, activity, classId, currentGrade, submissio
         <div className="flex items-center gap-1 ml-1">
           {saving && <Loader2 size={16} className="text-blue-500 animate-spin" />}
           {saved && <Check size={16} className="text-green-500" />}
+          {saveError && <span className="text-red-500 text-xs font-medium">Save failed — try again</span>}
           {currentGrade?.points != null && !saving && (
             <button
               onClick={handleClearGrade}

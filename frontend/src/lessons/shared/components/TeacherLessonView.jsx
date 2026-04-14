@@ -463,7 +463,8 @@ const PresentationContent = ({
   presentationZoom = 1, // zoom factor for scaling slides
   isPreviewMode = false,
   pairShareDismissed = false,
-  setPairShareDismissed
+  setPairShareDismissed,
+  studentCount: studentCountProp = 0 // from getStudents().length — accurate for class sessions
 }) => {
   // Display code: prefer classCode (permanent) over sessionCode (temporary)
   const displayCode = classCode || sessionCode;
@@ -739,9 +740,9 @@ const PresentationContent = ({
 
   // Join Code Screen — mirrors the student /join page styling
   if (currentStage === 'locked' || currentStage === 'join-code') {
-    const studentCount = sessionData?.studentsJoined
-      ? Object.keys(sessionData.studentsJoined).length
-      : 0;
+    // Use prop from getStudents() — reads correct Firebase path for class sessions
+    // (sessions/ path used by local sessionData may have stale data)
+    const studentCount = studentCountProp;
 
     const isClassSession = !!classCode;
     const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
@@ -3028,7 +3029,7 @@ const PresentationContent = ({
 // MINI PREVIEW COMPONENT
 // Shows scaled-down live preview of opposite view
 // ============================================
-const MiniPreview = ({ viewMode, sessionCode, classCode, currentStage, currentStageData, sessionData, config, onSwitch, isPreviewMode = false, pairShareDismissed = false, setPairShareDismissed }) => {
+const MiniPreview = ({ viewMode, sessionCode, classCode, currentStage, currentStageData, sessionData, config, onSwitch, isPreviewMode = false, pairShareDismissed = false, setPairShareDismissed, studentCount = 0 }) => {
   const getStudentUrl = () => {
     // Use current origin to handle any port in dev
     // passive=true disables navigation prevention hooks to avoid IPC flooding
@@ -3111,6 +3112,7 @@ const MiniPreview = ({ viewMode, sessionCode, classCode, currentStage, currentSt
                 isPreviewMode={isPreviewMode}
                 pairShareDismissed={pairShareDismissed}
                 setPairShareDismissed={setPairShareDismissed}
+                studentCount={studentCount}
               />
             </div>
           </div>
@@ -5649,6 +5651,7 @@ const TeacherLessonView = ({
               isPreviewMode={isPreviewMode}
               pairShareDismissed={pairShareDismissed}
               setPairShareDismissed={setPairShareDismissed}
+              studentCount={studentCount}
             />
           </div>
 

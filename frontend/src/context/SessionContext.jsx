@@ -617,7 +617,7 @@ export const SessionProvider = ({ children }) => {
       // Join the session - different path for class vs traditional sessions
       if (isClassSession && classIdForSession) {
         // For class sessions, write to classes/{classId}/currentSession/studentsJoined
-        const { set: dbSet } = await import('firebase/database');
+        const { set: dbSet, onDisconnect } = await import('firebase/database');
         const studentRef = dbRef(db, `classes/${classIdForSession}/currentSession/studentsJoined/${studentId}`);
         await dbSet(studentRef, {
           id: studentId,
@@ -625,6 +625,8 @@ export const SessionProvider = ({ children }) => {
           joinedAt: Date.now(),
           score: 0
         });
+        // Remove student entry when they disconnect (close tab/browser)
+        onDisconnect(studentRef).remove();
         console.log('Student joined class session');
       } else {
         // Traditional session

@@ -4,7 +4,7 @@
 // src/firebase/config.js
 
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, onValue, update, remove, push, get } from 'firebase/database';
+import { getDatabase, ref, set, onValue, update, remove, push, get, onDisconnect } from 'firebase/database';
 import { getAuth, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -141,14 +141,17 @@ export const getSessionData = async (sessionCode) => {
 export const joinSession = async (sessionCode, studentId, studentName) => {
   try {
     const studentRef = ref(database, `sessions/${sessionCode}/studentsJoined/${studentId}`);
-    
+
     await set(studentRef, {
       id: studentId,
       name: studentName,
       joinedAt: Date.now(),
       score: 0 // ✅ Initialize score at 0
     });
-    
+
+    // Remove student entry when they disconnect (close tab/browser)
+    onDisconnect(studentRef).remove();
+
     console.log('Student joined session');
   } catch (error) {
     console.error('❌ Error joining session:', error);

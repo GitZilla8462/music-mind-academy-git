@@ -2,7 +2,8 @@
 // Works on both musicroomtools.org and musicmindacademy.com
 // src/components/ErrorLogger.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { logError } from '../utils/errorLogger';
 
 const ErrorLogger = () => {
   // Don't render inside preview iframes (teacher's mini student preview)
@@ -13,6 +14,7 @@ const ErrorLogger = () => {
 
   const [logs, setLogs] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
+  const reportedRef = useRef(new Set()); // deduplicate backend reports
 
   useEffect(() => {
     if (isPreview) return;
@@ -25,32 +27,43 @@ const ErrorLogger = () => {
         }
         return String(arg);
       }).join(' ');
-      
+
       // Only show critical errors with these keywords
-      if (message.includes('🔴') || 
-          message.includes('CRITICAL') || 
+      if (message.includes('🔴') ||
+          message.includes('CRITICAL') ||
           message.includes('DANGER') ||
           message.includes('KICKED')) {
-        
+
+        const cleanMessage = message.replace(/🔴|CRITICAL:|DANGER:/g, '').trim();
         const logEntry = {
           type: 'error',
-          message: message.replace(/🔴|CRITICAL:|DANGER:/g, '').trim(),
+          message: cleanMessage,
           timestamp: new Date().toLocaleTimeString()
         };
-        
+
         setLogs(prev => {
           // Prevent duplicates
-          const isDuplicate = prev.some(log => 
-            log.message === logEntry.message && 
+          const isDuplicate = prev.some(log =>
+            log.message === logEntry.message &&
             log.timestamp === logEntry.timestamp
           );
           if (isDuplicate) return prev;
-          
+
           return [...prev, logEntry];
         });
         setIsVisible(true);
+
+        // Report to backend so teacher gets an email alert
+        const dedupeKey = cleanMessage.substring(0, 80);
+        if (!reportedRef.current.has(dedupeKey)) {
+          reportedRef.current.add(dedupeKey);
+          logError(new Error(`Student connection issue: ${cleanMessage}`), {
+            isUnhandled: true, // ensures 'critical' severity → triggers email
+            component: 'StudentConnectionError'
+          });
+        }
       }
-      
+
       originalError.apply(console, args);
     };
 

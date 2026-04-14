@@ -67,15 +67,30 @@ const NameThatGameActivity = ({ onComplete }) => {
   const gainNodeRef = useRef(null);
   const sourceNodeRef = useRef(null);
   const progressIntervalRef = useRef(null);
+  const playPromiseRef = useRef(null);
 
   const currentSong = GAME_THEMES[currentSongIndex];
+
+  // Safely pause audio — waits for any pending play() promise to resolve first
+  const safePause = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (playPromiseRef.current) {
+      playPromiseRef.current.then(() => {
+        audio.pause();
+      }).catch(() => {});
+      playPromiseRef.current = null;
+    } else {
+      audio.pause();
+    }
+  };
 
   // Cleanup audio on unmount
   // NOTE: We don't close the audio context here because it's shared with Tone.js
   useEffect(() => {
     return () => {
       if (audioRef.current) {
-        audioRef.current.pause();
+        safePause();
         audioRef.current = null;
       }
       if (sourceNodeRef.current) {
@@ -93,7 +108,7 @@ const NameThatGameActivity = ({ onComplete }) => {
   // Stop audio when changing songs
   useEffect(() => {
     if (audioRef.current) {
-      audioRef.current.pause();
+      safePause();
       audioRef.current = null;
     }
     if (sourceNodeRef.current) {
@@ -111,9 +126,7 @@ const NameThatGameActivity = ({ onComplete }) => {
   const handlePlay = () => {
     if (isPlaying) {
       // Pause
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      safePause();
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
       }
@@ -138,7 +151,7 @@ const NameThatGameActivity = ({ onComplete }) => {
           audioRef.current.volume = currentSong.volume || 1.0;
         }
       }
-      audioRef.current.play();
+      playPromiseRef.current = audioRef.current.play().catch(() => {});
       setIsPlaying(true);
 
       // Track progress and auto-stop after 10 seconds
@@ -150,9 +163,7 @@ const NameThatGameActivity = ({ onComplete }) => {
 
         // Auto-stop after 10 seconds
         if (elapsed >= PLAY_DURATION) {
-          if (audioRef.current) {
-            audioRef.current.pause();
-          }
+          safePause();
           setIsPlaying(false);
           setPlayProgress(100);
           clearInterval(progressIntervalRef.current);
@@ -171,7 +182,7 @@ const NameThatGameActivity = ({ onComplete }) => {
 
   const handleReset = () => {
     if (audioRef.current) {
-      audioRef.current.pause();
+      safePause();
       audioRef.current.currentTime = 0;
       audioRef.current = null;
     }

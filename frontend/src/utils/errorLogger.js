@@ -381,6 +381,10 @@ export const initErrorLogging = () => {
     if (msg.includes('emptyranges')) return true;
     // Tone.js scheduling conflict — harmless, just skips a note on rapid clicks
     if (msg.includes('start time must be strictly greater')) return true;
+    // Browser extension errors (anti-fingerprint, password managers, etc.)
+    if (msg.includes('object not found matching id')) return true;
+    // HTML5 Audio play/pause race condition — benign, audio still works
+    if (msg.includes('play() request was interrupted')) return true;
     return false;
   };
 

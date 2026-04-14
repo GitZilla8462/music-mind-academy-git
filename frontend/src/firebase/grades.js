@@ -36,25 +36,31 @@ export const gradeSubmission = async (classId, studentUid, lessonId, gradeData, 
   const gradeDisplay = gradeData.grade || null;
 
   // Update submission record — try new path first (with activityId), fall back to old path
-  const actId = gradeData.activityId;
-  const newRef = actId ? ref(database, `submissions/${classId}/${lessonId}/${actId}/${studentUid}`) : null;
-  const oldRef = ref(database, `submissions/${classId}/${lessonId}/${studentUid}`);
+  // This is best-effort: the grade is already saved above, so a failure here
+  // just means the submission status won't show "graded" until next load
+  try {
+    const actId = gradeData.activityId;
+    const newRef = actId ? ref(database, `submissions/${classId}/${lessonId}/${actId}/${studentUid}`) : null;
+    const oldRef = ref(database, `submissions/${classId}/${lessonId}/${studentUid}`);
 
-  // Check new path first, then old path
-  let submissionRef = oldRef;
-  if (newRef) {
-    const newSnap = await get(newRef);
-    if (newSnap.exists()) {
-      submissionRef = newRef;
+    // Check new path first, then old path
+    let submissionRef = oldRef;
+    if (newRef) {
+      const newSnap = await get(newRef);
+      if (newSnap.exists()) {
+        submissionRef = newRef;
+      }
     }
-  }
 
-  await update(submissionRef, {
-    status: 'graded',
-    grade: gradeDisplay,
-    feedback: gradeData.feedback || null,
-    gradedAt: now
-  });
+    await update(submissionRef, {
+      status: 'graded',
+      grade: gradeDisplay,
+      feedback: gradeData.feedback || null,
+      gradedAt: now
+    });
+  } catch (err) {
+    console.warn(`Grade saved but submission status update failed for ${studentUid}:`, err.message);
+  }
 
   console.log(`Graded: ${studentUid} lesson ${lessonId} = ${gradeDisplay}`);
   return gradeRecord;

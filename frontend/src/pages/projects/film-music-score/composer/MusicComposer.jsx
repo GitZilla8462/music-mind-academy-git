@@ -4,7 +4,7 @@
 // UPDATED: Added showSoundEffects prop support
 // UPDATED: Added Chromebook swipe protection to prevent accidental back navigation
 // FIXED: Player creation now works for localStorage-loaded loops (not just initialPlacedLoops prop)
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import * as Tone from 'tone';
 
@@ -26,7 +26,7 @@ import CustomCursor from '../timeline/components/CustomCursor';
 import { CursorProvider, useCursor } from '../shared/CursorContext';
 import DAWLoadingScreen from '../shared/DAWLoadingScreen';
 import FullScreenPreview from '../shared/FullScreenPreview';
-import LibraryDragPreview from '../shared/LibraryDragPreview';
+const LibraryDragPreview = lazy(() => import('../shared/LibraryDragPreview'));
 
 // CHROMEBOOK FIX: Wrapper component that uses context to get cursorKey for forced remount
 // This fixes the cursor disappearing after dropdown selection bug
@@ -1089,7 +1089,7 @@ const MusicComposer = ({
           <DAWLoadingScreen />
         </div>
       )}
-      <LibraryDragPreview />
+      <Suspense fallback={null}><LibraryDragPreview /></Suspense>
       </div>
     </CursorProvider>
   );

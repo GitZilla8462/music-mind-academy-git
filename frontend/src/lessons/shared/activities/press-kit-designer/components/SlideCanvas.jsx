@@ -1292,21 +1292,11 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
         return;
       }
 
-      // Paste
+      // Paste — internal objects only (system clipboard paste handled by 'paste' event below)
       if ((e.metaKey || e.ctrlKey) && e.key === 'v' && clipboardRef.current.length > 0) {
-        e.preventDefault();
-        pushUndo(objects);
-        const pasted = clipboardRef.current.map(o => ({
-          ...o,
-          id: genId(),
-          x: o.x + 20,
-          y: o.y + 20,
-          zIndex: objects.length + 1,
-        }));
-        onChange([...objects, ...pasted]);
-        setSelectedIds(new Set(pasted.map(o => o.id)));
-        // Offset clipboard so next paste doesn't stack exactly
-        clipboardRef.current = pasted.map(o => ({ ...o }));
+        // Don't prevent default here — let the 'paste' event fire first for system clipboard images
+        // If there's no image on the system clipboard, the paste handler below will be a no-op
+        // and we handle internal paste in the 'paste' event listener as fallback
         return;
       }
 
@@ -1327,6 +1317,130 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [selectedIds, editingId, objects, onChange, handleUndo, handleRedo, pushUndo]);
+
+  // System clipboard paste — handles images copied from the web or screenshots
+  useEffect(() => {
+    const handlePaste = (e) => {
+      if (editingId) return; // don't intercept when editing text
+
+      const clipboardData = e.clipboardData;
+      if (!clipboardData) {
+        // No system clipboard data — fall back to internal paste
+        if (clipboardRef.current.length > 0) {
+          pushUndo(objects);
+          const pasted = clipboardRef.current.map(o => ({
+            ...o, id: genId(), x: o.x + 20, y: o.y + 20, zIndex: objects.length + 1,
+          }));
+          onChange([...objects, ...pasted]);
+          setSelectedIds(new Set(pasted.map(o => o.id)));
+          clipboardRef.current = pasted.map(o => ({ ...o }));
+        }
+        return;
+      }
+
+      // Check for image files (screenshots, right-click "Copy Image")
+      const imageFile = [...clipboardData.files].find(f => f.type.startsWith('image/'));
+      if (imageFile) {
+        e.preventDefault();
+        const reader = new FileReader();
+        reader.onload = () => {
+          // Create a temporary image to get natural dimensions for aspect ratio
+          const img = new window.Image();
+          img.onload = () => {
+            const maxW = 300;
+            const scale = Math.min(1, maxW / img.width);
+            pushUndo(objects);
+            const obj = {
+              id: genId(),
+              type: 'image',
+              x: CANVAS_W / 2 - Math.round(img.width * scale / 2),
+              y: CANVAS_H / 2 - Math.round(img.height * scale / 2),
+              width: Math.round(img.width * scale),
+              height: Math.round(img.height * scale),
+              url: reader.result,
+              attribution: '',
+              zIndex: objects.length + 1,
+            };
+            onChange([...objects, obj]);
+            selectOne(obj.id);
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(imageFile);
+        return;
+      }
+
+      // Check for image URL in pasted HTML (e.g. dragged from browser)
+      const html = clipboardData.getData('text/html');
+      if (html) {
+        const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
+        if (imgMatch && imgMatch[1] && !imgMatch[1].startsWith('data:')) {
+          e.preventDefault();
+          const imgUrl = imgMatch[1];
+          const img = new window.Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const maxW = 300;
+            const scale = Math.min(1, maxW / img.width);
+            // Convert to data URL so it's self-contained (avoids CORS/hotlink issues)
+            const cvs = document.createElement('canvas');
+            cvs.width = img.width;
+            cvs.height = img.height;
+            cvs.getContext('2d').drawImage(img, 0, 0);
+            let dataUrl;
+            try { dataUrl = cvs.toDataURL('image/png'); } catch { dataUrl = imgUrl; }
+            pushUndo(objects);
+            const obj = {
+              id: genId(),
+              type: 'image',
+              x: CANVAS_W / 2 - Math.round(img.width * scale / 2),
+              y: CANVAS_H / 2 - Math.round(img.height * scale / 2),
+              width: Math.round(img.width * scale),
+              height: Math.round(img.height * scale),
+              url: dataUrl,
+              attribution: '',
+              zIndex: objects.length + 1,
+            };
+            onChange([...objects, obj]);
+            selectOne(obj.id);
+          };
+          img.onerror = () => {
+            // CORS blocked — use the URL directly as fallback
+            pushUndo(objects);
+            const obj = {
+              id: genId(),
+              type: 'image',
+              x: CANVAS_W / 2 - 100,
+              y: CANVAS_H / 2 - 75,
+              width: 200,
+              height: 150,
+              url: imgUrl,
+              attribution: '',
+              zIndex: objects.length + 1,
+            };
+            onChange([...objects, obj]);
+            selectOne(obj.id);
+          };
+          img.src = imgUrl;
+          return;
+        }
+      }
+
+      // No image data — fall back to internal object paste
+      if (clipboardRef.current.length > 0) {
+        e.preventDefault();
+        pushUndo(objects);
+        const pasted = clipboardRef.current.map(o => ({
+          ...o, id: genId(), x: o.x + 20, y: o.y + 20, zIndex: objects.length + 1,
+        }));
+        onChange([...objects, ...pasted]);
+        setSelectedIds(new Set(pasted.map(o => o.id)));
+        clipboardRef.current = pasted.map(o => ({ ...o }));
+      }
+    };
+    window.addEventListener('paste', handlePaste);
+    return () => window.removeEventListener('paste', handlePaste);
+  }, [editingId, objects, onChange, pushUndo]);
 
   // ---------------------------------------------------------------------------
   // Object CRUD

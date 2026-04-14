@@ -13,7 +13,7 @@ const THUMB_SCALE = THUMB_W / CANVAS_W;
 
 const SlideTabBar = ({ activeSlide, slides, genre, onSelect, availableSlides, bonusTracks = [], onAddBonusTrack, slidesDone = {}, onToggleSlideDone, readOnly }) => {
   return (
-    <div className="flex flex-col gap-1.5 p-1.5 overflow-y-auto" style={{ width: 130 }}>
+    <div className="flex flex-col gap-1.5 p-1.5" style={{ width: 130 }}>
       {/* Main slides (1-5) */}
       {SLIDE_CONFIGS.map((cfg, i) => {
         const slideNum = cfg.number;
