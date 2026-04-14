@@ -493,11 +493,9 @@ const SportsCompositionActivity = ({
             }
           }
 
-          // Firebase had no data for this authenticated student — start fresh (don't fall back to localStorage)
-          console.log('ℹ️ No Firebase data for authenticated student — starting fresh');
-          hasLoadedRef.current = true;
-          setIsLoadingWork(false);
-          return;
+          // Firebase had no data — fall through to localStorage
+          // (the async Firebase write may not have finished before the student reloaded)
+          console.log('ℹ️ No Firebase data for authenticated student — checking localStorage...');
         } catch (error) {
           console.error('❌ Firebase load failed, falling back to localStorage:', error);
           setIsLoadingWork(false);
@@ -515,15 +513,25 @@ const SportsCompositionActivity = ({
         console.log('📂 Found saved work (new system):', savedWork);
 
         if (savedWork.data.placedLoops && savedWork.data.placedLoops.length > 0) {
-          if (savedWork.data.videoId === selectedVideo.id) {
-            setPlacedLoops(savedWork.data.placedLoops);
-            setVideoDuration(savedWork.data.videoDuration || selectedVideo.duration);
-            console.log('✅ Loaded from new system:', savedWork.data.placedLoops.length, 'loops for', selectedVideo.title);
-            hasLoadedRef.current = true;
-            return;
-          } else {
-            console.log('⚠️ Saved video mismatch - saved:', savedWork.data.videoId, 'current:', selectedVideo.id);
+          // If video doesn't match, switch to the saved video so we don't lose work
+          // (shared Chromebooks can overwrite the global video selection key)
+          let videoForLoad = selectedVideo;
+          if (savedWork.data.videoId && savedWork.data.videoId !== selectedVideo.id) {
+            const savedVideoTemplate = SPORTS_VIDEOS.find(v => v.id === savedWork.data.videoId);
+            if (savedVideoTemplate) {
+              console.log('🔄 Switching to saved video:', savedVideoTemplate.title, '(was:', selectedVideo.title + ')');
+              const restoredVideo = { ...savedVideoTemplate, duration: savedWork.data.videoDuration || savedVideoTemplate.duration || 90 };
+              setSelectedVideo(restoredVideo);
+              setVideoDuration(restoredVideo.duration);
+              saveSelectedVideo(restoredVideo.id, restoredVideo.title);
+              videoForLoad = restoredVideo;
+            }
           }
+          setPlacedLoops(savedWork.data.placedLoops);
+          setVideoDuration(savedWork.data.videoDuration || videoForLoad.duration);
+          console.log('✅ Loaded from new system:', savedWork.data.placedLoops.length, 'loops for', videoForLoad.title);
+          hasLoadedRef.current = true;
+          return;
         }
       }
 

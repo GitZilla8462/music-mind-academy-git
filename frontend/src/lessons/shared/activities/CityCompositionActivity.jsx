@@ -491,11 +491,9 @@ const CityCompositionActivity = ({
             setIsLoadingWork(false);
             return;
           }
-          // Firebase has no data for this student — start fresh (don't use stale localStorage)
-          console.log('ℹ️ No saved work in Firebase for authenticated student — starting fresh');
-          hasLoadedRef.current = true;
-          setIsLoadingWork(false);
-          return;
+          // Firebase had no data — fall through to localStorage
+          // (the async Firebase write may not have finished before the student reloaded)
+          console.log('ℹ️ No Firebase data for authenticated student — checking localStorage...');
         } catch (err) {
           console.warn('⚠️ Firebase load failed, falling back to localStorage:', err.message);
           setIsLoadingWork(false);

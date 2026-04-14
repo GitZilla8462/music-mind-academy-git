@@ -533,11 +533,9 @@ const GameCompositionActivity = ({
             }
           }
 
-          // Firebase had no data for this authenticated student — start fresh (don't fall back to localStorage)
-          console.log('ℹ️ No Firebase saved work for authenticated student — starting fresh');
-          hasLoadedRef.current = true;
-          setIsLoadingWork(false);
-          return;
+          // Firebase had no data — fall through to localStorage
+          // (the async Firebase write may not have finished before the student reloaded)
+          console.log('ℹ️ No Firebase data for authenticated student — checking localStorage...');
         } catch (error) {
           console.error('⚠️ Firebase load failed, falling back to localStorage:', error);
           setIsLoadingWork(false);
