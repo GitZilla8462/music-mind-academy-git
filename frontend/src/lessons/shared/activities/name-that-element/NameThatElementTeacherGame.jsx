@@ -330,7 +330,16 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
 
     const hasTimeRange = currentQuestion.audio.startTime !== undefined && currentQuestion.audio.endTime !== undefined;
 
+    // Timeout: if audio doesn't load within 8s, let teacher proceed anyway
+    const loadTimeout = setTimeout(() => {
+      if (!audioRef.current) return;
+      console.warn('⚠️ Audio load timeout — enabling Reveal button');
+      setIsAudioPlaying(false);
+      setHasPlayedOnce(true);
+    }, 8000);
+
     audio.addEventListener('canplaythrough', () => {
+      clearTimeout(loadTimeout);
       if (hasTimeRange) {
         audio.currentTime = currentQuestion.audio.startTime;
       }
@@ -344,11 +353,11 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
             setHasPlayedOnce(true);
           }, duration);
         }
-      }).catch(() => setIsAudioPlaying(false));
+      }).catch(() => { setIsAudioPlaying(false); setHasPlayedOnce(true); });
     }, { once: true });
 
     audio.addEventListener('ended', () => { setIsAudioPlaying(false); setHasPlayedOnce(true); });
-    audio.addEventListener('error', () => { setIsAudioPlaying(false); setHasPlayedOnce(true); });
+    audio.addEventListener('error', () => { clearTimeout(loadTimeout); setIsAudioPlaying(false); setHasPlayedOnce(true); });
     audio.load();
   }, [currentQuestion]);
 
