@@ -486,7 +486,10 @@ const SportsCompositionActivity = ({
         try {
           const { parseActivityId } = await import('../../../utils/studentWorkStorage');
           const { lessonId, activityId: parsedActivityId } = parseActivityId('sports-composition');
-          const firebaseWork = await loadFromFirebase(classAuth.uid, lessonId, parsedActivityId);
+          const firebaseWork = await Promise.race([
+            loadFromFirebase(classAuth.uid, lessonId, parsedActivityId),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase load timeout')), 8000))
+          ]);
 
           if (firebaseWork && firebaseWork.data) {
             console.log('📂 Found saved work in Firebase:', firebaseWork);

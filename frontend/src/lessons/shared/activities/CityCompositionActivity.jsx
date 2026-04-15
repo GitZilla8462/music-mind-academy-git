@@ -492,7 +492,10 @@ const CityCompositionActivity = ({
         try {
           const { parseActivityId } = await import('../../../utils/studentWorkStorage');
           const { lessonId, activityId: parsedActivityId } = parseActivityId('city-composition');
-          const firebaseData = await loadFromFirebase(classAuth.uid, lessonId, parsedActivityId);
+          const firebaseData = await Promise.race([
+            loadFromFirebase(classAuth.uid, lessonId, parsedActivityId),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase load timeout')), 8000))
+          ]);
           if (firebaseData?.data?.placedLoops?.length > 0) {
             // If video doesn't match, switch to the saved video so we don't lose work
             // (shared Chromebooks can overwrite the global video selection key)

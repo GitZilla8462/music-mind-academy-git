@@ -336,7 +336,10 @@ const SchoolBeneathActivity = ({
       if (classAuth?.uid) {
         try {
           const { lessonId, activityId: parsedActivityId } = await import('../../../utils/studentWorkStorage').then(m => m.parseActivityId(storageKey));
-          const firebaseData = await loadFromFirebase(classAuth.uid, lessonId, parsedActivityId);
+          const firebaseData = await Promise.race([
+            loadFromFirebase(classAuth.uid, lessonId, parsedActivityId),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase load timeout')), 8000))
+          ]);
           if (firebaseData?.data?.placedLoops?.length > 0) {
             setPlacedLoops(firebaseData.data.placedLoops);
             // Clear MusicComposer's internal localStorage to prevent stale data race
