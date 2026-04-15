@@ -157,35 +157,29 @@ async function _searchStudents(db, code, studentIds, students, workKey, classId)
           const work = workSnap.val();
           console.log(`  📋 ${uid} / ${wk}: shareCode=${work.shareCode}, hasSections=${!!work.data?.sections?.length}`);
           if (work.shareCode === code) {
-            // Found the code — now find the NEWEST journey data across all work keys for this student
-            console.log(`  🔑 Code matched at ${uid}/${wk} — finding newest data...`);
+            // Found the code — load this specific work key's data (not the newest across lessons,
+            // which could have different scenes/backgrounds)
+            console.log(`  🔑 Code matched at ${uid}/${wk}`);
             const displayName = work.shareCodeName || students[sid]?.name || students[sid]?.displayName || 'Student';
 
-            let bestData = null;
-            let bestWk = null;
-            let bestTimestamp = 0;
+            if (work.data?.sections?.length) {
+              console.log(`  ✅ Loading journey from ${uid}/${wk}: ${work.data.sections.length} sections`);
+              return { data: work.data, displayName, workKey: wk, studentUid: uid };
+            }
 
+            // Share code matched but this key has no sections — try other lesson keys as fallback
+            console.log(`  ⚠️ Code matched at ${uid}/${wk} but no sections — checking other lessons...`);
             for (const checkWk of keysToTry) {
+              if (checkWk === wk) continue;
               try {
                 const checkRef = ref(db, `studentWork/${uid}/${checkWk}`);
                 const checkSnap = await get(checkRef);
                 if (!checkSnap.exists()) continue;
                 const checkWork = checkSnap.val();
                 if (!checkWork.data?.sections?.length) continue;
-
-                const ts = checkWork.updatedAt || 0;
-                console.log(`    📋 ${checkWk}: sections=${checkWork.data.sections.length}, updatedAt=${ts}`);
-                if (ts > bestTimestamp || !bestData) {
-                  bestData = checkWork.data;
-                  bestWk = checkWk;
-                  bestTimestamp = ts;
-                }
+                console.log(`  ✅ Fallback: loading journey from ${uid}/${checkWk}`);
+                return { data: checkWork.data, displayName, workKey: checkWk, studentUid: uid };
               } catch { continue; }
-            }
-
-            if (bestData) {
-              console.log(`  ✅ Loading newest journey from ${uid}/${bestWk}`);
-              return { data: bestData, displayName, workKey: bestWk, studentUid: uid };
             }
 
             console.log(`  ❌ Code matched but no sections found under any work key for ${uid}`);
