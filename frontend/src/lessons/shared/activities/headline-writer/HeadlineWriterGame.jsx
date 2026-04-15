@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Users, ChevronRight, Trophy, Award, Medal, PenLine, Vote, Crown, Timer } from 'lucide-react';
-import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import { useSession } from '../../../../context/SessionContext';
 
@@ -190,23 +190,31 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
   }, [studentsPath, students]);
 
   // Start game
-  const startGame = useCallback(() => {
+  const startGame = useCallback(async () => {
     setCurrentRound(0);
     setRoundWinners([]);
     setGamePhase('writing');
     setTimeLeft(TIMER_DURATION);
 
-    // Reset all student scores and fields
+    // Reset ALL students (including ghosts from previous sessions)
     if (studentsPath) {
       const db = getDatabase();
-      students.forEach(s => {
-        update(ref(db, `${studentsPath}/${s.id}`), {
-          headlineWriterHeadline: null,
-          headlineWriterVote: null,
-          headlineWriterWins: 0,
-          headlineWriterScore: 0,
-        }).catch(() => {});
-      });
+      try {
+        const snap = await get(ref(db, studentsPath));
+        if (snap.exists()) {
+          const allStudents = snap.val();
+          const updates = {};
+          Object.keys(allStudents).forEach(id => {
+            updates[`${id}/headlineWriterHeadline`] = null;
+            updates[`${id}/headlineWriterVote`] = null;
+            updates[`${id}/headlineWriterWins`] = null;
+            updates[`${id}/headlineWriterScore`] = null;
+          });
+          await update(ref(db, studentsPath), updates);
+        }
+      } catch (err) {
+        console.error('❌ Failed to reset all students:', err);
+      }
     }
 
     const firstSummary = SUMMARIES[0];

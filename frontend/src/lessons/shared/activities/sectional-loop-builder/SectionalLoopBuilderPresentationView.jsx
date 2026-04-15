@@ -9,7 +9,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Play, Users, Trophy, Eye, Settings, Shuffle } from 'lucide-react';
-import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 
 import {
   LOOPS_BY_MOOD, MOOD_INFO, SECTION_INFO, SONG_STRUCTURE, SECTION_DURATION,
@@ -396,7 +396,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   }, [updateGame, sectionAudio, currentMood]);
 
   // ============ GAME FLOW ============
-  const startRound = useCallback((roundNum) => {
+  const startRound = useCallback(async (roundNum) => {
     stopAudio();
     setCurrentRound(roundNum);
     setCurrentClipIndex(0);
@@ -416,12 +416,36 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     setSafariTimer(0);
     safariTimerStartedRef.current = false;
 
-    if (sessionCode) {
+    // Reset ALL students (including ghosts from previous sessions) on first round
+    if (studentsPath && roundNum === 1) {
+      const db = getDatabase();
+      try {
+        const snap = await get(ref(db, studentsPath));
+        if (snap.exists()) {
+          const allStudents = snap.val();
+          const updates = {};
+          Object.keys(allStudents).forEach(id => {
+            updates[`${id}/currentAnswer`] = null;
+            updates[`${id}/lockedIn`] = null;
+            updates[`${id}/lastClipScore`] = null;
+            updates[`${id}/score`] = null;
+            updates[`${id}/streak`] = null;
+            updates[`${id}/safariComplete`] = null;
+            updates[`${id}/safariBonus`] = null;
+            updates[`${id}/powerUp`] = null;
+            updates[`${id}/answerTime`] = null;
+          });
+          await update(ref(db, studentsPath), updates);
+        }
+      } catch (err) {
+        console.error('❌ Failed to reset all students:', err);
+      }
+    } else if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
         update(ref(db, `${studentsPath}/${s.id}`), {
           currentAnswer: null, lockedIn: false, lastClipScore: 0, safariComplete: false, safariBonus: 0,
-          powerUp: null, answerTime: null  // Clear stale data from previous games
+          powerUp: null, answerTime: null
         });
       });
     }

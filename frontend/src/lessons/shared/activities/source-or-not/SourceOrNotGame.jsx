@@ -12,7 +12,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Users, Eye, ChevronRight, CheckCircle, XCircle, Trophy, Award, Medal } from 'lucide-react';
-import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import { useSession } from '../../../../context/SessionContext';
 
@@ -178,21 +178,29 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
   }, [studentsPath]);
 
   // Start game
-  const startGame = useCallback(() => {
+  const startGame = useCallback(async () => {
     setCurrentRoundIndex(0);
     setGamePhase('showing');
     roundShownAt.current = Date.now();
 
-    // Reset student answers and scores
+    // Reset ALL students (including ghosts from previous sessions)
     if (studentsPath) {
       const db = getDatabase();
-      students.forEach(s => {
-        update(ref(db, `${studentsPath}/${s.id}`), {
-          sourceOrNotAnswer: null,
-          sourceOrNotScore: 0,
-          sourceOrNotAnswerTime: null,
-        }).catch(() => {});
-      });
+      try {
+        const snap = await get(ref(db, studentsPath));
+        if (snap.exists()) {
+          const allStudents = snap.val();
+          const updates = {};
+          Object.keys(allStudents).forEach(id => {
+            updates[`${id}/sourceOrNotAnswer`] = null;
+            updates[`${id}/sourceOrNotScore`] = null;
+            updates[`${id}/sourceOrNotAnswerTime`] = null;
+          });
+          await update(ref(db, studentsPath), updates);
+        }
+      } catch (err) {
+        console.error('❌ Failed to reset all students:', err);
+      }
     }
 
     const firstRound = ROUNDS[0];

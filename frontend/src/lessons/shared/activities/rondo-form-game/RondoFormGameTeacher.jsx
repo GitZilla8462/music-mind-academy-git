@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Pause, Users, Trophy, Eye, ChevronRight, Headphones, RotateCcw, Music } from 'lucide-react';
-import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import {
   PIECE, GUIDED_SECTIONS, CORRECT_FORM, SECTION_OPTIONS, SECTIONS_DATA,
   SCORING, calculateRound2SpeedBonus
@@ -206,7 +206,35 @@ const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
   // ========================================
   // GUIDED LISTENING
   // ========================================
-  const startGuidedListening = useCallback(() => {
+  const startGuidedListening = useCallback(async () => {
+    // Reset ALL students (including ghosts from previous sessions)
+    if (studentsPath) {
+      const db = getDatabase();
+      try {
+        const snap = await get(ref(db, studentsPath));
+        if (snap.exists()) {
+          const allStudents = snap.val();
+          const updates = {};
+          Object.keys(allStudents).forEach(id => {
+            updates[`${id}/rondoGameScore`] = null;
+            updates[`${id}/rondoR1Answer`] = null;
+            updates[`${id}/rondoR1Submitted`] = null;
+            updates[`${id}/rondoR1Score`] = null;
+            updates[`${id}/rondoR1Time`] = null;
+            updates[`${id}/rondoR2Answer`] = null;
+            updates[`${id}/rondoR2AnswerTime`] = null;
+            updates[`${id}/rondoR3Answer`] = null;
+            updates[`${id}/rondoR3Submitted`] = null;
+            updates[`${id}/rondoR3Score`] = null;
+            updates[`${id}/rondoR3Time`] = null;
+          });
+          await update(ref(db, studentsPath), updates);
+        }
+      } catch (err) {
+        console.error('❌ Failed to reset all students:', err);
+      }
+    }
+
     setGamePhase('guided-listening');
     setCurrentGuidedSection(0);
     setGuidedFinished(false);
@@ -245,7 +273,7 @@ const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
       guidedAnimFrame.current = requestAnimationFrame(trackSection);
     };
     guidedAnimFrame.current = requestAnimationFrame(trackSection);
-  }, [ensureAudioContext, updateGame]);
+  }, [ensureAudioContext, updateGame, studentsPath]);
 
   // ========================================
   // ROUND 1: Arrange the Form

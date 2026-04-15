@@ -12,7 +12,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Eye, ChevronRight, CheckCircle, Volume2, RotateCcw } from 'lucide-react';
-import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { useSession } from '../../../../context/SessionContext';
 
 // ============================================================
@@ -414,20 +414,28 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
   }, [studentsPath]);
 
   // Start game
-  const startGame = useCallback((round = currentRound) => {
+  const startGame = useCallback(async (round = currentRound) => {
     const questions = ALL_ROUNDS[round] || QUESTIONS;
     setCurrentQuestionIndex(0);
     setGamePhase('question');
     setCorrectCount(0);
 
-    // Reset student answers
+    // Reset ALL students (including ghosts from previous sessions)
     if (studentsPath) {
       const db = getDatabase();
-      students.forEach(s => {
-        update(ref(db, `${studentsPath}/${s.id}`), {
-          fcAnswer: null,
-        }).catch(() => {});
-      });
+      try {
+        const snap = await get(ref(db, studentsPath));
+        if (snap.exists()) {
+          const allStudents = snap.val();
+          const updates = {};
+          Object.keys(allStudents).forEach(id => {
+            updates[`${id}/fcAnswer`] = null;
+          });
+          await update(ref(db, studentsPath), updates);
+        }
+      } catch (err) {
+        console.error('❌ Failed to reset all students:', err);
+      }
     }
 
     const firstQ = questions[0];

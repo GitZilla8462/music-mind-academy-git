@@ -11,7 +11,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Pause, Users, Trophy, Eye, ChevronRight, CheckCircle, XCircle, Volume2, RotateCcw } from 'lucide-react';
-import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import { useSession } from '../../../../context/SessionContext';
 
@@ -427,7 +427,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
   }, [studentsPath]);
 
   // Start game
-  const startGame = useCallback((round = 0) => {
+  const startGame = useCallback(async (round = 0) => {
     setCurrentRound(round);
     setCurrentQuestionIndex(0);
     setGamePhase('question');
@@ -438,16 +438,30 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
     const now = Date.now();
     setQuestionStartTime(now);
 
-    // Reset student answers and scores
+    // Reset ALL students (including ghosts from previous sessions)
     if (studentsPath) {
       const db = getDatabase();
-      students.forEach(s => {
-        update(ref(db, `${studentsPath}/${s.id}`), {
-          nteAnswer: null,
-          nteAnswerTime: null,
-          nteScore: round === 0 ? 0 : (s.score || 0)
-        }).catch(err => console.error(`Failed to reset student ${s.id}:`, err));
-      });
+      try {
+        const snap = await get(ref(db, studentsPath));
+        if (snap.exists()) {
+          const allStudents = snap.val();
+          const updates = {};
+          Object.keys(allStudents).forEach(id => {
+            updates[`${id}/nteAnswer`] = null;
+            updates[`${id}/nteAnswerTime`] = null;
+            updates[`${id}/nteScore`] = round === 0 ? null : undefined;
+          });
+          // For round > 0, only clear answers, not scores — remove undefined entries
+          if (round > 0) {
+            Object.keys(updates).forEach(key => {
+              if (updates[key] === undefined) delete updates[key];
+            });
+          }
+          await update(ref(db, studentsPath), updates);
+        }
+      } catch (err) {
+        console.error('❌ Failed to reset all students:', err);
+      }
     }
 
     const firstQ = ALL_ROUNDS[round][0];

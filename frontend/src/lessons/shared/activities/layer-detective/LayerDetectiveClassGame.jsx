@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Play, Pause, Users, Trophy, Eye, RotateCcw, ChevronRight } from 'lucide-react';
-import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { useSession } from '../../../../context/SessionContext';
 import { formatFirstNameLastInitial } from './nameGenerator';
 
@@ -322,7 +322,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
   }, [shuffledQuestions, currentQuestion, playAudioOnly, updateGame]);
 
   // ============ GAME FLOW ============
-  const startGame = useCallback(() => {
+  const startGame = useCallback(async () => {
     const shuffled = shuffleArray(QUESTIONS);
     setShuffledQuestions(shuffled);
     setCurrentQuestion(0);
@@ -331,15 +331,24 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
     setScoreChanges({});
     setCorrectCount(0);
 
-    // Reset student answers and scores
+    // Reset ALL students (including ghosts from previous sessions)
     if (studentsPath) {
       const db = getDatabase();
-      students.forEach(s => {
-        update(ref(db, `${studentsPath}/${s.id}`), {
-          layerDetectiveAnswer: null,
-          layerDetectiveScore: 0
-        }).catch(err => console.error(`❌ Failed to reset student ${s.id}:`, err));
-      });
+      try {
+        const snap = await get(ref(db, studentsPath));
+        if (snap.exists()) {
+          const allStudents = snap.val();
+          const updates = {};
+          Object.keys(allStudents).forEach(id => {
+            updates[`${id}/layerDetectiveAnswer`] = null;
+            updates[`${id}/layerDetectiveScore`] = null;
+            updates[`${id}/layerDetectiveAnswerTime`] = null;
+          });
+          await update(ref(db, studentsPath), updates);
+        }
+      } catch (err) {
+        console.error('❌ Failed to reset all students:', err);
+      }
     }
 
     updateGame({
