@@ -24,12 +24,20 @@ const SCORING = {
 };
 
 const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFinished = false }) => {
-  const { sessionCode, userId: contextUserId } = useSession();
+  const { sessionCode, userId: contextUserId, classId } = useSession();
 
   // For class-based sessions, sessionCode is null — use classCode from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const classCode = urlParams.get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
+
+  // Use class-based paths when available (PIN login students join at classes/{classId}/currentSession)
+  const studentsBasePath = classId
+    ? `classes/${classId}/currentSession/studentsJoined`
+    : `${studentsBasePath}`;
+  const gameBasePath = classId
+    ? `classes/${classId}/currentSession/layerDetective`
+    : `${gameBasePath}`;
 
   // Fallback: if context userId is null, try localStorage (fixes race condition on Chromebooks)
   const userId = contextUserId || localStorage.getItem('current-session-userId');
@@ -79,7 +87,7 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
       if (effectiveSessionCode) {
         const { getDatabase, ref, update } = await import('firebase/database');
         const db = getDatabase();
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `${studentsBasePath}/${userId}`), {
           displayName: name,
           playerColor: color
         });
@@ -94,7 +102,7 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
     if (!effectiveSessionCode) return;
 
     const db = getDatabase();
-    const gameRef = ref(db, `sessions/${effectiveSessionCode}/layerDetective`);
+    const gameRef = ref(db, `${gameBasePath}`);
 
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
@@ -185,7 +193,7 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
           if (effectiveSessionCode && effectiveUserId) {
             const db = getDatabase();
             console.log('🔥 Writing score to Firebase:', { effectiveUserId, newScore });
-            update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${effectiveUserId}`), {
+            update(ref(db, `${studentsBasePath}/${effectiveUserId}`), {
               layerDetectiveScore: newScore
             });
           } else {
@@ -209,7 +217,7 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
     if (!effectiveSessionCode) return;
 
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
+    const studentsRef = ref(db, `${studentsBasePath}`);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -251,7 +259,7 @@ const LayerDetectiveStudentView = ({ onComplete, isSessionMode = true, forceFini
     // Send to Firebase
     if (effectiveSessionCode && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `${studentsBasePath}/${userId}`), {
         layerDetectiveAnswer: answerId,
         layerDetectiveAnswerTime: Date.now()
       });

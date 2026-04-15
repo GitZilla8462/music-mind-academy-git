@@ -8,9 +8,10 @@
 // 4. Revealed - Show correct answer and what the layers were
 // 5. Next/Finished
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Play, Pause, Users, Trophy, Eye, RotateCcw, ChevronRight } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { useSession } from '../../../../context/SessionContext';
 import { formatFirstNameLastInitial } from './nameGenerator';
 
 // ============ QUESTIONS DATA ============
@@ -143,8 +144,21 @@ const ActivityBanner = () => (
 );
 
 const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
+  const { sessionCode: contextSessionCode, classId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
-  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/layerDetective`;
+    if (sessionCode) return `sessions/${sessionCode}/layerDetective`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
 
   // Game state
   const [gamePhase, setGamePhase] = useState('setup'); // setup, playing, guessing, revealed, finished
@@ -170,16 +184,16 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
-    if (!sessionCode) return;
+    if (!gamePath) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/layerDetective`), data);
-  }, [sessionCode]);
+    update(ref(db, gamePath), data);
+  }, [gamePath]);
 
   // Firebase: Subscribe to students
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -200,7 +214,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   // ============ AUDIO PLAYBACK ============
   const stopAudio = useCallback(() => {
@@ -318,10 +332,10 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
     setCorrectCount(0);
 
     // Reset student answers and scores
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           layerDetectiveAnswer: null,
           layerDetectiveScore: 0
         }).catch(err => console.error(`❌ Failed to reset student ${s.id}:`, err));
@@ -400,10 +414,10 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
     stopAudio();
 
     // Clear student answers
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           layerDetectiveAnswer: null
         }).catch(err => console.error(`❌ Failed to clear answer for ${s.id}:`, err));
       });

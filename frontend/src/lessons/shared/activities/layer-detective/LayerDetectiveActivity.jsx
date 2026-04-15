@@ -15,12 +15,20 @@ import { getDatabase, ref, update, push, set, onValue, get } from 'firebase/data
 import { getPlayerColor, getPlayerEmoji, getStudentDisplayName, formatFirstNameLastInitial } from './nameGenerator';
 
 const LayerDetectiveActivity = ({ onComplete, viewMode = false }) => {
-  const { sessionCode, userId: contextUserId, userRole, currentStage } = useSession();
+  const { sessionCode, userId: contextUserId, userRole, currentStage, classId } = useSession();
 
   // For class-based sessions, sessionCode is null — use classCode from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const classCode = urlParams.get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
+
+  // Use class-based paths when available (PIN login students join at classes/{classId}/currentSession)
+  const studentsBasePath = classId
+    ? `classes/${classId}/currentSession/studentsJoined`
+    : `sessions/${effectiveSessionCode}/studentsJoined`;
+  const gameBasePath = classId
+    ? `classes/${classId}/currentSession/layerDetective`
+    : `sessions/${effectiveSessionCode}/layerDetective`;
 
   // Fallback: if context userId is null, try localStorage (fixes race condition on Chromebooks)
   const userId = contextUserId || localStorage.getItem('current-session-userId');
@@ -127,7 +135,7 @@ useEffect(() => {
     const heartbeat = setInterval(() => {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `${studentsBasePath}/${userId}`), {
           lastActivity: Date.now(),
           lastUpdated: Date.now()
         }).catch(err => {
@@ -177,7 +185,7 @@ useEffect(() => {
     const db = getDatabase();
 
     // Listen for game phase changes
-    const gameRef = ref(db, `sessions/${effectiveSessionCode}/layerDetective`);
+    const gameRef = ref(db, gameBasePath);
     const unsubGame = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
       if (data?.phase) {
@@ -187,7 +195,7 @@ useEffect(() => {
     });
 
     // Listen for all students to build leaderboard and find my rank
-    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsBasePath);
     const unsubStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
@@ -624,7 +632,10 @@ useEffect(() => {
             updateStudentScore(effectiveSessionCode, userId, score);
             
             const db = getDatabase();
-            update(ref(db, `sessions/${effectiveSessionCode}/studentProgress/${userId}`), {
+            const progressPath = classId
+              ? `classes/${classId}/currentSession/studentProgress/${userId}`
+              : `sessions/${effectiveSessionCode}/studentProgress/${userId}`;
+            update(ref(db, progressPath), {
               'layer-detective': 'completed'
             });
             
@@ -670,7 +681,7 @@ useEffect(() => {
       if (effectiveSessionCode && userId && playerName) {
         try {
           const db = getDatabase();
-          update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+          update(ref(db, `${studentsBasePath}/${userId}`), {
             playerName: playerName,
             playerColor: playerColor,
             playerEmoji: playerEmoji,
