@@ -29,7 +29,7 @@ const SectionSpotterResults = ({ sessionData }) => {
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => s.displayName || s.playerName || s.name)
+        .filter(([, s]) => (s.displayName || s.playerName || s.name) && s.sectionSpotterScore != null)
         .map(([id, s]) => ({
         id,
         name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
