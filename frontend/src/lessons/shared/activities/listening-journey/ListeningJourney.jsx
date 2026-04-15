@@ -631,6 +631,8 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
   // ── Save / Reset ───────────────────────────────────────────────────
 
   const handleSave = useCallback(() => {
+    // Don't save partner's data to our own storage during peer play
+    if (savedDataOverride) return;
     const authInfo = getClassAuthInfo(pinSession);
     // Strip ephemeral _placedWallTime so loaded stickers get entry animation on replay
     const cleanItems = items.map(({ _placedWallTime, ...rest }) => rest);
