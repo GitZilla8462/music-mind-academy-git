@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Check, Trophy } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
-import { getPlayerColor, getPlayerEmoji, getStudentDisplayName } from '../layer-detective/nameGenerator';
+import { getPlayerColor, getPlayerEmoji, getStudentDisplayName, formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import { TEMPO_OPTIONS, SCORING, calculateSpeedBonus, getTempoBySymbol } from './tempoCharadesConfig';
 
 const TempoCharadesStudentView = ({ onComplete, isSessionMode = true }) => {
