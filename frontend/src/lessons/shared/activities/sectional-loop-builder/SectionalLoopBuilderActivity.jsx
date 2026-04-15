@@ -9,7 +9,7 @@
 // - Safari bonus for finding classmates
 // - Demo mode for standalone teacher preview
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Flame, Clock, Play, RotateCcw, Globe } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
@@ -481,13 +481,26 @@ const DemoModeGame = () => {
 
 // ============ MAIN COMPONENT ============
 const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionMode = false, forceFinished = false }) => {
-  const { sessionCode, userId: contextUserId } = useSession();
+  const { sessionCode, userId: contextUserId, classId } = useSession();
   // For class-based sessions, sessionCode is null — use classCode from URL params
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
 
   // Fallback: if context userId is null, try localStorage (fixes timing issue with session context)
   const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  // Compute Firebase paths based on session type
+  const sessionBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}`;
+    return null;
+  }, [classId, effectiveSessionCode]);
+
+  const studentsBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/studentsJoined`;
+    return null;
+  }, [classId, effectiveSessionCode]);
 
   // Demo mode: no session, let teacher play standalone
   const isDemoMode = !effectiveSessionCode && !isSessionMode;
@@ -557,7 +570,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     if (!effectiveSessionCode || isDemoMode) return;
 
     const db = getDatabase();
-    const saveCommandRef = ref(db, `sessions/${effectiveSessionCode}/saveCommand`);
+    const saveCommandRef = ref(db, `${sessionBasePath}/saveCommand`);
 
     const unsubscribe = onValue(saveCommandRef, (snapshot) => {
       const saveCommand = snapshot.val();
@@ -621,7 +634,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     const initPlayer = async () => {
       const color = getPlayerColor(userId);
       const emoji = getPlayerEmoji(userId);
-      const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
+      const name = await getStudentDisplayName(userId, effectiveSessionCode, studentsBasePath);
 
       setPlayerName(name);
       setPlayerColor(color);
@@ -629,7 +642,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
 
       if (effectiveSessionCode && !viewMode) {
         const db = getDatabase();
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `${studentsBasePath}/${userId}`), {
           displayName: name,
           playerColor: color,
           playerEmoji: emoji,
@@ -653,7 +666,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     if (!effectiveSessionCode) return;
     
     const db = getDatabase();
-    const gameRef = ref(db, `sessions/${effectiveSessionCode}/activityData`);
+    const gameRef = ref(db, `${sessionBasePath}/activityData`);
     
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
@@ -766,7 +779,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     if (!effectiveSessionCode || !userId) return;
 
     const db = getDatabase();
-    const unsubscribe = onValue(ref(db, `sessions/${effectiveSessionCode}/studentsJoined`), (snap) => {
+    const unsubscribe = onValue(ref(db, studentsBasePath), (snap) => {
       const students = snap.val();
       if (!students) return;
 
@@ -823,7 +836,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
     
     if (effectiveSessionCode && userId && !viewMode) {
       const db = getDatabase();
-      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `${studentsBasePath}/${userId}`), {
         currentAnswer: section,
         answerTime: time,
         lockedIn: true,
@@ -857,7 +870,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
       // Update Firebase
       if (effectiveSessionCode && userId) {
         const db = getDatabase();
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `${studentsBasePath}/${userId}`), {
           safariComplete: true,
           safariBonus: 50,
           lastActivity: Date.now()
@@ -945,7 +958,7 @@ const SectionalLoopBuilderActivity = ({ onComplete, viewMode = false, isSessionM
 
     if (effectiveSessionCode && effectiveUserId && !viewMode) {
       const db = getDatabase();
-      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${effectiveUserId}`), {
+      update(ref(db, `${studentsBasePath}/${effectiveUserId}`), {
         score: newScore,
         streak: newStreak,
         lastClipScore: total,

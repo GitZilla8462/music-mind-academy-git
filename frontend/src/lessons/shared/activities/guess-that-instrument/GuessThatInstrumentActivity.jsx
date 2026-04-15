@@ -2,7 +2,7 @@
 // Guess That Instrument - Class game for identifying orchestra instruments
 // Three difficulty levels: Families, Distinct Instruments, Similar Instruments
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Volume2, Play, Pause, RotateCcw, Trophy, Clock, ChevronRight, Music } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
@@ -16,10 +16,17 @@ import {
 } from './guessThatInstrumentConfig';
 
 const GuessThatInstrumentActivity = ({ onComplete, viewMode = false }) => {
-  const { sessionCode, userId: contextUserId, userRole } = useSession();
+  const { sessionCode, userId: contextUserId, userRole, classId } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  // Compute Firebase paths based on session type
+  const studentsBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/studentsJoined`;
+    return null;
+  }, [classId, effectiveSessionCode]);
 
   // Game state
   const [selectedLevel, setSelectedLevel] = useState(null);
@@ -158,10 +165,10 @@ const GuessThatInstrumentActivity = ({ onComplete, viewMode = false }) => {
       setScore(prev => prev + points);
 
       // Update score in Firebase
-      if (effectiveSessionCode && userId) {
+      if (studentsBasePath && userId) {
         try {
           const db = getDatabase();
-          update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+          update(ref(db, `${studentsBasePath}/${userId}`), {
             guessInstrumentScore: score + points,
             lastUpdated: Date.now()
           });

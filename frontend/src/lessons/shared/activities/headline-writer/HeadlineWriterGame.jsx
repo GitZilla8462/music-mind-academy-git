@@ -11,10 +11,11 @@
 // 5. Winner - Winning headline highlighted, "Next Round" button
 // 6. Finished - Final results, all winning headlines
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Users, ChevronRight, Trophy, Award, Medal, PenLine, Vote, Crown, Timer } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
+import { useSession } from '../../../../context/SessionContext';
 
 // ============================================================
 // SUMMARIES DATA — 5 rounds
@@ -57,8 +58,22 @@ const ActivityBanner = () => (
 );
 
 const HeadlineWriterGame = ({ sessionData, onComplete }) => {
+  const { sessionCode: contextSessionCode, classId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
-  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+
+  // Compute Firebase paths based on session type
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/headlineWriter`;
+    if (sessionCode) return `sessions/${sessionCode}/headlineWriter`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
 
   // Game state
   const [gamePhase, setGamePhase] = useState('setup');
@@ -89,16 +104,16 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
-    if (!sessionCode) return;
+    if (!gamePath) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/headlineWriter`), data);
-  }, [sessionCode]);
+    update(ref(db, gamePath), data);
+  }, [gamePath]);
 
   // Firebase: Subscribe to students
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -141,7 +156,7 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   // Timer effect
   useEffect(() => {
@@ -164,15 +179,15 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
 
   // Clear student fields for new round
   const clearStudentFields = useCallback(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
     students.forEach(s => {
-      update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+      update(ref(db, `${studentsPath}/${s.id}`), {
         headlineWriterHeadline: null,
         headlineWriterVote: null,
       }).catch(() => {});
     });
-  }, [sessionCode, students]);
+  }, [studentsPath, students]);
 
   // Start game
   const startGame = useCallback(() => {
@@ -182,10 +197,10 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
     setTimeLeft(TIMER_DURATION);
 
     // Reset all student scores and fields
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           headlineWriterHeadline: null,
           headlineWriterVote: null,
           headlineWriterWins: 0,
@@ -204,7 +219,7 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
       timerDuration: TIMER_DURATION,
       winnerUid: null,
     });
-  }, [sessionCode, students, updateGame]);
+  }, [studentsPath, students, updateGame]);
 
   // Show submissions
   const showSubmissions = useCallback(() => {
@@ -261,7 +276,7 @@ const HeadlineWriterGame = ({ sessionData, onComplete }) => {
         const newScore = currentScore + 10 + bonus;
         const newWins = (student?.wins || 0) + (isWinner ? 1 : 0);
 
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${h.uid}`), {
+        update(ref(db, `${studentsPath}/${h.uid}`), {
           headlineWriterScore: newScore,
           headlineWriterWins: newWins,
         }).catch(() => {});

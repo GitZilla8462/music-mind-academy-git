@@ -3,7 +3,7 @@
 // Adapted from Layer Detective game mechanics
 // Lesson 1: Strings & Dynamics (The Listening Lab)
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Volume2, Play, Pause, Trophy, Clock, RefreshCw, Check, X } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, push, get, onValue } from 'firebase/database';
@@ -20,13 +20,32 @@ import {
 } from './stringDetectiveConfig';
 
 const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
-  const { sessionCode, userId: contextUserId, userRole, currentStage } = useSession();
+  const { sessionCode, userId: contextUserId, userRole, currentStage, classId } = useSession();
   // For class-based sessions, sessionCode is null — use classCode from URL params
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
 
   // Fallback for userId
   const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  // Compute Firebase paths based on session type
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/stringDetective`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/stringDetective`;
+    return null;
+  }, [classId, effectiveSessionCode]);
+
+  const studentsBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/studentsJoined`;
+    return null;
+  }, [classId, effectiveSessionCode]);
+
+  const sessionBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}`;
+    return null;
+  }, [classId, effectiveSessionCode]);
 
   // Game state
   const [gameStarted, setGameStarted] = useState(false);
@@ -116,7 +135,7 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
     const heartbeat = setInterval(() => {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `${studentsBasePath}/${userId}`), {
           lastActivity: Date.now(),
           lastUpdated: Date.now()
         }).catch(err => console.error('Heartbeat failed:', err));
@@ -136,7 +155,7 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
       try {
         const color = getPlayerColor(userId);
         const emoji = getPlayerEmoji(userId);
-        const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
+        const name = await getStudentDisplayName(userId, effectiveSessionCode, studentsBasePath);
 
         setPlayerName(name);
         setPlayerColor(color);
@@ -154,11 +173,11 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
 
   // Listen for teacher's game state
   useEffect(() => {
-    if (!effectiveSessionCode) return;
+    if (!gamePath || !studentsBasePath) return;
 
     const db = getDatabase();
 
-    const gameRef = ref(db, `sessions/${effectiveSessionCode}/stringDetective`);
+    const gameRef = ref(db, gamePath);
     const unsubGame = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
       if (data?.phase) {
@@ -166,7 +185,7 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
       }
     });
 
-    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsBasePath);
     const unsubStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
@@ -192,7 +211,7 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
       unsubGame();
       unsubStudents();
     };
-  }, [effectiveSessionCode, userId]);
+  }, [gamePath, studentsBasePath, userId]);
 
   // Shuffle questions on mount
   useEffect(() => {
@@ -320,11 +339,11 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
       if (effectiveSessionCode && userId && !viewMode && !isPracticeMode) {
         try {
           const db = getDatabase();
-          update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+          update(ref(db, `${studentsBasePath}/${userId}`), {
             stringDetectiveScore: score,
             lastUpdated: Date.now()
           });
-          update(ref(db, `sessions/${effectiveSessionCode}/studentProgress/${userId}`), {
+          update(ref(db, `${sessionBasePath}/studentProgress/${userId}`), {
             'string-detective': 'completed'
           });
         } catch (err) {
@@ -360,7 +379,7 @@ const StringDetectiveActivity = ({ onComplete, viewMode = false }) => {
     if (effectiveSessionCode && userId && playerName) {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `${studentsBasePath}/${userId}`), {
           playerName,
           playerColor,
           playerEmoji,

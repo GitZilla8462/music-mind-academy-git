@@ -5,7 +5,7 @@
 // Round 2: Teacher plays sections, student taps A/B/C/D (like Section Spotter)
 // Round 3: 7 mystery boxes with audio clips — tap to listen, arrange in order → submit
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Check, Trophy, Volume2, GripVertical } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
@@ -17,10 +17,23 @@ import {
 } from './rondoFormGameConfig';
 
 const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
-  const { sessionCode, userId: contextUserId } = useSession();
+  const { sessionCode, userId: contextUserId, classId } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  // Compute Firebase paths based on session type
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/rondoFormGame`;
+    if (effectiveSessionCode) return gamePath;
+    return null;
+  }, [classId, effectiveSessionCode]);
+
+  const studentsBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/studentsJoined`;
+    return null;
+  }, [classId, effectiveSessionCode]);
 
   // Player info
   const [playerName, setPlayerName] = useState('');
@@ -79,14 +92,14 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
     const assignPlayerName = async () => {
       const color = getPlayerColor(userId);
       const emoji = getPlayerEmoji(userId);
-      const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
+      const name = await getStudentDisplayName(userId, effectiveSessionCode, studentsBasePath);
       setPlayerName(name);
       setPlayerColor(color);
       setPlayerEmoji(emoji);
       if (effectiveSessionCode) {
         const { getDatabase, ref, update } = await import('firebase/database');
         const db = getDatabase();
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `${studentsBasePath}/${userId}`), {
           displayName: name, playerColor: color, playerEmoji: emoji
         });
       }
@@ -152,9 +165,9 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
 
   // Listen for game state
   useEffect(() => {
-    if (!effectiveSessionCode) return;
+    if (!gamePath) return;
     const db = getDatabase();
-    const gameRef = ref(db, `sessions/${effectiveSessionCode}/rondoFormGame`);
+    const gameRef = ref(db, gamePath);
 
     const unsubscribe = onValue(gameRef, (snap) => {
       const data = snap.val();
@@ -209,7 +222,7 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
             scoreRef.current = newScore;
             setScore(newScore);
             if (effectiveSessionCode && userId) {
-              update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+              update(ref(db, `${studentsBasePath}/${userId}`), {
                 rondoGameScore: newScore
               });
             }
@@ -226,7 +239,7 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
       if (data.phase === 'finished' && scoreRef.current === 0) {
         const uid = userId || localStorage.getItem('current-session-userId');
         if (uid) {
-          get(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${uid}/rondoGameScore`))
+          get(ref(db, `${studentsBasePath}/${uid}/rondoGameScore`))
             .then(s => { if (s.val() > 0) { scoreRef.current = s.val(); setScore(s.val()); } })
             .catch(() => {});
         }
@@ -244,13 +257,13 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
     });
 
     return () => unsubscribe();
-  }, [effectiveSessionCode, userId, gamePhase, roundPhase, r2CurrentQuestion, initRound1, initRound3]);
+  }, [gamePath, studentsBasePath, userId, gamePhase, roundPhase, r2CurrentQuestion, initRound1, initRound3]);
 
   // Leaderboard
   useEffect(() => {
-    if (!effectiveSessionCode) return;
+    if (!studentsBasePath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsBasePath);
     const unsubscribe = onValue(studentsRef, (snap) => {
       const data = snap.val() || {};
       const list = Object.entries(data)
@@ -268,7 +281,7 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
       if (myIdx !== -1) setMyRank(myIdx + 1);
     });
     return () => unsubscribe();
-  }, [effectiveSessionCode, userId]);
+  }, [studentsBasePath, userId]);
 
   // ========================================
   // ROUND 1: Drag-and-drop + tap fallback
@@ -410,7 +423,7 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
 
     if (effectiveSessionCode && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `${studentsBasePath}/${userId}`), {
         rondoR1Answer: r1Slots,
         rondoR1Submitted: true,
         rondoR1Score: totalR1,
@@ -430,7 +443,7 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
 
     if (effectiveSessionCode && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `${studentsBasePath}/${userId}`), {
         rondoR2Answer: label,
         rondoR2AnswerTime: Date.now()
       });
@@ -578,7 +591,7 @@ const RondoFormGameStudent = ({ onComplete, isSessionMode = true }) => {
 
     if (effectiveSessionCode && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `${studentsBasePath}/${userId}`), {
         rondoR3Answer: r3Slots.map(b => b.section),
         rondoR3Submitted: true,
         rondoR3Score: totalR3,

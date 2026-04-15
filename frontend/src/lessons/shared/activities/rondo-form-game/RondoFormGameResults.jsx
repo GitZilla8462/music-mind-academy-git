@@ -1,20 +1,29 @@
 // File: RondoFormGameResults.jsx
 // Rondo Form Game - Results Leaderboard (Teacher Presentation View)
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Trophy } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
+import { useSession } from '../../../../context/SessionContext';
 
 const RondoFormGameResults = ({ sessionData }) => {
+  const { sessionCode: contextSessionCode, classId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
-  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
+
   const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -31,7 +40,7 @@ const RondoFormGameResults = ({ sessionData }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   const topThree = leaderboard.slice(0, 3);
   const rest = leaderboard.slice(3);

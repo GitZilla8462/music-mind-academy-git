@@ -24,6 +24,7 @@ import {
   getSectionByLabel
 } from './sectionSpotterConfig';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
+import { useSession } from '../../../../context/SessionContext';
 
 // Student Activity Banner
 const ActivityBanner = () => (
@@ -64,8 +65,22 @@ const FormTracker = ({ currentRound, totalRounds, roundLabels }) => (
 );
 
 const SectionSpotterTeacherGame = ({ sessionData, onComplete, pieceId = 'mountain-king' }) => {
+  const { sessionCode: contextSessionCode, classId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
-  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+
+  // Compute Firebase paths based on session type
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/sectionSpotter`;
+    if (sessionCode) return `sessions/${sessionCode}/sectionSpotter`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
 
   // Round labels for the ABA' tracker
   const roundLabels = useMemo(() => [
@@ -117,16 +132,16 @@ const SectionSpotterTeacherGame = ({ sessionData, onComplete, pieceId = 'mountai
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
-    if (!sessionCode) return;
+    if (!gamePath) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/sectionSpotter`), data);
-  }, [sessionCode]);
+    update(ref(db, gamePath), data);
+  }, [gamePath]);
 
   // Firebase: Subscribe to students
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -148,7 +163,7 @@ const SectionSpotterTeacherGame = ({ sessionData, onComplete, pieceId = 'mountai
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   // Play current section audio
   const playSection = useCallback(() => {
@@ -179,10 +194,10 @@ const SectionSpotterTeacherGame = ({ sessionData, onComplete, pieceId = 'mountai
     setRoundCorrectCounts([0, 0, 0]);
 
     // Reset student answers and scores
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           sectionSpotterAnswer: null,
           sectionSpotterScore: 0,
           sectionSpotterAnswerTime: null
@@ -216,7 +231,7 @@ const SectionSpotterTeacherGame = ({ sessionData, onComplete, pieceId = 'mountai
         }, duration);
       }
     }, 500);
-  }, [sessionCode, students, updateGame, pieceId]);
+  }, [studentsPath, students, updateGame, pieceId]);
 
   // Stop audio and move to questions
   const stopAndAsk = useCallback(() => {
@@ -229,10 +244,10 @@ const SectionSpotterTeacherGame = ({ sessionData, onComplete, pieceId = 'mountai
     if (!q) return;
 
     // Clear student answers
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           sectionSpotterAnswer: null,
           sectionSpotterAnswerTime: null
         }).catch(err => console.error(`Failed to clear answer for ${s.id}:`, err));
@@ -255,7 +270,7 @@ const SectionSpotterTeacherGame = ({ sessionData, onComplete, pieceId = 'mountai
       revealedAnswer: null,
       questionStartTime: Date.now()
     });
-  }, [stopAudio, currentRound, sessionCode, students, updateGame]);
+  }, [stopAudio, currentRound, studentsPath, students, updateGame]);
 
   // Reveal answer
   const revealAnswer = useCallback(() => {
@@ -291,10 +306,10 @@ const SectionSpotterTeacherGame = ({ sessionData, onComplete, pieceId = 'mountai
     const nextQIdx = currentQuestionIdx + 1;
 
     // Clear student answers
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           sectionSpotterAnswer: null,
           sectionSpotterAnswerTime: null
         }).catch(err => console.error(`Failed to clear answer for ${s.id}:`, err));

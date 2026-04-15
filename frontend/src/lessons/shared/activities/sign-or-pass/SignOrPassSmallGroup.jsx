@@ -5,7 +5,7 @@
 // Score points for matching rankings with groupmates
 // Groups of 3–5, join with 4-digit codes
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Users, Trophy, Play, Pause, Crown, Star, Music, MessageCircle, Check, ChevronRight, Volume2 } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get, set } from 'firebase/database';
@@ -20,10 +20,23 @@ const BETWEEN_CLIP_DELAY = 3000; // 3s transition between clips
 const capitalizeTitle = (title) => title?.replace(/\b\w/g, c => c.toUpperCase()) || '';
 
 const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
-  const { sessionCode, userId: contextUserId } = useSession();
+  const { sessionCode, userId: contextUserId, classId } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  // Compute Firebase paths based on session type
+  const studentsBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/studentsJoined`;
+    return null;
+  }, [classId, effectiveSessionCode]);
+
+  const gameBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/signOrPassGroups`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/signOrPassGroups`;
+    return null;
+  }, [classId, effectiveSessionCode]);
 
   // Player info
   const [playerName, setPlayerName] = useState('');
@@ -104,7 +117,7 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
       if (effectiveSessionCode) {
         try {
           const db = getDatabase();
-          const studentRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}/name`);
+          const studentRef = ref(db, `${studentsBasePath}/${userId}/name`);
           const snapshot = await get(studentRef);
           if (snapshot.exists()) name = snapshot.val();
         } catch { /* fallback */ }
@@ -253,7 +266,7 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
     autoAdvanceTimer.current = setTimeout(async () => {
       setBetweenClips(false);
       const db = getDatabase();
-      const gamePath = `sessions/${effectiveSessionCode}/signOrPassGroups/${groupCode}/game`;
+      const gamePath = `${gameBasePath}/${groupCode}/game`;
 
       // Check if still in listening phase (another client may have already advanced)
       const currentPhase = (await get(ref(db, `${gamePath}/phase`))).val();
@@ -283,7 +296,7 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
 
   // Helper: get Firebase group path
   const getGroupPath = useCallback((code) => {
-    return `sessions/${effectiveSessionCode}/signOrPassGroups/${code}`;
+    return `${gameBasePath}/${code}`;
   }, [effectiveSessionCode]);
 
   const isHost = useCallback(() => {
@@ -433,7 +446,7 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
 
     try {
       const db = getDatabase();
-      const groupPath = `sessions/${effectiveSessionCode}/signOrPassGroups/${groupCode}`;
+      const groupPath = `${gameBasePath}/${groupCode}`;
 
       // Check Firebase directly to see if already revealed (another client beat us)
       const currentPhase = (await get(ref(db, `${groupPath}/game/phase`))).val();
@@ -459,10 +472,10 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
         ...scoreUpdates
       });
 
-      if (effectiveSessionCode) {
+      if (studentsBasePath) {
         const allMembers = (await get(ref(db, `${groupPath}/members`))).val() || {};
         for (const [memberId, memberData] of Object.entries(allMembers)) {
-          update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${memberId}`), {
+          update(ref(db, `${studentsBasePath}/${memberId}`), {
             signOrPassScore: memberData.score || 0
           }).catch(() => {});
         }

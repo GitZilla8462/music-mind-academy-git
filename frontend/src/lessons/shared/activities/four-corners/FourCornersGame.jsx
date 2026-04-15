@@ -10,9 +10,10 @@
 // 3. Revealed - Show correct corner
 // 4. Finished - Final leaderboard
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Eye, ChevronRight, CheckCircle, Volume2, RotateCcw } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { useSession } from '../../../../context/SessionContext';
 
 // ============================================================
 // AUDIO PATHS
@@ -263,8 +264,22 @@ const ActivityBanner = () => (
 );
 
 const FourCornersGame = ({ sessionData, onComplete }) => {
+  const { sessionCode: contextSessionCode, classId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
-  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+
+  // Compute Firebase paths based on session type
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/fourCorners`;
+    if (sessionCode) return `sessions/${sessionCode}/fourCorners`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
 
   // Game state
   const [gamePhase, setGamePhase] = useState('setup');
@@ -361,16 +376,16 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
-    if (!sessionCode) return;
+    if (!gamePath) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/fourCorners`), data);
-  }, [sessionCode]);
+    update(ref(db, gamePath), data);
+  }, [gamePath]);
 
   // Firebase: Subscribe to students
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -396,7 +411,7 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   // Start game
   const startGame = useCallback((round = currentRound) => {
@@ -406,10 +421,10 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
     setCorrectCount(0);
 
     // Reset student answers
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           fcAnswer: null,
         }).catch(() => {});
       });
@@ -429,7 +444,7 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
 
     // Play audio for the first question
     playAudio(firstQ);
-  }, [currentRound, sessionCode, students, updateGame, playAudio]);
+  }, [currentRound, studentsPath, students, updateGame, playAudio]);
 
   // Reveal answer
   const reveal = useCallback(() => {
@@ -458,10 +473,10 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
     stopAudio();
 
     // Clear student answers
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           fcAnswer: null,
         }).catch(() => {});
       });
@@ -492,7 +507,7 @@ const FourCornersGame = ({ sessionData, onComplete }) => {
       // Play audio for next question
       playAudio(nextQ);
     }
-  }, [sessionCode, students, currentQuestionIndex, updateGame, stopAudio, playAudio]);
+  }, [studentsPath, students, currentQuestionIndex, updateGame, stopAudio, playAudio]);
 
   return (
     <div className="min-h-screen h-full flex flex-col bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900 text-white overflow-hidden">

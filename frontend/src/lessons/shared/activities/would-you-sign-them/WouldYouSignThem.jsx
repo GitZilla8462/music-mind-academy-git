@@ -4,7 +4,7 @@
 // Groups of 2–3, join with 4-digit codes, speed bonus scoring
 // Teacher view === student view (like Sign or Pass)
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Users, Trophy, Crown, Check, Star } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get, set } from 'firebase/database';
@@ -13,10 +13,23 @@ import { TOTAL_ROUNDS, ANSWER_TIME, CHECKLIST_OPTIONS, STATEMENTS, shuffleArray,
 import DirectionsModal, { DirectionsReopenButton } from '../../components/DirectionsModal';
 
 const WouldYouSignThem = ({ onComplete, isSessionMode = true }) => {
-  const { sessionCode, userId: contextUserId } = useSession();
+  const { sessionCode, userId: contextUserId, classId } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  // Compute Firebase paths based on session type
+  const studentsBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/studentsJoined`;
+    return null;
+  }, [classId, effectiveSessionCode]);
+
+  const gameBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/wouldYouSignThemGroups`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/wouldYouSignThemGroups`;
+    return null;
+  }, [classId, effectiveSessionCode]);
 
   // Player info
   const [playerName, setPlayerName] = useState('');
@@ -79,7 +92,7 @@ const WouldYouSignThem = ({ onComplete, isSessionMode = true }) => {
       if (effectiveSessionCode) {
         try {
           const db = getDatabase();
-          const studentRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}/name`);
+          const studentRef = ref(db, `${studentsBasePath}/${userId}/name`);
           const snapshot = await get(studentRef);
           if (snapshot.exists()) name = snapshot.val();
         } catch { /* fallback */ }
@@ -102,8 +115,8 @@ const WouldYouSignThem = ({ onComplete, isSessionMode = true }) => {
 
   // Helper: get Firebase group path
   const getGroupPath = useCallback((code) => {
-    return `sessions/${effectiveSessionCode}/wouldYouSignThemGroups/${code}`;
-  }, [effectiveSessionCode]);
+    return `${gameBasePath}/${code}`;
+  }, [gameBasePath]);
 
   // ============ GROUP CREATION / JOINING ============
 
@@ -239,7 +252,7 @@ const WouldYouSignThem = ({ onComplete, isSessionMode = true }) => {
 
     try {
       const db = getDatabase();
-      const groupPath = `sessions/${effectiveSessionCode}/wouldYouSignThemGroups/${groupCode}`;
+      const groupPath = `${gameBasePath}/${groupCode}`;
 
       const currentPhase = (await get(ref(db, `${groupPath}/game/phase`))).val();
       if (currentPhase !== 'answering') {

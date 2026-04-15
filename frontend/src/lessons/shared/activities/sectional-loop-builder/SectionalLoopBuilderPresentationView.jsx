@@ -7,7 +7,7 @@
 // 3. Quiz Loop (5 clips per round): guessing → revealed
 // 4. roundSummary → finished
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Play, Users, Trophy, Eye, Settings, Shuffle } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 
@@ -18,6 +18,7 @@ import {
 
 import { sfx, animationStyles } from './SectionalLoopBuilderSFX';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
+import { useSession } from '../../../../context/SessionContext';
 
 // Student Activity Time Banner (matches Lesson 1/2 composition slides)
 const ActivityBanner = () => (
@@ -128,8 +129,22 @@ const getInstrumentColor = (instrument) => {
 };
 
 const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) => {
+  const { sessionCode: contextSessionCode, classId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
-  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+
+  // Compute Firebase paths based on session type
+  const sessionBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession`;
+    if (sessionCode) return `sessions/${sessionCode}`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
   
   // Setup
   const [totalRounds, setTotalRounds] = useState(null);
@@ -195,9 +210,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
   // IMPORTANT: Always include currentRound and currentClipIndex to prevent data loss
   // when partial updates are sent (e.g., reveal() only sending gamePhase)
   const updateGame = useCallback((data) => {
-    if (!sessionCode) return;
+    if (!sessionBasePath) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}`), {
+    update(ref(db, sessionBasePath), {
       activityData: {
         currentRound: currentRoundRef.current,
         currentClipIndex: currentClipIndexRef.current,
@@ -205,13 +220,13 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
         activity: 'sectional-loop-builder'
       }
     });
-  }, [sessionCode]);
+  }, [sessionBasePath]);
 
   // Firebase: Subscribe to students
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
     
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -239,7 +254,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     });
     
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   // ============ AUDIO PLAYBACK ============
   const stopAudio = useCallback(() => {
@@ -404,7 +419,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           currentAnswer: null, lockedIn: false, lastClipScore: 0, safariComplete: false, safariBonus: 0,
           powerUp: null, answerTime: null  // Clear stale data from previous games
         });
@@ -440,7 +455,7 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           currentAnswer: null, lockedIn: false, lastClipScore: 0, safariComplete: false, safariBonus: 0,
           answerTime: null  // Clear stale answer time from previous clip
         });
@@ -503,9 +518,9 @@ const SectionalLoopBuilderPresentationView = ({ sessionData, onAdvanceLesson }) 
     setSafariTimer(45);
 
     // Send start timestamp ONCE to Firebase - students calculate remaining time locally
-    if (sessionCode && safariHunters.length > 0) {
+    if (sessionBasePath && safariHunters.length > 0) {
       const db = getDatabase();
-      update(ref(db, `sessions/${sessionCode}`), {
+      update(ref(db, sessionBasePath), {
         'activityData/safariTimerStart': Date.now()
       });
     }

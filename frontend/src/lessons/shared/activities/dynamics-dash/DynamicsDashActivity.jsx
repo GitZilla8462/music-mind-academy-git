@@ -3,7 +3,7 @@
 // Students identify the dynamic level (pp, p, mp, mf, f, ff)
 // Pattern based on LayerDetectiveActivity
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, Trophy, Clock, RefreshCw } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, push, get, onValue } from 'firebase/database';
@@ -12,10 +12,29 @@ import { AUDIO_PATH, DYNAMICS, QUESTIONS, calculateSpeedBonus, BASE_POINTS, TOTA
 import safeStorage from '../../../../utils/safeStorage';
 
 const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
-  const { sessionCode, userId: contextUserId, currentStage } = useSession();
+  const { sessionCode, userId: contextUserId, currentStage, classId } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  // Compute Firebase paths based on session type
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/dynamicsDash`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/dynamicsDash`;
+    return null;
+  }, [classId, effectiveSessionCode]);
+
+  const studentsBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/studentsJoined`;
+    return null;
+  }, [classId, effectiveSessionCode]);
+
+  const sessionBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}`;
+    return null;
+  }, [classId, effectiveSessionCode]);
 
   const [gameStarted, setGameStarted] = useState(false);
   const [currentRound, setCurrentRound] = useState(0);
@@ -75,7 +94,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
       try {
         const color = getPlayerColor(userId);
         const emoji = getPlayerEmoji(userId);
-        const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
+        const name = await getStudentDisplayName(userId, effectiveSessionCode, studentsBasePath);
 
         setPlayerName(name);
         setPlayerColor(color);
@@ -92,11 +111,11 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
 
   // Listen for teacher game phase
   useEffect(() => {
-    if (!effectiveSessionCode) return;
+    if (!gamePath || !studentsBasePath) return;
 
     const db = getDatabase();
 
-    const gameRef = ref(db, `sessions/${effectiveSessionCode}/dynamicsDash`);
+    const gameRef = ref(db, gamePath);
     const unsubGame = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
       if (data?.phase) {
@@ -104,7 +123,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
       }
     });
 
-    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsBasePath);
     const unsubStudents = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
@@ -130,7 +149,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
       unsubGame();
       unsubStudents();
     };
-  }, [effectiveSessionCode, userId]);
+  }, [gamePath, studentsBasePath, userId]);
 
   // Timer update
   useEffect(() => {
@@ -150,7 +169,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
     const heartbeat = setInterval(() => {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `${studentsBasePath}/${userId}`), {
           lastActivity: Date.now(),
           lastUpdated: Date.now()
         }).catch(() => {});
@@ -248,7 +267,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
     if (effectiveSessionCode && userId && !viewMode && !isPracticeMode) {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `${studentsBasePath}/${userId}`), {
           dynamicsDashScore: newScore,
           dynamicsDashAnswer: dynamicSymbol,
           dynamicsDashAnswerTime: timeElapsed
@@ -280,10 +299,10 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
       if (effectiveSessionCode && userId && !viewMode && !isPracticeMode) {
         try {
           const db = getDatabase();
-          update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+          update(ref(db, `${studentsBasePath}/${userId}`), {
             dynamicsDashScore: score
           });
-          update(ref(db, `sessions/${effectiveSessionCode}/studentProgress/${userId}`), {
+          update(ref(db, `${sessionBasePath}/studentProgress/${userId}`), {
             'dynamics-dash': 'completed'
           });
         } catch (err) {
@@ -309,7 +328,7 @@ const DynamicsDashActivity = ({ onComplete, viewMode = false }) => {
     if (effectiveSessionCode && userId && playerName) {
       try {
         const db = getDatabase();
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `${studentsBasePath}/${userId}`), {
           playerName,
           playerColor,
           playerEmoji,

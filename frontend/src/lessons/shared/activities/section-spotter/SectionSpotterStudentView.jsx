@@ -12,10 +12,23 @@ import { getPlayerColor, getPlayerEmoji, getStudentDisplayName } from '../layer-
 import { QA_SCORING, calculateQASpeedBonus } from './sectionSpotterConfig';
 
 const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
-  const { sessionCode, userId: contextUserId } = useSession();
+  const { sessionCode, userId: contextUserId, classId } = useSession();
   const classCode = new URLSearchParams(window.location.search).get('classCode');
   const effectiveSessionCode = sessionCode || classCode;
   const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  // Compute Firebase paths based on session type
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/sectionSpotter`;
+    if (effectiveSessionCode) return gamePath;
+    return null;
+  }, [classId, effectiveSessionCode]);
+
+  const studentsBasePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (effectiveSessionCode) return `sessions/${effectiveSessionCode}/studentsJoined`;
+    return null;
+  }, [classId, effectiveSessionCode]);
 
   // Player info
   const [playerName, setPlayerName] = useState('');
@@ -61,16 +74,16 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
     const assignPlayerName = async () => {
       const color = getPlayerColor(userId);
       const emoji = getPlayerEmoji(userId);
-      const name = await getStudentDisplayName(userId, effectiveSessionCode, null);
+      const name = await getStudentDisplayName(userId, effectiveSessionCode, studentsBasePath);
 
       setPlayerName(name);
       setPlayerColor(color);
       setPlayerEmoji(emoji);
 
-      if (effectiveSessionCode) {
+      if (studentsBasePath) {
         const { getDatabase, ref, update } = await import('firebase/database');
         const db = getDatabase();
-        update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+        update(ref(db, `${studentsBasePath}/${userId}`), {
           displayName: name,
           playerColor: color,
           playerEmoji: emoji
@@ -89,10 +102,10 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
 
   // Listen for game state updates from teacher
   useEffect(() => {
-    if (!effectiveSessionCode) return;
+    if (!gamePath) return;
 
     const db = getDatabase();
-    const gameRef = ref(db, `sessions/${effectiveSessionCode}/sectionSpotter`);
+    const gameRef = ref(db, gamePath);
 
     const unsubscribe = onValue(gameRef, (snapshot) => {
       const data = snapshot.val();
@@ -190,8 +203,8 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
 
           // Update Firebase
           const effectiveUserId = userId || localStorage.getItem('current-session-userId');
-          if (effectiveSessionCode && effectiveUserId) {
-            update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${effectiveUserId}`), {
+          if (studentsBasePath && effectiveUserId) {
+            update(ref(db, `${studentsBasePath}/${effectiveUserId}`), {
               sectionSpotterScore: newScore
             });
           }
@@ -206,7 +219,7 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
       if (phase === 'finished') {
         const effectiveUserId = userId || localStorage.getItem('current-session-userId');
         if (effectiveUserId && scoreRef.current === 0) {
-          get(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${effectiveUserId}/sectionSpotterScore`))
+          get(ref(db, `${studentsBasePath}/${effectiveUserId}/sectionSpotterScore`))
             .then(snap => {
               const fbScore = snap.val() || 0;
               if (fbScore > 0) {
@@ -220,14 +233,14 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
     });
 
     return () => unsubscribe();
-  }, [effectiveSessionCode, userId]);
+  }, [gamePath, studentsBasePath, userId]);
 
   // Listen for leaderboard
   useEffect(() => {
-    if (!effectiveSessionCode) return;
+    if (!studentsBasePath) return;
 
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${effectiveSessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsBasePath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -251,7 +264,7 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
     });
 
     return () => unsubscribe();
-  }, [effectiveSessionCode, userId]);
+  }, [studentsBasePath, userId]);
 
   // Submit answer
   const submitAnswer = (optionId) => {
@@ -261,9 +274,9 @@ const SectionSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
     setSelectedAnswer(optionId);
     setAnswerSubmitted(true);
 
-    if (effectiveSessionCode && userId) {
+    if (studentsBasePath && userId) {
       const db = getDatabase();
-      update(ref(db, `sessions/${effectiveSessionCode}/studentsJoined/${userId}`), {
+      update(ref(db, `${studentsBasePath}/${userId}`), {
         sectionSpotterAnswer: optionId,
         sectionSpotterAnswerTime: Date.now()
       });

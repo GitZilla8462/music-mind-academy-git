@@ -10,10 +10,11 @@
 // 4. Revealed - Show correct answer with explanation and vote breakdown
 // 5. Finished - Final leaderboard
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Play, Users, Eye, ChevronRight, CheckCircle, XCircle, Trophy, Award, Medal } from 'lucide-react';
 import { getDatabase, ref, update, onValue } from 'firebase/database';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
+import { useSession } from '../../../../context/SessionContext';
 
 // ============================================================
 // ROUNDS DATA — 8 rounds
@@ -90,8 +91,22 @@ const ActivityBanner = () => (
 );
 
 const SourceOrNotGame = ({ sessionData, onComplete }) => {
+  const { sessionCode: contextSessionCode, classId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
-  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+
+  // Compute Firebase paths based on session type
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/sourceOrNot`;
+    if (sessionCode) return `sessions/${sessionCode}/sourceOrNot`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
 
   // Game state
   const [gamePhase, setGamePhase] = useState('setup');
@@ -115,16 +130,16 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
-    if (!sessionCode) return;
+    if (!gamePath) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/sourceOrNot`), data);
-  }, [sessionCode]);
+    update(ref(db, gamePath), data);
+  }, [gamePath]);
 
   // Firebase: Subscribe to students
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -160,7 +175,7 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   // Start game
   const startGame = useCallback(() => {
@@ -169,10 +184,10 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
     roundShownAt.current = Date.now();
 
     // Reset student answers and scores
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           sourceOrNotAnswer: null,
           sourceOrNotScore: 0,
           sourceOrNotAnswerTime: null,
@@ -192,7 +207,7 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
       revealedAnswer: null,
       shownAt: Date.now(),
     });
-  }, [sessionCode, students, updateGame]);
+  }, [studentsPath, students, updateGame]);
 
   // Reveal answer
   const reveal = useCallback(() => {
@@ -201,7 +216,7 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
     setGamePhase('revealed');
 
     // Calculate scores for each student
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
         if (s.answer) {
@@ -218,7 +233,7 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
             }
           }
           const newScore = (s.score || 0) + points;
-          update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+          update(ref(db, `${studentsPath}/${s.id}`), {
             sourceOrNotScore: newScore,
           }).catch(() => {});
         }
@@ -229,15 +244,15 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
       phase: 'revealed',
       revealedAnswer: currentRound.answer,
     });
-  }, [currentRound, students, sessionCode, updateGame]);
+  }, [currentRound, students, studentsPath, updateGame]);
 
   // Next round
   const nextRound = useCallback(() => {
     // Clear student answers (but keep scores)
-    if (sessionCode) {
+    if (studentsPath) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           sourceOrNotAnswer: null,
           sourceOrNotAnswerTime: null,
         }).catch(() => {});
@@ -267,7 +282,7 @@ const SourceOrNotGame = ({ sessionData, onComplete }) => {
         shownAt: Date.now(),
       });
     }
-  }, [sessionCode, students, currentRoundIndex, updateGame]);
+  }, [studentsPath, students, currentRoundIndex, updateGame]);
 
   // Build sorted leaderboard
   const leaderboard = Object.entries(scores)

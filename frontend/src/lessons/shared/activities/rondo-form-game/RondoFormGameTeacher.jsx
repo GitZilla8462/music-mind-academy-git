@@ -16,6 +16,7 @@ import {
   SCORING, calculateRound2SpeedBonus
 } from './rondoFormGameConfig';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
+import { useSession } from '../../../../context/SessionContext';
 
 const ActivityBanner = () => (
   <div
@@ -49,8 +50,22 @@ const SectionBlock = ({ section, size = 'md', revealed = true, isCurrent = false
 };
 
 const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
+  const { sessionCode: contextSessionCode, classId } = useSession();
   const urlParams = new URLSearchParams(window.location.search);
-  const sessionCode = sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+  const sessionCode = contextSessionCode || sessionData?.sessionCode || urlParams.get('session') || urlParams.get('classCode');
+
+  // Compute Firebase paths based on session type
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/rondoFormGame`;
+    if (sessionCode) return `sessions/${sessionCode}/rondoFormGame`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
 
   // Game phases: guided-listening | round1 | round2 | round3 | finished
   const [gamePhase, setGamePhase] = useState('setup');
@@ -121,16 +136,16 @@ const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
 
   // Firebase: Update game state
   const updateGame = useCallback((data) => {
-    if (!sessionCode) return;
+    if (!gamePath) return;
     const db = getDatabase();
-    update(ref(db, `sessions/${sessionCode}/rondoFormGame`), data);
-  }, [sessionCode]);
+    update(ref(db, gamePath), data);
+  }, [gamePath]);
 
   // Firebase: Subscribe to students
   useEffect(() => {
-    if (!sessionCode) return;
+    if (!studentsPath) return;
     const db = getDatabase();
-    const studentsRef = ref(db, `sessions/${sessionCode}/studentsJoined`);
+    const studentsRef = ref(db, studentsPath);
 
     const unsubscribe = onValue(studentsRef, (snapshot) => {
       const data = snapshot.val() || {};
@@ -156,7 +171,7 @@ const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
     });
 
     return () => unsubscribe();
-  }, [sessionCode]);
+  }, [studentsPath]);
 
   // Play a section of audio
   const playSection = useCallback((startTime, endTime) => {
@@ -244,7 +259,7 @@ const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           rondoR1Answer: null,
           rondoR1Submitted: false,
           rondoR1Score: null,
@@ -267,7 +282,7 @@ const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
-        const studentRef = ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`);
+        const studentRef = ref(db, `${studentsPath}/${s.id}`);
         // Reading is done on student side — they self-score and write to Firebase
       });
     }
@@ -291,7 +306,7 @@ const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           rondoR2Answer: null,
           rondoR2AnswerTime: null
         }).catch(() => {});
@@ -351,7 +366,7 @@ const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           rondoR2Answer: null,
           rondoR2AnswerTime: null
         }).catch(() => {});
@@ -395,7 +410,7 @@ const RondoFormGameTeacher = ({ sessionData, onComplete }) => {
     if (sessionCode) {
       const db = getDatabase();
       students.forEach(s => {
-        update(ref(db, `sessions/${sessionCode}/studentsJoined/${s.id}`), {
+        update(ref(db, `${studentsPath}/${s.id}`), {
           rondoR3Answer: null,
           rondoR3Submitted: false,
           rondoR3Score: null,
