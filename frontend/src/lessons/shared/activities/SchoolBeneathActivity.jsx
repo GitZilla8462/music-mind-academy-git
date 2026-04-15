@@ -379,6 +379,7 @@ const SchoolBeneathActivity = ({
 
       console.log('ℹ️ No saved work found');
       hasLoadedRef.current = true;
+      setIsLoadingWork(false);
     };
 
     loadWork();

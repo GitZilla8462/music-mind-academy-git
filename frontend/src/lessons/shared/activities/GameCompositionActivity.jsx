@@ -607,6 +607,7 @@ const GameCompositionActivity = ({
 
       console.log('ℹ️ No saved work found for this video');
       hasLoadedRef.current = true;
+      setIsLoadingWork(false);
     };
 
     loadWork();
