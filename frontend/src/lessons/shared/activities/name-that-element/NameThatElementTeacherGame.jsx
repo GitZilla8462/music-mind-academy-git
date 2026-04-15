@@ -348,7 +348,7 @@ const NameThatElementTeacherGame = ({ sessionData, onComplete }) => {
     }, { once: true });
 
     audio.addEventListener('ended', () => { setIsAudioPlaying(false); setHasPlayedOnce(true); });
-    audio.addEventListener('error', () => setIsAudioPlaying(false));
+    audio.addEventListener('error', () => { setIsAudioPlaying(false); setHasPlayedOnce(true); });
     audio.load();
   }, [currentQuestion]);
 
