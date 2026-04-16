@@ -39,6 +39,7 @@ import ErrorLogger from './components/ErrorLogger';
 const LandingPage = lazyWithRetry(() => import('./pages/LandingPage'));
 const EduLandingPage = lazyWithRetry(() => import('./pages/EduLandingPage'));
 const TeacherLoginPage = lazyWithRetry(() => import('./pages/TeacherLoginPage'));
+const ResetPasswordPage = lazyWithRetry(() => import('./pages/ResetPasswordPage'));
 
 // Legal/Privacy pages
 const StudentPrivacy = lazyWithRetry(() => import('./pages/StudentPrivacy'));
@@ -340,6 +341,7 @@ const AppContent = () => {
 
         {/* Teacher login page for approved pilot teachers */}
         <Route path="/login" element={<TeacherLoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* Firebase-authenticated teacher dashboard */}
         <Route path="/teacher/dashboard" element={
@@ -556,6 +558,7 @@ const AppContent = () => {
 
         {/* Teacher login page for approved pilot teachers */}
         <Route path="/login" element={<TeacherLoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* Student join page */}
         <Route path="/join" element={<JoinWithCode />} />

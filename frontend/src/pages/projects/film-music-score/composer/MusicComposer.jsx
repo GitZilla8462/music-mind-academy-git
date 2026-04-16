@@ -344,8 +344,44 @@ const MusicComposer = ({
     }
 
     console.log('🎵 Initializing with saved loops from props:', initialPlacedLoops.length, 'loops');
-    savedLoopsRef.current = initialPlacedLoops;
-    setPlacedLoops(initialPlacedLoops);
+
+    // FIX: Enrich placed loops that are missing custom-melody properties
+    // This handles compositions saved before the useLoopHandlers fix — the timeline
+    // copy was stripped of melody data (pattern, synthType, notes, etc.) but the
+    // sidebar customLoops (initialCustomLoops) still have it. Cross-reference via originalId.
+    const enrichedLoops = initialPlacedLoops.map(loop => {
+      if (loop.type === 'custom-melody' || loop.type === 'custom-beat') return loop; // Already has properties
+      if (!loop.originalId || !initialCustomLoops?.length) return loop;
+
+      const sourceLoop = initialCustomLoops.find(cl => cl.id === loop.originalId);
+      if (!sourceLoop || (sourceLoop.type !== 'custom-melody' && sourceLoop.type !== 'custom-beat')) return loop;
+
+      console.log(`🔧 Enriching timeline loop "${loop.name}" with ${sourceLoop.type} properties from sidebar`);
+      return {
+        ...loop,
+        type: sourceLoop.type,
+        pattern: sourceLoop.pattern,
+        bpm: sourceLoop.bpm,
+        needsRender: true,
+        // Melody-specific
+        ...(sourceLoop.type === 'custom-melody' && {
+          synthType: sourceLoop.synthType,
+          beats: sourceLoop.beats,
+          notes: sourceLoop.notes,
+          key: sourceLoop.key,
+          mood: sourceLoop.mood
+        }),
+        // Beat-specific
+        ...(sourceLoop.type === 'custom-beat' && {
+          kit: sourceLoop.kit,
+          steps: sourceLoop.steps,
+          mood: sourceLoop.mood
+        })
+      };
+    });
+
+    savedLoopsRef.current = enrichedLoops;
+    setPlacedLoops(enrichedLoops);
     initialLoopsLoadedRef.current = true;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -44,7 +44,12 @@ router.post('/generate-reset-link', requireFirebaseAdmin, async (req, res) => {
 
   const auth = getAuth();
   try {
-    const link = await auth.generatePasswordResetLink(email.toLowerCase().trim());
+    const firebaseLink = await auth.generatePasswordResetLink(email.toLowerCase().trim());
+    // Extract oobCode from Firebase's link and build our custom reset page URL
+    const url = new URL(firebaseLink);
+    const oobCode = url.searchParams.get('oobCode');
+    const origin = req.headers.origin || 'https://musicmindacademy.com';
+    const link = `${origin}/reset-password?oobCode=${oobCode}`;
     res.json({ link });
   } catch (err) {
     console.error('[FirebaseAdmin] Generate reset link failed:', err.message);
