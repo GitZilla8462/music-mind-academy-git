@@ -108,11 +108,13 @@
         ".write": "auth != null && (!data.exists() || data.child('teacherUid').val() == auth.uid)",
         "currentSession": {
           "studentsJoined": {
+            ".write": true,
             "$seatId": {
               ".write": true
             }
           },
           "studentProgress": {
+            ".write": true,
             "$seatId": {
               ".write": true
             }
