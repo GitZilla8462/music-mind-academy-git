@@ -2,30 +2,64 @@
 // Full ranked list of all students
 // src/lessons/shared/activities/layer-detective/LayerDetectiveResults.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Trophy } from 'lucide-react';
+import { getDatabase, ref, onValue } from 'firebase/database';
+import { useSession } from '../../../../context/SessionContext';
 import { formatFirstNameLastInitial } from './nameGenerator';
 
 const LayerDetectiveResults = ({ sessionData, onPlayAgain, onNextActivity }) => {
+  const { sessionCode: contextSessionCode, classId } = useSession();
+  const sessionCode = contextSessionCode || sessionData?.sessionCode;
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
+
   const [students, setStudents] = useState([]);
 
+  // Subscribe directly to Firebase for student data
   useEffect(() => {
-    if (!sessionData?.studentsJoined) return;
+    if (!studentsPath) {
+      // Fallback to sessionData prop if no path available
+      if (sessionData?.studentsJoined) {
+        const allStudents = Object.entries(sessionData.studentsJoined)
+          .filter(([, data]) => (data.playerName || data.displayName || data.name) && (data.layerDetectiveScore != null || data.score != null))
+          .map(([id, data]) => ({
+            id,
+            name: formatFirstNameLastInitial(data.displayName || data.playerName || data.name),
+            score: data.layerDetectiveScore || data.score || 0,
+            playerColor: data.playerColor || '#3B82F6',
+            playerEmoji: data.playerEmoji || '🎵'
+          }))
+          .sort((a, b) => b.score - a.score);
+        setStudents(allStudents);
+      }
+      return;
+    }
 
-    // Get all students sorted by score
-    const allStudents = Object.entries(sessionData.studentsJoined)
-      .filter(([, data]) => (data.playerName || data.displayName || data.name) && (data.layerDetectiveScore != null || data.score != null))
-      .map(([id, data]) => ({
-        id,
-        name: formatFirstNameLastInitial(data.displayName || data.playerName || data.name),
-        score: data.layerDetectiveScore || data.score || 0,
-        playerColor: data.playerColor || '#3B82F6',
-        playerEmoji: data.playerEmoji || '🎵'
-      }))
-      .sort((a, b) => b.score - a.score);
+    const db = getDatabase();
+    const studentsRef = ref(db, studentsPath);
 
-    setStudents(allStudents);
-  }, [sessionData]);
+    const unsubscribe = onValue(studentsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const list = Object.entries(data)
+        .filter(([, s]) => (s.displayName || s.playerName || s.name) && (s.layerDetectiveScore != null || s.score != null))
+        .map(([id, s]) => ({
+          id,
+          name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
+          score: s.layerDetectiveScore || s.score || 0,
+          playerColor: s.playerColor || '#3B82F6',
+          playerEmoji: s.playerEmoji || '🎵'
+        }))
+        .sort((a, b) => b.score - a.score);
+      setStudents(list);
+    });
+
+    return () => unsubscribe();
+  }, [studentsPath, sessionData]);
 
   const getRankDisplay = (index) => {
     if (index === 0) return '🥇';
