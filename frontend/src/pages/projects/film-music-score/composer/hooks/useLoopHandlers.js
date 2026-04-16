@@ -73,6 +73,18 @@ export const useLoopHandlers = ({
         kit: loopData.kit,
         steps: loopData.steps,
         mood: loopData.mood
+      }),
+      // Custom melody properties (for re-rendering after page reload)
+      ...(loopData.type === 'custom-melody' && {
+        type: loopData.type,
+        pattern: loopData.pattern,
+        bpm: loopData.bpm,
+        synthType: loopData.synthType,
+        beats: loopData.beats,
+        notes: loopData.notes,
+        key: loopData.key,
+        mood: loopData.mood,
+        needsRender: true
       })
     };
 

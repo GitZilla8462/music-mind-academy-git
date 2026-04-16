@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Trash2, Download, KeyRound } from 'lucide-react';
+import { Users, Trash2, Download, KeyRound, Link, Copy, Check } from 'lucide-react';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 import { useAdminData } from './AdminDataContext';
 
@@ -12,6 +12,8 @@ const RegisteredUsersPage = () => {
   const [selectedUsers, setSelectedUsers] = useState({});
   const [bulkDeletingUsers, setBulkDeletingUsers] = useState(false);
   const [resetStatus, setResetStatus] = useState({}); // { email: 'sent' | 'error' | 'sending' }
+  const [resetLinks, setResetLinks] = useState({}); // { email: 'https://...' }
+  const [copiedEmail, setCopiedEmail] = useState(null);
 
   const handleSendPasswordReset = async (userEmail) => {
     if (!userEmail) return;
@@ -23,6 +25,37 @@ const RegisteredUsersPage = () => {
       console.error('Password reset failed for', userEmail, err);
       setResetStatus(prev => ({ ...prev, [userEmail]: 'error' }));
     }
+  };
+
+  const handleGenerateResetLink = async (userEmail) => {
+    if (!userEmail) return;
+    setResetStatus(prev => ({ ...prev, [userEmail]: 'generating' }));
+    try {
+      const idToken = await getAuth().currentUser.getIdToken();
+      const res = await fetch('/api/firebase-admin/generate-reset-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+        body: JSON.stringify({ email: userEmail })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed');
+      }
+      const { link } = await res.json();
+      setResetLinks(prev => ({ ...prev, [userEmail]: link }));
+      setResetStatus(prev => ({ ...prev, [userEmail]: 'link-ready' }));
+    } catch (err) {
+      console.error('Generate reset link failed for', userEmail, err);
+      setResetStatus(prev => ({ ...prev, [userEmail]: 'error' }));
+    }
+  };
+
+  const handleCopyLink = (userEmail) => {
+    const link = resetLinks[userEmail];
+    if (!link) return;
+    navigator.clipboard.writeText(link);
+    setCopiedEmail(userEmail);
+    setTimeout(() => setCopiedEmail(null), 2000);
   };
 
   const toggleSelectAllUsers = () => {
@@ -168,24 +201,50 @@ const RegisteredUsersPage = () => {
                 ) : (
                   <span className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">Not Approved</span>
                 )}
-                <button
-                  onClick={() => handleSendPasswordReset(user.email)}
-                  disabled={resetStatus[user.email] === 'sending' || resetStatus[user.email] === 'sent'}
-                  className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors ${
-                    resetStatus[user.email] === 'sent'
-                      ? 'bg-green-100 text-green-700'
-                      : resetStatus[user.email] === 'error'
-                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                      : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                  } disabled:opacity-50`}
-                  title="Send password reset email to this teacher"
-                >
-                  <KeyRound size={14} />
-                  {resetStatus[user.email] === 'sending' ? 'Sending...'
-                    : resetStatus[user.email] === 'sent' ? 'Reset Sent'
-                    : resetStatus[user.email] === 'error' ? 'Failed — Retry'
-                    : 'Reset Password'}
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleSendPasswordReset(user.email)}
+                    disabled={resetStatus[user.email] === 'sending' || resetStatus[user.email] === 'sent'}
+                    className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors ${
+                      resetStatus[user.email] === 'sent'
+                        ? 'bg-green-100 text-green-700'
+                        : resetStatus[user.email] === 'error'
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                        : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                    } disabled:opacity-50`}
+                    title="Send password reset email to this teacher"
+                  >
+                    <KeyRound size={14} />
+                    {resetStatus[user.email] === 'sending' ? 'Sending...'
+                      : resetStatus[user.email] === 'sent' ? 'Reset Sent'
+                      : resetStatus[user.email] === 'error' ? 'Failed — Retry'
+                      : 'Reset Password'}
+                  </button>
+                  {resetStatus[user.email] === 'link-ready' ? (
+                    <button
+                      onClick={() => handleCopyLink(user.email)}
+                      className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors ${
+                        copiedEmail === user.email
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                      }`}
+                      title="Copy reset link to clipboard"
+                    >
+                      {copiedEmail === user.email ? <Check size={14} /> : <Copy size={14} />}
+                      {copiedEmail === user.email ? 'Copied!' : 'Copy Link'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleGenerateResetLink(user.email)}
+                      disabled={resetStatus[user.email] === 'generating'}
+                      className="px-3 py-1 text-sm rounded-full flex items-center gap-1 bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50 transition-colors"
+                      title="Generate a reset link you can send manually"
+                    >
+                      <Link size={14} />
+                      {resetStatus[user.email] === 'generating' ? 'Generating...' : 'Get Reset Link'}
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}

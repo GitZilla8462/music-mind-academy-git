@@ -358,42 +358,61 @@ const MusicComposer = ({
   const reRenderedBeatsRef = useRef(new Set());
 
   useEffect(() => {
-    // Find custom beats in placedLoops that need re-rendering
-    // Only re-render beats that have needsRender: true (loaded from localStorage)
-    // Freshly placed beats already have valid blob URLs and don't need re-rendering
-    // Skip beats that have already been re-rendered in this session
-    const customBeatsNeedingRender = placedLoops.filter(loop =>
-      loop.type === 'custom-beat' &&
+    // Find custom beats AND melodies in placedLoops that need re-rendering
+    // Only re-render loops that have needsRender: true (loaded from localStorage)
+    // Freshly placed loops already have valid blob URLs and don't need re-rendering
+    // Skip loops that have already been re-rendered in this session
+    const customLoopsNeedingRender = placedLoops.filter(loop =>
+      (loop.type === 'custom-beat' || loop.type === 'custom-melody') &&
       loop.pattern &&
-      loop.needsRender === true &&  // Only re-render beats marked from localStorage load
+      loop.needsRender === true &&
       !reRenderedBeatsRef.current.has(loop.id)
     );
 
-    if (customBeatsNeedingRender.length === 0 || customBeatsRendering) {
+    if (customLoopsNeedingRender.length === 0 || customBeatsRendering) {
       return;
     }
 
-    console.log(`🔄 Re-rendering ${customBeatsNeedingRender.length} custom beats on timeline...`);
+    const beatsCount = customLoopsNeedingRender.filter(l => l.type === 'custom-beat').length;
+    const melodiesCount = customLoopsNeedingRender.filter(l => l.type === 'custom-melody').length;
+    console.log(`🔄 Re-rendering ${beatsCount} custom beats and ${melodiesCount} custom melodies on timeline...`);
     setCustomBeatsRendering(true);
 
-    const renderTimelineBeats = async () => {
+    const renderTimelineLoops = async () => {
       const updatedPlacedLoops = [...placedLoops];
       let anyUpdated = false;
 
-      for (const beat of customBeatsNeedingRender) {
+      for (const loop of customLoopsNeedingRender) {
         try {
           // Mark as re-rendered BEFORE starting to prevent re-triggering
-          reRenderedBeatsRef.current.add(beat.id);
+          reRenderedBeatsRef.current.add(loop.id);
 
-          const { blobURL, duration } = await renderBeatToBlob({
-            pattern: beat.pattern,
-            bpm: beat.bpm,
-            kit: beat.kit,
-            steps: beat.steps
-          });
+          let blobURL, duration;
 
-          // Find and update the beat in placedLoops
-          const index = updatedPlacedLoops.findIndex(l => l.id === beat.id);
+          if (loop.type === 'custom-melody') {
+            const result = await renderMelodyToBlob({
+              pattern: loop.pattern,
+              bpm: loop.bpm,
+              synthType: loop.synthType,
+              notes: loop.notes,
+              beats: loop.beats,
+              mood: loop.mood
+            });
+            blobURL = result.blobURL;
+            duration = result.duration;
+          } else {
+            const result = await renderBeatToBlob({
+              pattern: loop.pattern,
+              bpm: loop.bpm,
+              kit: loop.kit,
+              steps: loop.steps
+            });
+            blobURL = result.blobURL;
+            duration = result.duration;
+          }
+
+          // Find and update the loop in placedLoops
+          const index = updatedPlacedLoops.findIndex(l => l.id === loop.id);
           if (index !== -1) {
             updatedPlacedLoops[index] = {
               ...updatedPlacedLoops[index],
@@ -402,12 +421,12 @@ const MusicComposer = ({
               needsRender: false  // Mark as rendered
             };
             anyUpdated = true;
-            console.log(`✅ Re-rendered timeline beat: ${beat.name}`);
+            console.log(`✅ Re-rendered timeline ${loop.type}: ${loop.name}`);
           }
         } catch (error) {
-          console.error(`❌ Failed to re-render timeline beat ${beat.name}:`, error);
+          console.error(`❌ Failed to re-render timeline ${loop.type} ${loop.name}:`, error);
           // Remove from set so it can retry later if needed
-          reRenderedBeatsRef.current.delete(beat.id);
+          reRenderedBeatsRef.current.delete(loop.id);
         }
       }
 
@@ -417,7 +436,7 @@ const MusicComposer = ({
       setCustomBeatsRendering(false);
     };
 
-    renderTimelineBeats();
+    renderTimelineLoops();
   }, [placedLoops, customBeatsRendering, setPlacedLoops]);
 
   // STEP 3: Create audio players when audio becomes ready
@@ -929,7 +948,7 @@ const MusicComposer = ({
 
     // Check if any custom beats still need rendering
     const customBeatsNeedRender = placedLoops.some(loop =>
-      loop.type === 'custom-beat' &&
+      (loop.type === 'custom-beat' || loop.type === 'custom-melody') &&
       loop.pattern &&
       loop.needsRender === true
     );

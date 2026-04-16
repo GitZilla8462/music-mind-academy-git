@@ -468,8 +468,17 @@ const MelodyGridEditor = ({ onSave, onClose, melodyCount = 0, lockedMood = null,
       '8n'
     );
 
-    sequenceRef.current.loop = true;
+    sequenceRef.current.loop = false;
     sequenceRef.current.start(0);
+
+    // Auto-stop after melody plays once
+    const totalTime = Tone.Time('8n').toSeconds() * beats;
+    Tone.Transport.scheduleOnce(() => {
+      Tone.Draw.schedule(() => {
+        stopPlayback();
+      }, Tone.now());
+    }, totalTime);
+
     Tone.Transport.start('+0.05');
     setIsPlaying(true);
   };
@@ -966,8 +975,17 @@ const MelodyMakerActivity = ({
       '8n'
     );
 
-    previewSequenceRef.current.loop = true;
+    previewSequenceRef.current.loop = false;
     previewSequenceRef.current.start(0);
+
+    // Auto-stop after melody plays once
+    const totalTime = Tone.Time('8n').toSeconds() * beats;
+    Tone.Transport.scheduleOnce(() => {
+      Tone.Draw.schedule(() => {
+        stopPreview();
+      }, Tone.now());
+    }, totalTime);
+
     Tone.Transport.start('+0.05');
     setPlayingMelodyId(melody.id);
   }, [playingMelodyId, stopPreview]);

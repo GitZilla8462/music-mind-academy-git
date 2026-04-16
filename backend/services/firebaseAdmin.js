@@ -48,4 +48,10 @@ const getDatabase = () => {
   return admin.database();
 };
 
-module.exports = { initFirebase, getDatabase };
+const getAuth = () => {
+  if (!initialized) initFirebase();
+  if (!initialized) return null;
+  return admin.auth();
+};
+
+module.exports = { initFirebase, getDatabase, getAuth };
