@@ -342,8 +342,22 @@ const SchoolBeneathActivity = ({
           ]);
           if (firebaseData?.data?.placedLoops?.length > 0) {
             setPlacedLoops(firebaseData.data.placedLoops);
-            // Clear MusicComposer's internal localStorage to prevent stale data race
-            localStorage.removeItem(`composition-${storageKey}`);
+            // Clear stale loop data from MusicComposer's localStorage to prevent data race,
+            // but preserve trackStates (fades, volume, mute, solo) since Firebase doesn't store those
+            try {
+              const savedComp = localStorage.getItem(`composition-${storageKey}`);
+              if (savedComp) {
+                const parsed = JSON.parse(savedComp);
+                if (parsed.trackStates && Object.keys(parsed.trackStates).length > 0) {
+                  // Keep only trackStates, clear loops (Firebase is source of truth for loops)
+                  localStorage.setItem(`composition-${storageKey}`, JSON.stringify({ trackStates: parsed.trackStates }));
+                } else {
+                  localStorage.removeItem(`composition-${storageKey}`);
+                }
+              }
+            } catch (e) {
+              localStorage.removeItem(`composition-${storageKey}`);
+            }
             console.log('☁️ Loaded from Firebase:', firebaseData.data.placedLoops.length, 'loops');
             hasLoadedRef.current = true;
             setIsLoadingWork(false);

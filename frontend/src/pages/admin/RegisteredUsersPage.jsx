@@ -110,8 +110,8 @@ const RegisteredUsersPage = () => {
       ) : (
         <div className="divide-y divide-gray-100">
           {/* Bulk actions toolbar */}
-          <div className="px-6 py-2 bg-gray-50 flex items-center justify-between text-sm">
-            <div className="flex items-center gap-4">
+          <div className="px-4 sm:px-6 py-2 bg-gray-50 flex flex-wrap items-center justify-between gap-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <button onClick={toggleSelectAllUsers} className="px-2 py-1 rounded hover:bg-gray-200 flex items-center gap-1">
                 <input type="checkbox"
                   checked={registeredUsers.length > 0 && registeredUsers.every(user => selectedUsers[user.id])}
@@ -120,20 +120,20 @@ const RegisteredUsersPage = () => {
               </button>
               <button onClick={selectUnapprovedUsers}
                 className="px-3 py-1 rounded bg-orange-100 text-orange-700 hover:bg-orange-200">
-                Select Not Approved ({getUsersNotApproved().length})
+                Not Approved ({getUsersNotApproved().length})
               </button>
               {Object.values(selectedUsers).filter(Boolean).length > 0 && (
                 <button onClick={onBulkDelete} disabled={bulkDeletingUsers}
                   className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 flex items-center gap-1">
                   <Trash2 size={14} />
-                  Delete {Object.values(selectedUsers).filter(Boolean).length} Selected
+                  Delete {Object.values(selectedUsers).filter(Boolean).length}
                 </button>
               )}
             </div>
             <button onClick={exportCSV}
               className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1">
               <Download size={14} />
-              Export CSV
+              CSV
             </button>
           </div>
 
@@ -148,56 +148,113 @@ const RegisteredUsersPage = () => {
             const emailKey = user.email?.toLowerCase().replace(/\./g, ',');
             const teacherType = teacherOutreach[emailKey]?.teacherType || 'pilot';
             return (
-              <div key={user.id} className={`px-6 py-4 flex items-center gap-4 hover:bg-gray-50 ${selectedUsers[user.id] ? 'bg-red-50' : ''}`}>
-                <span className="text-xs text-gray-400 w-6 text-right font-mono">{index + 1}</span>
-                <input type="checkbox" checked={!!selectedUsers[user.id]}
-                  onChange={(e) => setSelectedUsers(prev => ({ ...prev, [user.id]: e.target.checked }))} className="rounded" />
-                {user.photoURL ? (
-                  <img src={user.photoURL} alt="" className="w-10 h-10 rounded-full" />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-                    {user.displayName?.charAt(0) || '?'}
+              <div key={user.id} className={`px-4 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 ${selectedUsers[user.id] ? 'bg-red-50' : ''}`}>
+                {/* Desktop: horizontal row */}
+                <div className="hidden sm:flex items-center gap-4">
+                  <span className="text-xs text-gray-400 w-6 text-right font-mono">{index + 1}</span>
+                  <input type="checkbox" checked={!!selectedUsers[user.id]}
+                    onChange={(e) => setSelectedUsers(prev => ({ ...prev, [user.id]: e.target.checked }))} className="rounded" />
+                  {user.photoURL ? (
+                    <img src={user.photoURL} alt="" className="w-10 h-10 rounded-full" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+                      {user.displayName?.charAt(0) || '?'}
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-800">{user.displayName || 'Unknown'}</div>
+                    <div className="text-sm text-gray-500">{user.email}</div>
                   </div>
-                )}
-                <div className="flex-1">
-                  <div className="font-medium text-gray-800">{user.displayName || 'Unknown'}</div>
-                  <div className="text-sm text-gray-500">{user.email}</div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-500">Joined: {formatDate(user.createdAt)}</div>
+                    <div className="text-sm text-gray-500">Last login: {formatDate(user.lastLoginAt)}</div>
+                  </div>
+                  {teacherType === 'purchased' ? (
+                    <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">Paid</span>
+                  ) : (
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">Pilot</span>
+                  )}
+                  {isApproved ? (
+                    <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">Approved</span>
+                  ) : (
+                    <span className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">Not Approved</span>
+                  )}
+                  {resetStatus[user.email] === 'email-sent' ? (
+                    <span className="px-3 py-1 text-sm rounded-full flex items-center gap-1 bg-green-100 text-green-700">
+                      <Check size={14} /> Reset Link Sent
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleEmailResetLink(user.email, user.displayName)}
+                      disabled={resetStatus[user.email] === 'emailing'}
+                      className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors ${
+                        resetStatus[user.email] === 'error'
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                          : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                      } disabled:opacity-50`}
+                      title="Emails a password reset link to this teacher (you get a CC)"
+                    >
+                      <KeyRound size={14} />
+                      {resetStatus[user.email] === 'emailing' ? 'Sending...'
+                        : resetStatus[user.email] === 'error' ? 'Failed — Retry'
+                        : 'Reset Password'}
+                    </button>
+                  )}
                 </div>
-                <div className="text-right">
-                  <div className="text-sm text-gray-500">Joined: {formatDate(user.createdAt)}</div>
-                  <div className="text-sm text-gray-500">Last login: {formatDate(user.lastLoginAt)}</div>
+
+                {/* Mobile: stacked card */}
+                <div className="sm:hidden">
+                  <div className="flex items-center gap-3">
+                    <input type="checkbox" checked={!!selectedUsers[user.id]}
+                      onChange={(e) => setSelectedUsers(prev => ({ ...prev, [user.id]: e.target.checked }))} className="rounded" />
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt="" className="w-9 h-9 rounded-full" />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                        {user.displayName?.charAt(0) || '?'}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-800 truncate">{user.displayName || 'Unknown'}</div>
+                      <div className="text-xs text-gray-500 truncate">{user.email}</div>
+                    </div>
+                  </div>
+                  <div className="mt-2 ml-12 flex flex-wrap items-center gap-1.5">
+                    {teacherType === 'purchased' ? (
+                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Paid</span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">Pilot</span>
+                    )}
+                    {isApproved ? (
+                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Approved</span>
+                    ) : (
+                      <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">Not Approved</span>
+                    )}
+                    <span className="text-xs text-gray-400">Joined {formatDate(user.createdAt)}</span>
+                  </div>
+                  <div className="mt-2 ml-12">
+                    {resetStatus[user.email] === 'email-sent' ? (
+                      <span className="px-2 py-1 text-xs rounded-full inline-flex items-center gap-1 bg-green-100 text-green-700">
+                        <Check size={12} /> Reset Link Sent
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleEmailResetLink(user.email, user.displayName)}
+                        disabled={resetStatus[user.email] === 'emailing'}
+                        className={`px-2 py-1 text-xs rounded-full inline-flex items-center gap-1 transition-colors ${
+                          resetStatus[user.email] === 'error'
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-yellow-100 text-yellow-700'
+                        } disabled:opacity-50`}
+                      >
+                        <KeyRound size={12} />
+                        {resetStatus[user.email] === 'emailing' ? 'Sending...'
+                          : resetStatus[user.email] === 'error' ? 'Failed — Retry'
+                          : 'Reset Password'}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {teacherType === 'purchased' ? (
-                  <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">Paid</span>
-                ) : (
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm rounded-full">Pilot</span>
-                )}
-                {isApproved ? (
-                  <span className="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full">Approved</span>
-                ) : (
-                  <span className="px-3 py-1 bg-red-100 text-red-700 text-sm rounded-full">Not Approved</span>
-                )}
-                {resetStatus[user.email] === 'email-sent' ? (
-                  <span className="px-3 py-1 text-sm rounded-full flex items-center gap-1 bg-green-100 text-green-700">
-                    <Check size={14} /> Reset Link Sent
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => handleEmailResetLink(user.email, user.displayName)}
-                    disabled={resetStatus[user.email] === 'emailing'}
-                    className={`px-3 py-1 text-sm rounded-full flex items-center gap-1 transition-colors ${
-                      resetStatus[user.email] === 'error'
-                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                        : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                    } disabled:opacity-50`}
-                    title="Emails a password reset link to this teacher (you get a CC)"
-                  >
-                    <KeyRound size={14} />
-                    {resetStatus[user.email] === 'emailing' ? 'Sending...'
-                      : resetStatus[user.email] === 'error' ? 'Failed — Retry'
-                      : 'Reset Password'}
-                  </button>
-                )}
               </div>
             );
           })}

@@ -1,10 +1,12 @@
-import React from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Inbox, Users, UserCheck, BarChart3, BookOpen, Play, MessageSquare, AlertTriangle, Mail, ArrowLeft, Shield, Download, RefreshCw, DatabaseBackup } from 'lucide-react';
+import React, { useState } from 'react';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Inbox, Users, UserCheck, BarChart3, BookOpen, Play, MessageSquare, AlertTriangle, Mail, ArrowLeft, Shield, Download, RefreshCw, DatabaseBackup, Menu, X } from 'lucide-react';
 import { AdminDataProvider, useAdminData } from './AdminDataContext';
 
 const AdminLayoutInner = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const {
     user, authLoading, isAdmin, loading,
     applications, error, setError, success, setSuccess,
@@ -96,12 +98,24 @@ const AdminLayoutInner = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar */}
-      <aside className="w-56 bg-gray-900 text-white flex flex-col fixed inset-y-0 left-0 z-20">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-30 sm:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* Sidebar — fixed on desktop, slide-over on mobile */}
+      <aside className={`w-56 bg-gray-900 text-white flex flex-col fixed inset-y-0 left-0 z-40 transition-transform duration-200 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } sm:translate-x-0`}>
         {/* Logo / Title */}
-        <div className="px-4 py-5 border-b border-gray-800">
-          <h1 className="text-base font-bold text-white">Music Mind Academy</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Admin Dashboard</p>
+        <div className="px-4 py-5 border-b border-gray-800 flex items-center justify-between">
+          <div>
+            <h1 className="text-base font-bold text-white">Music Mind Academy</h1>
+            <p className="text-xs text-gray-400 mt-0.5">Admin Dashboard</p>
+          </div>
+          <button onClick={() => setSidebarOpen(false)} className="sm:hidden text-gray-400 hover:text-white">
+            <X size={20} />
+          </button>
         </div>
 
         {/* Navigation */}
@@ -116,6 +130,7 @@ const AdminLayoutInner = () => {
                   key={item.to}
                   to={item.to}
                   end={item.end}
+                  onClick={() => setSidebarOpen(false)}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-2 mx-2 rounded-lg text-sm transition-colors ${
                       isActive
@@ -144,7 +159,7 @@ const AdminLayoutInner = () => {
             <span className="truncate">{user.email}</span>
           </div>
           <button
-            onClick={() => navigate('/teacher/dashboard')}
+            onClick={() => { navigate('/teacher/dashboard'); setSidebarOpen(false); }}
             className="flex items-center gap-2 mt-3 text-xs text-gray-500 hover:text-white transition-colors"
           >
             <ArrowLeft size={14} />
@@ -154,14 +169,18 @@ const AdminLayoutInner = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 ml-56">
+      <div className="flex-1 sm:ml-56">
         {/* Top bar with actions */}
         <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="px-6 py-3 flex items-center justify-end gap-3">
+          <div className="px-4 sm:px-6 py-3 flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} className="sm:hidden text-gray-600 hover:text-gray-900">
+              <Menu size={22} />
+            </button>
+            <div className="flex-1" />
             <button
               onClick={backfillStudentCounts}
               disabled={isBackfilling}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white rounded-lg text-sm font-medium transition-colors"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white rounded-lg text-sm font-medium transition-colors"
               title="Recover student counts from live session data"
             >
               {isBackfilling ? <RefreshCw size={14} className="animate-spin" /> : <DatabaseBackup size={14} />}
@@ -172,12 +191,13 @@ const AdminLayoutInner = () => {
               className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
             >
               <Download size={14} />
-              Export Excel
+              <span className="hidden sm:inline">Export Excel</span>
+              <span className="sm:hidden">Excel</span>
             </button>
           </div>
         </header>
 
-        <main className="p-6">
+        <main className="p-4 sm:p-6">
           {/* Success/Error Messages */}
           {success && (
             <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center justify-between">

@@ -581,13 +581,13 @@ const TeacherAnalyticsPage = () => {
 
       {/* Funnel Cards — top row adds up to total */}
       <div className="space-y-2">
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
           <FunnelCard label="Never Logged In" count={funnelCounts.notLoggedIn} colorClass="bg-red-50 text-red-800" filterKey="notLoggedIn" icon={UserX} />
           <FunnelCard label="Only Logged In" count={funnelCounts.loggedIn + funnelCounts.explored} colorClass="bg-yellow-50 text-yellow-800" filterKey="loggedIn" icon={Users} />
           <FunnelCard label="Teaching (L1+)" count={funnelCounts.teaching} colorClass="bg-green-50 text-green-800" filterKey="teaching" icon={GraduationCap} />
         </div>
         <div className="text-xs text-gray-400 ml-1">{funnelCounts.notLoggedIn} + {funnelCounts.loggedIn + funnelCounts.explored} + {funnelCounts.teaching} = {funnelCounts.total} approved</div>
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
           <FunnelCard label="Stalled 14+ days" count={funnelCounts.stalled} colorClass="bg-gray-50 text-gray-700" filterKey="stalled" icon={Clock} />
           <FunnelCard label="Survey Due" count={funnelCounts.surveyDue} colorClass="bg-purple-50 text-purple-800" filterKey="surveyDue" icon={ClipboardList} />
         </div>
@@ -626,7 +626,7 @@ const TeacherAnalyticsPage = () => {
       {/* Main Card */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {/* Header with filters */}
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
@@ -638,14 +638,14 @@ const TeacherAnalyticsPage = () => {
                 {(stageFilter !== 'all' || activityFilter !== 'all' || surveyFilter !== 'all' || emailFilter !== 'all' || unitFilter !== 'all' || funnelFilter) && ' (filtered)'}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {/* Search */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text" placeholder="Search name, email, school..."
                   value={analyticsSearch} onChange={(e) => setAnalyticsSearch(e.target.value)}
-                  className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-56"
+                  className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-56"
                 />
               </div>
               {/* Stage filter */}
@@ -737,26 +737,26 @@ const TeacherAnalyticsPage = () => {
 
         {/* Batch action toolbar */}
         {selectedEmails.size > 0 && (
-          <div className="px-6 py-3 bg-blue-50 border-b border-blue-200 flex items-center gap-4 sticky top-0 z-20">
+          <div className="px-4 sm:px-6 py-3 bg-blue-50 border-b border-blue-200 flex flex-wrap items-center gap-2 sm:gap-4 sticky top-0 z-20">
             <span className="text-sm font-medium text-blue-800">
               {selectedEmails.size} selected
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button onClick={handleCopyEmails} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
-                <Copy size={14} /> Copy Emails
+                <Copy size={14} /> <span className="hidden sm:inline">Copy Emails</span><span className="sm:hidden">Copy</span>
               </button>
               <button onClick={handleExportCSV} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
-                <Download size={14} /> Export CSV
+                <Download size={14} /> <span className="hidden sm:inline">Export CSV</span><span className="sm:hidden">CSV</span>
               </button>
               <button onClick={() => setShowEmailModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700">
-                <Mail size={14} /> Send Email
+                <Mail size={14} /> Email
               </button>
               <button onClick={() => setShowMarkSentModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm hover:bg-gray-50">
-                <Check size={14} /> Mark Email Sent
+                <Check size={14} /> <span className="hidden sm:inline">Mark Sent</span><span className="sm:hidden">Mark</span>
               </button>
             </div>
             <button onClick={() => setSelectedEmails(new Set())} className="ml-auto text-sm text-blue-600 hover:text-blue-800">
-              Clear selection
+              Clear
             </button>
           </div>
         )}
@@ -782,7 +782,7 @@ const TeacherAnalyticsPage = () => {
                     />
                   </th>
                   <th className="w-6 px-1 py-2 bg-gray-50"></th>
-                  <SortHeader column="name">Name</SortHeader>
+                  <SortHeader column="name" className="sticky left-0 z-10 bg-gray-50">Name</SortHeader>
                   <SortHeader column="school">School</SortHeader>
                   <SortHeader column="stage">Stage</SortHeader>
                   <SortHeader column="days" center>Days</SortHeader>
@@ -838,7 +838,7 @@ const TeacherAnalyticsPage = () => {
                           )}
                         </td>
                         {/* Name */}
-                        <td className="px-2 py-2 max-w-[160px]">
+                        <td className="px-2 py-2 max-w-[160px] sticky left-0 bg-white z-[5]">
                           {teacher.teacherName ? (
                             <>
                               <div className="font-medium text-gray-800 text-sm truncate">
@@ -1077,7 +1077,7 @@ const TeacherAnalyticsPage = () => {
             </table>
 
             {/* Legend */}
-            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center gap-4 text-xs text-gray-500">
+            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-gray-500">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium">✓x3</span>
                 <span>= Taught (10+ min, 3+ stages)</span>
