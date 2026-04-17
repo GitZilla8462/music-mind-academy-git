@@ -20,6 +20,7 @@ import { MOVEMENT_TYPES } from './characterAnimations';
 import { AUDIO_PATH, TOTAL_DURATION, CHARACTER_OPTIONS, SCENE_SKY_MAP, SECTION_COLORS } from './journeyDefaults';
 import { SCENE_GROUND_MAP } from './config/groundTypes';
 import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo, getStudentId, parseActivityId } from '../../../../utils/studentWorkStorage';
+import { usePreventAccidentalNavigation } from '../../../../hooks/usePreventAccidentalNavigation';
 import { useSession } from '../../../../context/SessionContext';
 import { useStudentAuth } from '../../../../context/StudentAuthContext';
 import { getDatabase, ref, onValue } from 'firebase/database';
@@ -34,6 +35,10 @@ const MAX_STICKERS = 1500;
 const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false, pieceConfig = null, allowedEnvironments = null, allowedCharacters = null, hideDrawingTools = false, gameMode = false, hideDecoys = false, defaultScene = null, defaultCharacter: defaultCharacterProp = null, skipSavedData = false, onDirectionsClick = null, savedDataOverride = null }) => {
   // In-memory auth fallback for managed Chromebooks where localStorage is broken
   const { pinSession } = useStudentAuth();
+
+  // Prevent accidental navigation (Chromebook swipe-back, tab close, etc.)
+  const [hasInteracted, setHasInteracted] = useState(false);
+  usePreventAccidentalNavigation({ hasUnsavedWork: hasInteracted && isSessionMode && !viewMode });
 
   // If pieceConfig is provided, use it instead of defaults
   const audioPath = pieceConfig?.audioPath || AUDIO_PATH;
@@ -170,7 +175,7 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
               }
               return item;
             }));
-            userInteractedRef.current = true;
+            userInteractedRef.current = true; setHasInteracted(true);
           }
           if (fbData.character) setCharacter(fbData.character);
           if (fbData.guideData) setGuideData(fbData.guideData);
@@ -712,6 +717,38 @@ const ListeningJourney = ({ onComplete, viewMode = false, isSessionMode = false,
       }
     };
   }, [isSessionMode, viewMode, storageKey, audioPath, audioVolume, pieceConfig]);
+
+  // Auto-save to Firebase every 60s + save on visibilitychange (Chromebook lid close)
+  const handleSaveRef = useRef(handleSave);
+  handleSaveRef.current = handleSave;
+
+  useEffect(() => {
+    if (!isSessionMode || viewMode || savedDataOverride) return;
+
+    // Periodic auto-save every 60 seconds
+    const intervalId = setInterval(() => {
+      if (unmountItemsRef.current.length > 0 || userInteractedRef.current) {
+        console.log('💾 Auto-saving listening journey (60s interval)...');
+        handleSaveRef.current();
+      }
+    }, 60000);
+
+    // Save when Chromebook lid closes or tab is hidden
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        if (unmountItemsRef.current.length > 0 || userInteractedRef.current) {
+          console.log('💾 Auto-saving listening journey (tab hidden / lid closed)...');
+          handleSaveRef.current();
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isSessionMode, viewMode, savedDataOverride]);
 
   // Listen for teacher's "Save All & Continue" command from Firebase
   useEffect(() => {

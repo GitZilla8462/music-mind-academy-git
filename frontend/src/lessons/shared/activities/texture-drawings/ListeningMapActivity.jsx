@@ -36,6 +36,7 @@ import DirectionsModal from '../../components/DirectionsModal';
 
 // Storage - Use generic system so it appears on Join page
 import { saveStudentWork, loadStudentWork, loadStudentWorkAsync, getClassAuthInfo, getStudentId } from '../../../../utils/studentWorkStorage';
+import { usePreventAccidentalNavigation } from '../../../../hooks/usePreventAccidentalNavigation';
 
 // ============================================================================
 // CONFIG
@@ -393,6 +394,9 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
 
   // Audio
   const audio = useAudioPlayer(mapConfig.audioFile, mapConfig.totalDuration);
+
+  // Prevent accidental navigation (Chromebook swipe-back, tab close, etc.)
+  usePreventAccidentalNavigation({ hasUnsavedWork: canvasReady && isSessionMode });
 
   // Init student ID - use seat-based ID when logged in, anonymous fallback otherwise
   useEffect(() => {
@@ -783,6 +787,36 @@ const ListeningMapActivity = ({ onComplete, audioFile, config = {}, isSessionMod
       }
     };
   }, [isSessionMode]);
+
+  // Auto-save to Firebase every 60s + save on visibilitychange (Chromebook lid close)
+  const handleManualSaveRef = useRef(handleManualSave);
+  handleManualSaveRef.current = handleManualSave;
+
+  useEffect(() => {
+    if (!isSessionMode || !studentId) return;
+
+    // Periodic auto-save every 60 seconds
+    const intervalId = setInterval(() => {
+      if (canvasRefForUnmount.current) {
+        console.log('💾 Auto-saving listening map (60s interval)...');
+        handleManualSaveRef.current(true);
+      }
+    }, 60000);
+
+    // Save when Chromebook lid closes or tab is hidden
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && canvasRefForUnmount.current) {
+        console.log('💾 Auto-saving listening map (tab hidden / lid closed)...');
+        handleManualSaveRef.current(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isSessionMode, studentId]);
 
   const handleProgressClick = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
