@@ -13,7 +13,8 @@ import {
   Bell,
   X,
   Mail,
-  MessageSquare
+  MessageSquare,
+  Shield
 } from 'lucide-react';
 import TutorialVideoLibrary from './onboarding/TutorialVideoLibrary';
 import { getUnwatchedCount } from './onboarding/tutorialVideos';
@@ -40,6 +41,9 @@ const TeacherHeader = ({ pendingCount = 0 }) => {
   // Check which site we're on
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
   const siteName = isEduSite ? 'Music Room Tools' : 'Music Mind Academy';
+
+  const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
+  const isAdmin = user && ADMIN_EMAILS.includes(user.email?.toLowerCase());
 
   const handleSignOut = async () => {
     try {
@@ -98,6 +102,19 @@ const TeacherHeader = ({ pendingCount = 0 }) => {
                   <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full" />
                 )}
               </button>
+              {isAdmin && (
+                <button
+                  onClick={() => navigate('/admin')}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    location.pathname.startsWith('/admin')
+                      ? 'text-purple-600 bg-purple-50'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <Shield size={16} className="inline sm:hidden" />
+                  <span className="hidden sm:inline">Admin</span>
+                </button>
+              )}
             </nav>
 
             {/* Right side */}

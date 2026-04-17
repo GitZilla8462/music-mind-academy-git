@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Trash2, Download, KeyRound, Check } from 'lucide-react';
+import { Users, Trash2, Download, KeyRound, Check, Search } from 'lucide-react';
 import { getAuth } from 'firebase/auth';
 import { useAdminData } from './AdminDataContext';
 
@@ -12,6 +12,7 @@ const RegisteredUsersPage = () => {
   const [selectedUsers, setSelectedUsers] = useState({});
   const [bulkDeletingUsers, setBulkDeletingUsers] = useState(false);
   const [resetStatus, setResetStatus] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleEmailResetLink = async (userEmail, userName) => {
     if (!userEmail) return;
@@ -98,11 +99,23 @@ const RegisteredUsersPage = () => {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-          <Users size={20} />
-          Registered Users
-        </h2>
+      <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <Users size={20} />
+            Registered Users
+          </h2>
+          <div className="relative w-full sm:w-64">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
       </div>
 
       {registeredUsers.length === 0 ? (
@@ -137,7 +150,12 @@ const RegisteredUsersPage = () => {
             </button>
           </div>
 
-          {[...registeredUsers].sort((a, b) => {
+          {[...registeredUsers].filter(user => {
+            if (!searchQuery.trim()) return true;
+            const q = searchQuery.toLowerCase();
+            return (user.displayName || '').toLowerCase().includes(q) ||
+                   (user.email || '').toLowerCase().includes(q);
+          }).sort((a, b) => {
             const aEmailKey = a.email?.toLowerCase().replace(/\./g, ',');
             const bEmailKey = b.email?.toLowerCase().replace(/\./g, ',');
             const aType = teacherOutreach[aEmailKey]?.teacherType || 'pilot';
