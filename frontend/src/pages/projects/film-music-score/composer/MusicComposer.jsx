@@ -549,7 +549,7 @@ const MusicComposer = ({
         const statesForScheduling = {};
         for (let i = 0; i < 6; i++) {
           const trackKey = `track-${i}`;
-          statesForScheduling[trackKey] = trackStates[trackKey] || { volume: 0.7, solo: false, mute: false };
+          statesForScheduling[trackKey] = trackStates[trackKey] || { volume: 0.7, solo: false, muted: false };
         }
         scheduleLoops(placedLoops, selectedVideo?.duration || 60, statesForScheduling);
       }

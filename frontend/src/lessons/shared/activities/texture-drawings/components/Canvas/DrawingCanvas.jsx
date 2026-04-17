@@ -416,6 +416,9 @@ const DrawingCanvas = forwardRef(({
   
   // Clipboard for copy/paste
   const clipboardRef = useRef([]);
+  const isPastingRef = useRef(false);
+  const nextStickerIdRef = useRef(1);
+  const saveToHistoryRef = useRef(null);
   
   // Marquee selection state
   const [isMarqueeSelecting, setIsMarqueeSelecting] = useState(false);
@@ -430,6 +433,9 @@ const DrawingCanvas = forwardRef(({
   const dragRef = useRef(null);
   const [, forceUpdate] = useState(0);
   
+  // Keep refs in sync with state
+  useEffect(() => { nextStickerIdRef.current = nextStickerId; }, [nextStickerId]);
+
   // History
   const historyRef = useRef([]);
   const historyIndexRef = useRef(-1);
@@ -556,7 +562,8 @@ const DrawingCanvas = forwardRef(({
       canRedo: false
     });
   }, [stickers, onHistoryChange]);
-  
+  saveToHistoryRef.current = saveToHistory;
+
   const restoreState = (state) => {
     if (!state) return;
     
@@ -800,13 +807,16 @@ const DrawingCanvas = forwardRef(({
   
   const pasteStickers = useCallback(() => {
     if (clipboardRef.current.length === 0) return;
-    
+    if (isPastingRef.current) return;
+    isPastingRef.current = true;
+
     // Paste offset: 20px down and 20px left from original positions
     const PASTE_OFFSET = 20;
-    
+
+    const currentNextId = nextStickerIdRef.current;
     const newIds = new Set();
     const newStickers = clipboardRef.current.map((s, index) => {
-      const newId = nextStickerId + index;
+      const newId = currentNextId + index;
       newIds.add(newId);
       return {
         ...s,
@@ -815,7 +825,7 @@ const DrawingCanvas = forwardRef(({
         y: s.originalY + PASTE_OFFSET   // Down (bottom-right offset)
       };
     });
-    
+
     // Update clipboard positions for next paste (stack effect)
     // Each subsequent paste will be offset from the previous paste location
     clipboardRef.current = clipboardRef.current.map(s => ({
@@ -823,15 +833,18 @@ const DrawingCanvas = forwardRef(({
       originalX: s.originalX + PASTE_OFFSET,
       originalY: s.originalY + PASTE_OFFSET
     }));
-    
+
     setStickers(prev => [...prev, ...newStickers]);
     setNextStickerId(prev => prev + newStickers.length);
     setSelectedStickerIds(newIds);
-    
+
     console.log(`📋 Pasted ${newStickers.length} sticker(s)`);
-    
-    setTimeout(saveToHistory, 50);
-  }, [nextStickerId, saveToHistory]);
+
+    setTimeout(() => {
+      saveToHistoryRef.current?.();
+      isPastingRef.current = false;
+    }, 50);
+  }, []);
   
   // ========================================================================
   // MARQUEE SELECTION
@@ -1146,7 +1159,7 @@ const DrawingCanvas = forwardRef(({
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedStickerIds, undo, redo, saveToHistory, copySelectedStickers, pasteStickers, tool, stickers]);
+  }, [selectedStickerIds, undo, redo, saveToHistory, copySelectedStickers, pasteStickers, tool, stickers]); // eslint-disable-line react-hooks/exhaustive-deps
   
   // ========================================================================
   // CLEAR LANE

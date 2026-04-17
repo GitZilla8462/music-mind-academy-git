@@ -176,8 +176,6 @@ const StudentClasswork = () => {
       const assignments = [];
       for (const activity of lesson.activities) {
         if (activity.type !== 'composition' && activity.type !== 'reflection' && activity.type !== 'exit-ticket' && activity.type !== 'scouting-report') continue;
-        // Exit tickets always show if lesson was conducted (so absent students can complete them)
-        if (activity.type !== 'exit-ticket' && !hasSubmission(lesson.id, activity.id)) continue;
 
         const sub = getSubmission(lesson.id, activity.id);
         const grade = getGrade(lesson.id);
@@ -312,7 +310,7 @@ const StudentClasswork = () => {
                               <div className="text-xs text-gray-400">
                                 {assignment.submission?.submittedAt
                                   ? `Turned in ${formatDate(assignment.submission.submittedAt)}`
-                                  : assignment.type === 'exit-ticket' ? 'Not completed' : ''}
+                                  : assignment.type === 'exit-ticket' ? 'Not completed' : 'Not started'}
                               </div>
                             </div>
 

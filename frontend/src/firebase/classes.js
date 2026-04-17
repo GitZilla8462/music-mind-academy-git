@@ -308,14 +308,18 @@ export const startClassSession = async (classId, sessionData) => {
 
   const { lessonId, lessonRoute } = sessionData;
 
+  // If rerunning the same lesson, preserve existing students and progress
+  const prevSession = classData.currentSession;
+  const isRerun = prevSession && prevSession.lessonId === lessonId;
+
   const currentSession = {
     active: true,
     lessonId,
     lessonRoute,
     currentStage: 'join-code',
     startedAt: Date.now(),
-    studentsJoined: {},
-    studentProgress: {},
+    studentsJoined: isRerun && prevSession.studentsJoined ? prevSession.studentsJoined : {},
+    studentProgress: isRerun && prevSession.studentProgress ? prevSession.studentProgress : {},
     timestamp: Date.now()
   };
 
