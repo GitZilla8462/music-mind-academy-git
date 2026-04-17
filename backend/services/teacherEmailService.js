@@ -758,6 +758,46 @@ const sendCustomEmail = async (email, firstName, subject, html) => {
   }
 };
 
+/**
+ * Password Reset: Email the teacher their reset link (sent from your domain, CC admin)
+ */
+const sendPasswordResetLinkToTeacher = async (teacherEmail, teacherName, resetLink) => {
+  const transport = getTransporter();
+  if (!transport) {
+    console.log('[TeacherEmail] SMTP not configured, skipping reset link email');
+    return { success: false, error: 'SMTP not configured' };
+  }
+
+  const firstName = (teacherName || '').split(' ')[0] || 'there';
+  const subject = 'Reset your Music Mind Academy password';
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f8fafc;">
+<div style="max-width:500px;margin:40px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+<div style="background:#1e293b;padding:24px 32px;"><h1 style="margin:0;color:white;font-size:18px;">Music Mind Academy</h1></div>
+<div style="padding:32px;">
+<p style="margin:0 0 16px;font-size:16px;color:#1e293b;">Hi ${firstName},</p>
+<p style="margin:0 0 24px;font-size:14px;color:#374151;line-height:1.6;">Here's your password reset link. Click below to choose a new password.</p>
+<a href="${resetLink}" style="display:inline-block;padding:14px 32px;background:#2563eb;color:white;text-decoration:none;border-radius:8px;font-weight:600;font-size:15px;">Reset My Password</a>
+<p style="margin:24px 0 0;font-size:13px;color:#94a3b8;line-height:1.5;">This link expires in 1 hour. If it doesn't work, just reply to this email and I'll send another one.</p>
+</div></div></body></html>`;
+
+  try {
+    const info = await transport.sendMail({
+      from: `"Rob Taube - Music Mind Academy" <${SMTP_USER}>`,
+      replyTo: ADMIN_EMAIL,
+      to: teacherEmail,
+      cc: ADMIN_EMAIL,
+      subject,
+      text: `Hi ${firstName},\n\nHere's your password reset link:\n${resetLink}\n\nThis link expires in 1 hour. If it doesn't work, just reply to this email.\n\nBest,\nRob Taube\nMusic Mind Academy`,
+      html
+    });
+    console.log(`[TeacherEmail] Password reset link sent to ${teacherEmail}, CC ${ADMIN_EMAIL} (${info.messageId})`);
+    return { success: true, messageId: info.messageId };
+  } catch (err) {
+    console.error(`[TeacherEmail] Failed to send reset link to ${teacherEmail}:`, err.message);
+    return { success: false, error: err.message };
+  }
+};
+
 module.exports = {
   sendMidPilotSurveyEmail,
   sendFinalPilotSurveyEmail,
@@ -773,5 +813,6 @@ module.exports = {
   renderTemplate,
   renderPreviewHtml,
   generateUnsubscribeToken,
-  isUnsubscribed
+  isUnsubscribed,
+  sendPasswordResetLinkToTeacher
 };

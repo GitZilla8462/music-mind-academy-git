@@ -26,7 +26,7 @@ const calculateDefaultZoom = (videoDuration) => {
   return Math.max(0.25, Math.min(0.75, idealZoom));
 };
 
-export const useTimelineState = (duration) => {
+export const useTimelineState = (duration, compositionKey = null) => {
   const [trackStates, setTrackStates] = useState({});
   const [localZoom, setLocalZoom] = useState(() => calculateDefaultZoom(duration));
   const [draggedLoop, setDraggedLoop] = useState(null);
@@ -34,11 +34,29 @@ export const useTimelineState = (duration) => {
   const [hoveredTrack, setHoveredTrack] = useState(null);
   const [hasInitializedZoom, setHasInitializedZoom] = useState(false);
 
-  // Initialize track states
+  // Initialize track states with defaults, merging any saved fades/volume from localStorage
   useEffect(() => {
-    const initialStates = {};
+    // Try to load saved track states from localStorage
+    let savedTrackStates = null;
+    if (compositionKey) {
+      try {
+        const saved = localStorage.getItem(`composition-${compositionKey}`);
+        if (saved) {
+          const data = JSON.parse(saved);
+          if (data.trackStates && Object.keys(data.trackStates).length > 0) {
+            savedTrackStates = data.trackStates;
+            console.log('🎚️ Restored saved track states (fades, volume, etc.)');
+          }
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+    }
+
+    const defaultStates = {};
     for (let i = 0; i < TIMELINE_CONSTANTS.NUM_TRACKS; i++) {
-      initialStates[`track-${i}`] = {
+      const trackId = `track-${i}`;
+      defaultStates[trackId] = {
         volume: 0.7,
         muted: false,
         solo: false,
@@ -46,11 +64,12 @@ export const useTimelineState = (duration) => {
         visible: true,
         locked: false,
         name: `Track ${i + 1}`,
-        color: '#3b82f6'
+        color: '#3b82f6',
+        ...(savedTrackStates?.[trackId] || {})
       };
     }
-    setTrackStates(initialStates);
-  }, []);
+    setTrackStates(defaultStates);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Recalculate default zoom when component mounts (has access to window)
   useEffect(() => {

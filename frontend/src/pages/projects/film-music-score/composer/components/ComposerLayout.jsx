@@ -95,7 +95,10 @@ const ComposerLayout = ({
   isPassive = false,
 
   // Full screen preview
-  onFullScreenClick
+  onFullScreenClick,
+
+  // Composition key for loading saved track states from localStorage
+  compositionKey = null
 }) => {
   return (
     <div 
@@ -207,6 +210,7 @@ const ComposerLayout = ({
                   onStop={handleStop}
                   onRestart={handleRestart}
                   playersReady={playersReady}
+                  compositionKey={compositionKey}
                 />
               </div>
             }
@@ -288,6 +292,7 @@ const ComposerLayout = ({
                   onStop={handleStop}
                   onRestart={handleRestart}
                   playersReady={playersReady}
+                  compositionKey={compositionKey}
                 />
               </div>
             }

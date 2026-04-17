@@ -36,7 +36,9 @@ const Timeline = ({
   onStop,
   onRestart,
   // NEW: Track if audio players are ready
-  playersReady = true
+  playersReady = true,
+  // Composition key for loading saved track states (fades, volume, etc.) from localStorage
+  compositionKey = null
 }) => {
   // Debug: Log duration when it changes
   React.useEffect(() => {
@@ -69,7 +71,7 @@ const Timeline = ({
     setHoveredTrack,
     updateTrackState,
     handleZoomChange
-  } = useTimelineState(duration);
+  } = useTimelineState(duration, compositionKey);
 
   // Selection box hook
   const {

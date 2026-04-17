@@ -633,18 +633,33 @@ const MusicComposer = ({
       pattern: loop.pattern
     }));
 
+    // Save per-track settings (volume, mute, solo, fades) - only non-default values
+    const trackStatesToSave = {};
+    for (const [trackId, state] of Object.entries(trackStates)) {
+      if (state.fadeIn || state.fadeOut || state.muted || state.solo || state.volume !== 0.7) {
+        trackStatesToSave[trackId] = {
+          volume: state.volume,
+          muted: state.muted,
+          solo: state.solo,
+          fadeIn: state.fadeIn || 0,
+          fadeOut: state.fadeOut || 0
+        };
+      }
+    }
+
     const compositionData = {
       selectedVideo,
       placedLoops: updatedPlacedLoops,
       submissionNotes,
       videoId,
       customLoops: customLoopsToSave,
+      trackStates: trackStatesToSave,
       lastModified: new Date().toISOString()
     };
 
     localStorage.setItem(`composition-${saveKey}`, JSON.stringify(compositionData));
     console.log(`💾 Immediate save: ${updatedPlacedLoops.length} loops`);
-  }, [compositionKey, assignmentId, videoId, preselectedVideo, selectedVideo, submissionNotes, customLoops]);
+  }, [compositionKey, assignmentId, videoId, preselectedVideo, selectedVideo, submissionNotes, customLoops, trackStates]);
 
   // Loop handlers
   const {
@@ -735,7 +750,9 @@ const MusicComposer = ({
     // Passive mode - disable audio for iframe previews
     isPassive,
     // Pass initialPlacedLoops so useComposerEffects can skip localStorage load when props provide loops
-    initialPlacedLoops
+    initialPlacedLoops,
+    // Track states (volume, mute, solo, fades) for save
+    trackStates
   });
 
   // Re-render custom beats AND melodies that were loaded from localStorage
@@ -806,7 +823,21 @@ const MusicComposer = ({
 
   // Track state change handler with callback
   const handleTrackStateChange = useCallback((newTrackStates) => {
-    setTrackStates(newTrackStates);
+    setTrackStates(prev => {
+      // Only mark as unsaved if there's a meaningful change (not just initial default sync)
+      const hasRealChange = Object.keys(prev).length > 0 && Object.keys(newTrackStates).some(key => {
+        const oldState = prev[key];
+        const newState = newTrackStates[key];
+        if (!oldState || !newState) return false;
+        return oldState.volume !== newState.volume || oldState.muted !== newState.muted ||
+          oldState.solo !== newState.solo || oldState.fadeIn !== newState.fadeIn ||
+          oldState.fadeOut !== newState.fadeOut;
+      });
+      if (hasRealChange) {
+        setHasUnsavedChanges(true);
+      }
+      return newTrackStates;
+    });
 
     if (onTrackVolumeChangeCallback || onTrackSoloToggleCallback) {
       Object.keys(newTrackStates).forEach(trackKey => {
@@ -1118,6 +1149,8 @@ const MusicComposer = ({
         isPassive={isPassive}
         // Full screen preview
         onFullScreenClick={() => setFullScreenPreviewOpen(true)}
+        // Composition key for loading saved track states from localStorage
+        compositionKey={compositionKey || assignmentId || videoId || preselectedVideo?.id || preselectedVideo?.videoPath || 'default-composition'}
       />
 
       {/* Full Screen Preview Modal */}

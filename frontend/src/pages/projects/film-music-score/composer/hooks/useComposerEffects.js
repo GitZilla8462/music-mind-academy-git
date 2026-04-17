@@ -59,7 +59,10 @@ export const useComposerEffects = ({
   isPassive = false,
 
   // Initial loops from parent — if provided, skip localStorage load to prevent stale data overwrite
-  initialPlacedLoops = null
+  initialPlacedLoops = null,
+
+  // Track states (volume, mute, solo, fades) for save
+  trackStates = {}
 }) => {
   
   // Track if we've already loaded a video to prevent re-initialization
@@ -221,23 +224,38 @@ export const useComposerEffects = ({
           pattern: loop.pattern // The grid data for re-rendering
         }));
 
+        // Save per-track settings (volume, mute, solo, fades) - only non-default values
+        const trackStatesToSave = {};
+        for (const [trackId, state] of Object.entries(trackStates)) {
+          if (state.fadeIn || state.fadeOut || state.muted || state.solo || state.volume !== 0.7) {
+            trackStatesToSave[trackId] = {
+              volume: state.volume,
+              muted: state.muted,
+              solo: state.solo,
+              fadeIn: state.fadeIn || 0,
+              fadeOut: state.fadeOut || 0
+            };
+          }
+        }
+
         const compositionData = {
           selectedVideo,
           placedLoops,
           submissionNotes,
           videoId,
           customLoops: customLoopsToSave,
+          trackStates: trackStatesToSave,
           lastModified: new Date().toISOString()
         };
 
         localStorage.setItem(`composition-${saveKey}`, JSON.stringify(compositionData));
-        // Reduced logging - only log count, not full key
-        console.log(`✅ Auto-saved: ${placedLoops.length} loops, ${customLoops.length} custom beats`);
+        const fadeCount = Object.values(trackStatesToSave).filter(s => s.fadeIn || s.fadeOut).length;
+        console.log(`✅ Auto-saved: ${placedLoops.length} loops, ${customLoops.length} custom beats, ${fadeCount} tracks with fades`);
       }, 2000);
 
       return () => clearTimeout(autoSave);
     }
-  }, [placedLoops, submissionNotes, hasUnsavedChanges, assignmentId, selectedVideo, videoId, preselectedVideo, compositionKey, customLoops]);
+  }, [placedLoops, submissionNotes, hasUnsavedChanges, assignmentId, selectedVideo, videoId, preselectedVideo, compositionKey, customLoops, trackStates]);
 
   // ============================================================================
   // LOAD SAVED COMPOSITION ON MOUNT - NOW WORKS IN ALL MODES
@@ -251,14 +269,7 @@ export const useComposerEffects = ({
       return;
     }
 
-    // Skip loading from localStorage if loops were already provided via props
-    // Must check initialPlacedLoops (the prop) not placedLoops (state) because
-    // React state updates from the initialPlacedLoops effect haven't flushed yet
-    if ((initialPlacedLoops && initialPlacedLoops.length > 0) || (placedLoops && placedLoops.length > 0)) {
-      console.log('📂 Skipping localStorage load - loops already provided via props:', initialPlacedLoops?.length || placedLoops?.length);
-      hasLoadedSavedCompositionRef.current = true;
-      return;
-    }
+    const loopsProvidedViaProps = (initialPlacedLoops && initialPlacedLoops.length > 0) || (placedLoops && placedLoops.length > 0);
 
     const saveKey = compositionKey
       || assignmentId
@@ -271,7 +282,12 @@ export const useComposerEffects = ({
     if (saved) {
       try {
         const data = JSON.parse(saved);
-        if (data.placedLoops && data.placedLoops.length > 0) {
+
+        // Skip loading loops from localStorage if already provided via props (e.g., from Firebase)
+        if (loopsProvidedViaProps) {
+          console.log('📂 Skipping localStorage loop load - loops already provided via props:', initialPlacedLoops?.length || placedLoops?.length);
+          hasLoadedSavedCompositionRef.current = true;
+        } else if (data.placedLoops && data.placedLoops.length > 0) {
           console.log('📂 Loaded saved composition:', data.placedLoops.length, 'loops');
           // Mark custom beats as needing re-render (blob URLs don't persist)
           const restoredLoops = data.placedLoops.map(loop => {
@@ -286,11 +302,13 @@ export const useComposerEffects = ({
           setPlacedLoops(restoredLoops);
           hasLoadedSavedCompositionRef.current = true;
         }
-        if (data.submissionNotes) {
+        if (!loopsProvidedViaProps && data.submissionNotes) {
           setSubmissionNotes(data.submissionNotes);
         }
+        // Track states (fades, volume, etc.) are loaded directly by useTimelineState
+        // from localStorage on mount — no need to restore them here.
         // Load custom loops (Beat Maker beats) - mark as needing re-rendering
-        if (data.customLoops && data.customLoops.length > 0 && setCustomLoops) {
+        if (!loopsProvidedViaProps && data.customLoops && data.customLoops.length > 0 && setCustomLoops) {
           console.log('📂 Loaded saved custom beats:', data.customLoops.length);
           // Mark loops as needing audio re-render (no blob URL)
           const restoredCustomLoops = data.customLoops.map(loop => ({
@@ -305,6 +323,9 @@ export const useComposerEffects = ({
       } catch (error) {
         console.error('Error loading saved composition:', error);
       }
+    } else if (loopsProvidedViaProps) {
+      // No saved localStorage data, but loops came from props — mark as loaded
+      hasLoadedSavedCompositionRef.current = true;
     }
   }, [assignmentId, videoId, preselectedVideo, setPlacedLoops, setSubmissionNotes, compositionKey, placedLoops, setCustomLoops]);
 
