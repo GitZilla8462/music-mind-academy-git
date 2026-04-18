@@ -129,63 +129,8 @@ const ArtistProfile = ({
         {/* Their sound */}
         <TheirSound artist={artist} />
 
-        {/* Licensing & Attribution */}
-        {artist.license && (
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3.5 mb-3">
-            <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <Shield size={12} />
-              Licensing & Attribution
-            </h2>
-            <div className="space-y-1.5">
-              <p className="text-white/70 text-[13px] leading-relaxed">
-                Music by <span className="text-white/90 font-medium">{artist.name}</span> is licensed under{' '}
-                <span className="text-white/90 font-medium">
-                  {artist.license === 'CC0' ? 'Creative Commons Zero (CC0) — Public Domain' :
-                   artist.license === 'CC BY' ? 'Creative Commons Attribution 4.0 (CC BY)' :
-                   artist.license === 'CC BY-SA' ? 'Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA)' :
-                   artist.license === 'Used with Permission' ? 'Used with Permission from the Artist' :
-                   artist.license}
-                </span>
-              </p>
-              <p className="text-white/40 text-[13px] leading-relaxed">
-                {artist.license === 'CC0'
-                  ? 'This music is in the public domain. No attribution is required, but we credit the artist because they deserve it.'
-                  : artist.license === 'CC BY'
-                    ? 'You are free to share and adapt this music, even commercially, as long as you give appropriate credit to the artist.'
-                    : artist.license === 'Used with Permission'
-                      ? 'This artist has granted Music Mind Academy permission to use their music for educational purposes.'
-                      : 'You are free to share and adapt this music, even commercially, as long as you give credit and share under the same license.'
-                }
-              </p>
-              <p className="text-white/30 text-[12px]">
-                {artist.fmaUrl ? 'Source: Free Music Archive' : artist.bandcampUrl ? 'Source: Bandcamp' : ''}
-                {artist.fmaUrl && (
-                  <a
-                    href={artist.fmaUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 ml-2 text-amber-400/60 hover:text-amber-400 transition-colors"
-                  >
-                    View on FMA <ExternalLink size={10} />
-                  </a>
-                )}
-                {!artist.fmaUrl && artist.bandcampUrl && (
-                  <a
-                    href={artist.bandcampUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 ml-2 text-amber-400/60 hover:text-amber-400 transition-colors"
-                  >
-                    View on Bandcamp <ExternalLink size={10} />
-                  </a>
-                )}
-              </p>
-            </div>
-          </div>
-        )}
-
         {/* Browse more artists — curated: similar + same genre, max 6 */}
-        <div className="mb-8">
+        <div className="mb-3">
           <h2 className="text-white/60 text-xs uppercase tracking-wider font-semibold mb-3">
             More Artists to Explore
           </h2>
@@ -224,6 +169,44 @@ const ArtistProfile = ({
             })}
           </div>
         </div>
+
+        {/* Copyright & Licensing Footer */}
+        {artist.license && (
+          <div className="border-t border-white/[0.06] pt-3 pb-6 mt-2">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Shield size={11} className="text-white/30" />
+              <span className="text-white/30 text-[11px] font-semibold uppercase tracking-wider">Copyright & Licensing</span>
+            </div>
+            <p className="text-white/40 text-[12px] leading-relaxed">
+              © Music by <span className="text-white/60">{artist.name}</span>.{' '}
+              {artist.license === 'CC0'
+                ? 'Released under Creative Commons Zero (CC0) — Public Domain. No attribution required.'
+                : artist.license === 'CC BY'
+                  ? 'Licensed under Creative Commons Attribution 4.0 (CC BY). Free to use with credit to the artist.'
+                  : artist.license === 'CC BY-SA'
+                    ? 'Licensed under Creative Commons Attribution-ShareAlike 4.0 (CC BY-SA). Free to use with credit and same license.'
+                    : artist.license === 'Used with Permission'
+                      ? 'Used with written permission from the artist for educational purposes on Music Mind Academy.'
+                      : artist.license
+              }
+            </p>
+            <p className="text-white/25 text-[11px] mt-1">
+              {artist.fmaUrl ? (
+                <>Source: Free Music Archive{' '}
+                  <a href={artist.fmaUrl} target="_blank" rel="noopener noreferrer" className="text-amber-400/40 hover:text-amber-400/70 transition-colors">
+                    View original <ExternalLink size={9} className="inline" />
+                  </a>
+                </>
+              ) : artist.bandcampUrl ? (
+                <>Source: Bandcamp{' '}
+                  <a href={artist.bandcampUrl} target="_blank" rel="noopener noreferrer" className="text-amber-400/40 hover:text-amber-400/70 transition-colors">
+                    View original <ExternalLink size={9} className="inline" />
+                  </a>
+                </>
+              ) : null}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

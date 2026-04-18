@@ -642,7 +642,6 @@ const ARTISTS = [
     funFacts: [
       'His debut album "The Mr. Phelps Era" dropped in June 2024 with 13 tracks spanning 5 different styles',
       'Features collaborations with vocalists Angela Sheik, Cinder Shine, Ty Avery, and Primah',
-      'Granted Music Mind Academy direct permission to feature his music in classrooms across the country',
     ],
     tracks: [
       { title: 'This What We Do', duration: '2:29', audioUrl: 'https://media.musicmindacademy.com/artists/mr-phelps/Mr.%20Phelps%20-%20The%20Mr.%20Phelps%20Era%20-%2004%20This%20What%20We%20Do.mp3' },
