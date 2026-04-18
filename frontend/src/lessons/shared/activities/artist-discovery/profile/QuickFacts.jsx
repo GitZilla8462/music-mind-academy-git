@@ -21,11 +21,11 @@ const QuickFacts = ({ artist }) => {
   if (facts.length === 0) return null;
 
   return (
-    <div className="mb-6">
-      <h2 className="text-white/60 text-xs uppercase tracking-wider font-semibold mb-3">
+    <div className="mb-3">
+      <h2 className="text-white/60 text-xs uppercase tracking-wider font-semibold mb-2">
         Quick Facts
       </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2">
         {facts.map(fact => {
           const Icon = fact.icon;
           const isInstruments = fact.key === 'instruments' && Array.isArray(fact.value);
@@ -33,10 +33,10 @@ const QuickFacts = ({ artist }) => {
           return (
             <div
               key={fact.key}
-              className="bg-white/[0.03] border border-white/[0.06] rounded-lg p-3"
+              className="bg-white/[0.03] border border-white/[0.06] rounded-lg px-2.5 py-2"
             >
-              <Icon size={14} className="text-white/30 mb-1.5" />
-              <p className="text-white/30 text-[10px] uppercase tracking-wider mb-1">{fact.label}</p>
+              <Icon size={12} className="text-white/30 mb-1" />
+              <p className="text-white/30 text-[10px] uppercase tracking-wider mb-0.5">{fact.label}</p>
               {isInstruments ? (
                 <div className="flex flex-wrap gap-1">
                   {fact.value.map(inst => (

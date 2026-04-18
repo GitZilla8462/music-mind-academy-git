@@ -111,11 +111,19 @@ function useLocalAudio(tracks) {
       stopProgressLoop();
     }
 
-    const audio = new Audio(track.audioUrl);
+    const audio = new Audio();
     audioRef.current = audio;
 
     audio.addEventListener('loadedmetadata', () => {
-      setDuration(audio.duration);
+      if (audio.duration && isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    });
+
+    audio.addEventListener('durationchange', () => {
+      if (audio.duration && isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
     });
 
     audio.addEventListener('ended', () => {
@@ -133,6 +141,8 @@ function useLocalAudio(tracks) {
       setIsPlaying(false);
       stopProgressLoop();
     });
+
+    audio.src = track.audioUrl;
 
     setCurrentTrackIndex(index);
     setCurrentTime(0);

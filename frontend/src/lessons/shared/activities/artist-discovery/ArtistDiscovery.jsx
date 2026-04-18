@@ -112,7 +112,7 @@ const ArtistDiscovery = ({ onComplete, isSessionMode, lockedArtists = [], hideMi
     const artist = getArtistById(viewingArtist);
     if (artist) {
       return (
-        <div className="min-h-screen bg-[#0f1419]">
+        <div className="h-screen bg-[#0f1419] overflow-y-auto scrollbar-prominent">
           <ArtistProfile
             artist={artist}
             onBack={() => setViewingArtist(null)}

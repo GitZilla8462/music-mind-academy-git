@@ -5,13 +5,14 @@ const HeroBanner = ({ artist, genreConfig }) => {
   const hasImage = !!artist.imageUrl;
 
   return (
-    <div className="relative w-full" style={{ height: '140px' }}>
+    <div className="relative w-full" style={{ height: '100px' }}>
       {/* Background */}
       {hasImage ? (
         <img
           src={artist.imageUrl}
           alt={artist.name}
-          className="absolute inset-0 w-full h-full object-cover object-top"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ objectPosition: artist.imagePosition || 'top' }}
         />
       ) : (
         <div
@@ -24,8 +25,8 @@ const HeroBanner = ({ artist, genreConfig }) => {
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
       {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 max-w-4xl mx-auto">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1.5 leading-tight">{artist.name}</h1>
+      <div className="absolute bottom-0 left-0 right-0 px-4 pb-2.5 max-w-4xl mx-auto">
+        <h1 className="text-xl sm:text-2xl font-bold text-white mb-1 leading-tight">{artist.name}</h1>
         <div className="flex items-center gap-3 flex-wrap">
           {artist.location && (
             <div className="flex items-center gap-1 text-white/60 text-sm">

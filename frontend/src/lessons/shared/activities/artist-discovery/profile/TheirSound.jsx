@@ -7,14 +7,14 @@ const TheirSound = ({ artist }) => {
   if (!hasMoods && !hasInfluences) return null;
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 mb-6">
-      <h2 className="text-white/60 text-xs uppercase tracking-wider font-semibold mb-3">
+    <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3.5 mb-3">
+      <h2 className="text-white/60 text-xs uppercase tracking-wider font-semibold mb-2">
         Their Sound
       </h2>
 
       {/* Mood pills */}
       {hasMoods && (
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-1.5 mb-3">
           {artist.moods.map(mood => (
             <span
               key={mood}

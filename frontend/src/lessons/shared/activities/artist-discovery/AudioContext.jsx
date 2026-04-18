@@ -31,6 +31,10 @@ export function AudioProvider({ children }) {
 
   // Progress loop
   const startLoop = useCallback(() => {
+    // Cancel any existing loop first to prevent duplicates
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+    }
     const update = () => {
       if (audioRef.current) {
         setState(prev => ({ ...prev, currentTime: audioRef.current.currentTime }));
@@ -47,6 +51,9 @@ export function AudioProvider({ children }) {
     }
   }, []);
 
+  // Guard against duplicate playTrack calls for the same URL
+  const playingUrlRef = useRef(null);
+
   // Play a specific track
   const playTrack = useCallback((track, index, tracks, artistInfo = {}) => {
     if (!track?.audioUrl) return;
@@ -62,22 +69,40 @@ export function AudioProvider({ children }) {
       return;
     }
 
+    // Guard: if we're already loading this exact URL, skip
+    if (playingUrlRef.current === track.audioUrl) return;
+    playingUrlRef.current = track.audioUrl;
+
     // New track
     if (audioRef.current) {
       audioRef.current.pause();
       stopLoop();
     }
 
-    const audio = new Audio(track.audioUrl);
+    // Create Audio without src first, add listeners, THEN set src.
+    // This prevents missing loadedmetadata on cached audio files
+    // (browser fires the event synchronously during src assignment if cached).
+    const audio = new Audio();
     audio.volume = volumeRef.current;
     audioRef.current = audio;
 
     audio.addEventListener('loadedmetadata', () => {
-      setState(prev => ({ ...prev, duration: audio.duration }));
+      console.log('🎵 loadedmetadata fired, duration:', audio.duration, 'isFinite:', isFinite(audio.duration));
+      if (audio.duration && isFinite(audio.duration)) {
+        setState(prev => ({ ...prev, duration: audio.duration }));
+      }
+    });
+
+    audio.addEventListener('durationchange', () => {
+      console.log('🎵 durationchange fired, duration:', audio.duration);
+      if (audio.duration && isFinite(audio.duration)) {
+        setState(prev => ({ ...prev, duration: audio.duration }));
+      }
     });
 
     audio.addEventListener('ended', () => {
       stopLoop();
+      playingUrlRef.current = null;
       // Auto-advance
       const nextIdx = index + 1;
       if (nextIdx < tracks.length && tracks[nextIdx]?.audioUrl) {
@@ -88,9 +113,13 @@ export function AudioProvider({ children }) {
     });
 
     audio.addEventListener('error', () => {
+      playingUrlRef.current = null;
       setState(prev => ({ ...prev, isPlaying: false }));
       stopLoop();
     });
+
+    // Now set src — loadedmetadata will fire and be caught by the listener above
+    audio.src = track.audioUrl;
 
     setState(prev => ({
       ...prev,
@@ -101,13 +130,15 @@ export function AudioProvider({ children }) {
       artistName: artistInfo.artistName || prev.artistName,
       artistImageUrl: artistInfo.artistImageUrl || prev.artistImageUrl,
       currentTime: 0,
-      duration: 0,
+      duration: (audio.duration && isFinite(audio.duration)) ? audio.duration : 0,
       isPlaying: true,
     }));
 
     audio.play().then(() => {
+      console.log('🎵 play() resolved, duration:', audio.duration, 'readyState:', audio.readyState);
       startLoop();
-    }).catch(() => {
+    }).catch((err) => {
+      console.log('🎵 play() rejected:', err);
       setState(prev => ({ ...prev, isPlaying: false }));
     });
   }, [startLoop, stopLoop]);
@@ -197,6 +228,9 @@ export function AudioProvider({ children }) {
   }, [stopLoop]);
 
   const progress = state.duration > 0 ? state.currentTime / state.duration : 0;
+  if (state.isPlaying && state.currentTime > 0 && state.currentTime % 5 < 0.05) {
+    console.log('🎵 progress check — currentTime:', state.currentTime.toFixed(1), 'duration:', state.duration, 'progress:', progress.toFixed(3));
+  }
 
   const value = {
     ...state,

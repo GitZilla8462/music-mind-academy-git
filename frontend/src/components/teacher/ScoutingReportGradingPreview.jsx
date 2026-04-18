@@ -14,8 +14,9 @@ const CANVAS_H = 540;
 function getGenerator(workData) {
   const type = workData?.type || workData?.data?.type || '';
   const title = workData?.title || '';
-  if (title.includes('Genre Scouts') || type === 'genre-scouts') return generateGenreScoutsTemplateObjects;
-  if (title.includes('Claim') || type === 'claim-artist') return generateClaimArtistTemplateObjects;
+  const activityId = workData?.activityId || '';
+  if (title.includes('Genre Scouts') || type === 'genre-scouts' || activityId === 'mj-genre-scouts') return generateGenreScoutsTemplateObjects;
+  if (title.includes('Claim') || type === 'claim-artist' || activityId === 'mj-claim-artist') return generateClaimArtistTemplateObjects;
   return generateScoutingTemplateObjects;
 }
 

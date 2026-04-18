@@ -94,7 +94,7 @@ const ArtistProfile = ({
       <HeroBanner artist={artist} genreConfig={genreConfig} />
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 pt-6">
+      <div className="max-w-4xl mx-auto px-4 pt-3">
         {/* Track list — tap to play */}
         <TrackList
           tracks={artist.tracks}
@@ -106,6 +106,7 @@ const ArtistProfile = ({
           genreColor={genreConfig.color}
           license={artist.license}
           artistName={artist.name}
+          audioDuration={isThisArtistPlaying ? player.duration : null}
         />
 
         {/* Quick facts */}
@@ -116,12 +117,12 @@ const ArtistProfile = ({
 
         {/* Why they stand out */}
         {artist.whyInteresting && (
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 mb-6">
-            <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3.5 mb-3">
+            <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Sparkles size={12} />
               Why They Stand Out
             </h2>
-            <p className="text-white/70 text-[15px] leading-relaxed">{artist.whyInteresting}</p>
+            <p className="text-white/70 text-[13px] leading-relaxed">{artist.whyInteresting}</p>
           </div>
         )}
 
@@ -130,13 +131,13 @@ const ArtistProfile = ({
 
         {/* Licensing & Attribution */}
         {artist.license && (
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-5 mb-6">
-            <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3.5 mb-3">
+            <h2 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Shield size={12} />
               Licensing & Attribution
             </h2>
-            <div className="space-y-2">
-              <p className="text-white/70 text-[15px] leading-relaxed">
+            <div className="space-y-1.5">
+              <p className="text-white/70 text-[13px] leading-relaxed">
                 Music by <span className="text-white/90 font-medium">{artist.name}</span> is licensed under{' '}
                 <span className="text-white/90 font-medium">
                   {artist.license === 'CC0' ? 'Creative Commons Zero (CC0) — Public Domain' :

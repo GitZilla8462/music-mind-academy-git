@@ -2,7 +2,7 @@
 // Three-section layout: Left (track info) | Center (controls + progress) | Right (volume)
 // Full-width, no max-width constraint.
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
 
 const formatTime = (seconds) => {
@@ -33,8 +33,16 @@ const MiniPlayer = ({
   const [muted, setMuted] = useState(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const progressBarRef = useRef(null);
+  const progressFillRef = useRef(null);
 
   const volume = externalVolume ?? localVolume;
+
+  // Update progress bar via direct DOM manipulation (bypasses React re-render bottleneck)
+  useEffect(() => {
+    if (progressFillRef.current && !isScrubbing) {
+      progressFillRef.current.style.width = `${(progress || 0) * 100}%`;
+    }
+  }, [progress, isScrubbing]);
 
   if (!currentTrack) return null;
 
@@ -95,8 +103,9 @@ const MiniPlayer = ({
         >
           <div className="w-full h-1 bg-white/[0.08] relative group-hover:h-1.5 transition-all">
             <div
-              className={`h-full bg-amber-400 relative ${isScrubbing ? '' : 'transition-[width] duration-75'}`}
-              style={{ width: `${progress * 100}%` }}
+              ref={progressFillRef}
+              className="h-full bg-amber-400 relative"
+              style={{ width: '0%' }}
             >
               {/* Scrub dot — always visible when scrubbing, hover otherwise */}
               <div className={`absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg transition-opacity ${

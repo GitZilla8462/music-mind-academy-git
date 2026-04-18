@@ -651,6 +651,39 @@ const ARTISTS = [
       { title: 'Watches Over Me', duration: '2:06', audioUrl: 'https://media.musicmindacademy.com/artists/mr-phelps/Mr.%20Phelps%20-%20The%20Mr.%20Phelps%20Era%20-%2013%20Watches%20Over%20Me.mp3' },
     ],
   },
+  // ── NERDCORE / ALTERNATIVE HIP-HOP (Used with Permission) ─────────────────
+  {
+    id: 'skyblew',
+    name: 'SkyBlew',
+    genre: 'Hip-Hop',
+    subgenre: 'Nerdcore / Alternative Hip-Hop / Jazz Hop',
+    location: 'Chapel Hill, North Carolina',
+    license: 'Used with Permission',
+    bandcampUrl: 'https://skyblew.bandcamp.com/album/battle-for-the-universe',
+    albumTitle: 'Battle For The Universe',
+    imageUrl: 'https://media.musicmindacademy.com/artists/skyblew/skyblue_albumcover.jpg',
+    bio: 'SkyBlew is a rapper, songwriter, and storyteller from Chapel Hill, North Carolina who builds entire worlds inside his albums. His music blends alternative hip-hop, jazz, pop, R&B, and video game influences into concept albums that play like anime adventures — complete with heroes, villains, and cosmic quests. "Battle For The Universe" with DJ Reimei is an 18-track journey following two Dreamers returning to Earth from an interstellar adventure, only to find a shadowy figure threatening to unravel everything they\'ve discovered.',
+    whyInteresting: 'He treats every album like a movie — with characters, story arcs, and plot twists. His music proves that hip-hop can be imaginative, positive, and deeply nerdy without losing any of its power.',
+    tags: ['nerdcore', 'alternative-hip-hop', 'conscious-hip-hop', 'jazz-hop', 'concept-album', 'sci-fi', 'video-game-music', 'positive'],
+    formed: '2010',
+    members: 'Solo (frequent collaborator with DJ Reimei & MayDayGLO)',
+    totalAlbums: 20,
+    instruments: ['Vocals', 'Songwriting'],
+    moods: ['Uplifting', 'Imaginative', 'Reflective', 'Energetic'],
+    influences: ['Nujabes', 'Lupe Fiasco', 'Anime Soundtracks', 'Video Game Music'],
+    similarArtists: ['holiznacc0', 'mr-phelps', 'kellee-maize'],
+    funFacts: [
+      'Has released over 20 albums, most of them concept albums with full storylines like anime or video games',
+      '"Battle For The Universe" is a sequel — SkyBlew and DJ Reimei\'s previous album sent them on an interstellar adventure',
+      'His music has been compared to "if Studio Ghibli made a hip-hop album"',
+    ],
+    tracks: [
+      { title: 'Don\'t Wanna Be!', duration: '3:34', audioUrl: 'https://media.musicmindacademy.com/artists/skyblew/SkyBlew%20%26%20DJ%20Reimei%20-%20SkyBlew%20x%20DJ%20Reimei%20-%20Battle%20For%20The%20Universe%20-%2013%20Don%27t%20Wanna%20Be!.mp3' },
+      { title: 'Turbo Speed!', duration: '4:18', audioUrl: 'https://media.musicmindacademy.com/artists/skyblew/SkyBlew%20%26%20DJ%20Reimei%20-%20SkyBlew%20x%20DJ%20Reimei%20-%20Battle%20For%20The%20Universe%20-%2004%20Turbo%20Speed!.mp3' },
+      { title: 'The Ballad Of Truth', duration: '4:10', audioUrl: 'https://media.musicmindacademy.com/artists/skyblew/SkyBlew%20%26%20DJ%20Reimei%20-%20SkyBlew%20x%20DJ%20Reimei%20-%20Battle%20For%20The%20Universe%20-%2008%20The%20Ballad%20Of%20Truth.mp3' },
+      { title: 'The Reset_', duration: '4:25', audioUrl: 'https://media.musicmindacademy.com/artists/skyblew/SkyBlew%20%26%20DJ%20Reimei%20-%20SkyBlew%20x%20DJ%20Reimei%20-%20Battle%20For%20The%20Universe%20-%2007%20The%20Reset_.mp3' },
+    ],
+  },
 ];
 
 const ARTIST_DATABASE = ARTISTS;

@@ -27,11 +27,12 @@ const TrackList = ({
   genreColor = '#fbbf24',
   license,
   artistName,
+  audioDuration,
 }) => {
   if (!tracks || tracks.length === 0) return null;
 
   return (
-    <div className="mb-6">
+    <div className="mb-3">
       {/* Album header */}
       <div className="flex items-center gap-2 mb-2 px-1">
         <Music size={14} className="text-white/40" />
@@ -58,7 +59,7 @@ const TrackList = ({
                 }
               }}
               disabled={!hasAudio}
-              className={`w-full flex items-center gap-3 px-4 py-3 min-h-[48px] transition-colors text-left ${
+              className={`w-full flex items-center gap-3 px-3 py-2 min-h-[40px] transition-colors text-left ${
                 index > 0 ? 'border-t border-white/[0.04]' : ''
               } ${
                 hasAudio
@@ -94,8 +95,10 @@ const TrackList = ({
               )}
 
               {/* Duration */}
-              {track.duration && (
-                <span className="text-white/30 text-xs flex-shrink-0 ml-1">{track.duration}</span>
+              {(track.duration || (isActive && audioDuration)) && (
+                <span className="text-white/30 text-xs flex-shrink-0 ml-1">
+                  {isActive && audioDuration ? formatTime(audioDuration) : track.duration}
+                </span>
               )}
             </button>
           );
