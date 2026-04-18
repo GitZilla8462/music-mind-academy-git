@@ -93,26 +93,6 @@ const CURRICULUM_UNITS = [
   },
   {
     id: 5,
-    title: 'Song Lab',
-    subtitle: 'Melody & Structure',
-    color: '#ec4899',
-    icon: '/images/assignments/curriculum/unit5-song.png',
-    standardBadge: 'Creating',
-    lessonCount: 5,
-    duration: '~40 min per lesson',
-    bullets: [
-      'Create melodic hooks',
-      'Structure verse & chorus',
-      'Write an original song sketch'
-    ],
-    status: 'preview',
-    releaseDate: 'June 1st',
-    route: null,
-    routeCommercial: null
-  },
-  {
-    id: 6,
-    devOnly: true,
     title: 'Beat Lab',
     subtitle: 'Rhythm & Groove',
     color: '#ef4444',
@@ -124,6 +104,26 @@ const CURRICULUM_UNITS = [
       'Create beats using loops',
       'Layer rhythms across genres',
       'Produce an original beat'
+    ],
+    status: 'preview',
+    releaseDate: 'June 1st',
+    route: null,
+    routeCommercial: null
+  },
+  {
+    id: 6,
+    devOnly: true,
+    title: 'Song Lab',
+    subtitle: 'Melody & Structure',
+    color: '#ec4899',
+    icon: '/images/assignments/curriculum/unit5-song.png',
+    standardBadge: 'Creating',
+    lessonCount: 5,
+    duration: '~40 min per lesson',
+    bullets: [
+      'Create melodic hooks',
+      'Structure verse & chorus',
+      'Write an original song sketch'
     ],
     status: 'preview',
     releaseDate: 'September 1st',
