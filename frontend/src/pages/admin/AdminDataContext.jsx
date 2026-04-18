@@ -131,19 +131,31 @@ export const AdminDataProvider = ({ children }) => {
           });
         }
 
-        // Count roster entries per teacher email
-        const counts = {};
+        // Count UNIQUE students per teacher email (deduplicate by name across classes)
+        const namesByEmail = {};
         if (rostersSnap.exists()) {
           rostersSnap.forEach((classChild) => {
             const classId = classChild.key;
             const email = classToEmail[classId];
             if (email) {
-              let rosterSize = 0;
-              classChild.forEach(() => { rosterSize++; });
-              counts[email] = (counts[email] || 0) + rosterSize;
+              if (!namesByEmail[email]) namesByEmail[email] = new Set();
+              classChild.forEach((seatChild) => {
+                const seat = seatChild.val();
+                const name = (seat?.displayName || seat?.name || '').trim().toLowerCase();
+                if (name) {
+                  namesByEmail[email].add(name);
+                } else {
+                  // No name — count by seat key to avoid undercounting
+                  namesByEmail[email].add(`_seat_${classId}_${seatChild.key}`);
+                }
+              });
             }
           });
         }
+        const counts = {};
+        Object.entries(namesByEmail).forEach(([email, names]) => {
+          counts[email] = names.size;
+        });
         setStudentCountByEmail(counts);
       } catch (err) {
         console.error('Error loading student counts:', err);
