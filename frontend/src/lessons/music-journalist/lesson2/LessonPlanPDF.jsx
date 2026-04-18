@@ -146,7 +146,7 @@ const LessonPlanPDF = () => {
           {/* Section 2 */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-purple-50 p-2 rounded">
-              2. Critical Listening <span className="font-normal text-gray-600">— Guided + Independent (30 min)</span>
+              2. Critical Listening <span className="font-normal text-gray-600">— Guided + Independent (27 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -163,17 +163,17 @@ const LessonPlanPDF = () => {
                   <td className="border p-2">Explain: "We'll listen to 3 clips. After each, fill out a Listening Guide as a class." Introduce what to listen for: tempo, dynamics, mood, instrumentation.</td>
                 </tr>
                 <tr className="bg-green-50">
-                  <td className="border p-2">5 min</td>
+                  <td className="border p-2">4 min</td>
                   <td className="border p-2 font-medium">🎮 Guided Listening 1</td>
                   <td className="border p-2"><strong>CLASS ACTIVITY:</strong> Ketsa — "Trench Work" (Jazz / Soul / Trip-Hop). Play clip, fill out Listening Guide together, discuss.</td>
                 </tr>
                 <tr className="bg-green-50">
-                  <td className="border p-2">5 min</td>
+                  <td className="border p-2">4 min</td>
                   <td className="border p-2 font-medium">🎮 Guided Listening 2</td>
                   <td className="border p-2"><strong>CLASS ACTIVITY:</strong> Jason Shaw — "Acoustic Blues" (Country / Acoustic). Play clip, fill out Listening Guide together, discuss.</td>
                 </tr>
                 <tr className="bg-green-50">
-                  <td className="border p-2">5 min</td>
+                  <td className="border p-2">4 min</td>
                   <td className="border p-2 font-medium">🎮 Guided Listening 3</td>
                   <td className="border p-2"><strong>CLASS ACTIVITY:</strong> Soft and Furious — "Horizon Ending" (Synth Pop / Electronic). Play clip, fill out Listening Guide together, discuss.</td>
                 </tr>

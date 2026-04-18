@@ -156,7 +156,7 @@ const LessonPlanPDF = () => {
           {/* Section 2 */}
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-purple-50 p-2 rounded">
-              2. Genre Showcase <span className="font-normal text-gray-600">— Teacher-Led (10 min)</span>
+              2. Genre Showcase <span className="font-normal text-gray-600">— Teacher-Led (5 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -168,7 +168,7 @@ const LessonPlanPDF = () => {
               </thead>
               <tbody>
                 <tr className="bg-green-50">
-                  <td className="border p-2">10 min</td>
+                  <td className="border p-2">5 min</td>
                   <td className="border p-2 font-medium">🎵 Genre Showcase</td>
                   <td className="border p-2">
                     <strong>TEACHER-LED:</strong> Step through genres with real artists and audio previews.<br/>

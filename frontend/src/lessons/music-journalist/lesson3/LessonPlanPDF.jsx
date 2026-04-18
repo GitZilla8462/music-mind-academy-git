@@ -21,7 +21,7 @@ const LessonPlanPDF = () => {
           <p className="text-lg text-gray-700 font-semibold">What makes an artist worth believing in?</p>
           <div className="flex gap-6 mt-3 text-sm">
             <div><strong>Grade Level:</strong> 6-8</div>
-            <div><strong>Duration:</strong> ~32 minutes</div>
+            <div><strong>Duration:</strong> ~42 minutes</div>
             <div><strong>Unit:</strong> Music Agent (Unit 3)</div>
           </div>
         </div>
@@ -97,16 +97,16 @@ const LessonPlanPDF = () => {
         </section>
 
         <section className="mb-8 page-break-before">
-          <h2 className="text-2xl font-bold text-[#1a2744] mb-4 border-b-2 border-[#f0b429] pb-2">STAGE 3: LEARNING PLAN (~32 minutes)</h2>
+          <h2 className="text-2xl font-bold text-[#1a2744] mb-4 border-b-2 border-[#f0b429] pb-2">STAGE 3: LEARNING PLAN (~42 minutes)</h2>
 
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-blue-50 p-2 rounded">
-              1. Introduction <span className="font-normal text-gray-600">— Hook + 4-Point Checklist (7 min)</span>
+              1. Introduction <span className="font-normal text-gray-600">— Hook + 4-Point Checklist (6 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead><tr className="bg-gray-100"><th className="border p-2 text-left w-16">Time</th><th className="border p-2 text-left w-48">Activity</th><th className="border p-2 text-left">What to Say/Do</th></tr></thead>
               <tbody>
-                <tr><td className="border p-2">2 min</td><td className="border p-2 font-medium">Hook</td><td className="border p-2">"Imagine scrolling through music and you hear something that STOPS you. That's the moment every talent agent lives for."</td></tr>
+                <tr><td className="border p-2">1 min</td><td className="border p-2 font-medium">Hook</td><td className="border p-2">"Imagine scrolling through music and you hear something that STOPS you. That's the moment every talent agent lives for."</td></tr>
                 <tr><td className="border p-2">1 min</td><td className="border p-2 font-medium">4 Points Overview</td><td className="border p-2">Introduce the 4-Point Checklist: Unique Sound, Compelling Story, Signs of Growth, Gut Feeling.</td></tr>
                 <tr><td className="border p-2">1 min</td><td className="border p-2 font-medium">Unique Sound</td><td className="border p-2">Point 1: "Their music doesn't sound like anyone else. You could pick their song out of a playlist."</td></tr>
                 <tr><td className="border p-2">1 min</td><td className="border p-2 font-medium">Compelling Story</td><td className="border p-2">Point 2: "There's a real reason they started making music — the story makes the music mean more."</td></tr>
@@ -130,24 +130,24 @@ const LessonPlanPDF = () => {
 
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-orange-50 p-2 rounded">
-              3. Scouting Report <span className="font-normal text-gray-600">— Build Your Report (15 min)</span>
+              3. Scouting Report <span className="font-normal text-gray-600">— Build Your Report (20 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead><tr className="bg-gray-100"><th className="border p-2 text-left w-16">Time</th><th className="border p-2 text-left w-48">Activity</th><th className="border p-2 text-left">What to Say/Do</th></tr></thead>
               <tbody>
-                <tr className="bg-green-50"><td className="border p-2">15 min</td><td className="border p-2 font-medium">🎮 Scouting Report</td><td className="border p-2"><strong>STUDENTS BUILD:</strong> Complete 3 slides for your assigned artist with real evidence.<br/><em className="text-green-700">Use the 4-point checklist as your guide. Include specific facts, not vague opinions.</em></td></tr>
+                <tr className="bg-green-50"><td className="border p-2">20 min</td><td className="border p-2 font-medium">🎮 Scouting Report</td><td className="border p-2"><strong>STUDENTS BUILD:</strong> Complete 3 slides for your assigned artist with real evidence.<br/><em className="text-green-700">Use the 4-point checklist as your guide. Include specific facts, not vague opinions.</em></td></tr>
               </tbody>
             </table>
           </div>
 
           <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800 mb-3 bg-yellow-50 p-2 rounded">
-              4. Share Out <span className="font-normal text-gray-600">— Partner Discussion (3 min)</span>
+              4. Share Out <span className="font-normal text-gray-600">— Partner Discussion (4 min)</span>
             </h3>
             <table className="w-full text-sm border-collapse">
               <thead><tr className="bg-gray-100"><th className="border p-2 text-left w-16">Time</th><th className="border p-2 text-left w-48">Activity</th><th className="border p-2 text-left">What to Say/Do</th></tr></thead>
               <tbody>
-                <tr className="bg-green-50"><td className="border p-2">3 min</td><td className="border p-2 font-medium">🗣️ Share Out</td><td className="border p-2"><strong>PARTNER ACTIVITY:</strong> Which of the four points felt strongest for your artist? What was your best piece of strong evidence? Would you sign them?</td></tr>
+                <tr className="bg-green-50"><td className="border p-2">4 min</td><td className="border p-2 font-medium">🗣️ Share Out</td><td className="border p-2"><strong>PARTNER ACTIVITY:</strong> Which of the four points felt strongest for your artist? What was your best piece of strong evidence? Would you sign them?</td></tr>
               </tbody>
             </table>
           </div>

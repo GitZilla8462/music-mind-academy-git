@@ -141,7 +141,7 @@ const MusicJournalistHub = () => {
       ],
       activities: [
         { title: 'Welcome to the Agency', description: 'You\'ve been hired — how Billie Eilish, Chance, and BTS were discovered', time: 5 },
-        { title: 'Genre Showcase', description: 'Teacher presents genres with real emerging artists and audio', time: 10 },
+        { title: 'Genre Showcase', description: 'Teacher presents genres with real emerging artists and audio', time: 5 },
         { title: 'Genre Match Game', description: 'Hear a clip, identify the genre — test your ear', time: 8, activityType: 'genre-match' },
         { title: 'Genre Scouts', description: 'Explore artists, complete 3 slides: Genre Lineup, Surprise Discovery, Sound Snapshot', time: 20, activityType: 'genre-scouts' },
         { title: 'Share Out', description: 'Share your genre lineup and surprise discovery with a partner', time: 6 }
@@ -166,7 +166,7 @@ const MusicJournalistHub = () => {
       ],
       activities: [
         { title: 'Why Listen Like an Agent?', description: 'Agents don\'t just say "I like it" — they say WHY', time: 3 },
-        { title: 'Guided Listening (3 tracks)', description: 'Class listens to Ketsa, Jason Shaw, and Soft and Furious — fill out Listening Guide together', time: 17 },
+        { title: 'Guided Listening (3 tracks)', description: 'Class listens to Ketsa, Jason Shaw, and Soft and Furious — fill out Listening Guide together', time: 14 },
         { title: 'Independent Listening', description: 'Pick 1 of 5 tracks, analyze on your own, then share with a partner', time: 15, activityType: 'independent-listening' },
         { title: 'Sign or Pass', description: 'Listen to 3 mystery artists, rank 1-3 — match your group to score!', time: 7, activityType: 'sign-or-pass' }
       ]
@@ -190,10 +190,10 @@ const MusicJournalistHub = () => {
         'Build a structured Scouting Report with evidence'
       ],
       activities: [
-        { title: 'The 4-Point Checklist', description: 'What agents look for: Unique Sound, Compelling Story, Signs of Growth, Gut Feeling', time: 7 },
+        { title: 'The 4-Point Checklist', description: 'What agents look for: Unique Sound, Compelling Story, Signs of Growth, Gut Feeling', time: 6 },
         { title: 'Fact or Opinion', description: 'Write one fact and one opinion about your artist', time: 5, activityType: 'fact-opinion-sorter' },
-        { title: 'Scouting Report', description: 'Complete 3 slides for your assigned artist with real evidence', time: 15, activityType: 'scouting-report' },
-        { title: 'Share Out', description: 'Which of the four points felt strongest? Share with a partner', time: 3 },
+        { title: 'Scouting Report', description: 'Complete 3 slides for your assigned artist with real evidence', time: 20, activityType: 'scouting-report' },
+        { title: 'Share Out', description: 'Which of the four points felt strongest? Share with a partner', time: 4 },
         { title: 'Would You Sign Them?', description: 'Match evidence to the 4-point checklist', time: 7, activityType: 'would-you-sign-them' }
       ]
     },
