@@ -1,6 +1,6 @@
 // File: WouldYouSignThem.jsx
 // Would You Sign Them? — Small Group Game
-// 8 evidence statements — players identify which of the 4 checklist points each supports
+// 32 evidence statements (8 per category) — players identify which of the 4 checklist points each supports
 // Groups of 2–3, join with 4-digit codes, speed bonus scoring
 // Teacher view === student view (like Sign or Pass)
 

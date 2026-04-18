@@ -1,142 +1,371 @@
-// FactOpinionStudentView — Simple writing activity
-// Students write one fact and one opinion about their chosen artist, with examples shown.
+// File: FactOpinionStudentView.jsx
+// Fact or Opinion Sorter - Student View (syncs with teacher's class game)
+// Students see the statement and vote FACT or OPINION
+// Follows exact same Firebase pattern as FourCornersStudentView
 
-import React, { useState, useEffect, useRef } from 'react';
-import { CheckCircle, Lightbulb } from 'lucide-react';
-
-const EXAMPLES = [
-  { type: 'fact', text: 'Their debut single was streamed 50,000 times in the first month.', why: 'You can verify this with data — it\'s measurable.' },
-  { type: 'opinion', text: 'Their music sounds better than anyone else in the genre.', why: '"Better" is a personal judgment — not everyone would agree.' },
-  { type: 'fact', text: 'They released 3 albums between 2022 and 2024.', why: 'Specific numbers and dates that can be checked.' },
-  { type: 'opinion', text: 'Their lyrics are the most creative I\'ve ever heard.', why: '"Most creative" is subjective — it depends on the listener.' },
-];
-
-const STORAGE_KEY = 'mma-fact-opinion-writing';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Check, Trophy, Award, Medal } from 'lucide-react';
+import { useSession } from '../../../../context/SessionContext';
+import { getDatabase, ref, update, onValue } from 'firebase/database';
+import { getPlayerColor, getPlayerEmoji, getStudentDisplayName, formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 
 const FactOpinionStudentView = ({ onComplete, isSessionMode = true }) => {
-  const [fact, setFact] = useState('');
-  const [opinion, setOpinion] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const saveTimer = useRef(null);
+  const { sessionCode, classId, userId: contextUserId } = useSession();
+  const userId = contextUserId || localStorage.getItem('current-session-userId');
 
-  // Load saved work
+  const gamePath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/factOpinionSorter`;
+    if (sessionCode) return `sessions/${sessionCode}/factOpinionSorter`;
+    return null;
+  }, [classId, sessionCode]);
+
+  const studentsPath = useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
+
+  // Player info
+  const [playerName, setPlayerName] = useState('');
+  const [playerColor, setPlayerColor] = useState('#3B82F6');
+  const [playerEmoji, setPlayerEmoji] = useState('\uD83C\uDFB5');
+
+  // Game state (synced from teacher)
+  const [gamePhase, setGamePhase] = useState('waiting');
+  const [currentStatement, setCurrentStatement] = useState(0);
+  const [statementData, setStatementData] = useState(null);
+  const [correctAnswer, setCorrectAnswer] = useState(null);
+  const [shownAt, setShownAt] = useState(null);
+
+  // Student's answer
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [answerSubmitted, setAnswerSubmitted] = useState(false);
+
+  // Results
+  const [wasCorrect, setWasCorrect] = useState(null);
+  const [myScore, setMyScore] = useState(0);
+  const [pointsEarned, setPointsEarned] = useState(0);
+
+  // Leaderboard for finished screen
+  const [leaderboard, setLeaderboard] = useState([]);
+
+  // Refs for stale closure prevention
+  const currentStatementRef = useRef(0);
+  const selectedAnswerRef = useRef(null);
+  const wasCorrectRef = useRef(null);
+  const myScoreRef = useRef(0);
+
+  // Get player name on mount - use real name (first name last initial)
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (saved) {
-        setFact(saved.fact || '');
-        setOpinion(saved.opinion || '');
-        if (saved.submitted) setSubmitted(true);
+    if (!userId) return;
+
+    const assignPlayerName = async () => {
+      const color = getPlayerColor(userId);
+      const emoji = getPlayerEmoji(userId);
+      const name = await getStudentDisplayName(userId, null, studentsPath);
+
+      setPlayerName(name);
+      setPlayerColor(color);
+      setPlayerEmoji(emoji);
+
+      if (studentsPath) {
+        const { getDatabase, ref, update } = await import('firebase/database');
+        const db = getDatabase();
+        update(ref(db, `${studentsPath}/${userId}`), {
+          displayName: name,
+          playerColor: color,
+          playerEmoji: emoji
+        });
       }
-    } catch {}
-  }, []);
+    };
 
-  // Autosave
+    assignPlayerName();
+  }, [userId, studentsPath]);
+
+  // Keep refs in sync
+  useEffect(() => { currentStatementRef.current = currentStatement; }, [currentStatement]);
+  useEffect(() => { selectedAnswerRef.current = selectedAnswer; }, [selectedAnswer]);
+  useEffect(() => { wasCorrectRef.current = wasCorrect; }, [wasCorrect]);
+  useEffect(() => { myScoreRef.current = myScore; }, [myScore]);
+
+  // Listen for game state updates from teacher
   useEffect(() => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ fact, opinion, submitted, savedAt: new Date().toISOString() }));
-    }, 1000);
-    return () => clearTimeout(saveTimer.current);
-  }, [fact, opinion, submitted]);
+    if (!gamePath) return;
 
-  const canSubmit = fact.trim().length >= 10 && opinion.trim().length >= 10;
+    const db = getDatabase();
+    const gameRef = ref(db, gamePath);
 
-  const handleSubmit = () => {
-    if (!canSubmit) return;
-    setSubmitted(true);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ fact, opinion, submitted: true, savedAt: new Date().toISOString() }));
-    onComplete?.();
+    const unsubscribe = onValue(gameRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) {
+        setGamePhase('waiting');
+        return;
+      }
+
+      setGamePhase(data.phase || 'waiting');
+      setCurrentStatement(data.currentStatement || 0);
+      setStatementData(data.statementData || null);
+      setShownAt(data.shownAt || null);
+
+      // Handle showing phase (new statement)
+      if (data.phase === 'showing') {
+        if (data.currentStatement !== currentStatementRef.current) {
+          selectedAnswerRef.current = null;
+          setSelectedAnswer(null);
+          setAnswerSubmitted(false);
+          wasCorrectRef.current = null;
+          setWasCorrect(null);
+          setCorrectAnswer(null);
+          setPointsEarned(0);
+        }
+      }
+
+      // Handle reveal
+      if (data.phase === 'revealed' && data.revealedAnswer) {
+        setCorrectAnswer(data.revealedAnswer);
+
+        if (selectedAnswerRef.current && wasCorrectRef.current === null) {
+          const isCorrect = selectedAnswerRef.current === data.revealedAnswer;
+          wasCorrectRef.current = isCorrect;
+          setWasCorrect(isCorrect);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [gamePath]);
+
+  // Listen for own score updates
+  useEffect(() => {
+    if (!studentsPath || !userId) return;
+
+    const db = getDatabase();
+    const myRef = ref(db, `${studentsPath}/${userId}`);
+
+    const unsubscribe = onValue(myRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      const newScore = data.factOpinionScore || 0;
+      if (newScore > myScoreRef.current) {
+        setPointsEarned(newScore - myScoreRef.current);
+      }
+      setMyScore(newScore);
+    });
+
+    return () => unsubscribe();
+  }, [studentsPath, userId]);
+
+  // Build leaderboard when finished
+  useEffect(() => {
+    if (gamePhase !== 'finished' || !studentsPath) return;
+
+    const db = getDatabase();
+    const studentsRef = ref(db, studentsPath);
+
+    const unsubscribe = onValue(studentsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const board = Object.entries(data)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
+        .map(([id, s]) => ({
+          id,
+          name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),
+          score: s.factOpinionScore || 0,
+          isMe: id === userId,
+        }))
+        .sort((a, b) => b.score - a.score);
+      setLeaderboard(board);
+    });
+
+    return () => unsubscribe();
+  }, [gamePhase, studentsPath, userId]);
+
+  // Submit answer
+  const submitAnswer = (choice) => {
+    if (answerSubmitted || gamePhase !== 'showing') return;
+
+    selectedAnswerRef.current = choice;
+    setSelectedAnswer(choice);
+    setAnswerSubmitted(true);
+
+    if (studentsPath && userId) {
+      const db = getDatabase();
+      update(ref(db, `${studentsPath}/${userId}`), {
+        factOpinionAnswer: choice,
+        factOpinionAnswerTime: Date.now(),
+      });
+    }
   };
 
-  if (submitted) {
+  // ============ FINISHED ============
+  if (gamePhase === 'finished') {
+    const myRank = leaderboard.findIndex(e => e.isMe) + 1;
+
     return (
-      <div className="h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center p-6">
-        <div className="text-center max-w-lg">
-          <CheckCircle size={64} className="text-green-400 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-white mb-3">Nice work!</h1>
-          <div className="bg-white/10 rounded-2xl p-5 mb-3 text-left">
-            <div className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">Your Fact</div>
-            <p className="text-white text-lg">{fact}</p>
-          </div>
-          <div className="bg-white/10 rounded-2xl p-5 text-left">
-            <div className="text-xs font-bold text-purple-400 uppercase tracking-wider mb-1">Your Opinion</div>
-            <p className="text-white text-lg">{opinion}</p>
-          </div>
-          <p className="text-white/50 text-sm mt-4">Waiting for teacher to continue...</p>
+      <div className="h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex flex-col items-center justify-center p-4 overflow-auto">
+        <div className="text-center mb-4">
+          <div className="text-7xl mb-3">{'\uD83C\uDFC6'}</div>
+          <h1 className="text-3xl font-bold text-white mb-1">Game Complete!</h1>
+          <p className="text-lg text-white/70">Your Score: <span className="font-black text-2xl" style={{ color: '#f0b429' }}>{myScore}</span></p>
+          {myRank > 0 && (
+            <p className="text-sm text-white/50">Rank: #{myRank} of {leaderboard.length}</p>
+          )}
+        </div>
+
+        {/* Mini leaderboard */}
+        <div className="w-full max-w-sm">
+          {leaderboard.slice(0, 5).map((entry, idx) => {
+            const rankIcon = idx === 0 ? <Trophy size={18} className="text-yellow-400" /> :
+                             idx === 1 ? <Award size={18} className="text-gray-300" /> :
+                             idx === 2 ? <Medal size={18} className="text-amber-600" /> : null;
+            return (
+              <div
+                key={entry.id}
+                className={`flex items-center gap-3 px-4 py-2 rounded-xl mb-1 ${
+                  entry.isMe ? 'bg-yellow-500/20 ring-2 ring-yellow-400' : 'bg-white/5'
+                }`}
+              >
+                <div className="w-6 text-center">
+                  {rankIcon || <span className="text-sm font-bold text-white/50">{idx + 1}</span>}
+                </div>
+                <div className="flex-1 text-sm font-bold truncate">{entry.name} {entry.isMe ? '(you)' : ''}</div>
+                <div className="text-lg font-black" style={{ color: '#f0b429' }}>{entry.score}</div>
+              </div>
+            );
+          })}
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex flex-col overflow-y-auto">
-      <div className="flex-1 p-4 max-w-2xl mx-auto w-full">
-        {/* Header */}
-        <div className="text-center mb-4">
-          <h1 className="text-2xl font-bold text-white">Fact or Opinion?</h1>
-          <p className="text-indigo-200 text-sm">Think about the artist you picked. Write one of each.</p>
-        </div>
+  // ============ WAITING ============
+  if (gamePhase === 'waiting' || gamePhase === 'setup') {
+    return (
+      <div className="h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex items-center justify-center p-6">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-white mb-4">Artists Worth Signing</h1>
+          <p className="text-xl text-indigo-200 mb-8">Waiting for teacher to start...</p>
 
-        {/* Examples */}
-        <div className="bg-white/5 rounded-xl p-3 mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Lightbulb size={16} className="text-amber-400" />
-            <span className="text-sm font-bold text-amber-400">Examples</span>
+          <div className="bg-white/10 rounded-2xl p-6 inline-block">
+            <span className="text-4xl mb-2 block">{playerEmoji}</span>
+            <div className="text-2xl font-bold" style={{ color: playerColor }}>{playerName}</div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {EXAMPLES.map((ex, i) => (
-              <div key={i} className={`rounded-lg p-2.5 ${ex.type === 'fact' ? 'bg-blue-500/15 border border-blue-500/20' : 'bg-purple-500/15 border border-purple-500/20'}`}>
-                <div className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${ex.type === 'fact' ? 'text-blue-400' : 'text-purple-400'}`}>
-                  {ex.type}
-                </div>
-                <p className="text-white text-xs leading-relaxed mb-1">&ldquo;{ex.text}&rdquo;</p>
-                <p className={`text-[10px] italic ${ex.type === 'fact' ? 'text-blue-300/60' : 'text-purple-300/60'}`}>{ex.why}</p>
-              </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ============ SHOWING (voting) / REVEALED ============
+  return (
+    <div className="h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 flex flex-col p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold text-white"
+            style={{ backgroundColor: playerColor }}
+          >
+            {playerEmoji}
+          </div>
+          <div className="text-lg font-bold" style={{ color: playerColor }}>{playerName}</div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="bg-white/10 px-3 py-1 rounded-xl">
+            <span className="text-sm text-white/70">Score: </span>
+            <span className="text-lg font-black" style={{ color: '#f0b429' }}>{myScore}</span>
+          </div>
+          <div className="bg-white/10 px-4 py-2 rounded-xl">
+            <div className="text-sm text-indigo-200">Q{currentStatement + 1}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Statement text */}
+      {statementData && (
+        <div className="rounded-2xl p-5 mb-4 text-center" style={{ backgroundColor: '#1a2744', border: '2px solid rgba(240, 180, 41, 0.3)' }}>
+          {statementData.questionLabel && (
+            <div className="text-[10px] text-amber-400 uppercase tracking-widest font-bold mb-1">{statementData.questionLabel}</div>
+          )}
+          <div className="text-xs text-white/40 uppercase tracking-wider mb-2">#{currentStatement + 1}</div>
+          <div className="text-xl font-bold text-white leading-tight">
+            &ldquo;{statementData.text}&rdquo;
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+        {/* Showing phase — vote buttons (dynamic from options) */}
+        {gamePhase === 'showing' && !answerSubmitted && statementData?.options && (
+          <div className={`w-full max-w-md ${statementData.options.length <= 2 ? 'space-y-4' : 'grid grid-cols-2 gap-3'}`}>
+            {statementData.options.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => submitAnswer(opt.value)}
+                className="w-full py-6 rounded-2xl text-center transition-all hover:scale-[1.03] active:scale-95 text-white font-black text-2xl shadow-lg"
+                style={{ backgroundColor: opt.color, minHeight: '64px' }}
+              >
+                {opt.label}
+              </button>
             ))}
           </div>
-        </div>
+        )}
 
-        {/* Writing areas */}
-        <div className="space-y-3 mb-4">
-          <div>
-            <label className="block text-sm font-bold text-blue-400 mb-1">
-              Write one FACT about your artist
-            </label>
-            <p className="text-[11px] text-white/40 mb-1.5">Something you could prove with data or evidence — numbers, dates, or events.</p>
-            <textarea
-              value={fact}
-              onChange={e => setFact(e.target.value)}
-              placeholder="e.g. They have released 2 EPs since 2023..."
-              className="w-full h-20 bg-white/10 border border-blue-500/30 rounded-xl px-4 py-3 text-white placeholder-white/25 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-            />
+        {/* Answer submitted — waiting for reveal */}
+        {gamePhase === 'showing' && answerSubmitted && selectedAnswer && (
+          <div className="text-center">
+            <div className="bg-white/20 rounded-2xl p-8 inline-block">
+              <Check size={48} className="mx-auto text-green-400 mb-4" />
+              <p className="text-xl text-white font-bold mb-3">Answer Locked!</p>
+              {(() => {
+                const opt = statementData?.options?.find(o => o.value === selectedAnswer);
+                return (
+                  <div className="inline-flex items-center gap-3 px-8 py-3 rounded-full text-white font-bold text-2xl"
+                    style={{ backgroundColor: opt?.color || '#3B82F6' }}>
+                    {opt?.label || selectedAnswer}
+                  </div>
+                );
+              })()}
+              <p className="text-sm text-indigo-300 mt-4">Waiting for reveal...</p>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-bold text-purple-400 mb-1">
-              Write one OPINION about your artist
-            </label>
-            <p className="text-[11px] text-white/40 mb-1.5">A personal judgment — what you think or feel about their music. Not everyone would agree.</p>
-            <textarea
-              value={opinion}
-              onChange={e => setOpinion(e.target.value)}
-              placeholder="e.g. I think their beats are the catchiest in the genre..."
-              className="w-full h-20 bg-white/10 border border-purple-500/30 rounded-xl px-4 py-3 text-white placeholder-white/25 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
-            />
-          </div>
-        </div>
+        )}
 
-        {/* Submit */}
-        <button
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-          className={`w-full py-3 rounded-xl text-lg font-bold transition-all ${
-            canSubmit
-              ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:scale-[1.02] active:scale-95'
-              : 'bg-white/10 text-white/30 cursor-not-allowed'
-          }`}
-        >
-          {canSubmit ? 'Submit' : 'Write at least a sentence for each'}
-        </button>
+        {/* Revealed */}
+        {gamePhase === 'revealed' && correctAnswer && (
+          <div className="text-center w-full max-w-md">
+            {wasCorrect ? (
+              <div className="bg-green-500/30 rounded-2xl p-6 mb-4">
+                <p className="text-3xl font-bold text-green-400 mb-1">Correct!</p>
+                {pointsEarned > 0 && (
+                  <p className="text-xl font-bold" style={{ color: '#f0b429' }}>+{pointsEarned} points</p>
+                )}
+              </div>
+            ) : wasCorrect === false ? (
+              <div className="bg-red-500/30 rounded-2xl p-6 mb-4">
+                <p className="text-3xl font-bold text-red-400 mb-2">Not quite!</p>
+                <p className="text-lg text-white/70">+0 points</p>
+              </div>
+            ) : (
+              <div className="bg-gray-500/30 rounded-2xl p-6 mb-4">
+                <p className="text-2xl font-bold text-gray-300 mb-2">No answer</p>
+              </div>
+            )}
+
+            {/* Show correct answer */}
+            {(() => {
+              const correctOpt = statementData?.options?.find(o => o.value === correctAnswer);
+              return (
+                <div className="rounded-2xl p-6 text-white" style={{ backgroundColor: correctOpt?.color || '#3B82F6' }}>
+                  <div className="text-lg opacity-80 mb-1">The answer is...</div>
+                  <div className="text-4xl font-black">{correctOpt?.label || correctAnswer}</div>
+                </div>
+              );
+            })()}
+
+            <p className="text-indigo-200 mt-4 text-sm">Waiting for next question...</p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -69,28 +69,27 @@ const CURRICULUM_UNITS = [
       'Design a press kit & pitch to the class'
     ],
     status: 'pilot',
-    releaseDate: 'April 15th',
     route: '/music-agent-hub',
     routeCommercial: '/music-agent-hub'
   },
   {
     id: 4,
-    title: 'Beat Lab',
-    subtitle: 'Rhythm & Groove',
-    color: '#ef4444',
-    icon: '/images/assignments/curriculum/unit3-beat.png',
-    standardBadge: 'Creating',
+    title: 'Film Music',
+    subtitle: 'Scoring the Story',
+    color: '#f59e0b',
+    icon: '/images/assignments/curriculum/unit6-film.png',
+    standardBadge: 'Creating & Performing',
     lessonCount: 5,
     duration: '~40 min per lesson',
     bullets: [
-      'Create beats using loops',
-      'Layer rhythms across genres',
-      'Produce an original beat'
+      'Compose character themes',
+      'Play keyboard melodies',
+      'Score a complete film scene'
     ],
-    status: 'preview',
-    releaseDate: 'May 15th',
-    route: null,
-    routeCommercial: null
+    status: 'pilot',
+    releaseDate: 'May 18th',
+    route: '/film-music-hub',
+    routeCommercial: '/film-music-hub'
   },
   {
     id: 5,
@@ -114,22 +113,22 @@ const CURRICULUM_UNITS = [
   {
     id: 6,
     devOnly: true,
-    title: 'Film Music',
-    subtitle: 'Scoring the Story',
-    color: '#f59e0b',
-    icon: '/images/assignments/curriculum/unit6-film.png',
-    standardBadge: 'Creating & Performing',
+    title: 'Beat Lab',
+    subtitle: 'Rhythm & Groove',
+    color: '#ef4444',
+    icon: '/images/assignments/curriculum/unit3-beat.png',
+    standardBadge: 'Creating',
     lessonCount: 5,
     duration: '~40 min per lesson',
     bullets: [
-      'Compose character themes',
-      'Play keyboard melodies',
-      'Score a complete film scene'
+      'Create beats using loops',
+      'Layer rhythms across genres',
+      'Produce an original beat'
     ],
     status: 'preview',
     releaseDate: 'September 1st',
-    route: '/film-music-hub',
-    routeCommercial: '/film-music-hub'
+    route: null,
+    routeCommercial: null
   },
   {
     id: 7,

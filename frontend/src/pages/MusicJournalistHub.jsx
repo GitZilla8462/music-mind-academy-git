@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
 import { startClassSession } from '../firebase/classes';
-import { ChevronDown, ChevronUp, Check, Play, ArrowLeft } from 'lucide-react';
+import { ChevronDown, ChevronUp, Check, Play, ArrowLeft, FileText, ExternalLink } from 'lucide-react';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { logSessionCreated, logLessonVisit } from '../firebase/analytics';
 import StartSessionModal from '../components/teacher/StartSessionModal';
@@ -114,29 +114,37 @@ const MusicJournalistHub = () => {
     if (selectedLesson) setShowStartModal(true);
   };
 
+  const handleOpenLessonPlan = (lessonId) => {
+    const cleanId = lessonId.replace('mj-', '');
+    const route = `/lesson-plan/music-journalist-${cleanId}`;
+    window.open(route, '_blank');
+  };
+
   const lessons = [
     {
       id: 'mj-lesson1',
       number: 1,
       icon: '🔍',
-      title: 'How Artists Blow Up',
+      title: 'Welcome to the Agency',
       concept: 'Discover & Explore',
       essentialQuestion: 'What does it take to discover the next big artist?',
       color: 'from-blue-900 to-indigo-800',
       route: '/lessons/music-journalist/lesson1',
       available: true,
-      hasLessonPlan: false,
-      inThisLesson: 'Students learn what music agents and A&R reps do, explore 20 emerging artists across 10 genres on the discovery platform, play the Genre Match game, and complete Genre Scouts — finding one artist per genre.',
+      hasLessonPlan: true,
+      inThisLesson: 'Students learn what music agents and A&R reps do, explore emerging artists across genres on the discovery platform, play the Genre Match game, complete Genre Scouts — finding one artist per genre — and share discoveries with a partner.',
       studentsWill: [
         'Understand what music agents and A&R reps do in the music industry',
         'Explore and identify characteristics of different musical genres',
-        'Find one artist per genre and describe what they hear'
+        'Navigate the Artist Discovery platform and preview emerging artists',
+        'Find one artist that represents each genre and describe what you hear'
       ],
       activities: [
-        { title: 'Welcome to the Agency', description: 'How Billie Eilish, Chance, and BTS went from zero to fame', time: 5 },
-        { title: 'Genre Showcase', description: 'Teacher presents 6 genres with real emerging artists and audio', time: 10 },
+        { title: 'Welcome to the Agency', description: 'You\'ve been hired — how Billie Eilish, Chance, and BTS were discovered', time: 5 },
+        { title: 'Genre Showcase', description: 'Teacher presents genres with real emerging artists and audio', time: 10 },
         { title: 'Genre Match Game', description: 'Hear a clip, identify the genre — test your ear', time: 8, activityType: 'genre-match' },
-        { title: 'Genre Scouts', description: 'Find one artist per genre, note a surprise discovery, describe a sound', time: 15, activityType: 'genre-scouts' }
+        { title: 'Genre Scouts', description: 'Explore artists, complete 3 slides: Genre Lineup, Surprise Discovery, Sound Snapshot', time: 20, activityType: 'genre-scouts' },
+        { title: 'Share Out', description: 'Share your genre lineup and surprise discovery with a partner', time: 6 }
       ]
     },
     {
@@ -149,17 +157,18 @@ const MusicJournalistHub = () => {
       color: 'from-indigo-800 to-blue-700',
       route: '/lessons/music-journalist/lesson2',
       available: true,
-      hasLessonPlan: false,
-      inThisLesson: 'Students learn to listen critically using 6 music descriptors (tempo, mood, instrumentation, hook, production, influence) and practice with guided and independent listening sessions.',
+      hasLessonPlan: true,
+      inThisLesson: 'Students learn to listen critically by analyzing 3 guided tracks as a class, then pick their own track for independent listening. They share observations with a partner and play Sign or Pass — ranking 3 mystery artists.',
       studentsWill: [
-        'Analyze music using 6 specific descriptors from the Music Description Toolkit',
-        'Practice critical listening with guided and independent tracks',
+        'Listen critically and identify musical elements (tempo, mood, instrumentation)',
+        'Analyze music independently using the Description Toolkit',
         'Share and defend observations with evidence from the music'
       ],
       activities: [
-        { title: 'Hook: Same Genre, Different Sound', description: 'Two "rock" clips that sound nothing alike — describe the difference', time: 3 },
-        { title: 'Music Description Toolkit', description: 'Learn 6 ways to describe music: tempo, mood, instrumentation, hook, production, influence', time: 5 },
-        { title: 'Critical Listening Session', description: 'Listen to tracks and fill out the Listening Guide', time: 15, activityType: 'listening-guide' }
+        { title: 'Why Listen Like an Agent?', description: 'Agents don\'t just say "I like it" — they say WHY', time: 3 },
+        { title: 'Guided Listening (3 tracks)', description: 'Class listens to Ketsa, Jason Shaw, and Soft and Furious — fill out Listening Guide together', time: 17 },
+        { title: 'Independent Listening', description: 'Pick 1 of 5 tracks, analyze on your own, then share with a partner', time: 15, activityType: 'independent-listening' },
+        { title: 'Sign or Pass', description: 'Listen to 3 mystery artists, rank 1-3 — match your group to score!', time: 7, activityType: 'sign-or-pass' }
       ]
     },
     {
@@ -172,43 +181,45 @@ const MusicJournalistHub = () => {
       color: 'from-blue-700 to-cyan-700',
       route: '/lessons/music-journalist/lesson3',
       available: true,
-      hasLessonPlan: false,
-      inThisLesson: 'Students narrow their picks with a Scouting Report, choose their artist, research their story using the artist profile, learn to distinguish strong evidence from weak evidence, save facts to their Research Board, and play Fact or Opinion to sharpen their skills.',
+      hasLessonPlan: true,
+      inThisLesson: 'Students learn the 4-point checklist for evaluating artists (Unique Sound, Compelling Story, Signs of Growth, Gut Feeling), practice distinguishing fact from opinion, build a Scouting Report with evidence, and play Would You Sign Them?',
       studentsWill: [
-        'Build a Scouting Report to narrow down and select their artist',
-        'Identify strong vs weak evidence for building a case',
-        'Save at least 5 specific facts to their Research Board'
+        'Evaluate artists using the 4-point checklist',
+        'Distinguish between strong evidence and weak evidence',
+        'Classify statements as fact or opinion',
+        'Build a structured Scouting Report with evidence'
       ],
       activities: [
-        { title: 'What Makes an Artist Worth It?', description: 'The 4-point checklist: unique sound, story, growth, your gut', time: 4 },
-        { title: 'Scouting Report', description: 'Narrow your picks — Top 5, #1 Pick, What I Notice', time: 10, activityType: 'scouting-report' },
-        { title: 'Strong vs Weak Evidence', description: 'Learn what would convince a label vs what falls flat', time: 4 },
-        { title: 'Research Session', description: 'Dig into your artist\'s profile — save 5+ facts to Research Board', time: 12, activityType: 'artist-discovery' },
-        { title: 'Fact or Opinion Game', description: 'Sort 10 statements — agents need evidence, not just vibes', time: 7, activityType: 'fact-opinion-sorter' }
+        { title: 'The 4-Point Checklist', description: 'What agents look for: Unique Sound, Compelling Story, Signs of Growth, Gut Feeling', time: 7 },
+        { title: 'Fact or Opinion', description: 'Write one fact and one opinion about your artist', time: 5, activityType: 'fact-opinion-sorter' },
+        { title: 'Scouting Report', description: 'Complete 3 slides for your assigned artist with real evidence', time: 15, activityType: 'scouting-report' },
+        { title: 'Share Out', description: 'Which of the four points felt strongest? Share with a partner', time: 3 },
+        { title: 'Would You Sign Them?', description: 'Match evidence to the 4-point checklist', time: 7, activityType: 'would-you-sign-them' }
       ]
     },
     {
       id: 'mj-lesson4',
       number: 4,
       icon: '🎨',
-      title: 'Design the Campaign',
+      title: 'Build Your Story',
       concept: 'Press Kit Builder',
       essentialQuestion: 'How do you tell someone\'s story in a way that makes people care?',
       color: 'from-cyan-700 to-teal-600',
       route: '/lessons/music-journalist/lesson4',
       available: true,
-      hasLessonPlan: false,
-      inThisLesson: 'Students use the Press Kit Designer to build a 5-slide visual campaign for their artist. They choose layouts, pick colors, place images, and drag text — all pre-populated from their research. Partners review each other\'s work and give feedback.',
+      hasLessonPlan: true,
+      inThisLesson: 'Students learn what a press kit is, then build a 5-slide presentation for their artist in the Slide Builder. Partners swap and review each other\'s work, make final edits, and choose their presentation format for Launch Day.',
       studentsWill: [
-        'Design a 5-slide press kit with layouts, colors, images, and evidence-backed content',
-        'Pull research from their Research Board and Listening Guide into the presentation',
-        'Give and receive constructive peer feedback'
+        'Structure a 5-slide press kit presentation using research and listening notes',
+        'Write concise, persuasive slide content with evidence from multiple sources',
+        'Give and receive constructive peer feedback',
+        'Prepare for a 2-3 minute presentation'
       ],
       activities: [
-        { title: 'The 5-Slide Structure', description: 'Learn each slide: Meet, Sound, Why, Listen, Go Viral', time: 5 },
-        { title: 'Build Your Press Kit', description: 'Design your campaign — layouts, colors, images, text', time: 25, activityType: 'mj-press-kit' },
-        { title: 'Peer Review', description: 'Swap with a partner — strongest slide? What\'s missing?', time: 5, activityType: 'mj-peer-feedback' },
-        { title: 'Presentation Prep', description: 'Polish and prepare for Launch Day', time: 5 }
+        { title: 'What Is a Press Kit?', description: 'How press kits get artists signed — you already have everything you need', time: 3 },
+        { title: 'Build Your Story', description: 'Build 5-slide presentation in the Slide Builder', time: 25, activityType: 'mj-press-kit' },
+        { title: 'Peer Review + Revise', description: 'Swap with a partner, give feedback, then make final edits', time: 9, activityType: 'mj-peer-feedback' },
+        { title: 'Presentation Prep', description: 'Choose your format: Live Pitch, Voiceover, Partner Pitch, or Panel', time: 3 }
       ]
     },
     {
@@ -216,24 +227,23 @@ const MusicJournalistHub = () => {
       number: 5,
       icon: '🚀',
       title: 'Launch Day',
-      concept: 'Pitch & Vote',
+      concept: 'Pitch & Present',
       essentialQuestion: 'Can you convince someone to care about something you believe in?',
       color: 'from-teal-600 to-emerald-600',
       route: '/lessons/music-journalist/lesson5',
       available: true,
-      hasLessonPlan: false,
-      inThisLesson: 'Launch Day! Students present their 2-3 minute pitches with press kits on screen and music playing. Classmates submit peer feedback after each pitch. The class votes on whose artist goes viral. Awards: Gone Viral, Best Hook, Best Sound Statement, Strongest Case, Best Campaign Design, Crowd Favorite.',
+      hasLessonPlan: true,
+      inThisLesson: 'Launch Day! Students present their 2-3 minute pitches with press kits on screen and music playing. After all pitches, the class reflects on what they discovered about music throughout the unit.',
       studentsWill: [
-        'Deliver a persuasive 2-3 minute pitch backed by evidence',
-        'Listen critically and provide constructive peer feedback',
-        'Vote on whose artist deserves to go viral based on pitch quality'
+        'Deliver a persuasive 2-3 minute presentation with evidence',
+        'Listen critically to peers and provide constructive feedback',
+        'Reflect on music discovery, research, and communication skills'
       ],
       activities: [
-        { title: 'Welcome to Launch Day', description: 'Set the scene — you are agents, this room is your audience', time: 3 },
-        { title: 'The Pitches', description: '2-3 min per agent — press kit on screen, music plays, make your case', time: 25, activityType: 'mj-presentation' },
-        { title: 'Peer Feedback', description: 'One thing that convinced you + one thing to improve', time: 3, activityType: 'mj-peer-feedback' },
-        { title: 'The Vote', description: 'Whose artist goes viral? Class votes now.', time: 3, activityType: 'artist-vote' },
-        { title: 'Results & Awards', description: 'Gone Viral, Best Hook, Strongest Case, Crowd Favorite', time: 5 }
+        { title: 'Welcome + Expectations', description: 'You\'re not students — you\'re agents. Presentation norms for presenters and audience', time: 5 },
+        { title: 'Agent Pitches', description: '2-3 min per agent — press kit on screen, music plays, make your case', time: 25, activityType: 'launch-day' },
+        { title: 'Reflection', description: 'What did you learn about music you didn\'t know before this unit?', time: 4 },
+        { title: 'Celebration', description: 'You just did what real music agents do every day', time: 3 }
       ]
     }
   ];
@@ -241,12 +251,6 @@ const MusicJournalistHub = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-[#1a2744] to-gray-900">
       <TeacherHeader user={user} signOut={signOut} />
-
-      {/* UNLOCK BANNER */}
-      <div className="w-full bg-gradient-to-r from-sky-600 to-cyan-600 text-white text-center py-3 px-4">
-        <span className="text-sm font-bold tracking-wide uppercase bg-white/20 px-3 py-1 rounded-full mr-2">Coming Soon</span>
-        <span className="text-sm font-medium">Unit Unlocks on April 15th — Preview lessons below!</span>
-      </div>
 
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Back button */}
@@ -356,6 +360,23 @@ const MusicJournalistHub = () => {
                       <h4 className="text-white/60 text-xs font-bold uppercase tracking-wider mb-1">Essential Question</h4>
                       <p className="text-[#f0b429] text-sm italic">{lesson.essentialQuestion}</p>
                     </div>
+
+                    {/* Lesson Plan Link */}
+                    {lesson.hasLessonPlan && userRole === 'teacher' && (
+                      <div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenLessonPlan(lesson.id);
+                          }}
+                          className="flex items-center gap-2 text-[#f0b429] hover:text-[#f0b429]/80 font-medium transition-colors text-sm"
+                        >
+                          <FileText size={16} />
+                          View Lesson Plan
+                          <ExternalLink size={14} className="text-[#f0b429]/50" />
+                        </button>
+                      </div>
+                    )}
 
                     {/* Activities table */}
                     <div>
