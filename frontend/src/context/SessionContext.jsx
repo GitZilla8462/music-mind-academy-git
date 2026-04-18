@@ -796,9 +796,16 @@ export const SessionProvider = ({ children }) => {
     hasAutoCleanedRef.current = false;
   };
 
+  const stageUpdateBlockedRef = useRef(false);
+
   const setCurrentStage = async (stage) => {
     if (userRole !== 'teacher') {
       console.warn('⚠️ Only teachers can update stage');
+      return;
+    }
+
+    if (stageUpdateBlockedRef.current) {
+      console.warn('⚠️ Stage updates blocked due to previous permission error — reload to retry');
       return;
     }
 
@@ -822,6 +829,10 @@ export const SessionProvider = ({ children }) => {
       logStageChange(analyticsCode, stage).catch(() => {});
     } catch (error) {
       console.error('❌ Error updating stage:', error);
+      if (error?.message?.includes('PERMISSION_DENIED')) {
+        stageUpdateBlockedRef.current = true;
+        console.error('🛑 Blocking further stage updates — Firebase auth may have expired. Reload the page to fix.');
+      }
     }
   };
 

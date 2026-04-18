@@ -19,24 +19,36 @@ export const lessonSections = [
     color: 'blue',
     estimatedTime: 5,
     stages: [
-      { id: 'welcome', type: 'summary', label: 'Welcome', description: '"Today you\'re agents in a room full of label executives."', duration: 3 },
-      { id: 'expectations', type: 'summary', label: 'Expectations', description: 'Presentation norms and peer feedback instructions.', duration: 2 }
+      { id: 'welcome', type: 'summary', label: 'Welcome', description: '"Today you pitch your artist — tell the story, play the music, make them care."', duration: 3 },
+      { id: 'expectations', type: 'summary', label: 'Expectations', description: 'Presentation norms.', duration: 2 },
+      { id: 'format', type: 'summary', label: 'Today\'s Format', description: 'Volunteers first, then Speed Pitching for everyone.', duration: 1 }
     ]
   },
   {
-    id: 'launch',
-    title: '2. Launch Day',
-    subtitle: 'Pitches + Vote',
+    id: 'whole-class',
+    title: '2. Whole Class Pitches',
+    subtitle: 'Volunteers',
     color: 'blue',
-    estimatedTime: 33,
+    estimatedTime: 15,
     stages: [
-      { id: 'launch-day', type: 'activity', label: 'Agent Pitch', description: 'Teacher displays each student\'s presentation for the class.', duration: 25, hasTimer: false, trackProgress: true },
-      // { id: 'class-vote', type: 'activity', label: 'Class Vote', description: 'Students vote for their favorite artist. Results + awards revealed.', duration: 8, hasTimer: true, trackProgress: true }
+      { id: 'whole-class-intro', type: 'summary', label: 'Whole Class Pitches', description: 'Volunteers present to the full class.', duration: 1 },
+      { id: 'launch-day', type: 'activity', label: 'Agent Pitch', description: 'Teacher displays each volunteer\'s presentation for the class.', duration: 14, hasTimer: false, trackProgress: true }
+    ]
+  },
+  {
+    id: 'speed-pitching',
+    title: '3. Speed Pitching',
+    subtitle: 'Everyone Presents',
+    color: 'blue',
+    estimatedTime: 15,
+    stages: [
+      { id: 'speed-pitching-intro', type: 'summary', label: 'Speed Pitching', description: 'Pair up, pitch, switch, rotate.', duration: 1 },
+      { id: 'speed-pitching-go', type: 'activity', label: 'Speed Pitching Timer', description: 'Teacher calls SWITCH and ROTATE.', duration: 2, hasTimer: true }
     ]
   },
   {
     id: 'celebration',
-    title: '3. Celebration',
+    title: '4. Celebration',
     subtitle: 'Reflect + Celebrate',
     color: 'blue',
     estimatedTime: 7,
@@ -58,12 +70,13 @@ export const lesson5Config = {
   learningObjectives: [
     'Deliver a persuasive 2-3 minute presentation with evidence',
     'Listen critically to peers and provide constructive feedback',
-    'Vote on whose artist deserves to go viral based on the strongest pitch',
+    'Present to multiple partners through Speed Pitching',
     'Reflect on music discovery, research, and communication skills'
   ],
   lessonSections,
   activities: [
-    { id: 1, type: 'launch-day', title: 'Launch Day', estimatedTime: '33 min' }
+    { id: 1, type: 'launch-day', title: 'Whole Class Pitches', estimatedTime: '15 min' },
+    { id: 2, type: 'speed-pitching', title: 'Speed Pitching', estimatedTime: '15 min' }
   ]
 };
 
@@ -76,9 +89,8 @@ export const lessonStages = [
       sections: [
         { heading: 'The Scene', bullets: [
           'You found an artist that NOBODY in this room knows about',
-          'Each agent has ONE artist they believe in',
-          'You have 2-3 minutes to convince the room',
-          'At the end, the class VOTES — whose artist goes VIRAL?'
+          'Today you pitch your artist — tell the story, play the music, make them care',
+          'Some of you will present to the whole class, then everyone does Speed Pitching'
         ]},
         { heading: 'Make It Count', bullets: [
           'Tell the STORY — don\'t just read your slides',
@@ -91,7 +103,7 @@ export const lessonStages = [
   {
     id: 'expectations', label: 'Expectations', type: 'summary', duration: 2,
     presentationView: {
-      type: 'summary', title: 'Presentation Norms', subtitle: 'How Pitch Day Works',
+      type: 'summary', title: 'Presentation Norms', subtitle: 'Rules for Pitch Day',
       sections: [
         { heading: 'For Presenters', bullets: [
           '2-3 minutes per pitch — tell the story, don\'t read slides',
@@ -102,21 +114,69 @@ export const lessonStages = [
         { heading: 'For the Audience', bullets: [
           'Chromebooks CLOSED during pitches',
           'Snap or clap after each pitch',
-          'Chromebooks OPEN briefly for feedback after each presenter',
-          'Then close again for the next pitch',
-          'At the end: vote for the ARTIST you think deserves to go viral'
+          'Listen like a label executive — would YOU sign this artist?'
         ]}
       ]
     }
   },
   {
-    id: 'launch-day', label: 'Agent Pitch', type: 'activity', duration: 25, hasTimer: false, trackProgress: true,
+    id: 'format', label: 'Today\'s Format', type: 'summary', duration: 1,
+    presentationView: {
+      type: 'summary', title: 'Today\'s Format', subtitle: 'Two Ways to Pitch',
+      sections: [
+        { heading: '', bullets: [
+          'First: volunteers pitch to the whole class (2-3 minutes each)',
+          'Then: everyone does Speed Pitching — share with a partner, get feedback, rotate',
+          'Every student presents at least 3 times today'
+        ]}
+      ]
+    }
+  },
+  {
+    id: 'whole-class-intro', label: 'Whole Class Pitches', type: 'summary', duration: 1,
+    presentationView: {
+      type: 'summary', title: 'Whole Class Pitches', subtitle: 'Volunteers Step Up',
+      sections: [
+        { heading: '', bullets: [
+          'Volunteers present to the full class — tell the story, play the music, make your case',
+          'Audience: Chromebooks closed, snap or clap after each pitch',
+          'After volunteers finish, we move to Speed Pitching'
+        ]}
+      ]
+    }
+  },
+  {
+    id: 'launch-day', label: 'Agent Pitch', type: 'activity', duration: 14, hasTimer: false, trackProgress: true,
     presentationView: { type: 'launch-day-teacher' }
   },
-  // {
-  //   id: 'class-vote', label: 'Class Vote', type: 'activity', duration: 8, hasTimer: true, trackProgress: true,
-  //   presentationView: { type: 'class-vote-teacher' }
-  // },
+  {
+    id: 'speed-pitching-intro', label: 'Speed Pitching', type: 'summary', duration: 1,
+    presentationView: {
+      type: 'summary', title: 'Speed Pitching', subtitle: 'Everyone Presents',
+      sections: [
+        { heading: '', bullets: [
+          'Pair up across from a partner — one person pitches for 2 minutes, the other listens',
+          'When you hear "SWITCH" — the listener becomes the pitcher',
+          'When you hear "ROTATE" — one side shifts one seat right to meet a new partner'
+        ]}
+      ]
+    }
+  },
+  {
+    id: 'speed-pitching-go', label: 'Speed Pitching Timer', type: 'activity', duration: 2, hasTimer: true,
+    description: 'Teacher calls SWITCH and ROTATE.',
+    presentationView: {
+      type: 'summary', title: 'Speed Pitching', subtitle: 'In Progress',
+      sections: [
+        { heading: '', bullets: [
+          'Round 1: Pitch to your partner (2 min) → SWITCH → Partner pitches (2 min)',
+          'ROTATE — one side shifts one seat right',
+          'Round 2: Pitch to new partner (2 min) → SWITCH → Partner pitches (2 min)',
+          'ROTATE again for Round 3 if time allows'
+        ]}
+      ]
+    }
+  },
   {
     id: 'reflection', label: 'Reflection', type: 'discussion', duration: 4,
     presentationView: {
@@ -172,8 +232,11 @@ export const getActivityForStage = (stage) => ({
   'join-code': 'waiting',
   'welcome': 'summary',
   'expectations': 'summary',
+  'format': 'summary',
+  'whole-class-intro': 'summary',
   'launch-day': 'launch-day',
-  // 'class-vote': 'class-vote',
+  'speed-pitching-intro': 'summary',
+  'speed-pitching-go': 'mj-press-kit',
   'reflection': 'discussion',
   'celebration': 'summary',
   'lesson-complete': 'summary'

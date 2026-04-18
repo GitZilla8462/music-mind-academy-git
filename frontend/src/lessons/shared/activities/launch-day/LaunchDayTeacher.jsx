@@ -26,12 +26,12 @@ const AWARDS = [
 // Directions Modal
 // ---------------------------------------------------------------------------
 const DIRECTIONS_STEPS = [
-  { emoji: '1️⃣', text: 'Click a student\'s name to start their presentation' },
-  { emoji: '2️⃣', text: 'Their press kit slides appear on screen — they present live (2-3 min)' },
-  { emoji: '3️⃣', text: 'Click "Open Feedback" — students get 60 seconds to type feedback on their Chromebooks' },
-  { emoji: '4️⃣', text: 'Click "Close Feedback & Next" — pick the next presenter' },
-  { emoji: '5️⃣', text: 'When everyone has presented, click "Start Voting" — students vote for their favorite artist' },
-  { emoji: '6️⃣', text: 'Click "Reveal Results" — the class sees who went viral, then you assign bonus awards' },
+  { emoji: '1️⃣', text: 'Ask for volunteers who want to present to the whole class' },
+  { emoji: '2️⃣', text: 'Click a volunteer\'s name — their press kit slides appear on screen' },
+  { emoji: '3️⃣', text: 'They present live (2-3 min) while the class watches' },
+  { emoji: '4️⃣', text: 'After each pitch, give verbal feedback or ask the class for shout-outs (optional)' },
+  { emoji: '5️⃣', text: 'Click "Next" to pick the next volunteer' },
+  { emoji: '6️⃣', text: 'When volunteers are done, advance to Speed Pitching — everyone presents to a partner' },
 ];
 
 const AgentPitchDirections = ({ isOpen, onClose }) => {
@@ -42,7 +42,7 @@ const AgentPitchDirections = ({ isOpen, onClose }) => {
         <div className="bg-gradient-to-r from-[#1a2744] to-[#2a3f6e] px-6 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-black text-white">Agent Pitch</h2>
-            <p className="text-blue-200 text-sm">How Launch Day Works</p>
+            <p className="text-blue-200 text-sm">Whole Class Pitches</p>
           </div>
           <button onClick={onClose} className="text-white/70 hover:text-white text-2xl font-bold leading-none">{'\u2715'}</button>
         </div>

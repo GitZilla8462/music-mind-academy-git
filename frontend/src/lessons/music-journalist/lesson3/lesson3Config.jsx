@@ -33,17 +33,20 @@ export const lessonSections = [
       { id: 'checklist-1', type: 'summary', label: 'Unique Sound', description: 'Point 1 of 4 — What makes their sound different?', duration: 1 },
       { id: 'checklist-2', type: 'summary', label: 'Compelling Story', description: 'Point 2 of 4 — Why do they make music?', duration: 1 },
       { id: 'checklist-3', type: 'summary', label: 'Signs of Growth', description: 'Point 3 of 4 — Are more people discovering them?', duration: 1 },
-      { id: 'checklist-4', type: 'summary', label: 'Gut Feeling', description: 'Point 4 of 4 — Do YOU believe in them?', duration: 1 }
+      { id: 'checklist-4', type: 'summary', label: 'Gut Feeling', description: 'Point 4 of 4 — Do YOU believe in them?', duration: 1 },
+      { id: 'facts-vs-opinions', type: 'summary', label: 'Facts vs. Opinions', description: 'How to tell a fact from an opinion.', duration: 1 },
+      { id: 'strong-vs-weak', type: 'summary', label: 'Strong vs. Weak Evidence', description: 'What makes evidence strong or weak?', duration: 1 }
     ]
   },
   {
     id: 'game',
-    title: '2. Fact or Opinion',
-    subtitle: 'Writing Activity',
+    title: '2. Artists Worth Signing',
+    subtitle: 'Class Game',
     color: 'blue',
     estimatedTime: 5,
     stages: [
-      { id: 'fact-opinion-game', type: 'activity', label: 'Fact or Opinion', description: 'STUDENTS: Write one fact and one opinion about your artist.', duration: 5, hasTimer: true, trackProgress: true, hasProgress: true }
+      { id: 'fact-opinion-game', type: 'activity', label: 'Artists Worth Signing', description: 'STUDENTS: Vote on statements — fact or opinion, strong or weak evidence.', duration: 5, hasTimer: true, trackProgress: true, hasProgress: true },
+      { id: 'fact-opinion-results', type: 'activity', label: 'Results', description: 'Show the winner podium and leaderboard.', duration: 1 }
     ]
   },
   {
@@ -181,9 +184,39 @@ export const lessonStages = [
     }
   },
   {
-    id: 'fact-opinion-game', label: 'Fact or Opinion', type: 'activity', duration: 5, hasTimer: true, trackProgress: true, hasProgress: true,
-    description: 'STUDENTS: Write one fact and one opinion about your artist.',
+    id: 'facts-vs-opinions', label: 'Facts vs. Opinions', type: 'summary', duration: 1,
+    presentationView: {
+      type: 'summary', title: 'Facts vs. Opinions', subtitle: 'Know the Difference',
+      sections: [
+        { heading: '', bullets: [
+          'A FACT can be proven true or false — "They have 50,000 streams on Spotify"',
+          'An OPINION is a personal view — "They\'re the best new artist out right now"',
+          'Agents need facts to convince a label — opinions alone won\'t close the deal'
+        ]}
+      ]
+    }
+  },
+  {
+    id: 'strong-vs-weak', label: 'Strong vs. Weak Evidence', type: 'summary', duration: 1,
+    presentationView: {
+      type: 'summary', title: 'Strong vs. Weak Evidence', subtitle: 'Not All Facts Hit the Same',
+      sections: [
+        { heading: '', bullets: [
+          'STRONG evidence is specific and verifiable — names, numbers, dates, sources',
+          'WEAK evidence is vague and unprovable — "a lot of people like them"',
+          'Your job as an agent: back up every claim with the strongest evidence you can find'
+        ]}
+      ]
+    }
+  },
+  {
+    id: 'fact-opinion-game', label: 'Artists Worth Signing', type: 'activity', duration: 5, hasTimer: true, trackProgress: true, hasProgress: true,
+    description: 'STUDENTS: Vote on statements — fact or opinion, strong or weak evidence.',
     presentationView: { type: 'fact-opinion-sorter-teacher-game' }
+  },
+  {
+    id: 'fact-opinion-results', label: 'Results', type: 'activity', duration: 1,
+    presentationView: { type: 'fact-opinion-sorter-results' }
   },
   {
     id: 'scouting-report', label: 'Scouting Report', type: 'activity', duration: 15, hasTimer: true, trackProgress: true,
@@ -230,7 +263,10 @@ export const getActivityForStage = (stage) => {
     'checklist-2': 'summary',
     'checklist-3': 'summary',
     'checklist-4': 'summary',
+    'facts-vs-opinions': 'summary',
+    'strong-vs-weak': 'summary',
     'fact-opinion-game': 'fact-opinion-sorter',
+    'fact-opinion-results': 'fact-opinion-sorter',
     'scouting-report': 'claim-artist-report',
     'share-out': 'claim-artist-report',
     'would-you-sign-them': 'would-you-sign-them',

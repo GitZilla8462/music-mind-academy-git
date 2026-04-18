@@ -53,7 +53,7 @@ const FactOpinionSorterResults = ({ sessionData }) => {
       {/* Header */}
       <div className="text-center py-6">
         <div className="text-6xl mb-4">{'\uD83C\uDFC6'}</div>
-        <h1 className="text-5xl font-black mb-2">Fact or Opinion Results</h1>
+        <h1 className="text-5xl font-black mb-2">Artists Worth Signing</h1>
         <p className="text-2xl text-white/70">Congratulations to all players!</p>
       </div>
 

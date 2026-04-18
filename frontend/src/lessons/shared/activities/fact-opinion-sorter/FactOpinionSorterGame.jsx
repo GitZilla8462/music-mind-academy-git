@@ -171,6 +171,13 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
   // Statement show timestamp (for speed bonus)
   const statementShownAt = useRef(null);
 
+  // Cooldown to prevent accidental double-click advancing
+  const [buttonCooldown, setButtonCooldown] = useState(false);
+  const startCooldown = useCallback((ms = 1500) => {
+    setButtonCooldown(true);
+    setTimeout(() => setButtonCooldown(false), ms);
+  }, []);
+
   const currentStatement = STATEMENTS[currentStatementIndex] || null;
 
   // Firebase: Update game state
@@ -233,6 +240,8 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
 
   // Start game
   const startGame = useCallback(() => {
+    if (buttonCooldown) return;
+    startCooldown();
     setCurrentStatementIndex(0);
     setGamePhase('showing');
     statementShownAt.current = Date.now();
@@ -264,11 +273,12 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
       revealedAnswer: null,
       shownAt: Date.now(),
     });
-  }, [sessionCode, classId, students, updateGame, studentsBasePath]);
+  }, [sessionCode, classId, students, updateGame, studentsBasePath, buttonCooldown, startCooldown]);
 
   // Reveal answer
   const reveal = useCallback(() => {
-    if (!currentStatement) return;
+    if (!currentStatement || buttonCooldown) return;
+    startCooldown();
 
     setGamePhase('revealed');
 
@@ -301,10 +311,12 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
       phase: 'revealed',
       revealedAnswer: currentStatement.answer,
     });
-  }, [currentStatement, students, sessionCode, classId, updateGame, studentsBasePath]);
+  }, [currentStatement, students, sessionCode, classId, updateGame, studentsBasePath, buttonCooldown, startCooldown]);
 
   // Next statement
   const nextStatement = useCallback(() => {
+    if (buttonCooldown) return;
+    startCooldown();
     // Clear student answers (but keep scores)
     if (sessionCode || classId) {
       const db = getDatabase();
@@ -342,7 +354,7 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
         shownAt: Date.now(),
       });
     }
-  }, [sessionCode, classId, students, currentStatementIndex, updateGame, studentsBasePath]);
+  }, [sessionCode, classId, students, currentStatementIndex, updateGame, studentsBasePath, buttonCooldown, startCooldown]);
 
   // Build sorted leaderboard (deduplicate by name — keep highest score)
   const leaderboard = (() => {
@@ -392,8 +404,8 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
                 <div className="text-center max-w-4xl mx-auto px-8">
                   <div className="text-5xl lg:text-7xl mb-4">{'\u2696\uFE0F'}</div>
                   <h2 className="text-3xl lg:text-5xl font-bold mb-4">Artists Worth Signing</h2>
-                  <p className="text-lg lg:text-2xl text-white/80 mb-6 leading-relaxed">As a music agent, you need to back up your claims with <strong className="text-amber-400">real evidence</strong>. Can you tell the difference?</p>
-                  <p className="text-sm lg:text-base text-white/40 mb-6">{STATEMENTS.length} questions &middot; +10 points correct &middot; Speed bonus up to +5</p>
+                  <p className="text-lg lg:text-2xl text-white/80 mb-6 leading-relaxed">You know the 4-Point Checklist. Now prove you can use it. <strong className="text-amber-400">Spot facts vs. opinions</strong>, judge <strong className="text-amber-400">strong vs. weak evidence</strong>, and match statements to the right checklist point.</p>
+                  <p className="text-sm lg:text-base text-white/40 mb-6">{STATEMENTS.length} questions &middot; 3 question types &middot; +10 points correct &middot; Speed bonus up to +5</p>
                   <button
                     onClick={startGame}
                     className="px-6 py-3 rounded-xl text-lg font-bold hover:scale-105 transition-all flex items-center gap-2 mx-auto"
@@ -429,7 +441,8 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
                   <div className="flex justify-end mt-3 flex-shrink-0">
                     <button
                       onClick={reveal}
-                      className="px-6 py-3 rounded-2xl text-lg font-bold flex items-center gap-2 hover:scale-105 transition-all"
+                      disabled={buttonCooldown}
+                      className={`px-6 py-3 rounded-2xl text-lg font-bold flex items-center gap-2 transition-all ${buttonCooldown ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
                       style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
                     >
                       <Eye size={24} /> Reveal Answer
@@ -473,7 +486,8 @@ const FactOpinionSorterGame = ({ sessionData, onComplete }) => {
                   <div className="flex justify-end mt-3 flex-shrink-0">
                     <button
                       onClick={nextStatement}
-                      className="px-6 py-3 rounded-2xl text-lg font-bold hover:scale-105 transition-all flex items-center gap-2"
+                      disabled={buttonCooldown}
+                      className={`px-6 py-3 rounded-2xl text-lg font-bold flex items-center gap-2 transition-all ${buttonCooldown ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
                       style={{ background: 'linear-gradient(to right, #f0b429, #d97706)' }}
                     >
                       {currentStatementIndex >= STATEMENTS.length - 1 ? (

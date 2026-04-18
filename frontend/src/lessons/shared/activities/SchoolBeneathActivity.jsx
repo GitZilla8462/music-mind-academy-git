@@ -12,7 +12,7 @@ import ReflectionModal from './two-stars-and-a-wish/ReflectionModal';
 import { useTimerSound } from '../hooks/useTimerSound';
 import NameThatLoopActivity from './layer-detective/NameThatLoopActivity';
 import { useSession } from '../../../context/SessionContext';
-import { saveStudentWork, loadStudentWork, clearAllCompositionSaves, getStudentId, getClassAuthInfo } from '../../../utils/studentWorkStorage';
+import { saveStudentWork, loadStudentWork, clearAllCompositionSaves, getStudentId, getClassAuthInfo, parseActivityId } from '../../../utils/studentWorkStorage';
 import { loadStudentWork as loadFromFirebase } from '../../../firebase/studentWork';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import DirectionsModal, { DirectionsReopenButton } from '../components/DirectionsModal';
@@ -335,7 +335,7 @@ const SchoolBeneathActivity = ({
       const classAuth = getClassAuthInfo();
       if (classAuth?.uid) {
         try {
-          const { lessonId, activityId: parsedActivityId } = await import('../../../utils/studentWorkStorage').then(m => m.parseActivityId(storageKey));
+          const { lessonId, activityId: parsedActivityId } = parseActivityId(storageKey);
           const firebaseData = await Promise.race([
             loadFromFirebase(classAuth.uid, lessonId, parsedActivityId),
             new Promise((_, reject) => setTimeout(() => reject(new Error('Firebase load timeout')), 8000))

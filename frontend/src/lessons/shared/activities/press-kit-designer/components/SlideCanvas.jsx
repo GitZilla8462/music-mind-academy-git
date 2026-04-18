@@ -366,6 +366,13 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
     onSaveText(obj.id, text);
   };
 
+  // Sync text to state on every input so autosave captures in-progress edits
+  const inputTimerRef = useRef(null);
+  const handleInput = () => {
+    clearTimeout(inputTimerRef.current);
+    inputTimerRef.current = setTimeout(handleSave, 500);
+  };
+
   return (
     <div
       onPointerDown={(e) => { e.stopPropagation(); wasSelectedRef.current = isSelected; onSelect(obj.id); if (!isEditing) onDragStart(e, obj.id, 'move'); }}
@@ -396,11 +403,13 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
             // (e.g. toolbar button) — only save when focus truly leaves
             const related = e.relatedTarget;
             if (related && e.currentTarget.parentElement?.contains(related)) return;
+            clearTimeout(inputTimerRef.current);
             handleSave();
           }}
+          onInput={handleInput}
           onKeyDown={e => {
             e.stopPropagation();
-            if (e.key === 'Escape') { e.preventDefault(); handleSave(); }
+            if (e.key === 'Escape') { e.preventDefault(); clearTimeout(inputTimerRef.current); handleSave(); }
           }}
           style={{
             fontSize: (obj.fontSize || 24) * s,
