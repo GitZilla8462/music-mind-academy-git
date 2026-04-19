@@ -323,8 +323,8 @@ const PilotApplicationPage = () => {
           {error && (
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-3 text-center">{error}</p>
           )}
-          {(personalEmail.trim() && !isValidEmail(personalEmail.trim())) || (schoolEmail.trim() && !isValidEmail(schoolEmail.trim())) ? (
-            <p className="text-xs text-red-500 mb-2 text-center">Please enter valid email addresses</p>
+          {schoolEmail.trim() && !isValidEmail(schoolEmail.trim()) ? (
+            <p className="text-xs text-red-500 mb-2 text-center">Please enter a valid email address</p>
           ) : null}
           <button
             onClick={handleSubmit}
