@@ -547,22 +547,48 @@ const StudentBeatMakerActivity = ({
       previewSynthsRef.current = createPreviewSynths();
     }
 
-    const pattern = beat.pattern || {};
+    const rawPattern = beat.pattern || {};
     const stepIndices = Array.from({ length: beat.steps || 16 }, (_, i) => i);
+
+    // Pattern can be either:
+    // - 2D boolean array (from BeatMakerPanel grid): [[true,false,...], [false,true,...], ...]
+    // - Object with instrument arrays (legacy): { kick: [0,4], snare: [2,6], ... }
+    const instrumentIds = ['kick', 'snare', 'hihat', 'clap', 'openhat'];
+    const isGridFormat = Array.isArray(rawPattern) && Array.isArray(rawPattern[0]);
+
+    // Convert grid format to lookup for fast step checking
+    const activeSteps = {};
+    if (isGridFormat) {
+      instrumentIds.forEach((id, instIdx) => {
+        if (rawPattern[instIdx]) {
+          activeSteps[id] = new Set();
+          rawPattern[instIdx].forEach((active, stepIdx) => {
+            if (active) activeSteps[id].add(stepIdx);
+          });
+        }
+      });
+    } else {
+      instrumentIds.forEach(id => {
+        if (rawPattern[id]) activeSteps[id] = new Set(rawPattern[id]);
+      });
+    }
 
     previewSequenceRef.current = new Tone.Sequence(
       (time, stepIdx) => {
         try {
-          if (pattern.kick?.includes(stepIdx)) {
+          if (activeSteps.kick?.has(stepIdx)) {
             previewSynthsRef.current.kick.triggerAttackRelease('C1', '8n', time);
           }
-          if (pattern.snare?.includes(stepIdx)) {
+          if (activeSteps.snare?.has(stepIdx)) {
             previewSynthsRef.current.snare.triggerAttackRelease('16n', time);
           }
-          if (pattern.hihat?.includes(stepIdx)) {
+          if (activeSteps.hihat?.has(stepIdx)) {
             previewSynthsRef.current.hihat.triggerAttackRelease('32n', time);
           }
-          if (pattern.openhat?.includes(stepIdx)) {
+          if (activeSteps.clap?.has(stepIdx)) {
+            previewSynthsRef.current.kick.triggerAttackRelease('C1', '16n', time);
+          }
+          if (activeSteps.openhat?.has(stepIdx)) {
             previewSynthsRef.current.openhat.triggerAttackRelease('16n', time);
           }
         } catch (e) {

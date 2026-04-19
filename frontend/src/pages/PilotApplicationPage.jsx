@@ -5,13 +5,13 @@ const PilotApplicationPage = () => {
   // Required fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [personalEmail, setPersonalEmail] = useState('');
   const [schoolEmail, setSchoolEmail] = useState('');
   const [schoolName, setSchoolName] = useState('');
 
   // Optional fields
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [otherGrades, setOtherGrades] = useState('');
   const [grades, setGrades] = useState([]);
   const [devices, setDevices] = useState([]);
   const [classSize, setClassSize] = useState('');
@@ -37,7 +37,7 @@ const PilotApplicationPage = () => {
   };
 
   const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const canSubmit = firstName.trim() && lastName.trim() && personalEmail.trim() && schoolEmail.trim() && schoolName.trim() && isValidEmail(personalEmail.trim()) && isValidEmail(schoolEmail.trim());
+  const canSubmit = firstName.trim() && lastName.trim() && schoolEmail.trim() && schoolName.trim() && isValidEmail(schoolEmail.trim());
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -47,12 +47,13 @@ const PilotApplicationPage = () => {
       const applicationData = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        personalEmail: personalEmail.trim().toLowerCase(),
         schoolEmail: schoolEmail.trim().toLowerCase(),
         schoolName: schoolName.trim(),
         city: city.trim(),
         state: state.trim(),
-        grades,
+        grades: grades.includes('Other') && otherGrades.trim()
+          ? [...grades.filter(g => g !== 'Other'), otherGrades.trim()]
+          : grades,
         devices,
         classSize: classSize.trim(),
         biggestChallenge: biggestChallenge.trim(),
@@ -142,19 +143,6 @@ const PilotApplicationPage = () => {
 
             <div className="mb-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Personal Email <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                value={personalEmail}
-                onChange={(e) => setPersonalEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                placeholder="your@email.com"
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
                 School Email <span className="text-red-500">*</span>
               </label>
               <input
@@ -224,6 +212,15 @@ const PilotApplicationPage = () => {
                 </button>
               ))}
             </div>
+            {grades.includes('Other') && (
+              <input
+                type="text"
+                value={otherGrades}
+                onChange={(e) => setOtherGrades(e.target.value)}
+                className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                placeholder="Which grades? (e.g. 4th, 9th, K-2)"
+              />
+            )}
           </div>
 
           {/* Student Devices */}

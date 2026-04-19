@@ -5,12 +5,13 @@
 import * as Tone from 'tone';
 
 // Drum track configuration
+// IMPORTANT: Order must match BeatMakerPanel.jsx INSTRUMENTS array
 const INSTRUMENTS = [
-  { id: 'hihat', name: 'Hi-Hat' },
-  { id: 'openhat', name: 'Open Hat' },
+  { id: 'kick', name: 'Kick' },
   { id: 'snare', name: 'Snare' },
+  { id: 'hihat', name: 'Hi-Hat' },
   { id: 'clap', name: 'Clap' },
-  { id: 'kick', name: 'Kick' }
+  { id: 'openhat', name: 'Open Hat' }
 ];
 
 // Kit presets with synth parameters

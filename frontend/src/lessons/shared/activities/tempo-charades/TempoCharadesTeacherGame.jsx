@@ -133,11 +133,13 @@ const TempoCharadesTeacherGame = ({ sessionData, onComplete }) => {
   const playClip = useCallback(async (question) => {
     if (!question) return;
 
-    // Stop previous
+    // Stop previous — fully release old audio to avoid Chromebook audio limit
     if (clipEndTimer.current) clearTimeout(clipEndTimer.current);
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current.src = '';
+      audioRef.current.removeAttribute('src');
+      audioRef.current.load();
+      audioRef.current = null;
     }
 
     const audio = new Audio(question.clipAudio);

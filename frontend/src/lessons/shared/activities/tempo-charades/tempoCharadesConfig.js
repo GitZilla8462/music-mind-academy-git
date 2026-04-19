@@ -86,13 +86,13 @@ export const generateQuestions = (count = 10) => {
   });
 
   return shuffledTempos.map((tempo, idx) => {
-    const queue = clipQueues[tempo.bpm];
+    let queue = clipQueues[tempo.bpm];
     // Take the next clip; if we've used all 4, reshuffle and start over
     if (queue.length === 0) {
-      clipQueues[tempo.bpm] = shuffleArray(
+      queue = shuffleArray(
         AUDIO_CLIPS.map((clip, i) => ({ clip, index: i })).filter(({ clip }) => clip.naturalBpm === tempo.bpm)
       );
-      queue.push(...clipQueues[tempo.bpm]);
+      clipQueues[tempo.bpm] = queue;
     }
     const pick = queue.shift();
 

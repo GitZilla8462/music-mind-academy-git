@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Pause, Volume2, SkipBack, SkipForward, User, Star, MessageSquare, Save } from 'lucide-react';
 import * as Tone from 'tone';
+import { renderBeatToBlob, renderMelodyToBlob } from '../../../pages/projects/film-music-score/shared/beatRenderUtils';
 
 const StudentSubmissionView = ({ showToast, submissionId, embedded = false }) => {
   // Get params from URL if not embedded, otherwise use props
@@ -107,15 +108,37 @@ const StudentSubmissionView = ({ showToast, submissionId, embedded = false }) =>
         
         for (const loop of compositionData.placedLoops) {
           try {
+            // Re-render custom beats/melodies (blob URLs don't persist across sessions)
+            let audioUrl = loop.file;
+            if (loop.type === 'custom-beat' && loop.pattern) {
+              try {
+                const rendered = await renderBeatToBlob(loop);
+                audioUrl = rendered.blobURL;
+                console.log(`🔄 Re-rendered custom beat: ${loop.name}`);
+              } catch (renderErr) {
+                console.error(`Failed to re-render beat ${loop.name}:`, renderErr);
+                continue;
+              }
+            } else if (loop.type === 'custom-melody' && loop.pattern) {
+              try {
+                const rendered = await renderMelodyToBlob(loop);
+                audioUrl = rendered.blobURL;
+                console.log(`🎵 Re-rendered custom melody: ${loop.name}`);
+              } catch (renderErr) {
+                console.error(`Failed to re-render melody ${loop.name}:`, renderErr);
+                continue;
+              }
+            }
+
             const player = new Tone.Player({
-              url: loop.file,
+              url: audioUrl,
               loop: false,
               volume: Tone.gainToDb(loop.volume || 1)
             });
-            
+
             // Connect to master output
             player.toDestination();
-            
+
             players.set(loop.id, {
               player,
               startTime: loop.startTime,
@@ -123,7 +146,7 @@ const StudentSubmissionView = ({ showToast, submissionId, embedded = false }) =>
               duration: loop.duration,
               muted: loop.muted || false
             });
-            
+
             console.log(`Loaded audio player for: ${loop.name}`);
           } catch (error) {
             console.error(`Failed to load audio for ${loop.name}:`, error);

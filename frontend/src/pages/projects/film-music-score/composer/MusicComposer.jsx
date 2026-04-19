@@ -350,7 +350,10 @@ const MusicComposer = ({
     // copy was stripped of melody data (pattern, synthType, notes, etc.) but the
     // sidebar customLoops (initialCustomLoops) still have it. Cross-reference via originalId.
     const enrichedLoops = initialPlacedLoops.map(loop => {
-      if (loop.type === 'custom-melody' || loop.type === 'custom-beat') return loop; // Already has properties
+      if (loop.type === 'custom-melody' || loop.type === 'custom-beat') {
+        // Already has custom properties, but blob URLs don't persist — mark for re-rendering
+        return { ...loop, needsRender: true };
+      }
       if (!loop.originalId || !initialCustomLoops?.length) return loop;
 
       const sourceLoop = initialCustomLoops.find(cl => cl.id === loop.originalId);
