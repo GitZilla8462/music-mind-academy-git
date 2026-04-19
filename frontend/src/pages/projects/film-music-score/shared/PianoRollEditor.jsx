@@ -9,6 +9,7 @@ import { Rnd } from 'react-rnd';
 import { GripHorizontal, Minimize2, Maximize2, Play, Square, Save, Trash2, Plus, Undo2 } from 'lucide-react';
 import * as Tone from 'tone';
 import { INSTRUMENTS } from '../../../../lessons/film-music/shared/virtual-instrument/instrumentConfig';
+import renderNotesToWav from './renderWithSampler';
 
 const isChromebook = typeof navigator !== 'undefined' && (
   /CrOS/.test(navigator.userAgent) ||
@@ -116,15 +117,36 @@ const PianoRollEditor = ({
     }
   }, [isOpen, loop]);
 
-  // Init synth
+  // Init synth — use Sampler for real instrument sound, PolySynth fallback
   useEffect(() => {
     if (!isOpen) return;
     const inst = INSTRUMENTS[loop?.instrumentId || 'piano'];
     if (!inst) return;
 
     if (synthRef.current) synthRef.current.dispose();
-    synthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
-    synthRef.current.volume.value = -6;
+
+    if (inst.useSampler && inst.samples) {
+      const sampler = new Tone.Sampler({
+        urls: inst.samples.urls,
+        baseUrl: inst.samples.baseUrl,
+        attack: inst.samplerAttack || 0,
+        release: inst.config?.envelope?.release || 1,
+        onload: () => {},
+        onerror: () => {
+          // Fallback to PolySynth
+          if (synthRef.current === sampler) {
+            sampler.dispose();
+            synthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
+            synthRef.current.volume.value = -6;
+          }
+        },
+      }).toDestination();
+      sampler.volume.value = -6;
+      synthRef.current = sampler;
+    } else {
+      synthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
+      synthRef.current.volume.value = -6;
+    }
 
     return () => {
       if (synthRef.current) { synthRef.current.dispose(); synthRef.current = null; }
@@ -298,39 +320,28 @@ const PianoRollEditor = ({
     animRef.current = requestAnimationFrame(animate);
   }, [isPlaying, notes, totalDuration]);
 
-  // Save — re-render notes to WAV and call onSave
+  // Save — re-render notes to WAV using real instrument samples and call onSave
   const handleSave = useCallback(async () => {
     if (notes.length === 0) return;
     setIsSaving(true);
 
-    const inst = INSTRUMENTS[loop?.instrumentId || 'piano'];
-    if (!inst) { setIsSaving(false); return; }
-
-    const dur = Math.max(...notes.map(n => n.timestamp + n.duration)) + 0.5;
-
     try {
-      const offlineBuffer = await Tone.Offline(() => {
-        const synth = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
-        synth.volume.value = -6;
-        notes.forEach(({ note, timestamp, duration }) => {
-          synth.triggerAttackRelease(note, duration, timestamp);
+      const strippedNotes = notes.map(({ id, ...rest }) => rest);
+      const result = await renderNotesToWav(strippedNotes, loop?.instrumentId || 'piano');
+
+      if (result) {
+        // Revoke old blob
+        if (loop?.file?.startsWith('blob:')) {
+          URL.revokeObjectURL(loop.file);
+        }
+
+        onSave({
+          ...loop,
+          file: result.blobURL,
+          duration: result.duration,
+          notes: strippedNotes,
         });
-      }, dur);
-
-      const wavBlob = audioBufferToWav(offlineBuffer);
-      const blobURL = URL.createObjectURL(wavBlob);
-
-      // Revoke old blob
-      if (loop?.file?.startsWith('blob:')) {
-        URL.revokeObjectURL(loop.file);
       }
-
-      onSave({
-        ...loop,
-        file: blobURL,
-        duration: dur,
-        notes: notes.map(({ id, ...rest }) => rest), // strip editor IDs
-      });
 
       onClose();
     } catch (e) {

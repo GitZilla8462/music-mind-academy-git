@@ -28,14 +28,30 @@ export const KEY_TO_NOTE = {};
 KEYBOARD_NOTES.forEach(n => { KEY_TO_NOTE[n.key] = n.note; });
 
 // ========================================
-// INSTRUMENT SOUND PACKS (PolySynth configs)
+// SAMPLE BASE URL
 // ========================================
+// For local dev: samples served from public/samples/ by Vite
+// For production: upload samples/ folder to R2 and change this URL
+const SAMPLE_BASE = '/samples';
+
+// ========================================
+// INSTRUMENT SOUND PACKS
+// ========================================
+// Each instrument has:
+//   - config: PolySynth fallback (used for offline rendering + when samples aren't loaded)
+//   - samples: Tone.Sampler URLs (real instrument sounds for live playback)
+//   - useSampler: whether to use Sampler (true) or PolySynth (false)
 export const INSTRUMENTS = {
   piano: {
     id: 'piano',
     name: 'Piano',
     icon: 'Piano',
     trackTarget: 'motif',
+    useSampler: true,
+    samples: {
+      urls: { A3: 'A3.mp3', C4: 'C4.mp3', A4: 'A4.mp3', C5: 'C5.mp3' },
+      baseUrl: `${SAMPLE_BASE}/piano/`,
+    },
     config: {
       oscillator: { type: 'triangle' },
       envelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 0.8 }
@@ -46,6 +62,12 @@ export const INSTRUMENTS = {
     name: 'Strings',
     icon: 'Music',
     trackTarget: 'motif',
+    useSampler: true,
+    samplerAttack: 0.15, // soft fade-in to smooth the bow attack
+    samples: {
+      urls: { A3: 'A3.mp3', C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3', C5: 'C5.mp3' },
+      baseUrl: `${SAMPLE_BASE}/strings/`,
+    },
     config: {
       oscillator: { type: 'sawtooth' },
       envelope: { attack: 0.3, decay: 0.5, sustain: 0.8, release: 1.0 }
@@ -56,6 +78,11 @@ export const INSTRUMENTS = {
     name: 'Brass',
     icon: 'Volume2',
     trackTarget: 'motif',
+    useSampler: true,
+    samples: {
+      urls: { A1: 'A1.mp3', C2: 'C2.mp3', A3: 'A3.mp3', C4: 'C4.mp3' },
+      baseUrl: `${SAMPLE_BASE}/brass/`,
+    },
     config: {
       oscillator: { type: 'sawtooth' },
       envelope: { attack: 0.1, decay: 0.2, sustain: 0.6, release: 0.4 }
@@ -66,6 +93,11 @@ export const INSTRUMENTS = {
     name: 'Woodwind',
     icon: 'Wind',
     trackTarget: 'motif',
+    useSampler: true,
+    samples: {
+      urls: { C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3', C5: 'C5.mp3' },
+      baseUrl: `${SAMPLE_BASE}/woodwind/`,
+    },
     config: {
       oscillator: { type: 'sine' },
       envelope: { attack: 0.15, decay: 0.4, sustain: 0.5, release: 0.6 }
@@ -76,6 +108,7 @@ export const INSTRUMENTS = {
     name: 'Synth Pad',
     icon: 'Layers',
     trackTarget: 'harmony',
+    useSampler: false, // Synth pad sounds better synthesized
     config: {
       oscillator: { type: 'square' },
       envelope: { attack: 0.5, decay: 0.8, sustain: 0.9, release: 1.5 }
@@ -86,6 +119,11 @@ export const INSTRUMENTS = {
     name: 'Plucked',
     icon: 'Guitar',
     trackTarget: 'motif',
+    useSampler: true,
+    samples: {
+      urls: { A2: 'A2.mp3', E3: 'E3.mp3', A3: 'A3.mp3', A4: 'A4.mp3' },
+      baseUrl: `${SAMPLE_BASE}/plucked/`,
+    },
     config: {
       oscillator: { type: 'triangle' },
       envelope: { attack: 0.005, decay: 0.3, sustain: 0.05, release: 0.4 }
@@ -96,6 +134,7 @@ export const INSTRUMENTS = {
     name: 'Choir',
     icon: 'Users',
     trackTarget: 'motif',
+    useSampler: false, // Choir sounds better synthesized with detune
     config: {
       oscillator: { type: 'sine', detune: 8 },
       envelope: { attack: 0.4, decay: 0.6, sustain: 0.7, release: 1.2 }
@@ -106,6 +145,11 @@ export const INSTRUMENTS = {
     name: 'Electric Bass',
     icon: 'Activity',
     trackTarget: 'bass',
+    useSampler: true,
+    samples: {
+      urls: { C2: 'C2.mp3', E2: 'E2.mp3', A2: 'A2.mp3' },
+      baseUrl: `${SAMPLE_BASE}/bass/`,
+    },
     // Bass plays one octave lower — handled by octave shift in the keyboard
     octaveShift: -2,
     config: {

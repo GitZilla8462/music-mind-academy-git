@@ -166,6 +166,14 @@ import FilmMusicCompositionActivity from '../activities/FilmMusicCompositionActi
 import ComposersNotes from '../../film-music/shared/composers-notes/ComposersNotes';
 import ViewingPartyMode from '../../film-music/shared/viewing-party/ViewingPartyMode';
 
+// Film Music Lesson 2-4 Activities
+import InstrumentEmotionLabActivity from '../activities/instrument-emotion-lab/InstrumentEmotionLabActivity';
+import BassBuilderActivity from '../activities/bass-builder/BassBuilderActivity';
+import SilenceStudyActivity from '../activities/silence-study/SilenceStudyActivity';
+import SpottingSessionActivity from '../activities/spotting-session/SpottingSessionActivity';
+import TensionTimelineActivity from '../activities/tension-timeline/TensionTimelineActivity';
+import HarmonyLabActivity from '../activities/harmony-lab/HarmonyLabActivity';
+
 // Wrapper: shows NewsHub feed, click article → ArticleReader, back button returns to feed
 // Dark background wrapper ensures white text is visible when embedded in any parent
 const ArticleReaderActivity = ({ activity, onComplete }) => {
@@ -612,6 +620,64 @@ const ActivityRenderer = ({
           key={`motif-builder-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ========================================
+    // FILM MUSIC LESSON 2-4 ACTIVITIES
+    // ========================================
+
+    case 'instrument-emotion-lab':
+      return (
+        <InstrumentEmotionLabActivity
+          key={`instrument-emotion-lab-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    case 'bass-builder':
+      return (
+        <BassBuilderActivity
+          key={`bass-builder-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    case 'silence-study':
+      return (
+        <SilenceStudyActivity
+          key={`silence-study-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    case 'spotting-session':
+      return (
+        <SpottingSessionActivity
+          key={`spotting-session-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    case 'tension-timeline':
+      return (
+        <TensionTimelineActivity
+          key={`tension-timeline-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    case 'harmony-lab':
+      return (
+        <HarmonyLabActivity
+          key={`harmony-lab-${activity.id}`}
+          onComplete={onComplete}
           isSessionMode={isSessionMode}
         />
       );

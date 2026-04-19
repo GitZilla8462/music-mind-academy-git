@@ -28,6 +28,10 @@ const FilmMusicHub = () => {
   // Default to teacher role - hub is for teachers
   const userRole = localStorage.getItem('classroom-user-role') || 'teacher';
 
+  // Only allow specific teacher to start sessions (unit not ready for general use)
+  const ALLOWED_TEACHER_EMAIL = 'robtaube90@gmail.com';
+  const canStartSessions = user?.email === ALLOWED_TEACHER_EMAIL;
+
   // Check site mode for correct join URL
   const isEduSite = import.meta.env.VITE_SITE_MODE === 'edu';
   const joinUrl = isEduSite ? 'musicroomtools.org/join' : 'musicmindacademy.com/join';
@@ -194,7 +198,7 @@ const FilmMusicHub = () => {
       essentialQuestion: 'How do instruments reveal inner emotion?',
       color: 'from-blue-500 to-indigo-600',
       route: '/lessons/film-music/lesson2',
-      available: false,
+      available: true,
       hasLessonPlan: false,
       inThisLesson: 'Students learn that we hear what characters feel inside, even when they hide it. They explore how different instruments change emotional meaning, then add a bassline to their theme.',
       studentsWill: [
@@ -222,7 +226,7 @@ const FilmMusicHub = () => {
       essentialQuestion: 'When should music talk and when should it listen?',
       color: 'from-slate-500 to-gray-700',
       route: '/lessons/film-music/lesson3',
-      available: false,
+      available: true,
       hasLessonPlan: false,
       inThisLesson: 'Students discover that silence is powerful. They learn spotting (deciding where music goes), explore sound effects, then adjust their composition with intentional silence.',
       studentsWill: [
@@ -250,7 +254,7 @@ const FilmMusicHub = () => {
       essentialQuestion: 'How does music follow the story arc?',
       color: 'from-red-500 to-rose-700',
       route: '/lessons/film-music/lesson4',
-      available: false,
+      available: true,
       hasLessonPlan: false,
       inThisLesson: 'Students learn that music follows the story arc. When the story gets tense, the music builds. They explore tension techniques and add harmony (chords/pads) to their composition.',
       studentsWill: [
@@ -307,6 +311,13 @@ const FilmMusicHub = () => {
     <>
       <div className="min-h-screen bg-slate-50">
       <TeacherHeader />
+
+      {/* UNLOCK DATE BANNER */}
+      <div className="bg-gradient-to-r from-orange-500 to-amber-600 text-white text-center py-3 px-4">
+        <p className="text-lg font-semibold">
+          Unlocks May 18th
+        </p>
+      </div>
 
       {/* BACK BUTTON */}
       <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-4">
@@ -500,7 +511,7 @@ const FilmMusicHub = () => {
                           )}
 
                           {/* Start Session Button - hidden on mobile, shown on desktop */}
-                          {lesson.available && userRole === 'teacher' && (
+                          {lesson.available && userRole === 'teacher' && canStartSessions && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -527,7 +538,7 @@ const FilmMusicHub = () => {
                       </div>
 
                       {/* Start Session Button - mobile only, below the row */}
-                      {lesson.available && userRole === 'teacher' && (
+                      {lesson.available && userRole === 'teacher' && canStartSessions && (
                         <div className="mt-3 flex sm:hidden">
                           <button
                             onClick={(e) => {

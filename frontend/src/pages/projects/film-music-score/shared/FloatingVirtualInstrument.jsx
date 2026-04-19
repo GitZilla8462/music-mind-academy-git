@@ -9,6 +9,7 @@ import { GripHorizontal, Minimize2, Maximize2, Circle, Square } from 'lucide-rea
 import * as Tone from 'tone';
 import InstrumentKeyboard from '../../../../lessons/film-music/shared/virtual-instrument/InstrumentKeyboard';
 import DrumPadGrid from '../../../../lessons/film-music/shared/virtual-instrument/DrumPadGrid';
+import StringSlider from '../../../../lessons/film-music/shared/virtual-instrument/StringSlider';
 import InstrumentSelector from '../../../../lessons/film-music/shared/virtual-instrument/InstrumentSelector';
 import {
   INSTRUMENTS,
@@ -16,6 +17,7 @@ import {
   KEY_TO_PAD,
   DRUM_PADS,
 } from '../../../../lessons/film-music/shared/virtual-instrument/instrumentConfig';
+import renderNotesToWav from './renderWithSampler';
 
 // Instrument color map for recording labels
 const INSTRUMENT_COLORS = {
@@ -91,20 +93,27 @@ const FloatingVirtualInstrument = ({
   isPlaying,
   currentTime,
 }) => {
-  const defaultSize = isChromebook
-    ? { width: 520, height: 250 }
-    : { width: 560, height: 270 };
+  const defaultHeight = isChromebook ? 250 : 270;
+  const defaultWidth = isChromebook ? 520 : 560;
 
-  const [size, setSize] = useState(defaultSize);
+  // Instrument state — declared before size so setMode can reference it
+  const [mode, setModeRaw] = useState('keyboard');
+
+  const [size, setSize] = useState({ width: defaultWidth, height: defaultHeight });
   const [position, setPosition] = useState({ x: 200, y: 350 });
   const [isMinimized, setIsMinimized] = useState(false);
   const [prevSize, setPrevSize] = useState(null);
 
-  // Instrument state
-  const [mode, setMode] = useState('keyboard');
+  const setMode = (newMode) => {
+    setModeRaw(newMode);
+    const newHeight = (newMode === 'drums' || newMode === 'strings') ? 320 : defaultHeight;
+    setSize(prev => ({ ...prev, height: newHeight }));
+  };
   const [selectedInstrument, setSelectedInstrument] = useState('piano');
   const [pressedKeys, setPressedKeys] = useState(new Set());
   const [activePads, setActivePads] = useState(new Set());
+  const [octaveShift, setOctaveShift] = useState(0); // -2 to +2
+  const [glide, setGlide] = useState(false);
 
   // Recording state
   const [isRecording, setIsRecording] = useState(false);
@@ -120,19 +129,44 @@ const FloatingVirtualInstrument = ({
   const minWidth = isChromebook ? 460 : 500;
   const minHeight = isChromebook ? 220 : 240;
 
-  // Reset position when opening
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Slide up from bottom when opening
   useEffect(() => {
     if (isOpen) {
       const vw = window.visualViewport?.width || window.innerWidth;
       const vh = window.visualViewport?.height || window.innerHeight;
-      const x = Math.max(20, (vw - size.width) / 2);
-      const y = Math.max(40, vh - size.height - 40);
-      setPosition({ x, y });
+      const w = Math.min(defaultWidth, vw - 20);
+      setSize({ width: w, height: defaultHeight });
+      // Start off-screen at bottom
+      setPosition({ x: Math.max(10, (vw - w) / 2), y: vh });
       setIsMinimized(false);
+      setIsAnimating(true);
+      // Slide up after a frame
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setPosition({ x: Math.max(10, (vw - w) / 2), y: vh - defaultHeight - 30 });
+          setTimeout(() => setIsAnimating(false), 400);
+        });
+      });
     }
   }, [isOpen]);
 
-  // Initialize/update melody synth
+  // Keep on screen when window resizes
+  useEffect(() => {
+    const handleResize = () => {
+      const vw = window.visualViewport?.width || window.innerWidth;
+      const vh = window.visualViewport?.height || window.innerHeight;
+      setPosition(prev => ({
+        x: Math.min(prev.x, Math.max(0, vw - size.width)),
+        y: Math.min(prev.y, Math.max(0, vh - size.height)),
+      }));
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [size]);
+
+  // Initialize/update melody synth — use Sampler if samples available, PolySynth fallback
   useEffect(() => {
     if (!isOpen) return;
     const inst = INSTRUMENTS[selectedInstrument];
@@ -141,8 +175,34 @@ const FloatingVirtualInstrument = ({
     if (melodySynthRef.current) {
       melodySynthRef.current.dispose();
     }
-    melodySynthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
-    melodySynthRef.current.volume.value = -6;
+
+    if (inst.useSampler && inst.samples) {
+      // Use real instrument samples
+      const sampler = new Tone.Sampler({
+        urls: inst.samples.urls,
+        baseUrl: inst.samples.baseUrl,
+        attack: inst.samplerAttack || 0,
+        release: inst.config?.envelope?.release || 1,
+        onload: () => {
+          console.log(`Samples loaded: ${inst.name}`);
+        },
+        onerror: (err) => {
+          console.warn(`Sample load failed for ${inst.name}, using synth fallback:`, err);
+          // Fallback to PolySynth if samples fail
+          if (melodySynthRef.current === sampler) {
+            sampler.dispose();
+            melodySynthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
+            melodySynthRef.current.volume.value = -6;
+          }
+        },
+      }).toDestination();
+      sampler.volume.value = -6;
+      melodySynthRef.current = sampler;
+    } else {
+      // Use synthesized sound
+      melodySynthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
+      melodySynthRef.current.volume.value = -6;
+    }
 
     return () => {
       if (melodySynthRef.current) {
@@ -174,17 +234,21 @@ const FloatingVirtualInstrument = ({
     };
   }, [isOpen]);
 
-  // Get play note with octave shift for bass
+  // Get play note with octave shift (instrument default + user octave buttons)
   const getPlayNote = useCallback((note) => {
     const inst = INSTRUMENTS[selectedInstrument];
-    if (inst?.octaveShift) {
+    const instShift = inst?.octaveShift || 0;
+    const totalShift = instShift + octaveShift;
+    if (totalShift !== 0) {
       const match = note.match(/([A-G]#?)(\d)/);
-      if (match) return `${match[1]}${parseInt(match[2]) + inst.octaveShift}`;
+      if (match) return `${match[1]}${parseInt(match[2]) + totalShift}`;
     }
     return note;
-  }, [selectedInstrument]);
+  }, [selectedInstrument, octaveShift]);
 
-  // Note start
+  const glideReleaseTimerRef = useRef(null);
+
+  // Note start — with optional legato crossfade for glide mode
   const handleNoteStart = useCallback((note) => {
     const synth = melodySynthRef.current;
     if (!synth) return;
@@ -199,13 +263,23 @@ const FloatingVirtualInstrument = ({
     }
   }, [getPlayNote, isRecording]);
 
-  // Note end
+  // Note end — delayed release when glide is on for smooth legato
   const handleNoteEnd = useCallback((note) => {
     const synth = melodySynthRef.current;
     if (!synth) return;
 
     const playNote = getPlayNote(note);
-    synth.triggerRelease(playNote, Tone.now());
+    const releaseNote = () => {
+      try { synth.triggerRelease(playNote, Tone.now()); } catch (e) { /* ok */ }
+    };
+
+    // Glide: delay release for smooth legato crossfade
+    if (glide) {
+      setTimeout(releaseNote, 150);
+    } else {
+      releaseNote();
+    }
+
     setPressedKeys(prev => {
       const next = new Set(prev);
       next.delete(note);
@@ -224,7 +298,7 @@ const FloatingVirtualInstrument = ({
       });
       delete noteStartTimesRef.current[note];
     }
-  }, [getPlayNote, isRecording]);
+  }, [getPlayNote, isRecording, glide]);
 
   // Drum pad hit
   const handlePadHit = useCallback((padId) => {
@@ -313,48 +387,34 @@ const FloatingVirtualInstrument = ({
       const drumNotes = allNotes.filter(n => n.note.startsWith('drum-'));
       const inst = INSTRUMENTS[selectedInstrument];
 
-      // Render melody recording
+      // Render melody recording using real instrument samples
       if (melodyNotes.length > 0 && inst) {
-        const lastNote = melodyNotes.reduce((a, b) =>
-          (a.timestamp + a.duration) > (b.timestamp + b.duration) ? a : b
-        );
-        const totalDuration = lastNote.timestamp + lastNote.duration + 0.5;
-
         try {
-          const offlineBuffer = await Tone.Offline(() => {
-            const synth = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
-            synth.volume.value = -6;
-            melodyNotes.forEach(({ note, timestamp, duration }) => {
-              synth.triggerAttackRelease(note, duration, timestamp);
-            });
-          }, totalDuration);
+          const result = await renderNotesToWav(melodyNotes, selectedInstrument);
 
-          const wavBlob = audioBufferToWav(offlineBuffer);
-          const blobURL = URL.createObjectURL(wavBlob);
+          if (result) {
+            const recordingLoop = {
+              id: `custom-recording-${Date.now()}`,
+              name: `${inst.name} ${customLoopCount + 1}`,
+              file: result.blobURL,
+              instrument: inst.name,
+              mood: 'Custom',
+              color: INSTRUMENT_COLORS[selectedInstrument] || '#3B82F6',
+              category: 'Recordings',
+              duration: result.duration,
+              loaded: true,
+              accessible: true,
+              needsRender: false,
+              type: 'custom-recording',
+              notes: melodyNotes,
+              instrumentId: selectedInstrument,
+            };
 
-          const recordingLoop = {
-            id: `custom-recording-${Date.now()}`,
-            name: `${inst.name} ${customLoopCount + 1}`,
-            file: blobURL,
-            instrument: inst.name,
-            mood: 'Custom',
-            color: INSTRUMENT_COLORS[selectedInstrument] || '#3B82F6',
-            category: 'Recordings',
-            duration: totalDuration,
-            loaded: true,
-            accessible: true,
-            needsRender: false,
-            type: 'custom-recording',
-            notes: melodyNotes,
-            instrumentId: selectedInstrument,
-          };
+            onAddToProject(recordingLoop);
 
-          // Add to library for re-use and editing
-          onAddToProject(recordingLoop);
-
-          // Place directly on timeline at the recording start position
-          if (onRecordToTimeline) {
-            onRecordToTimeline(recordingLoop, 0, recordingAnchorRef.current);
+            if (onRecordToTimeline) {
+              onRecordToTimeline(recordingLoop, 0, recordingAnchorRef.current);
+            }
           }
         } catch (e) {
           console.error('Error rendering melody recording:', e);
@@ -463,27 +523,17 @@ const FloatingVirtualInstrument = ({
       size={{ width: size.width, height: size.height }}
       position={{ x: position.x, y: position.y }}
       onDragStop={(e, d) => setPosition({ x: d.x, y: d.y })}
-      onResizeStop={(e, direction, ref, delta, pos) => {
-        setSize({
-          width: parseInt(ref.style.width, 10),
-          height: parseInt(ref.style.height, 10)
-        });
-        setPosition(pos);
-      }}
-      minWidth={minWidth}
-      minHeight={isMinimized ? 44 : minHeight}
-      maxWidth={1100}
-      maxHeight={isMinimized ? 44 : 500}
       bounds="window"
       dragHandleClassName="drag-handle"
-      enableResizing={!isMinimized}
+      enableResizing={false}
       style={{
         zIndex: 1000,
         position: 'fixed',
+        transition: isAnimating ? 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
         cursor: isChromebook ? 'none' : undefined
       }}
     >
-      <div className="h-full flex flex-col bg-gray-900 rounded-lg shadow-2xl border border-gray-600 overflow-hidden">
+      <div className="h-full flex flex-col bg-gray-900 rounded-xl shadow-2xl border-2 border-gray-500 overflow-hidden">
         {/* Drag Handle Header */}
         <div
           className={`drag-handle flex-shrink-0 bg-gray-800 border-b border-gray-700 px-3 py-1.5 select-none ${isChromebook ? '' : 'cursor-move'}`}
@@ -544,28 +594,37 @@ const FloatingVirtualInstrument = ({
         {!isMinimized && (
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Instrument selector bar */}
-            <div className="border-b border-gray-700">
-              <InstrumentSelector
-                selectedInstrument={selectedInstrument}
-                onInstrumentChange={setSelectedInstrument}
-                mode={mode}
-                onModeChange={setMode}
-              />
-            </div>
+            <InstrumentSelector
+              selectedInstrument={selectedInstrument}
+              onInstrumentChange={setSelectedInstrument}
+              mode={mode}
+              onModeChange={setMode}
+              octaveShift={octaveShift}
+              onOctaveChange={setOctaveShift}
+              glide={glide}
+              onGlideChange={setGlide}
+            />
 
-            {/* Keyboard or Drum Pads */}
-            <div className="flex-1 flex items-center justify-center overflow-hidden">
+            {/* Keyboard or Drum Pads — fills remaining space */}
+            <div className="flex-1 flex items-stretch overflow-hidden bg-gray-950">
               {mode === 'keyboard' ? (
                 <InstrumentKeyboard
                   pressedKeys={pressedKeys}
                   onNoteStart={handleNoteStart}
                   onNoteEnd={handleNoteEnd}
                   instrumentColor={instrumentColor}
+                  glide={glide}
                 />
-              ) : (
+              ) : mode === 'drums' ? (
                 <DrumPadGrid
                   activePads={activePads}
                   onPadHit={handlePadHit}
+                />
+              ) : (
+                <StringSlider
+                  isRecording={isRecording}
+                  recordingStartTime={recordingStartTimeRef.current}
+                  octaveShift={octaveShift}
                 />
               )}
             </div>
