@@ -408,14 +408,7 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
     // NOTE: Students write their own scores to Firebase (like Section Safari)
     // Teacher just reads scores from Firebase, doesn't write them
 
-    // Play the audio so students can hear the correct answer (after a short delay)
-    // Store timeout ID so it can be cancelled if user moves to next question quickly
-    console.log('⏰ revealAnswer: Scheduling playback in 300ms');
-    playTimeoutRef.current = setTimeout(() => {
-      console.log('⏰ revealAnswer: Timeout fired, calling playAudioOnly');
-      playTimeoutRef.current = null;
-      playAudioOnly();
-    }, 300);
+    // Teacher can use the Replay button to hear the answer again
   }, [stopAudio, shuffledQuestions, currentQuestion, students, sessionCode, updateGame, playAudioOnly]);
 
   const nextQuestion = useCallback(() => {
@@ -448,62 +441,6 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
         phase: 'playing',
         currentQuestion: nextIdx
       });
-
-      // Auto-play the next question's audio after giving time to read the question
-      // Store timeout ref so it can be cancelled by stopAudio
-      autoPlayTimeoutRef.current = setTimeout(() => {
-        autoPlayTimeoutRef.current = null; // Clear ref since timeout fired
-        // Play audio for next question (need to use the new index directly)
-        const nextQuestionData = shuffledQuestions[nextIdx];
-        if (nextQuestionData) {
-          // Create audio elements with preload
-          const audios = nextQuestionData.layers.map(layer => {
-            const audio = new Audio();
-            audio.preload = 'auto';
-            audio.src = layer.file;
-            audio.volume = 0.7;
-            audio.loop = false;
-            return audio;
-          });
-          audioRefs.current = audios;
-
-          // Preload all audio, then play simultaneously for sync
-          Promise.all(audios.map(a => new Promise((resolve) => {
-            if (a.readyState >= 3) return resolve();
-            a.addEventListener('canplaythrough', resolve, { once: true });
-            a.load();
-          }))).then(() => {
-            // Check if these audio elements are still current (stopAudio may have cleared them)
-            if (audioRefs.current !== audios) {
-              console.log('🔊 autoPlay: Audio cancelled - refs changed during load');
-              return;
-            }
-            audios.forEach(a => a.play().catch(console.error));
-            setIsPlaying(true);
-          }).catch(console.error);
-
-          let finishedCount = 0;
-          audios.forEach(a => {
-            a.onended = () => {
-              finishedCount++;
-              if (finishedCount >= audios.length) {
-                setIsPlaying(false);
-              }
-            };
-          });
-
-          // Update to guessing phase
-          setGamePhase('guessing');
-          updateGame({
-            phase: 'guessing',
-            currentQuestion: nextIdx,
-            totalQuestions: shuffledQuestions.length,
-            isPlaying: true,
-            playStartTime: Date.now(),
-            questionData: { layers: nextQuestionData.layers }
-          });
-        }
-      }, 3000);
     }
   }, [sessionCode, students, currentQuestion, shuffledQuestions, updateGame, onComplete, stopAudio]);
 
@@ -698,16 +635,24 @@ const LayerDetectiveClassGame = ({ sessionData, onComplete }) => {
                   </div>
                 </div>
 
-                <button
-                  onClick={nextQuestion}
-                  className="px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-2 mx-auto"
-                >
-                  {currentQuestion >= shuffledQuestions.length - 1 ? (
-                    <>Finish <Trophy size={28} /></>
-                  ) : (
-                    <>Next Question <ChevronRight size={28} /></>
-                  )}
-                </button>
+                <div className="flex items-center gap-4 justify-center">
+                  <button
+                    onClick={() => playAudioOnly()}
+                    className="px-6 py-4 bg-white/10 hover:bg-white/20 rounded-2xl text-xl font-bold transition-all flex items-center gap-2"
+                  >
+                    <Play size={24} /> Replay
+                  </button>
+                  <button
+                    onClick={nextQuestion}
+                    className="px-10 py-4 bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl text-2xl font-bold hover:scale-105 transition-all flex items-center gap-2"
+                  >
+                    {currentQuestion >= shuffledQuestions.length - 1 ? (
+                      <>Finish <Trophy size={28} /></>
+                    ) : (
+                      <>Next Question <ChevronRight size={28} /></>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 
