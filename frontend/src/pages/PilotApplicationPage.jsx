@@ -19,6 +19,7 @@ const PilotApplicationPage = () => {
   const [whyPilot, setWhyPilot] = useState('');
   const [toolsUsed, setToolsUsed] = useState([]);
   const [anythingElse, setAnythingElse] = useState('');
+  const [referredBy, setReferredBy] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -59,7 +60,8 @@ const PilotApplicationPage = () => {
         biggestChallenge: biggestChallenge.trim(),
         whyPilot: whyPilot.trim(),
         toolsUsed,
-        anythingElse: anythingElse.trim()
+        anythingElse: anythingElse.trim(),
+        referredBy: referredBy.trim()
       };
 
       // Submit through backend (handles Firebase write, admin email)
@@ -302,6 +304,20 @@ const PilotApplicationPage = () => {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Referred By */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              How did you hear about us?
+            </label>
+            <input
+              type="text"
+              value={referredBy}
+              onChange={(e) => setReferredBy(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              placeholder="e.g., A colleague, social media, conference"
+            />
           </div>
 
           {/* Anything Else */}
