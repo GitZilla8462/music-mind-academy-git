@@ -18,6 +18,7 @@ const Timeline = ({
   onLoopDrop,
   onLoopDelete,
   onLoopSelect,
+  onLoopDoubleClick,
   onLoopUpdate,
   onLoopResizeCallback,
   onSeek,
@@ -186,6 +187,7 @@ const Timeline = ({
           onLoopDrop={onLoopDrop}
           onLoopDelete={onLoopDelete}
           onLoopSelect={onLoopSelect}
+          onLoopDoubleClick={onLoopDoubleClick}
           onLoopUpdate={onLoopUpdate}
           onLoopResizeCallback={onLoopResizeCallback}
           onSeek={onSeek}

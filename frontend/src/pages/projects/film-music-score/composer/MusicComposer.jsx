@@ -95,6 +95,8 @@ const MusicComposer = ({
   compositionKey = null,
   // NEW: Enable creator tools (Beat Maker panel)
   showCreatorTools = false,
+  // NEW: Enable virtual instrument + floating loop library (Film Music unit)
+  showVirtualInstrument = false,
   // NEW: Initial custom loops (e.g., beats from StudentBeatMakerActivity)
   initialCustomLoops = null,
   // NEW: Initial cursor position (for seamless cursor when MusicComposer remounts)
@@ -114,6 +116,9 @@ const MusicComposer = ({
   const [creatorMenuOpen, setCreatorMenuOpen] = useState(false);
   const [beatMakerOpen, setBeatMakerOpen] = useState(false);
   const [melodyMakerOpen, setMelodyMakerOpen] = useState(false);
+  const [virtualInstrumentOpen, setVirtualInstrumentOpen] = useState(false);
+  const [floatingLoopLibraryOpen, setFloatingLoopLibraryOpen] = useState(false);
+  const [pianoRollLoop, setPianoRollLoop] = useState(null); // loop being edited in piano roll
 
   // Full screen preview mode
   const [fullScreenPreviewOpen, setFullScreenPreviewOpen] = useState(false);
@@ -889,6 +894,38 @@ const MusicComposer = ({
     showToast?.('Melody added to Loop Library!', 'success');
   }, [showToast]);
 
+  // Handle adding custom loops from Virtual Instrument
+  const handleAddRecordingLoop = useCallback((recordingLoop) => {
+    setCustomLoops(prev => [...prev, recordingLoop]);
+    showToast?.('Recording added to Loop Library!', 'success');
+  }, [showToast]);
+
+  // Handle editing a recording in the piano roll (from loop library)
+  const handleEditRecording = useCallback((loop) => {
+    if (loop?.type === 'custom-recording' && loop?.notes) {
+      setPianoRollLoop(loop);
+    }
+  }, []);
+
+  // Handle double-click on a timeline loop to edit in piano roll
+  const handleLoopDoubleClick = useCallback((placedLoop) => {
+    // Find the original custom loop with notes data
+    const originalId = placedLoop.originalId || placedLoop.id;
+    const customLoop = customLoops.find(l => l.id === originalId);
+    if (customLoop?.type === 'custom-recording' && customLoop?.notes) {
+      setPianoRollLoop(customLoop);
+    }
+  }, [customLoops]);
+
+  // Handle saving edits from the piano roll
+  const handlePianoRollSave = useCallback((updatedLoop) => {
+    setCustomLoops(prev => prev.map(l =>
+      l.id === updatedLoop.id ? updatedLoop : l
+    ));
+    setPianoRollLoop(null);
+    showToast?.('Recording updated!', 'success');
+  }, [showToast]);
+
   // Handle deleting custom loops
   const handleDeleteCustomLoop = useCallback((loopId) => {
     setCustomLoops(prev => {
@@ -1136,17 +1173,28 @@ const MusicComposer = ({
         currentlyPlayingPreview={currentlyPlayingPreview}
         assignmentPanelContent={assignmentPanelContent}
         playersReady={audioReady}  // FIX: Pass playersReady to enable play button
-        // Creator tools (Beat Maker, Melody Maker)
+        // Creator tools (Beat Maker, Melody Maker, Virtual Instrument)
         showCreatorTools={showCreatorTools}
+        showVirtualInstrument={showVirtualInstrument}
         creatorMenuOpen={creatorMenuOpen}
         setCreatorMenuOpen={setCreatorMenuOpen}
         beatMakerOpen={beatMakerOpen}
         setBeatMakerOpen={setBeatMakerOpen}
         melodyMakerOpen={melodyMakerOpen}
         setMelodyMakerOpen={setMelodyMakerOpen}
+        virtualInstrumentOpen={virtualInstrumentOpen}
+        setVirtualInstrumentOpen={setVirtualInstrumentOpen}
+        floatingLoopLibraryOpen={floatingLoopLibraryOpen}
+        setFloatingLoopLibraryOpen={setFloatingLoopLibraryOpen}
         customLoops={customLoops}
         onAddCustomLoop={handleAddCustomLoop}
         onAddMelodyLoop={handleAddMelodyLoop}
+        onAddRecordingLoop={handleAddRecordingLoop}
+        onEditRecording={handleEditRecording}
+        onLoopDoubleClick={handleLoopDoubleClick}
+        pianoRollLoop={pianoRollLoop}
+        setPianoRollLoop={setPianoRollLoop}
+        onPianoRollSave={handlePianoRollSave}
         onDeleteCustomLoop={handleDeleteCustomLoop}
         // Passive mode - disable video playback in iframe previews
         isPassive={isPassive}

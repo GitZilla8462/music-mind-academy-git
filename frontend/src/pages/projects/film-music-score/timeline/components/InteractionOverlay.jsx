@@ -31,6 +31,7 @@ const InteractionOverlay = ({
 
   // Loop handlers
   onLoopSelect,
+  onLoopDoubleClick,
   onLoopUpdate,
   onLoopDelete,
   onLoopDrop,
@@ -724,17 +725,20 @@ const InteractionOverlay = ({
   const handleDoubleClick = useCallback((e) => {
     const { x, y } = getMousePosition(e);
     const loop = getLoopAtPosition(x, y);
-    
+
     if (loop) {
-      // Double-click on loop - could trigger rename or properties
-      // For now, just select it
-      onLoopSelect?.(loop.id);
+      // Double-click on loop - open editor if it's a recording, otherwise select
+      if (onLoopDoubleClick) {
+        onLoopDoubleClick(loop);
+      } else {
+        onLoopSelect?.(loop.id);
+      }
     } else {
       // Double-click on empty area - seek to that position
       const time = pixelToTime(x);
       onSeek?.(Math.max(0, Math.min(duration, time)));
     }
-  }, [getMousePosition, getLoopAtPosition, onLoopSelect, pixelToTime, onSeek, duration]);
+  }, [getMousePosition, getLoopAtPosition, onLoopSelect, onLoopDoubleClick, pixelToTime, onSeek, duration]);
 
   // ============================================================================
   // DRAG OPERATION HANDLERS

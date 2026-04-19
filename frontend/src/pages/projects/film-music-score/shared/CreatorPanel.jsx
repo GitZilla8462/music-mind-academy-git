@@ -1,14 +1,16 @@
 // File: CreatorPanel.jsx
 // Fixed panel on left side of video area with creator tools
-// Shows: Beat Maker, Melody Maker, Record Audio
+// Shows: Beat Maker, Melody Maker, and optionally Virtual Instrument + Loop Library
 
 import React from 'react';
-import { Disc3, Piano, ChevronRight } from 'lucide-react';
+import { Disc3, Piano, Music, Library, ChevronRight } from 'lucide-react';
 
 const CreatorPanel = ({
   onOpenBeatMaker,
   onOpenMelodyMaker,
-  activeTool = null // 'beat-maker' | 'melody-maker' | null
+  onOpenVirtualInstrument,
+  onOpenLoopLibrary,
+  activeTool = null
 }) => {
   const tools = [
     {
@@ -16,24 +18,44 @@ const CreatorPanel = ({
       icon: Disc3,
       label: 'Beat Maker',
       description: 'Create drum patterns',
-      color: 'red',
       bgColor: 'bg-red-600',
-      hoverBg: 'hover:bg-red-700',
       onClick: onOpenBeatMaker,
-      enabled: true
+      enabled: true,
+      show: true
     },
     {
       id: 'melody-maker',
       icon: Piano,
       label: 'Melody Maker',
       description: 'Create melodies',
-      color: 'purple',
       bgColor: 'bg-purple-600',
-      hoverBg: 'hover:bg-purple-700',
       onClick: onOpenMelodyMaker,
-      enabled: true
+      enabled: true,
+      show: true
+    },
+    {
+      id: 'virtual-instrument',
+      icon: Music,
+      label: 'Instrument',
+      description: 'Play & record live',
+      bgColor: 'bg-blue-600',
+      onClick: onOpenVirtualInstrument,
+      enabled: true,
+      show: !!onOpenVirtualInstrument // Only show if callback provided
+    },
+    {
+      id: 'loop-library',
+      icon: Library,
+      label: 'Loop Library',
+      description: 'Browse loops & SFX',
+      bgColor: 'bg-amber-600',
+      onClick: onOpenLoopLibrary,
+      enabled: true,
+      show: !!onOpenLoopLibrary // Only show if callback provided
     }
   ];
+
+  const visibleTools = tools.filter(t => t.show);
 
   return (
     <div className="w-48 h-full bg-gray-850 border-r border-gray-700 flex flex-col">
@@ -44,7 +66,7 @@ const CreatorPanel = ({
 
       {/* Tool Options */}
       <div className="flex-1 p-2 space-y-1.5 overflow-y-auto">
-        {tools.map((tool) => {
+        {visibleTools.map((tool) => {
           const Icon = tool.icon;
           const isActive = activeTool === tool.id;
           const isDisabled = !tool.enabled;

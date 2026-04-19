@@ -16,6 +16,9 @@ import ResizableSplitPane from '../../shared/ResizableSplitPane';
 import CreatorPanel from '../../shared/CreatorPanel';
 import FloatingBeatMaker from '../../shared/FloatingBeatMaker';
 import FloatingMelodyMaker from '../../shared/FloatingMelodyMaker';
+import FloatingVirtualInstrument from '../../shared/FloatingVirtualInstrument';
+import FloatingLoopLibrary from '../../shared/FloatingLoopLibrary';
+import PianoRollEditor from '../../shared/PianoRollEditor';
 
 // CHROMEBOOK FIX: Stable empty function to prevent re-renders during playback
 // Inline () => {} creates new reference every render, breaking React.memo
@@ -78,7 +81,7 @@ const ComposerLayout = ({
   lockFeatures,
   highlightSelector,
 
-  // Creator tools (Beat Maker, Melody Maker)
+  // Creator tools (Beat Maker, Melody Maker, Virtual Instrument)
   showCreatorTools = false,
   creatorMenuOpen = false,
   setCreatorMenuOpen,
@@ -86,9 +89,20 @@ const ComposerLayout = ({
   setBeatMakerOpen,
   melodyMakerOpen = false,
   setMelodyMakerOpen,
+  virtualInstrumentOpen = false,
+  setVirtualInstrumentOpen,
+  floatingLoopLibraryOpen = false,
+  setFloatingLoopLibraryOpen,
+  showVirtualInstrument = false,
   customLoops = [],
   onAddCustomLoop,
   onAddMelodyLoop,
+  onAddRecordingLoop,
+  onEditRecording,
+  onLoopDoubleClick,
+  pianoRollLoop,
+  setPianoRollLoop,
+  onPianoRollSave,
   onDeleteCustomLoop,
 
   // Passive mode - disable video playback for iframe previews
@@ -105,35 +119,38 @@ const ComposerLayout = ({
       ref={containerRef} 
       className="flex-1 flex overflow-hidden min-h-0"
     >
-      {/* Left Panel - Loop Library */}
-      <div 
-        style={{ width: leftPanelWidth }} 
-        className="bg-gray-800 border-r border-gray-700 flex flex-col"
-        onClick={() => {
-          if (lockFeatures.allowLoopLibraryClick !== false) {
-            onLoopLibraryClick?.();
-          }
-        }}
-      >
-        <LoopLibrary
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          onLoopPreview={handleLoopPreview}
-          onLoopDragStart={NOOP}
-          tutorialMode={tutorialMode}
-          lockFeatures={lockFeatures}
-          restrictToCategory={restrictToCategory}
-          lockedMood={lockedMood}
-          showSoundEffects={showSoundEffects}
-          currentlyPlayingLoopId={currentlyPlayingPreview}
-          highlighted={highlightSelector === '.loop-library'}
-          customLoops={customLoops}
-          onDeleteCustomLoop={onDeleteCustomLoop}
-        />
-      </div>
+      {/* Left Panel - Loop Library (hidden when using floating loop library) */}
+      {!showVirtualInstrument && (
+        <div
+          style={{ width: leftPanelWidth }}
+          className="bg-gray-800 border-r border-gray-700 flex flex-col"
+          onClick={() => {
+            if (lockFeatures.allowLoopLibraryClick !== false) {
+              onLoopLibraryClick?.();
+            }
+          }}
+        >
+          <LoopLibrary
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            onLoopPreview={handleLoopPreview}
+            onLoopDragStart={NOOP}
+            tutorialMode={tutorialMode}
+            lockFeatures={lockFeatures}
+            restrictToCategory={restrictToCategory}
+            lockedMood={lockedMood}
+            showSoundEffects={showSoundEffects}
+            currentlyPlayingLoopId={currentlyPlayingPreview}
+            highlighted={highlightSelector === '.loop-library'}
+            customLoops={customLoops}
+            onDeleteCustomLoop={onDeleteCustomLoop}
+            onEditCustomLoop={onEditRecording}
+          />
+        </div>
+      )}
 
       {/* Left Resizer */}
-      {!tutorialMode && (
+      {!tutorialMode && !showVirtualInstrument && (
         <div
           className="w-px bg-gray-500 hover:bg-blue-400 cursor-col-resize transition-colors relative group"
           onMouseDown={() => setIsResizingLeft(true)}
@@ -194,6 +211,7 @@ const ComposerLayout = ({
                   onLoopDrop={handleLoopDrop}
                   onLoopDelete={handleLoopDelete}
                   onLoopSelect={handleLoopSelect}
+                  onLoopDoubleClick={onLoopDoubleClick}
                   onLoopUpdate={handleLoopUpdate}
                   onLoopResize={onLoopResizeCallback}
                   onSeek={handleSeek}
@@ -236,8 +254,15 @@ const ComposerLayout = ({
                   <CreatorPanel
                     onOpenBeatMaker={() => setBeatMakerOpen(true)}
                     onOpenMelodyMaker={() => setMelodyMakerOpen(true)}
-                    onOpenRecordAudio={() => {}}
-                    activeTool={beatMakerOpen ? 'beat-maker' : melodyMakerOpen ? 'melody-maker' : null}
+                    onOpenVirtualInstrument={showVirtualInstrument ? () => setVirtualInstrumentOpen(true) : undefined}
+                    onOpenLoopLibrary={showVirtualInstrument ? () => setFloatingLoopLibraryOpen(true) : undefined}
+                    activeTool={
+                      beatMakerOpen ? 'beat-maker' :
+                      melodyMakerOpen ? 'melody-maker' :
+                      virtualInstrumentOpen ? 'virtual-instrument' :
+                      floatingLoopLibraryOpen ? 'loop-library' :
+                      null
+                    }
                   />
                 )}
 
@@ -275,6 +300,7 @@ const ComposerLayout = ({
                   onLoopDrop={handleLoopDrop}
                   onLoopDelete={handleLoopDelete}
                   onLoopSelect={handleLoopSelect}
+                  onLoopDoubleClick={onLoopDoubleClick}
                   onLoopUpdate={handleLoopUpdate}
                   onLoopResize={onLoopResizeCallback}
                   onSeek={handleSeek}
@@ -323,6 +349,44 @@ const ComposerLayout = ({
         onClose={() => setMelodyMakerOpen(false)}
         onAddToProject={onAddMelodyLoop}
         customLoopCount={customLoops.filter(l => l.type === 'custom-melody').length}
+      />
+
+      {/* Floating Virtual Instrument Modal */}
+      <FloatingVirtualInstrument
+        isOpen={virtualInstrumentOpen}
+        onClose={() => setVirtualInstrumentOpen(false)}
+        onAddToProject={onAddRecordingLoop}
+        onRecordToTimeline={handleLoopDrop}
+        customLoopCount={customLoops.filter(l => l.type === 'custom-recording').length}
+        onPlay={handlePlay}
+        onStop={handleStop}
+        isPlaying={isPlaying}
+        currentTime={currentTime}
+      />
+
+      {/* Floating Loop Library Modal */}
+      <FloatingLoopLibrary
+        isOpen={floatingLoopLibraryOpen}
+        onClose={() => setFloatingLoopLibraryOpen(false)}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        onLoopPreview={handleLoopPreview}
+        onLoopDragStart={handleLoopDrop}
+        restrictToCategory={restrictToCategory}
+        lockedMood={lockedMood}
+        showSoundEffects={showSoundEffects}
+        currentlyPlayingLoopId={currentlyPlayingPreview}
+        customLoops={customLoops}
+        onDeleteCustomLoop={onDeleteCustomLoop}
+        onEditCustomLoop={onEditRecording}
+      />
+
+      {/* Piano Roll Editor */}
+      <PianoRollEditor
+        isOpen={!!pianoRollLoop}
+        onClose={() => setPianoRollLoop(null)}
+        loop={pianoRollLoop}
+        onSave={onPianoRollSave}
       />
     </div>
   );

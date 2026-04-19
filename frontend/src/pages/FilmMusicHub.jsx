@@ -1,29 +1,29 @@
 // File: /pages/FilmMusicHub.jsx
 // Film Music: Scoring the Story - Hub page for all lessons
-// Developer-only access for now
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../firebase/config';
+import { startClassSession } from '../firebase/classes';
 import { ChevronDown, ChevronUp, Check, FileText, ExternalLink, Play, ArrowLeft, Lock } from 'lucide-react';
 import { useFirebaseAuth } from '../context/FirebaseAuthContext';
 import { logSessionCreated, logLessonVisit } from '../firebase/analytics';
 import TeacherHeader from '../components/teacher/TeacherHeader';
-
-// Developer-only access
-const DEVELOPER_EMAILS = ['robtaube90@gmail.com'];
+import StartSessionModal from '../components/teacher/StartSessionModal';
+import CreateClassModal from '../components/teacher/CreateClassModal';
 
 const FilmMusicHub = () => {
   const navigate = useNavigate();
   const [creatingSession, setCreatingSession] = useState(null);
   const [expandedLessons, setExpandedLessons] = useState({});
   const [gettingStartedOpen, setGettingStartedOpen] = useState(false);
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [showCreateClassModal, setShowCreateClassModal] = useState(false);
+  const [selectedLesson, setSelectedLesson] = useState(null);
+  const [newlyCreatedClass, setNewlyCreatedClass] = useState(null);
 
   // Get authenticated teacher info
   const { user, signOut } = useFirebaseAuth();
-
-  // Check if user is developer
-  const isDeveloper = user && DEVELOPER_EMAILS.includes(user.email?.toLowerCase());
 
   // Default to teacher role - hub is for teachers
   const userRole = localStorage.getItem('classroom-user-role') || 'teacher';
@@ -53,36 +53,96 @@ const FilmMusicHub = () => {
     }));
   };
 
-  const handleStartSession = async (lessonId, lessonRoute) => {
-    setCreatingSession(lessonId);
+  // Open the start session modal
+  const handleStartSession = (lesson) => {
+    setSelectedLesson(lesson);
+    setShowStartModal(true);
+  };
+
+  // Start session for a specific class (tracked)
+  const handleStartForClass = async (selectedClass) => {
+    if (!selectedLesson) return;
+
+    setCreatingSession(selectedLesson.id);
+    try {
+      const classWithSession = await startClassSession(selectedClass.id, {
+        lessonId: selectedLesson.id,
+        lessonRoute: selectedLesson.route
+      });
+
+      if (user?.uid) {
+        try {
+          await logSessionCreated(user.uid, user.email, {
+            sessionCode: classWithSession.classCode,
+            lessonId: selectedLesson.id,
+            lessonRoute: selectedLesson.route,
+            classId: selectedClass.id,
+            className: selectedClass.name,
+            isClassSession: true
+          });
+          await logLessonVisit(user.uid, user.email, selectedLesson.id);
+        } catch (analyticsError) {
+          console.warn('Analytics logging failed:', analyticsError);
+        }
+      }
+
+      setShowStartModal(false);
+      window.open(`${selectedLesson.route}?classId=${selectedClass.id}&role=teacher&classCode=${classWithSession.classCode}`, '_blank');
+    } catch (error) {
+      console.error('Error starting class session:', error);
+      alert('Failed to start session. Please try again.');
+    } finally {
+      setCreatingSession(null);
+    }
+  };
+
+  // Start a quick session (not tracked)
+  const handleStartQuickSession = async () => {
+    if (!selectedLesson) return;
+
+    setCreatingSession(selectedLesson.id);
     try {
       const teacherId = user?.uid || 'teacher';
-      const teacherEmail = user?.email || 'anonymous';
-
-      // Default to guest mode for developer hub (no class tracking)
-      const code = await createSession(teacherId, lessonId, lessonRoute, {
+      const code = await createSession(teacherId, selectedLesson.id, selectedLesson.route, {
         classMode: 'guest'
       });
 
-      // Log analytics for pilot tracking
       if (user?.uid) {
         try {
           await logSessionCreated(user.uid, user.email, {
             sessionCode: code,
-            lessonId,
-            lessonRoute
+            lessonId: selectedLesson.id,
+            lessonRoute: selectedLesson.route,
+            isQuickSession: true
           });
-          await logLessonVisit(user.uid, user.email, lessonId);
+          await logLessonVisit(user.uid, user.email, selectedLesson.id);
         } catch (analyticsError) {
-          console.warn('Analytics logging failed (non-critical):', analyticsError);
+          console.warn('Analytics logging failed:', analyticsError);
         }
       }
 
-      navigate(`${lessonRoute}?session=${code}&role=teacher`);
+      setShowStartModal(false);
+      navigate(`${selectedLesson.route}?session=${code}&role=teacher`);
     } catch (error) {
       console.error('Error creating session:', error);
       alert('Failed to create session. Please try again.');
+    } finally {
       setCreatingSession(null);
+    }
+  };
+
+  // Handle class creation from the modal
+  const handleCreateClassFromModal = () => {
+    setShowStartModal(false);
+    setShowCreateClassModal(true);
+  };
+
+  // After class is created, reopen the start modal with the new class pre-selected
+  const handleClassCreated = (createdClass) => {
+    setShowCreateClassModal(false);
+    setNewlyCreatedClass(createdClass || null);
+    if (selectedLesson) {
+      setShowStartModal(true);
     }
   };
 
@@ -218,7 +278,7 @@ const FilmMusicHub = () => {
       essentialQuestion: 'How do all elements serve the narrative?',
       color: 'from-emerald-500 to-teal-600',
       route: '/lessons/film-music/lesson5',
-      available: false,
+      available: true,
       hasLessonPlan: false,
       inThisLesson: 'Students bring everything together. They refine their cumulative composition, participate in peer review, and complete Composer\'s Notes explaining their creative choices.',
       studentsWill: [
@@ -244,6 +304,7 @@ const FilmMusicHub = () => {
   };
 
   return (
+    <>
       <div className="min-h-screen bg-slate-50">
       <TeacherHeader />
 
@@ -256,17 +317,6 @@ const FilmMusicHub = () => {
           <ArrowLeft size={20} />
           <span className="font-medium">Back to Units</span>
         </button>
-      </div>
-
-      {/* DEVELOPER BANNER */}
-      <div className="bg-amber-50 border-b border-amber-200">
-        <div className="max-w-5xl mx-auto px-4 sm:px-8 py-3">
-          <div className="flex items-center gap-2 text-amber-800">
-            <Lock size={18} />
-            <span className="font-medium">Developer Preview</span>
-            <span className="text-amber-600">— This unit is under development. Lessons are not yet available.</span>
-          </div>
-        </div>
       </div>
 
       {/* UNIT HEADER */}
@@ -454,7 +504,7 @@ const FilmMusicHub = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleStartSession(lesson.id, lesson.route);
+                                handleStartSession(lesson);
                               }}
                               disabled={creatingSession === lesson.id}
                               className={`hidden sm:flex font-semibold py-2.5 px-5 rounded-lg transition-colors items-center gap-2 text-base ${
@@ -482,7 +532,7 @@ const FilmMusicHub = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleStartSession(lesson.id, lesson.route);
+                              handleStartSession(lesson);
                             }}
                             disabled={creatingSession === lesson.id}
                             className={`font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm w-full justify-center ${
@@ -680,6 +730,31 @@ const FilmMusicHub = () => {
         </div>
       )}
       </div>
+
+    {/* Session Modals */}
+    <StartSessionModal
+      isOpen={showStartModal}
+      onClose={() => {
+        setShowStartModal(false);
+        setSelectedLesson(null);
+        setNewlyCreatedClass(null);
+      }}
+      lesson={selectedLesson}
+      teacherUid={user?.uid}
+      onStartForClass={handleStartForClass}
+      onStartQuickSession={handleStartQuickSession}
+      onCreateClass={handleCreateClassFromModal}
+      preselectedClassId={newlyCreatedClass?.id}
+    />
+
+    <CreateClassModal
+      isOpen={showCreateClassModal}
+      onClose={() => setShowCreateClassModal(false)}
+      teacherUid={user?.uid}
+      onClassCreated={handleClassCreated}
+      fromLessonStart={!!selectedLesson}
+    />
+    </>
   );
 };
 

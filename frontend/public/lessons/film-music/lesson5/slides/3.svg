@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#111827"/>
+  <text x="960" y="220" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="bold" fill="#FFFFFF">Composer's Notes</text>
+  <text x="960" y="360" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#D1D5DB">Explain at least THREE creative choices you made:</text>
+  <text x="960" y="500" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#D1D5DB">Why did you choose this motif?</text>
+  <text x="960" y="580" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#D1D5DB">Where did you use silence, and why?</text>
+  <text x="960" y="660" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#D1D5DB">What emotion were you trying to create?</text>
+</svg>

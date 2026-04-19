@@ -14,6 +14,7 @@ const StudentActivityTimer = ({ sessionCode }) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const lastFirebaseTime = useRef(null);
   const lastFirebaseActive = useRef(null);
+  const timerEndTimeRef = useRef(null); // Absolute end time for accurate countdown
 
   // Drag state
   const [position, setPosition] = useState(null); // null = default CSS position (top-4 right-4)
@@ -43,40 +44,44 @@ const StudentActivityTimer = ({ sessionCode }) => {
       const data = snapshot.val();
       if (!data) return;
 
-      // Get countdown time
+      // Get countdown time — store absolute end time for accurate countdown
       if (data.countdownTime !== undefined && data.countdownTime !== lastFirebaseTime.current) {
         lastFirebaseTime.current = data.countdownTime;
-        setCountdownTime(data.countdownTime || 0);
+        const newTime = data.countdownTime || 0;
+        setCountdownTime(newTime);
+        timerEndTimeRef.current = newTime > 0 ? Date.now() + (newTime * 1000) : null;
       }
 
       // Get timer active state
       if (data.timerActive !== undefined && data.timerActive !== lastFirebaseActive.current) {
         lastFirebaseActive.current = data.timerActive;
-        setTimerActive(data.timerActive || false);
+        const active = data.timerActive || false;
+        setTimerActive(active);
+        if (!active) timerEndTimeRef.current = null;
       }
     });
 
     return () => unsubscribe();
   }, [sessionCode]);
 
-  // Local countdown when timer is active
+  // Local countdown when timer is active — uses absolute end time so
+  // background-tab throttling of setInterval doesn't cause drift
   useEffect(() => {
-    if (!timerActive || countdownTime <= 0) return;
+    if (!timerActive || countdownTime <= 0 || !timerEndTimeRef.current) return;
 
     const interval = setInterval(() => {
-      setCountdownTime(prev => {
-        if (prev <= 1) {
-          setTimerActive(false);
-          // Play timer end sound
-          playTimerEndSound();
-          return 0;
-        }
-        return prev - 1;
-      });
+      const remaining = Math.max(0, Math.floor((timerEndTimeRef.current - Date.now()) / 1000));
+      setCountdownTime(remaining);
+
+      if (remaining <= 0) {
+        setTimerActive(false);
+        timerEndTimeRef.current = null;
+        playTimerEndSound();
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [timerActive, countdownTime, playTimerEndSound]);
+  }, [timerActive, playTimerEndSound]);
 
   // Drag handlers
   const handlePointerDown = useCallback((e) => {

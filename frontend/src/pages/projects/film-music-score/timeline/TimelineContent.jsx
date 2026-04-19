@@ -32,6 +32,7 @@ const TimelineContent = forwardRef(({
   onLoopDrop,
   onLoopDelete,
   onLoopSelect,
+  onLoopDoubleClick,
   onLoopUpdate,
   onLoopResizeCallback,
   onSeek,
@@ -512,6 +513,7 @@ const TimelineContent = forwardRef(({
 
               // Loop handlers
               onLoopSelect={onLoopSelect}
+              onLoopDoubleClick={onLoopDoubleClick}
               onLoopUpdate={handleLoopUpdateWithMulti}
               onLoopDelete={onLoopDelete}
               onLoopDrop={onLoopDrop}

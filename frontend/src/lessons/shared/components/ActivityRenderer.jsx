@@ -161,6 +161,11 @@ import CapstonePlanning from '../activities/capstone/CapstonePlanning';
 import PeerPlayActivity from '../activities/peer-play/PeerPlayActivity';
 import ExitTicketActivity from '../activities/exit-ticket/ExitTicketActivity';
 
+// ✅ ADDED: Film Music Composition + Composer's Notes + Viewing Party (Film Music Lesson 5)
+import FilmMusicCompositionActivity from '../activities/FilmMusicCompositionActivity';
+import ComposersNotes from '../../film-music/shared/composers-notes/ComposersNotes';
+import ViewingPartyMode from '../../film-music/shared/viewing-party/ViewingPartyMode';
+
 // Wrapper: shows NewsHub feed, click article → ArticleReader, back button returns to feed
 // Dark background wrapper ensures white text is visible when embedded in any parent
 const ArticleReaderActivity = ({ activity, onComplete }) => {
@@ -1236,6 +1241,38 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           isSessionMode={isSessionMode}
           viewMode={viewMode}
+        />
+      );
+
+    // ✅ ADDED: Film Music Composition (Film Music Lesson 5 - Capstone)
+    case 'film-music-daw':
+      return (
+        <FilmMusicCompositionActivity
+          key={`film-music-composition-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Composer's Notes reflection (Film Music Lesson 5)
+    case 'composers-notes':
+      return (
+        <ComposersNotes
+          key={`composers-notes-${activity.id}`}
+          onComplete={onComplete}
+          viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Viewing Party teacher mode (Film Music Lesson 5)
+    case 'viewing-party':
+      return (
+        <ViewingPartyMode
+          key={`viewing-party-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
         />
       );
 

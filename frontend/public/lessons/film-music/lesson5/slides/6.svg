@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#111827"/>
+  <text x="960" y="220" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="bold" fill="#FFFFFF">Class Debrief</text>
+  <text x="960" y="420" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#D1D5DB">What stood out to you?</text>
+  <text x="960" y="500" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#D1D5DB">Whose silence hit the hardest?</text>
+  <text x="960" y="580" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#D1D5DB">Who had the most recognizable motif?</text>
+  <text x="960" y="660" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="40" fill="#D1D5DB">What would you do differently next time?</text>
+</svg>

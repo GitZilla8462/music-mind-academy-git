@@ -112,6 +112,7 @@ const Lesson5 = lazyWithRetry(() => import('./lessons/film-music-project/lesson5
 
 // Film Music Unit Lessons (NEW - Leitmotif-based curriculum)
 const FMLesson1 = lazyWithRetry(() => import('./lessons/film-music/lesson1/Lesson1'));
+const FMLesson5 = lazyWithRetry(() => import('./lessons/film-music/lesson5/Lesson5'));
 
 // Listening Lab Unit Lessons (Unit 2 - Elements of Music)
 const ListeningLabLesson1 = lazyWithRetry(() => import('./lessons/listening-lab/lesson1/Lesson1'));
@@ -467,9 +468,10 @@ const AppContent = () => {
 
         {/* Film Music Unit Routes (NEW - Leitmotif-based curriculum) */}
         <Route path="/lessons/film-music/lesson1" element={<FMLesson1 />} />
+        <Route path="/lessons/film-music/lesson5" element={<FMLesson5 />} />
 
         <Route path="/lessons/:lessonId" element={<SimpleLessonPlaceholder />} />
-        
+
         {/* Music Classroom Resources - Unit selection page */}
         <Route path="/music-classroom-resources" element={<MusicClassroomResources />} />
 
@@ -639,6 +641,7 @@ const AppContent = () => {
 
         {/* Film Music Unit Routes (NEW - Leitmotif-based curriculum) */}
         <Route path="/lessons/film-music/lesson1" element={<FMLesson1 />} />
+        <Route path="/lessons/film-music/lesson5" element={<FMLesson5 />} />
 
         <Route path="/lessons/:lessonId" element={<SimpleLessonPlaceholder />} />
 

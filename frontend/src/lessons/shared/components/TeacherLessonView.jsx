@@ -2975,6 +2975,20 @@ const PresentationContent = ({
       );
     }
 
+    // Viewing Party — teacher sees read-only DAW playback of student projects
+    if (type === 'viewing-party-teacher') {
+      return (
+        <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
+          <div className="text-center text-white">
+            <div className="text-6xl mb-4">🎬</div>
+            <h2 className="text-3xl font-bold mb-2">Viewing Party</h2>
+            <p className="text-gray-400 text-lg mb-6">Students are watching the main screen</p>
+            <p className="text-gray-500 text-sm">Use the student view to play projects</p>
+          </div>
+        </div>
+      );
+    }
+
     // Video — key={currentStage} ensures a fresh element only when stage changes,
     // and onLoadedMetadata fires once per mount (not on every re-render) so the
     // teacher can pause/unpause without the video resetting.
@@ -5124,10 +5138,10 @@ const TeacherLessonView = ({
       }
     });
 
-    // Timeout: 1.5s if no students detected, 10s otherwise
-    const timeout = expectedCount === 0 ? 1500 : 10000;
+    // Timeout: 5s if no students detected (may still be connected), 10s otherwise
+    const timeout = expectedCount === 0 ? 5000 : 10000;
     timer = setTimeout(() => {
-      console.log(`⏱️ Save All timeout — proceeding`);
+      console.log(`⏱️ Save All timeout (${saveConfirmedCount}/${expectedCount} confirmed) — proceeding`);
       finishSave();
     }, timeout);
   };
