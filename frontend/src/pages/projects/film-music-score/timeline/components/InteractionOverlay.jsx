@@ -799,7 +799,23 @@ const InteractionOverlay = ({
       startTime: constrainedStart,
       endTime: constrainedStart + loopDuration
     };
-  }, [activeLoop, pixelToTime, applySnapping, duration, timelineRef, timeToPixel]);
+
+    // Auto-scroll when dragging near bottom/top edge of the timeline
+    const scrollContainer = timelineScrollRef?.current;
+    if (scrollContainer) {
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const edgeThreshold = 40;
+      const scrollSpeed = 4;
+      const relativeY = e.clientY - containerRect.top;
+      const containerHeight = containerRect.height;
+
+      if (relativeY > containerHeight - edgeThreshold) {
+        scrollContainer.scrollTop += scrollSpeed;
+      } else if (relativeY < edgeThreshold) {
+        scrollContainer.scrollTop -= scrollSpeed;
+      }
+    }
+  }, [activeLoop, pixelToTime, applySnapping, duration, timelineRef, timeToPixel, timelineScrollRef]);
 
   const handleResizeDrag = useCallback((e, x) => {
     if (!activeLoop || !resizeDirection) return;
@@ -965,8 +981,10 @@ const InteractionOverlay = ({
     registerDropHandler((loopData, clientX, clientY) => {
       if (!overlayRef.current) return;
       const rect = overlayRef.current.getBoundingClientRect();
-      const x = clientX - rect.left + (timelineScrollRef?.current?.scrollLeft || 0);
-      const y = clientY - rect.top;
+      const scrollLeft = timelineScrollRef?.current?.scrollLeft || 0;
+      const scrollTop = timelineScrollRef?.current?.scrollTop || 0;
+      const x = clientX - rect.left + scrollLeft;
+      const y = clientY - rect.top + scrollTop;
       const trackIndex = getTrackIndexFromY(y);
       const startTime = pixelToTime(x);
       if (trackIndex >= 0 && trackIndex < TIMELINE_CONSTANTS.NUM_TRACKS && startTime >= 0) {
@@ -984,9 +1002,26 @@ const InteractionOverlay = ({
         setHoveredTrack?.(null);
         return;
       }
-      const y = clientY - rect.top;
+      const scrollTop = timelineScrollRef?.current?.scrollTop || 0;
+      const y = clientY - rect.top + scrollTop;
       const trackIndex = getTrackIndexFromY(y);
       setHoveredTrack?.(trackIndex >= 0 ? trackIndex : null);
+
+      // Auto-scroll when dragging near bottom/top edge of the visible timeline
+      const scrollContainer = timelineScrollRef?.current;
+      if (scrollContainer) {
+        const scrollRect = scrollContainer.getBoundingClientRect();
+        const edgeThreshold = 40; // pixels from edge to trigger scroll
+        const scrollSpeed = 4;    // pixels per frame
+        const relativeY = clientY - scrollRect.top;
+        const containerHeight = scrollRect.height;
+
+        if (relativeY > containerHeight - edgeThreshold) {
+          scrollContainer.scrollTop += scrollSpeed;
+        } else if (relativeY < edgeThreshold) {
+          scrollContainer.scrollTop -= scrollSpeed;
+        }
+      }
     });
 
     return () => {
