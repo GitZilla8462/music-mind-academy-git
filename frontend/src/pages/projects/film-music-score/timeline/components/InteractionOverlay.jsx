@@ -935,6 +935,18 @@ const InteractionOverlay = ({
   }, [selectedLoop, onLoopDelete]);
 
   // ============================================================================
+  // SCROLL: Forward wheel events to the scroll container beneath the overlay
+  // ============================================================================
+
+  const handleWheel = useCallback((e) => {
+    const scrollContainer = timelineScrollRef?.current;
+    if (scrollContainer) {
+      scrollContainer.scrollTop += e.deltaY;
+      scrollContainer.scrollLeft += e.deltaX;
+    }
+  }, [timelineScrollRef]);
+
+  // ============================================================================
   // DRAG & DROP FROM LIBRARY
   // ============================================================================
 
@@ -1069,7 +1081,7 @@ const InteractionOverlay = ({
           backgroundColor: 'transparent',
           // GPU acceleration
           transform: 'translateZ(0)',
-          touchAction: 'none',
+          touchAction: 'pan-x pan-y',
           WebkitTouchCallout: 'none',
           WebkitUserSelect: 'none',
           WebkitBackfaceVisibility: 'hidden',
@@ -1085,6 +1097,7 @@ const InteractionOverlay = ({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        onWheel={handleWheel}
       />
     </>
   );

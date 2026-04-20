@@ -314,7 +314,7 @@ const TimelineContent = forwardRef(({
         ref={headerScrollRef}
         className="bg-gray-800 border-r border-gray-600 overflow-y-scroll overflow-x-hidden z-20 scrollbar-hidden"
         onScroll={onHeaderScroll}
-        style={{ 
+        style={{
           width: '154px',
           maxHeight: '576px',
           minHeight: 0,
