@@ -3,7 +3,7 @@
 
 // Storage Keys
 export const STORAGE_KEYS = {
-  DETECTIVE_SCORE: 'fm-lesson1-detective-score',
+  CHARACTER_CARD: 'fm-lesson1-character-card',
   MOTIF: 'fm-lesson1-motif',
   REFLECTION: 'fm-lesson1-reflection',
   LESSON_TIMER: 'fm-lesson1-timer',
@@ -11,57 +11,51 @@ export const STORAGE_KEYS = {
 };
 
 // ========================================
-// LEITMOTIF DETECTIVE SCORE
+// CHARACTER CARD (character pick, name, 3 words, color)
 // ========================================
-export const saveDetectiveScore = (correct, total, responses) => {
-  const score = {
-    correct,
-    total,
-    responses, // Array of { themeId, selectedType, correctType, isCorrect }
-    percentage: Math.round((correct / total) * 100),
-    completedAt: new Date().toISOString()
+export const saveCharacterCard = (characterId, characterName, threeWords, characterColor) => {
+  const card = {
+    characterId,
+    characterName,
+    threeWords, // Array of 3 strings
+    characterColor,
+    savedAt: new Date().toISOString()
   };
-  localStorage.setItem(STORAGE_KEYS.DETECTIVE_SCORE, JSON.stringify(score));
-  console.log('🎭 Detective score saved:', score);
-  return score;
+  localStorage.setItem(STORAGE_KEYS.CHARACTER_CARD, JSON.stringify(card));
+  return card;
 };
 
-export const getDetectiveScore = () => {
+export const getCharacterCard = () => {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.DETECTIVE_SCORE);
+    const data = localStorage.getItem(STORAGE_KEYS.CHARACTER_CARD);
     return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.error('Error loading detective score:', error);
+    console.error('Error loading character card:', error);
     return null;
   }
 };
 
 // ========================================
-// MOTIF (CHARACTER THEME)
+// MOTIF (CHARACTER THEME - recorded notes)
 // ========================================
-export const saveMotif = (notes, characterType, instrument, tempo) => {
+export const saveMotif = (notes, characterId, instrument, tempo) => {
   const motif = {
-    notes, // Array of { note, duration, timestamp }
-    characterType, // Which character type this motif represents
-    instrument, // Selected instrument for playback
+    notes, // Array of { note, label, timestamp, duration }
+    characterId,
+    instrument, // Instrument ID (flute, violin, cello, trumpet, clarinet, low-brass)
     tempo, // BPM
     noteCount: notes.length,
     createdAt: new Date().toISOString(),
     savedAt: new Date().toISOString()
   };
   localStorage.setItem(STORAGE_KEYS.MOTIF, JSON.stringify(motif));
-  console.log('🎵 Motif saved:', motif);
   return motif;
 };
 
 export const getMotif = () => {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.MOTIF);
-    if (!data) return null;
-
-    const motif = JSON.parse(data);
-    console.log('🎵 Motif loaded:', motif);
-    return motif;
+    return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error('Error loading motif:', error);
     return null;
@@ -69,20 +63,16 @@ export const getMotif = () => {
 };
 
 // ========================================
-// REFLECTION DATA
+// REFLECTION DATA (Two Stars & a Wish)
 // ========================================
-export const saveReflection = (reviewType, partnerName, star1, star2, wish, characterType) => {
+export const saveReflection = (star1, star2, wish) => {
   const reflection = {
-    reviewType,
-    partnerName,
-    star1,
-    star2,
-    wish,
-    characterType,
+    star1, // "One thing I love about my theme is..."
+    star2, // "My theme matches my character because..."
+    wish,  // "If I had more time, I would..."
     submittedAt: new Date().toISOString()
   };
   localStorage.setItem(STORAGE_KEYS.REFLECTION, JSON.stringify(reflection));
-  console.log('✨ Reflection saved:', reflection);
   return reflection;
 };
 
@@ -106,7 +96,6 @@ export const saveLessonProgress = (currentActivity, completedActivities) => {
     savedAt: new Date().toISOString()
   };
   localStorage.setItem(STORAGE_KEYS.LESSON_PROGRESS, JSON.stringify(progress));
-  console.log('📚 Lesson progress saved:', progress);
   return progress;
 };
 
@@ -121,13 +110,36 @@ export const getLessonProgress = () => {
 };
 
 // ========================================
+// LEITMOTIF DETECTIVE SCORE (kept for backward compatibility)
+// ========================================
+export const saveDetectiveScore = (correct, total, responses) => {
+  const score = {
+    correct,
+    total,
+    responses,
+    percentage: Math.round((correct / total) * 100),
+    completedAt: new Date().toISOString()
+  };
+  localStorage.setItem('fm-lesson1-detective-score', JSON.stringify(score));
+  return score;
+};
+
+export const getDetectiveScore = () => {
+  try {
+    const data = localStorage.getItem('fm-lesson1-detective-score');
+    return data ? JSON.parse(data) : null;
+  } catch (error) {
+    return null;
+  }
+};
+
+// ========================================
 // CLEAR ALL DATA
 // ========================================
 export const clearAllFMLesson1Data = () => {
   Object.values(STORAGE_KEYS).forEach(key => {
     localStorage.removeItem(key);
   });
-  console.log('🗑️ All Film Music Lesson 1 data cleared');
 };
 
 // ========================================
@@ -135,7 +147,7 @@ export const clearAllFMLesson1Data = () => {
 // ========================================
 export const getFMLesson1Summary = () => {
   return {
-    detectiveScore: getDetectiveScore(),
+    characterCard: getCharacterCard(),
     motif: getMotif(),
     reflection: getReflection(),
     progress: getLessonProgress()

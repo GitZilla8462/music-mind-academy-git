@@ -245,6 +245,71 @@ export const KEY_TO_PAD = {};
 DRUM_PADS.forEach(p => { KEY_TO_PAD[p.key] = p; });
 
 // ========================================
+// SCALE DEFINITIONS
+// ========================================
+// Each scale maps to a character archetype for Lesson 1 leitmotif examples
+// `notes` are the note names within one octave (C4-C5) that belong to the scale
+// Sharp-to-flat display labels for minor scales
+// Tone.js uses sharps internally, but we show flats for minor keys
+const FLAT_LABELS = {
+  'C#4': 'Db', 'D#4': 'Eb', 'F#4': 'Gb', 'G#4': 'Ab', 'A#4': 'Bb',
+  'C#5': 'Db', 'D#5': 'Eb',
+};
+
+export const SCALES = [
+  {
+    id: 'major',
+    name: 'Major',
+    character: 'Hero',
+    color: '#EF4444',
+    notes: new Set(['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5']),
+    labels: null, // use default labels
+  },
+  {
+    id: 'minor',
+    name: 'Natural Minor',
+    character: 'Villain',
+    color: '#7C3AED',
+    // C natural minor: C D Eb F G Ab Bb
+    notes: new Set(['C4', 'D4', 'D#4', 'F4', 'G4', 'G#4', 'A#4', 'C5']),
+    labels: FLAT_LABELS, // show Eb, Ab, Bb instead of D#, G#, A#
+  },
+  {
+    id: 'pentatonic-major',
+    name: 'Pentatonic Major',
+    character: 'Romantic',
+    color: '#EC4899',
+    notes: new Set(['C4', 'D4', 'E4', 'G4', 'A4', 'C5']),
+    labels: null,
+  },
+  {
+    id: 'pentatonic-minor',
+    name: 'Pentatonic Minor',
+    character: 'Sneaky',
+    color: '#F59E0B',
+    // C minor pentatonic: C Eb F G Bb
+    notes: new Set(['C4', 'D#4', 'F4', 'G4', 'A#4', 'C5']),
+    labels: FLAT_LABELS, // show Eb, Bb instead of D#, A#
+  },
+  {
+    id: 'chromatic',
+    name: 'All Notes',
+    character: null,
+    color: '#6B7280',
+    notes: null, // null = all notes allowed
+    labels: null,
+  },
+];
+
+// Default scale for each character archetype
+export const CHARACTER_SCALE_MAP = {
+  hero: 'major',
+  villain: 'minor',
+  romantic: 'pentatonic-major',
+  sneaky: 'pentatonic-minor',
+};
+
+// ========================================
 // TRACK DEFINITIONS
 // ========================================
 export const TRACK_DEFS = [

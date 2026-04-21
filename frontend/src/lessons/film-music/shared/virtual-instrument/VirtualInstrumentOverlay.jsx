@@ -1,15 +1,15 @@
 // VirtualInstrumentOverlay.jsx
 // Bottom overlay for the Film Music DAW
-// Contains instrument selector, keyboard/drum pads, and record controls
+// Contains instrument selector, scale dropdown, keyboard/drum pads, and record controls
 // Owns the Tone.js synth lifecycle and note recording
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Circle, Square } from 'lucide-react';
+import { X, Circle, Square, ChevronDown, Music } from 'lucide-react';
 import * as Tone from 'tone';
 import InstrumentKeyboard from './InstrumentKeyboard';
 import DrumPadGrid from './DrumPadGrid';
 import InstrumentSelector from './InstrumentSelector';
-import { INSTRUMENTS, KEY_TO_NOTE, KEY_TO_PAD, DRUM_PADS } from './instrumentConfig';
+import { INSTRUMENTS, KEY_TO_NOTE, KEY_TO_PAD, DRUM_PADS, SCALES } from './instrumentConfig';
 
 const VirtualInstrumentOverlay = ({
   onClose,
@@ -18,11 +18,41 @@ const VirtualInstrumentOverlay = ({
   onRecordStart,
   onRecordStop,
   recordingStartTime,
+  embedded = false, // When true: no close button, compact positioning
+  showRecord = undefined, // Override record button visibility (default: !embedded)
+  allowedNotes: externalAllowedNotes = undefined, // External override — when provided, scale dropdown is hidden
+  defaultScale = null, // Optional default scale ID (e.g. 'major') for initial dropdown value
+  highlightedKeys = null, // Optional Set of note strings to highlight (for playback visualization)
 }) => {
-  const [mode, setMode] = useState('keyboard'); // 'keyboard' | 'drums'
+  const [mode, setMode] = useState('keyboard'); // 'keyboard' | 'drums' | 'strings'
   const [selectedInstrument, setSelectedInstrument] = useState('piano');
   const [pressedKeys, setPressedKeys] = useState(new Set());
   const [activePads, setActivePads] = useState(new Set());
+
+  // Scale state — internal, used when externalAllowedNotes is NOT provided
+  const [selectedScaleId, setSelectedScaleId] = useState(defaultScale || 'chromatic');
+  const [scaleDropdownOpen, setScaleDropdownOpen] = useState(false);
+  const scaleDropdownRef = useRef(null);
+
+  // Determine the active scale
+  const activeScale = (() => {
+    if (externalAllowedNotes !== undefined) return null; // externally controlled
+    return SCALES.find(s => s.id === selectedScaleId) || null;
+  })();
+  const activeAllowedNotes = externalAllowedNotes !== undefined ? externalAllowedNotes : (activeScale?.notes || null);
+  const activeLabels = activeScale?.labels || null;
+
+  // Close scale dropdown on click outside
+  useEffect(() => {
+    if (!scaleDropdownOpen) return;
+    const handle = (e) => {
+      if (scaleDropdownRef.current && !scaleDropdownRef.current.contains(e.target)) {
+        setScaleDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [scaleDropdownOpen]);
 
   // Synth refs
   const melodySynthRef = useRef(null);
@@ -32,7 +62,8 @@ const VirtualInstrumentOverlay = ({
   const recordedNotesRef = useRef([]);
   const noteStartTimesRef = useRef({}); // note → start time, for calculating duration
 
-  // Initialize/update melody synth when instrument changes
+  // Initialize/update melody synth — use Sampler if samples available, PolySynth fallback
+  // Same logic as FloatingVirtualInstrument in the DAW
   useEffect(() => {
     const inst = INSTRUMENTS[selectedInstrument];
     if (!inst) return;
@@ -41,8 +72,28 @@ const VirtualInstrumentOverlay = ({
       melodySynthRef.current.dispose();
     }
 
-    melodySynthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
-    melodySynthRef.current.volume.value = -6;
+    if (inst.useSampler && inst.samples) {
+      const sampler = new Tone.Sampler({
+        urls: inst.samples.urls,
+        baseUrl: inst.samples.baseUrl,
+        attack: inst.samplerAttack || 0,
+        release: inst.config?.envelope?.release || 1,
+        onload: () => {},
+        onerror: () => {
+          // Fallback to PolySynth if samples fail
+          if (melodySynthRef.current === sampler) {
+            sampler.dispose();
+            melodySynthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
+            melodySynthRef.current.volume.value = -6;
+          }
+        },
+      }).toDestination();
+      sampler.volume.value = -6;
+      melodySynthRef.current = sampler;
+    } else {
+      melodySynthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
+      melodySynthRef.current.volume.value = -6;
+    }
 
     return () => {
       if (melodySynthRef.current) {
@@ -146,9 +197,6 @@ const VirtualInstrumentOverlay = ({
       Tone.start();
     }
 
-    // MembraneSynth uses triggerAttackRelease with a note
-    // NoiseSynth uses triggerAttackRelease without a note
-    // MetalSynth uses triggerAttackRelease without a note
     const pad = DRUM_PADS.find(p => p.id === padId);
     if (pad.synthType === 'membrane') {
       synth.triggerAttackRelease('C2', 0.2);
@@ -184,6 +232,8 @@ const VirtualInstrumentOverlay = ({
 
       if (mode === 'keyboard') {
         const note = KEY_TO_NOTE[key];
+        // Block notes not in the active scale
+        if (note && activeAllowedNotes && !activeAllowedNotes.has(note)) return;
         if (note && !pressedKeys.has(note)) {
           handleNoteStart(note);
         }
@@ -212,7 +262,7 @@ const VirtualInstrumentOverlay = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [mode, pressedKeys, handleNoteStart, handleNoteEnd, handlePadHit]);
+  }, [mode, pressedKeys, handleNoteStart, handleNoteEnd, handlePadHit, activeAllowedNotes]);
 
   // Handle record toggle
   const handleRecordToggle = useCallback(async () => {
@@ -246,54 +296,116 @@ const VirtualInstrumentOverlay = ({
   const instrumentColor = (() => {
     if (mode === 'drums') return '#F59E0B';
     const inst = INSTRUMENTS[selectedInstrument];
-    // Use track color based on target
     const colorMap = { motif: '#3B82F6', bass: '#10B981', harmony: '#8B5CF6' };
     return colorMap[inst?.trackTarget] || '#3B82F6';
   })();
 
+  // Current scale label for dropdown button
+  const selectedScale = SCALES.find(s => s.id === selectedScaleId);
+  const scaleLabel = selectedScale
+    ? (selectedScale.character ? `${selectedScale.character} — ${selectedScale.name}` : selectedScale.name)
+    : 'All Notes';
+  const showScaleDropdown = externalAllowedNotes === undefined && mode === 'keyboard';
+
   return (
-    <div className="absolute inset-x-0 bottom-0 bg-gray-900 border-t border-gray-700 flex flex-col z-30"
-      style={{ height: '55%' }}
+    <div
+      className={`bg-gray-900 border border-gray-700 flex flex-col z-30 ${
+        embedded
+          ? 'rounded-xl shadow-2xl'
+          : 'absolute inset-x-0 bottom-0 border-t'
+      }`}
+      style={embedded ? { height: '380px', width: '100%' } : { height: '55%' }}
     >
       {/* Header bar */}
       <div className="flex items-center justify-between bg-gray-800/80 border-b border-gray-700">
-        <InstrumentSelector
-          selectedInstrument={selectedInstrument}
-          onInstrumentChange={setSelectedInstrument}
-          mode={mode}
-          onModeChange={setMode}
-        />
+        <div className="flex items-center">
+          <InstrumentSelector
+            selectedInstrument={selectedInstrument}
+            onInstrumentChange={setSelectedInstrument}
+            mode={mode}
+            onModeChange={setMode}
+          />
+
+          {/* Scale dropdown — only in keyboard mode, only when not externally controlled */}
+          {showScaleDropdown && (
+            <>
+              <div className="w-px h-5 bg-gray-700 mx-1" />
+              <div ref={scaleDropdownRef} className="relative">
+                <button
+                  onClick={() => setScaleDropdownOpen(!scaleDropdownOpen)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 hover:bg-gray-600 rounded-lg text-[11px] font-medium text-white transition-colors mx-1"
+                >
+                  <Music className="w-3 h-3" />
+                  {scaleLabel}
+                  <ChevronDown size={10} className={`text-gray-400 transition-transform ${scaleDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {scaleDropdownOpen && (
+                  <div
+                    className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-2xl py-1 z-50"
+                    style={{ minWidth: 220 }}
+                  >
+                    {SCALES.map((s) => {
+                      const isSelected = selectedScaleId === s.id;
+                      const label = s.character ? `${s.character} — ${s.name}` : s.name;
+                      return (
+                        <button
+                          key={s.id}
+                          className={`w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors ${
+                            isSelected ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300 hover:bg-gray-700'
+                          }`}
+                          onClick={() => { setSelectedScaleId(s.id); setScaleDropdownOpen(false); }}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: s.color }}
+                          />
+                          <span>{label}</span>
+                          {isSelected && <span className="ml-auto text-blue-400 text-[10px]">active</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
 
         <div className="flex items-center gap-2 px-4">
           {/* Record button */}
-          <button
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              isRecording
-                ? 'bg-red-600 text-white animate-pulse shadow-lg shadow-red-600/40'
-                : 'bg-gray-700 text-gray-300 hover:bg-red-600/80 hover:text-white'
-            }`}
-            onClick={handleRecordToggle}
-          >
-            {isRecording ? (
-              <>
-                <Square className="w-3.5 h-3.5 fill-current" />
-                Stop
-              </>
-            ) : (
-              <>
-                <Circle className="w-3.5 h-3.5 fill-red-500 text-red-500" />
-                Record
-              </>
-            )}
-          </button>
+          {(showRecord !== undefined ? showRecord : !embedded) && (
+            <button
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                isRecording
+                  ? 'bg-red-600 text-white animate-pulse shadow-lg shadow-red-600/40'
+                  : 'bg-gray-700 text-gray-300 hover:bg-red-600/80 hover:text-white'
+              }`}
+              onClick={handleRecordToggle}
+            >
+              {isRecording ? (
+                <>
+                  <Square className="w-3.5 h-3.5 fill-current" />
+                  Stop
+                </>
+              ) : (
+                <>
+                  <Circle className="w-3.5 h-3.5 fill-red-500 text-red-500" />
+                  Record
+                </>
+              )}
+            </button>
+          )}
 
-          {/* Close button */}
-          <button
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
-            onClick={onClose}
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {/* Close button — hidden in embedded mode */}
+          {!embedded && (
+            <button
+              className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+              onClick={onClose}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -305,6 +417,9 @@ const VirtualInstrumentOverlay = ({
             onNoteStart={handleNoteStart}
             onNoteEnd={handleNoteEnd}
             instrumentColor={instrumentColor}
+            allowedNotes={activeAllowedNotes}
+            noteLabels={activeLabels}
+            highlightedKeys={highlightedKeys}
           />
         ) : (
           <DrumPadGrid

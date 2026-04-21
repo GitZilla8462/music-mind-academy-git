@@ -2932,6 +2932,263 @@ const PresentationContent = ({
       );
     }
 
+    // Leitmotif Example (Film Music Lesson 1 — slides 3-6)
+    // Left 50%: character info (big text). Right 50%: virtual keyboard (compact, centered).
+    // Play button plays recording via Tone.js with keys lighting up.
+    // Dev mode (?dev=true): Record/Stop buttons appear to capture motif data.
+    if (type === 'leitmotif-example') {
+      const example = currentStageData.presentationView.example;
+
+      const LeitmotifExampleSlide = () => {
+        const [OverlayComponent, setOverlayComponent] = React.useState(null);
+        const [ToneLib, setToneLib] = React.useState(null);
+        const [instrumentsData, setInstrumentsData] = React.useState(null);
+
+        React.useEffect(() => {
+          Promise.all([
+            import('tone'),
+            import('../../film-music/shared/virtual-instrument/VirtualInstrumentOverlay').then(m => m.default),
+            import('../../film-music/shared/virtual-instrument/instrumentConfig'),
+          ]).then(([tone, Overlay, config]) => {
+            setToneLib(tone);
+            setOverlayComponent(() => Overlay);
+            setInstrumentsData(config.INSTRUMENTS);
+          });
+        }, []);
+
+        const isDevMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('dev') === 'true';
+        const defaultScaleId = { hero: 'major', villain: 'minor', romantic: 'pentatonic-major', sneaky: 'pentatonic-minor' }[example?.id] || 'major';
+
+        // Playback state
+        const [isPlaying, setIsPlaying] = React.useState(false);
+        const [hasPlayed, setHasPlayed] = React.useState(false);
+        const [highlightedKeys, setHighlightedKeys] = React.useState(new Set());
+        const playbackSynthRef = React.useRef(null);
+        const playbackTimeoutsRef = React.useRef([]);
+
+        // Dev recording state
+        const [isRecording, setIsRecording] = React.useState(false);
+        const [recordingStartTime, setRecordingStartTime] = React.useState(null);
+        const [devRecording, setDevRecording] = React.useState(null);
+        const [copiedJson, setCopiedJson] = React.useState(false);
+
+        // The recording — from config (shipped) or dev localStorage
+        const recording = example?.recording || devRecording;
+
+        React.useEffect(() => {
+          if (example?.recording) return;
+          try {
+            const saved = localStorage.getItem(`fm-lesson1-dev-demo-${example?.id}`);
+            if (saved) setDevRecording(JSON.parse(saved));
+          } catch(e) {}
+        }, []);
+
+        React.useEffect(() => {
+          return () => {
+            playbackTimeoutsRef.current.forEach(t => clearTimeout(t));
+            if (playbackSynthRef.current) { try { playbackSynthRef.current.dispose(); } catch(e){} }
+          };
+        }, []);
+
+        // Dev recording callbacks
+        const handleRecordStart = React.useCallback(async () => {
+          if (ToneLib) {
+            if (ToneLib.context.state !== 'running') await ToneLib.start();
+            setRecordingStartTime(ToneLib.now());
+          }
+          setIsRecording(true);
+        }, [ToneLib]);
+
+        const handleRecordStop = React.useCallback(() => {
+          setIsRecording(false);
+          setRecordingStartTime(null);
+        }, []);
+
+        const handleRecordingComplete = React.useCallback((notes, instrument) => {
+          const data = { notes, instrument, scale: defaultScaleId };
+          setDevRecording(data);
+          try { localStorage.setItem(`fm-lesson1-dev-demo-${example?.id}`, JSON.stringify(data)); } catch(e){}
+        }, [example?.id, defaultScaleId]);
+
+        const noop = React.useCallback(() => {}, []);
+
+        // Playback — Tone.js + key highlighting
+        const playRecording = React.useCallback(async () => {
+          if (!recording?.notes?.length || !ToneLib || !instrumentsData) return;
+          if (ToneLib.context.state !== 'running') await ToneLib.start();
+
+          // Create synth matching the recorded instrument
+          if (playbackSynthRef.current) { try { playbackSynthRef.current.dispose(); } catch(e){} }
+          const inst = instrumentsData[recording.instrument];
+          if (inst) {
+            if (inst.useSampler && inst.samples) {
+              try {
+                const sampler = new ToneLib.Sampler({
+                  urls: inst.samples.urls, baseUrl: inst.samples.baseUrl,
+                  attack: inst.samplerAttack || 0, release: inst.config?.envelope?.release || 1,
+                  onload: () => {}, onerror: () => {},
+                }).toDestination();
+                sampler.volume.value = -6;
+                playbackSynthRef.current = sampler;
+              } catch(e) {}
+            }
+            if (!playbackSynthRef.current) {
+              playbackSynthRef.current = new ToneLib.PolySynth(ToneLib.Synth, inst.config).toDestination();
+              playbackSynthRef.current.volume.value = -6;
+            }
+          }
+
+          setIsPlaying(true);
+          const timeouts = [];
+          const notes = recording.notes.filter(n => !n.note?.startsWith('drum-'));
+
+          notes.forEach((nd) => {
+            const startMs = nd.timestamp * 1000;
+            const durMs = (nd.duration || 0.3) * 1000;
+
+            // Play sound + highlight key ON
+            timeouts.push(setTimeout(() => {
+              if (playbackSynthRef.current) {
+                try { playbackSynthRef.current.triggerAttackRelease(nd.note, nd.duration || 0.3); } catch(e){}
+              }
+              setHighlightedKeys(prev => new Set(prev).add(nd.note));
+            }, startMs));
+
+            // Highlight key OFF
+            timeouts.push(setTimeout(() => {
+              setHighlightedKeys(prev => { const n = new Set(prev); n.delete(nd.note); return n; });
+            }, startMs + durMs));
+          });
+
+          // End playback
+          const lastNote = notes[notes.length - 1];
+          const totalMs = lastNote ? (lastNote.timestamp + (lastNote.duration || 0.3)) * 1000 + 500 : 500;
+          timeouts.push(setTimeout(() => {
+            setIsPlaying(false);
+            setHasPlayed(true);
+            setHighlightedKeys(new Set());
+          }, totalMs));
+
+          playbackTimeoutsRef.current = timeouts;
+        }, [recording, ToneLib, instrumentsData]);
+
+        const stopPlayback = React.useCallback(() => {
+          playbackTimeoutsRef.current.forEach(t => clearTimeout(t));
+          setIsPlaying(false);
+          setHighlightedKeys(new Set());
+        }, []);
+
+        if (!example) return <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-white text-2xl">Example not found</div>;
+
+        return (
+          <div className="absolute inset-0 flex bg-gray-900">
+            {/* ====== LEFT SIDE: Character info (big text) ====== */}
+            <div className="w-1/2 flex flex-col items-center justify-center p-10 border-r border-gray-700">
+              <h1 className="text-6xl font-bold mb-8" style={{ color: example.color }}>
+                {example.name}
+              </h1>
+              <div className="space-y-5 max-w-lg">
+                {example.reasons.map((r, i) => (
+                  <div key={i} className="flex items-start gap-4">
+                    <span className="text-3xl font-bold text-white mt-0.5">{i + 1}.</span>
+                    <p className="text-2xl text-gray-200 leading-snug">
+                      <span className="font-bold text-white">{r.bold}</span>
+                      <span className="text-gray-400"> — {r.detail}</span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-8 text-xl text-gray-500 italic max-w-lg text-center">
+                "{example.teacherPrompt}"
+              </p>
+            </div>
+
+            {/* ====== RIGHT SIDE: Keyboard centered + Play/Next below ====== */}
+            <div className="w-1/2 flex flex-col items-center justify-center">
+              {/* Keyboard — compact, centered */}
+              <div className="w-full max-w-[560px] px-4">
+                {OverlayComponent ? (
+                  <OverlayComponent
+                    embedded={true}
+                    showRecord={isDevMode}
+                    isRecording={isDevMode ? isRecording : false}
+                    recordingStartTime={isDevMode ? recordingStartTime : null}
+                    onRecordStart={isDevMode ? handleRecordStart : noop}
+                    onRecordStop={isDevMode ? handleRecordStop : noop}
+                    onRecordingComplete={isDevMode ? handleRecordingComplete : noop}
+                    onClose={noop}
+                    defaultScale={defaultScaleId}
+                    highlightedKeys={highlightedKeys.size > 0 ? highlightedKeys : null}
+                  />
+                ) : (
+                  <div className="h-[320px] flex items-center justify-center text-gray-500">Loading keyboard...</div>
+                )}
+              </div>
+
+              {/* Play + Next buttons */}
+              <div className="flex items-center gap-3 mt-5">
+                {recording?.notes?.length ? (
+                  <button
+                    onClick={isPlaying ? stopPlayback : playRecording}
+                    className={`flex items-center gap-2 px-8 py-3 text-lg font-bold rounded-xl transition-all shadow-lg ${
+                      isPlaying ? 'bg-gray-600 text-white' : 'text-white hover:brightness-110'
+                    }`}
+                    style={!isPlaying ? { backgroundColor: example.color } : {}}
+                  >
+                    {isPlaying ? (
+                      <><span className="w-4 h-4 bg-white rounded-sm" /> Stop</>
+                    ) : (
+                      <><span className="w-0 h-0 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent border-l-[16px] border-l-white" /> Play Example</>
+                    )}
+                  </button>
+                ) : (
+                  <span className="text-gray-600 text-sm">{isDevMode ? 'Record a motif above, then play it' : 'No example recorded yet'}</span>
+                )}
+
+                {hasPlayed && (
+                  <button
+                    onClick={() => {
+                      if (typeof setCurrentStage === 'function') {
+                        const idx = lessonStages.findIndex(s => s.id === currentStage);
+                        if (idx >= 0 && idx < lessonStages.length - 1) setCurrentStage(lessonStages[idx + 1].id);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-6 py-3 bg-white text-gray-900 text-lg font-bold rounded-xl hover:bg-gray-100 transition-all shadow-lg"
+                  >
+                    Next <ChevronRight size={20} />
+                  </button>
+                )}
+              </div>
+
+              {/* Dev tools — only with ?dev=true */}
+              {isDevMode && devRecording && (
+                <div className="mt-4 flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const json = JSON.stringify(devRecording, null, 2);
+                      navigator.clipboard.writeText(json).then(() => { setCopiedJson(true); setTimeout(() => setCopiedJson(false), 3000); });
+                    }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${copiedJson ? 'bg-green-600 text-white' : 'bg-yellow-600 text-white hover:bg-yellow-700'}`}
+                  >
+                    {copiedJson ? 'Copied!' : 'Copy Recording JSON'}
+                  </button>
+                  <button
+                    onClick={() => { setDevRecording(null); try { localStorage.removeItem(`fm-lesson1-dev-demo-${example?.id}`); } catch(e){} }}
+                    className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-300"
+                  >
+                    Clear
+                  </button>
+                  <span className="text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded">DEV MODE</span>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      return <LeitmotifExampleSlide />;
+    }
+
     // Slide (with optional audio)
     if (type === 'slide' && slidePath) {
       return (

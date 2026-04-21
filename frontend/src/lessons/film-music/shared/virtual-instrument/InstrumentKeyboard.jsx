@@ -1,18 +1,22 @@
 // InstrumentKeyboard.jsx
 // Piano keyboard for the Film Music virtual instrument
-// One octave (C4-C5), fills entire container — no black gaps
+// One octave (C4-C5), fills entire container
+//
+// Two visual modes:
+//   1. No scale filter (allowedNotes = null): Traditional piano layout with white + black keys
+//   2. Scale filter active: Non-scale notes are GONE. Only scale notes render as
+//      large, equal-width, centered keys with big prominent letters.
 
 import React, { useCallback } from 'react';
 import { KEYBOARD_NOTES } from './instrumentConfig';
 
 const BLACK_KEY_HEIGHT_RATIO = 0.6;
-const BLACK_KEY_WIDTH_RATIO = 0.6; // black key width as ratio of white key width
+const BLACK_KEY_WIDTH_RATIO = 0.6;
 
-const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentColor = '#3B82F6', glide = false }) => {
+const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentColor = '#3B82F6', glide = false, allowedNotes = null, noteLabels = null, highlightedKeys = null }) => {
+  // Merge pressed + highlighted for visual state
+  const isActive = (note) => pressedKeys.has(note) || (highlightedKeys && highlightedKeys.has(note));
   const isDraggingRef = React.useRef(false);
-  const whiteNotes = KEYBOARD_NOTES.filter(n => !n.isBlack);
-  const blackNotes = KEYBOARD_NOTES.filter(n => n.isBlack);
-  const whiteCount = whiteNotes.length;
 
   const handlePointerDown = useCallback((note, e) => {
     e.preventDefault();
@@ -24,7 +28,87 @@ const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentCol
     onNoteEnd(note);
   }, [onNoteEnd]);
 
-  // Black key position: sits between its natural and the next white key
+  // ========================================
+  // SCALE MODE: Only show allowed notes as big centered keys
+  // ========================================
+  if (allowedNotes) {
+    const scaleNotes = KEYBOARD_NOTES.filter(n => allowedNotes.has(n.note));
+    const count = scaleNotes.length;
+    const maxKeyWidth = 120; // px
+
+    // Display label: use noteLabels override (flats) if provided, else default label
+    const getLabel = (n) => (noteLabels && noteLabels[n.note]) || n.label;
+
+    return (
+      <div className="w-full h-full flex items-center justify-center select-none px-4" style={{ touchAction: 'none' }}>
+        <div className="flex gap-2 h-[85%]" style={{ maxWidth: `${count * maxKeyWidth + (count - 1) * 8}px`, width: '100%' }}>
+          {scaleNotes.map((n) => {
+            const active = isActive(n.note);
+            const isBlack = n.isBlack;
+            const label = getLabel(n);
+            return (
+              <div
+                key={n.note}
+                className="flex-1 rounded-xl flex flex-col items-center justify-end pb-3 cursor-pointer transition-all select-none"
+                style={{
+                  touchAction: 'none',
+                  background: active
+                    ? `linear-gradient(180deg, ${instrumentColor}EE 0%, ${instrumentColor} 100%)`
+                    : isBlack
+                    ? 'linear-gradient(180deg, #4B5563 0%, #374151 60%, #1F2937 100%)'
+                    : 'linear-gradient(180deg, #FFFFFF 0%, #F3F4F6 60%, #E5E7EB 100%)',
+                  border: active
+                    ? `2px solid ${instrumentColor}`
+                    : isBlack
+                    ? '2px solid #6B7280'
+                    : '2px solid #D1D5DB',
+                  boxShadow: active
+                    ? `0 0 20px ${instrumentColor}50, inset 0 2px 4px rgba(0,0,0,0.2)`
+                    : '0 4px 12px rgba(0,0,0,0.15), inset 0 -3px 0 rgba(0,0,0,0.08)',
+                  transform: active ? 'scale(0.97) translateY(2px)' : 'scale(1)',
+                }}
+                onPointerDown={(e) => { isDraggingRef.current = true; handlePointerDown(n.note, e); }}
+                onPointerUp={(e) => { isDraggingRef.current = false; handlePointerUp(n.note, e); }}
+                onPointerEnter={(e) => {
+                  if (glide && isDraggingRef.current) handlePointerDown(n.note, e);
+                }}
+                onPointerLeave={(e) => {
+                  if (pressedKeys.has(n.note)) handlePointerUp(n.note, e);
+                }}
+              >
+                <span
+                  className="font-bold transition-colors"
+                  style={{
+                    fontSize: count <= 6 ? '2rem' : count <= 8 ? '1.5rem' : '1.25rem',
+                    color: active ? '#FFF' : isBlack ? '#D1D5DB' : '#374151',
+                  }}
+                >
+                  {label}
+                </span>
+                <span
+                  className="font-mono uppercase mt-1 transition-colors"
+                  style={{
+                    fontSize: count <= 6 ? '0.875rem' : '0.75rem',
+                    color: active ? 'rgba(255,255,255,0.7)' : '#9CA3AF',
+                  }}
+                >
+                  {n.key}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ========================================
+  // CHROMATIC MODE: Traditional piano layout (default)
+  // ========================================
+  const whiteNotes = KEYBOARD_NOTES.filter(n => !n.isBlack);
+  const blackNotes = KEYBOARD_NOTES.filter(n => n.isBlack);
+  const whiteCount = whiteNotes.length;
+
   const getBlackKeyLeftPercent = (blackNote) => {
     const whiteIndex = whiteNotes.findIndex(w => {
       const wBase = w.note.replace(/\d/, '');
@@ -44,7 +128,7 @@ const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentCol
     <div className="w-full h-full relative select-none" style={{ touchAction: 'none' }}>
       {/* White keys */}
       {whiteNotes.map((n, i) => {
-        const isPressed = pressedKeys.has(n.note);
+        const isPressed = isActive(n.note);
         return (
           <div
             key={n.note}
@@ -100,7 +184,7 @@ const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentCol
 
       {/* Black keys */}
       {blackNotes.map((n) => {
-        const isPressed = pressedKeys.has(n.note);
+        const isPressed = isActive(n.note);
         const left = getBlackKeyLeftPercent(n);
         return (
           <div

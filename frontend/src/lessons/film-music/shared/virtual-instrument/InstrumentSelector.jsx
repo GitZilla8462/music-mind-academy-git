@@ -3,6 +3,7 @@
 // Always-visible Keys/Pads toggle + instrument dropdown + octave controls
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Piano, Music, Volume2, Wind, Layers, Guitar, Users, Activity, Drum, ChevronDown, ChevronUp, Waves } from 'lucide-react';
 import { INSTRUMENT_LIST } from './instrumentConfig';
 
@@ -128,8 +129,8 @@ const InstrumentSelector = ({
               <ChevronDown size={10} className={`text-gray-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Dropdown menu — fixed position to escape overflow-hidden */}
-            {dropdownOpen && (
+            {/* Dropdown menu — portaled to document.body to escape transform contexts (react-rnd) */}
+            {dropdownOpen && createPortal(
               <div
                 data-instrument-dropdown
                 className="bg-gray-800 border border-gray-600 rounded-lg shadow-2xl py-1"
@@ -174,7 +175,8 @@ const InstrumentSelector = ({
                     })}
                   </div>
                 ))}
-              </div>
+              </div>,
+              document.body
             )}
           </div>
 

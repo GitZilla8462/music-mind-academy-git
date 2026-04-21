@@ -5,7 +5,7 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
-import { Monitor, Video, Gamepad2, Trophy, Clock, X, Play, Music } from 'lucide-react';
+import { Monitor, Video, X, Play, Music } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
 
 // First-time tutorial modal for teachers
@@ -28,7 +28,7 @@ const FMLesson1TutorialModal = ({ onClose }) => {
       <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-500 to-amber-600 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">Film Music: Scoring the Story</h2>
+          <h2 className="text-xl font-bold text-white">Film Scoring Studio</h2>
           <button
             onClick={handleClose}
             className="text-white/80 hover:text-white transition-colors"
