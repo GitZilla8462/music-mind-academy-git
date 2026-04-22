@@ -214,7 +214,7 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
   };
 
   const createGroup = async () => {
-    if (!effectiveSessionCode || !userId) return;
+    if ((!classId && !effectiveSessionCode) || !userId) return;
     setError('');
 
     try {
@@ -249,7 +249,7 @@ const TempoCharadesSmallGroup = ({ onComplete, isSessionMode = true }) => {
   };
 
   const joinGroup = async () => {
-    if (!effectiveSessionCode || !userId || !groupCodeInput) return;
+    if ((!classId && !effectiveSessionCode) || !userId || !groupCodeInput) return;
     setError('');
 
     const code = groupCodeInput.trim();

@@ -367,10 +367,16 @@ function CanvasObject({ obj, isSelected, isEditing, scale, onSelect, onDragStart
   };
 
   // Sync text to state on every input so autosave captures in-progress edits
+  // (without exiting edit mode — only onBlur should do that)
   const inputTimerRef = useRef(null);
   const handleInput = () => {
     clearTimeout(inputTimerRef.current);
-    inputTimerRef.current = setTimeout(handleSave, 500);
+    inputTimerRef.current = setTimeout(() => {
+      const el = editRef.current;
+      if (!el) return;
+      const text = el.innerText || el.textContent || '';
+      onSaveText(obj.id, text, true); // keepEditing = true
+    }, 500);
   };
 
   return (
@@ -1552,10 +1558,10 @@ const SlideCanvas = ({ objects = [], paletteId, genre, onChange, readOnly = fals
     onChange(objects.map(o => o.id === id ? { ...o, zIndex: minZ - 1 } : o));
   };
 
-  const saveText = (id, text) => {
+  const saveText = (id, text, keepEditing = false) => {
     pushUndo(objects);
     onChange(objects.map(o => o.id === id ? { ...o, text } : o));
-    setEditingId(null);
+    if (!keepEditing) setEditingId(null);
   };
 
   const handleAddImage = () => {

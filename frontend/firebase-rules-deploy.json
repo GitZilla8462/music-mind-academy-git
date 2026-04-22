@@ -125,6 +125,19 @@
             }
           },
           "tempoCharadesGroups": {
+            ".write": true,
+            "$groupCode": {
+              ".write": true
+            }
+          },
+          "signOrPassGroups": {
+            ".write": true,
+            "$groupCode": {
+              ".write": true
+            }
+          },
+          "wouldYouSignThemGroups": {
+            ".write": true,
             "$groupCode": {
               ".write": true
             }

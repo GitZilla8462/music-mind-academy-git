@@ -319,7 +319,7 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
   };
 
   const createGroup = async () => {
-    if (!effectiveSessionCode || !userId) return;
+    if (!gameBasePath || !userId) return;
     setError('');
     try {
       const db = getDatabase();
@@ -341,7 +341,7 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
   };
 
   const joinGroup = async () => {
-    if (!effectiveSessionCode || !userId || !groupCodeInput) return;
+    if (!gameBasePath || !userId || !groupCodeInput) return;
     setError('');
     const code = groupCodeInput.trim();
     if (code.length !== 4 || isNaN(code)) { setError('Enter a 4-digit group code.'); return; }
