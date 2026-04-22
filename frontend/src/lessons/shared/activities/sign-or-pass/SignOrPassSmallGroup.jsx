@@ -292,12 +292,12 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
       clearTimeout(betweenTimer);
       if (autoAdvanceTimer.current) clearTimeout(autoAdvanceTimer.current);
     };
-  }, [gamePhase, autoPlayIndex, autoPlayStartedAt, memberOrder, userId, artists, groupCode, effectiveSessionCode]);
+  }, [gamePhase, autoPlayIndex, autoPlayStartedAt, memberOrder, userId, artists, groupCode, gameBasePath]);
 
   // Helper: get Firebase group path
   const getGroupPath = useCallback((code) => {
     return `${gameBasePath}/${code}`;
-  }, [effectiveSessionCode]);
+  }, [gameBasePath]);
 
   const isHost = useCallback(() => {
     return memberOrder.length > 0 && memberOrder[0] === userId;
@@ -485,7 +485,7 @@ const SignOrPassSmallGroup = ({ onComplete, isSessionMode = true }) => {
     } finally {
       revealInProgressRef.current = false;
     }
-  }, [effectiveSessionCode, groupCode]);
+  }, [gameBasePath, groupCode]);
 
   // When all members have submitted rankings, trigger reveal
   // Every client checks — doReveal has a lock + Firebase phase check to prevent doubles

@@ -86,6 +86,7 @@ export const CHARACTER_LIBRARY = [
   { id: 'warrior', name: 'Warrior', emoji: '⚔️', defaultColor: '#DC2626' },
   { id: 'creature', name: 'Creature', emoji: '🐾', defaultColor: '#10B981' },
   { id: 'alien', name: 'Alien', emoji: '👽', defaultColor: '#06B6D4' },
+  { id: 'custom', name: 'Custom', emoji: '✏️', defaultColor: '#F59E0B', isCustom: true },
 ];
 
 // ========================================
@@ -399,8 +400,8 @@ export const lessonStages = [
     hasTimer: true,
     duration: 12,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music/lesson1/slides/9.svg'
+      type: 'activity',
+      activityType: 'motif-builder'
     }
   },
 

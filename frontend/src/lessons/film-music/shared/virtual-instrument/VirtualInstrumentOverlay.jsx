@@ -58,9 +58,13 @@ const VirtualInstrumentOverlay = ({
   const melodySynthRef = useRef(null);
   const drumSynthsRef = useRef({});
 
-  // Recording state
+  // Recording state — use refs to avoid stale closures in note handlers
   const recordedNotesRef = useRef([]);
-  const noteStartTimesRef = useRef({}); // note → start time, for calculating duration
+  const noteStartTimesRef = useRef({});
+  const isRecordingRef = useRef(isRecording);
+  isRecordingRef.current = isRecording;
+  const recordingStartTimeRef = useRef(recordingStartTime);
+  recordingStartTimeRef.current = recordingStartTime;
 
   // Initialize/update melody synth — use Sampler if samples available, PolySynth fallback
   // Same logic as FloatingVirtualInstrument in the DAW
@@ -153,11 +157,11 @@ const VirtualInstrumentOverlay = ({
     synth.triggerAttack(playNote, Tone.now());
     setPressedKeys(prev => new Set(prev).add(note));
 
-    // Track note start time for recording
-    if (isRecording && recordingStartTime != null) {
+    // Track note start time for recording (use refs to avoid stale closure)
+    if (isRecordingRef.current && recordingStartTimeRef.current != null) {
       noteStartTimesRef.current[note] = Tone.now();
     }
-  }, [getPlayNote, isRecording, recordingStartTime]);
+  }, [getPlayNote]);
 
   // Note end (keyboard)
   const handleNoteEnd = useCallback((note) => {
@@ -172,11 +176,11 @@ const VirtualInstrumentOverlay = ({
       return next;
     });
 
-    // Record the note with duration
-    if (isRecording && recordingStartTime != null && noteStartTimesRef.current[note]) {
+    // Record the note with duration (use refs to avoid stale closure)
+    if (isRecordingRef.current && recordingStartTimeRef.current != null && noteStartTimesRef.current[note]) {
       const startTime = noteStartTimesRef.current[note];
       const duration = Tone.now() - startTime;
-      const timestamp = startTime - recordingStartTime;
+      const timestamp = startTime - recordingStartTimeRef.current;
 
       recordedNotesRef.current.push({
         note: playNote,
@@ -186,7 +190,7 @@ const VirtualInstrumentOverlay = ({
 
       delete noteStartTimesRef.current[note];
     }
-  }, [getPlayNote, isRecording, recordingStartTime]);
+  }, [getPlayNote]);
 
   // Drum pad hit
   const handlePadHit = useCallback((padId) => {
@@ -215,10 +219,10 @@ const VirtualInstrumentOverlay = ({
     }, 100);
 
     // Record drum hit
-    if (isRecording && recordingStartTime != null) {
+    if (isRecordingRef.current && recordingStartTimeRef.current != null) {
       recordedNotesRef.current.push({
         note: `drum-${padId}`,
-        timestamp: Math.max(0, Tone.now() - recordingStartTime),
+        timestamp: Math.max(0, Tone.now() - recordingStartTimeRef.current),
         duration: 0.2,
       });
     }
@@ -228,6 +232,9 @@ const VirtualInstrumentOverlay = ({
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.repeat) return;
+      // Don't capture keyboard when typing in an input
+      const tag = e.target?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || e.target?.isContentEditable) return;
       const key = e.key.toLowerCase();
 
       if (mode === 'keyboard') {
@@ -264,7 +271,25 @@ const VirtualInstrumentOverlay = ({
     };
   }, [mode, pressedKeys, handleNoteStart, handleNoteEnd, handlePadHit, activeAllowedNotes]);
 
-  // Handle record toggle
+  // Watch for external stop — when parent sets isRecording from true to false, flush notes
+  const prevIsRecordingRef = useRef(isRecording);
+  useEffect(() => {
+    if (prevIsRecordingRef.current && !isRecording) {
+      // Recording just stopped externally — flush captured notes
+      Object.keys(noteStartTimesRef.current).forEach(note => {
+        handleNoteEnd(note);
+      });
+      const notes = [...recordedNotesRef.current];
+      recordedNotesRef.current = [];
+      noteStartTimesRef.current = {};
+      if (notes.length > 0) {
+        onRecordingComplete(notes, selectedInstrument, mode);
+      }
+    }
+    prevIsRecordingRef.current = isRecording;
+  }, [isRecording]);
+
+  // Handle record toggle (internal button click)
   const handleRecordToggle = useCallback(async () => {
     if (Tone.context.state !== 'running') {
       await Tone.start();

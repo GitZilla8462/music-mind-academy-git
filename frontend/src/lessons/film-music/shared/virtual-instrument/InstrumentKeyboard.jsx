@@ -162,17 +162,17 @@ const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentCol
                 borderBottom: isPressed ? '1px solid #B0B8C4' : '3px solid #B0B8C4',
               }}
             />
-            <div className="relative z-10 pb-2 flex flex-col items-center">
-              <span className="text-xs font-semibold" style={{ color: isPressed ? '#FFF' : '#6B7280' }}>
+            <div className="relative z-10 pb-3 flex flex-col items-center">
+              <span className="text-lg font-bold" style={{ color: isPressed ? '#FFF' : '#4B5563' }}>
                 {n.label}
               </span>
               <span
-                className="text-[9px] font-mono mt-0.5 uppercase"
+                className="text-xs font-mono mt-0.5 uppercase"
                 style={{
                   color: isPressed ? 'rgba(255,255,255,0.7)' : '#9CA3AF',
-                  backgroundColor: isPressed ? 'transparent' : 'rgba(0,0,0,0.05)',
-                  padding: '1px 4px',
-                  borderRadius: '3px',
+                  backgroundColor: isPressed ? 'transparent' : 'rgba(0,0,0,0.06)',
+                  padding: '1px 6px',
+                  borderRadius: '4px',
                 }}
               >
                 {n.key}
@@ -206,7 +206,7 @@ const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentCol
             }}
           >
             <div
-              className="absolute inset-0 rounded-b-md transition-all duration-50 flex flex-col items-center justify-end pb-1.5"
+              className="absolute inset-0 rounded-b-md transition-all duration-50 flex flex-col items-center justify-end pb-2"
               style={{
                 background: isPressed
                   ? `linear-gradient(180deg, ${instrumentColor} 0%, ${instrumentColor}CC 100%)`
@@ -217,7 +217,10 @@ const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentCol
                 borderBottom: isPressed ? '1px solid #000' : '2px solid #000000',
               }}
             >
-              <span className="text-[8px] font-mono uppercase" style={{ color: isPressed ? 'rgba(255,255,255,0.8)' : '#6B7280' }}>
+              <span className="text-xs font-bold" style={{ color: isPressed ? '#FFF' : '#9CA3AF' }}>
+                {n.label}
+              </span>
+              <span className="text-[9px] font-mono uppercase mt-0.5" style={{ color: isPressed ? 'rgba(255,255,255,0.7)' : '#6B7280' }}>
                 {n.key}
               </span>
             </div>

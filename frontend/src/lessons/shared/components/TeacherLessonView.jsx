@@ -2332,6 +2332,23 @@ const PresentationContent = ({
     if (type === 'activity') {
       const { activityType } = currentStageData.presentationView;
 
+      // Motif Builder Activity — teacher sees the same interactive view as students
+      if (activityType === 'motif-builder') {
+        return (
+          <div className="absolute inset-0 overflow-hidden">
+            <style>{`.teacher-embed-activity .h-screen { height: 100% !important; }`}</style>
+            <div className="h-full teacher-embed-activity">
+              <ActivityRenderer
+                activity={{ type: 'motif-builder', id: 'teacher-motif-builder' }}
+                onComplete={() => {}}
+                viewMode={false}
+                isSessionMode={false}
+              />
+            </div>
+          </div>
+        );
+      }
+
       // Melody Mystery Activity
       if (activityType === 'melody-mystery') {
         if (!MelodyMysteryActivity) {
@@ -2934,8 +2951,8 @@ const PresentationContent = ({
 
     // Leitmotif Example (Film Music Lesson 1 — slides 3-6)
     // Left 50%: character info (big text). Right 50%: virtual keyboard (compact, centered).
-    // Play button plays recording via Tone.js with keys lighting up.
-    // Dev mode (?dev=true): Record/Stop buttons appear to capture motif data.
+    // Record/Stop on keyboard, Save downloads JSON, Play loads from /public/ JSON file.
+    // Keys light up during playback. Next button after playback.
     if (type === 'leitmotif-example') {
       const example = currentStageData.presentationView.example;
 
@@ -2956,8 +2973,17 @@ const PresentationContent = ({
           });
         }, []);
 
-        const isDevMode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('dev') === 'true';
         const defaultScaleId = { hero: 'major', villain: 'minor', romantic: 'pentatonic-major', sneaky: 'pentatonic-minor' }[example?.id] || 'major';
+        const recordingPath = `/lessons/film-music/lesson1/recordings/${example?.id}.json`;
+
+        // Recording state
+        const [isRecording, setIsRecording] = React.useState(false);
+        const [recordingStartTime, setRecordingStartTime] = React.useState(null);
+        const [currentRecording, setCurrentRecording] = React.useState(null); // just recorded, not yet saved
+
+        // Saved recording (loaded from JSON file)
+        const [savedRecording, setSavedRecording] = React.useState(null);
+        const [loadingRecording, setLoadingRecording] = React.useState(true);
 
         // Playback state
         const [isPlaying, setIsPlaying] = React.useState(false);
@@ -2966,22 +2992,13 @@ const PresentationContent = ({
         const playbackSynthRef = React.useRef(null);
         const playbackTimeoutsRef = React.useRef([]);
 
-        // Dev recording state
-        const [isRecording, setIsRecording] = React.useState(false);
-        const [recordingStartTime, setRecordingStartTime] = React.useState(null);
-        const [devRecording, setDevRecording] = React.useState(null);
-        const [copiedJson, setCopiedJson] = React.useState(false);
-
-        // The recording — from config (shipped) or dev localStorage
-        const recording = example?.recording || devRecording;
-
+        // Load saved recording from JSON file on mount
         React.useEffect(() => {
-          if (example?.recording) return;
-          try {
-            const saved = localStorage.getItem(`fm-lesson1-dev-demo-${example?.id}`);
-            if (saved) setDevRecording(JSON.parse(saved));
-          } catch(e) {}
-        }, []);
+          fetch(recordingPath)
+            .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
+            .then(data => { setSavedRecording(data); setLoadingRecording(false); })
+            .catch(() => setLoadingRecording(false));
+        }, [recordingPath]);
 
         React.useEffect(() => {
           return () => {
@@ -2990,13 +3007,18 @@ const PresentationContent = ({
           };
         }, []);
 
-        // Dev recording callbacks
+        // The active recording — use freshly recorded if available, otherwise saved file
+        const recording = currentRecording || savedRecording;
+
+        // Recording callbacks
         const handleRecordStart = React.useCallback(async () => {
           if (ToneLib) {
             if (ToneLib.context.state !== 'running') await ToneLib.start();
             setRecordingStartTime(ToneLib.now());
           }
+          setCurrentRecording(null); // clear previous
           setIsRecording(true);
+          setHasPlayed(false);
         }, [ToneLib]);
 
         const handleRecordStop = React.useCallback(() => {
@@ -3005,19 +3027,29 @@ const PresentationContent = ({
         }, []);
 
         const handleRecordingComplete = React.useCallback((notes, instrument) => {
-          const data = { notes, instrument, scale: defaultScaleId };
-          setDevRecording(data);
-          try { localStorage.setItem(`fm-lesson1-dev-demo-${example?.id}`, JSON.stringify(data)); } catch(e){}
+          const data = { notes, instrument, scale: defaultScaleId, character: example?.id };
+          setCurrentRecording(data);
         }, [example?.id, defaultScaleId]);
 
-        const noop = React.useCallback(() => {}, []);
+        // Save — downloads JSON file
+        const saveRecording = () => {
+          if (!currentRecording) return;
+          const json = JSON.stringify(currentRecording, null, 2);
+          const blob = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${example?.id}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          setSavedRecording(currentRecording);
+        };
 
         // Playback — Tone.js + key highlighting
         const playRecording = React.useCallback(async () => {
           if (!recording?.notes?.length || !ToneLib || !instrumentsData) return;
           if (ToneLib.context.state !== 'running') await ToneLib.start();
 
-          // Create synth matching the recorded instrument
           if (playbackSynthRef.current) { try { playbackSynthRef.current.dispose(); } catch(e){} }
           const inst = instrumentsData[recording.instrument];
           if (inst) {
@@ -3045,22 +3077,17 @@ const PresentationContent = ({
           notes.forEach((nd) => {
             const startMs = nd.timestamp * 1000;
             const durMs = (nd.duration || 0.3) * 1000;
-
-            // Play sound + highlight key ON
             timeouts.push(setTimeout(() => {
               if (playbackSynthRef.current) {
                 try { playbackSynthRef.current.triggerAttackRelease(nd.note, nd.duration || 0.3); } catch(e){}
               }
               setHighlightedKeys(prev => new Set(prev).add(nd.note));
             }, startMs));
-
-            // Highlight key OFF
             timeouts.push(setTimeout(() => {
               setHighlightedKeys(prev => { const n = new Set(prev); n.delete(nd.note); return n; });
             }, startMs + durMs));
           });
 
-          // End playback
           const lastNote = notes[notes.length - 1];
           const totalMs = lastNote ? (lastNote.timestamp + (lastNote.duration || 0.3)) * 1000 + 500 : 500;
           timeouts.push(setTimeout(() => {
@@ -3068,7 +3095,6 @@ const PresentationContent = ({
             setHasPlayed(true);
             setHighlightedKeys(new Set());
           }, totalMs));
-
           playbackTimeoutsRef.current = timeouts;
         }, [recording, ToneLib, instrumentsData]);
 
@@ -3103,20 +3129,20 @@ const PresentationContent = ({
               </p>
             </div>
 
-            {/* ====== RIGHT SIDE: Keyboard centered + Play/Next below ====== */}
+            {/* ====== RIGHT SIDE: Keyboard centered + buttons below ====== */}
             <div className="w-1/2 flex flex-col items-center justify-center">
               {/* Keyboard — compact, centered */}
               <div className="w-full max-w-[560px] px-4">
                 {OverlayComponent ? (
                   <OverlayComponent
                     embedded={true}
-                    showRecord={isDevMode}
-                    isRecording={isDevMode ? isRecording : false}
-                    recordingStartTime={isDevMode ? recordingStartTime : null}
-                    onRecordStart={isDevMode ? handleRecordStart : noop}
-                    onRecordStop={isDevMode ? handleRecordStop : noop}
-                    onRecordingComplete={isDevMode ? handleRecordingComplete : noop}
-                    onClose={noop}
+                    showRecord={true}
+                    isRecording={isRecording}
+                    recordingStartTime={recordingStartTime}
+                    onRecordStart={handleRecordStart}
+                    onRecordStop={handleRecordStop}
+                    onRecordingComplete={handleRecordingComplete}
+                    onClose={() => {}}
                     defaultScale={defaultScaleId}
                     highlightedKeys={highlightedKeys.size > 0 ? highlightedKeys : null}
                   />
@@ -3125,9 +3151,21 @@ const PresentationContent = ({
                 )}
               </div>
 
-              {/* Play + Next buttons */}
+              {/* Buttons below keyboard */}
               <div className="flex items-center gap-3 mt-5">
-                {recording?.notes?.length ? (
+                {/* Save button — only shows after recording */}
+                {currentRecording && !isRecording && (
+                  <button
+                    onClick={saveRecording}
+                    className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-bold rounded-xl transition-all shadow-lg"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+                    Save Recording
+                  </button>
+                )}
+
+                {/* Play button */}
+                {recording?.notes?.length && !isRecording ? (
                   <button
                     onClick={isPlaying ? stopPlayback : playRecording}
                     className={`flex items-center gap-2 px-8 py-3 text-lg font-bold rounded-xl transition-all shadow-lg ${
@@ -3141,10 +3179,11 @@ const PresentationContent = ({
                       <><span className="w-0 h-0 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent border-l-[16px] border-l-white" /> Play Example</>
                     )}
                   </button>
-                ) : (
-                  <span className="text-gray-600 text-sm">{isDevMode ? 'Record a motif above, then play it' : 'No example recorded yet'}</span>
-                )}
+                ) : !isRecording && !recording?.notes?.length && !loadingRecording ? (
+                  <span className="text-gray-500 text-sm">Record a motif, then save it</span>
+                ) : null}
 
+                {/* Next button — after playback */}
                 {hasPlayed && (
                   <button
                     onClick={() => {
@@ -3159,28 +3198,6 @@ const PresentationContent = ({
                   </button>
                 )}
               </div>
-
-              {/* Dev tools — only with ?dev=true */}
-              {isDevMode && devRecording && (
-                <div className="mt-4 flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      const json = JSON.stringify(devRecording, null, 2);
-                      navigator.clipboard.writeText(json).then(() => { setCopiedJson(true); setTimeout(() => setCopiedJson(false), 3000); });
-                    }}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${copiedJson ? 'bg-green-600 text-white' : 'bg-yellow-600 text-white hover:bg-yellow-700'}`}
-                  >
-                    {copiedJson ? 'Copied!' : 'Copy Recording JSON'}
-                  </button>
-                  <button
-                    onClick={() => { setDevRecording(null); try { localStorage.removeItem(`fm-lesson1-dev-demo-${example?.id}`); } catch(e){} }}
-                    className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-300"
-                  >
-                    Clear
-                  </button>
-                  <span className="text-[10px] text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded">DEV MODE</span>
-                </div>
-              )}
             </div>
           </div>
         );
