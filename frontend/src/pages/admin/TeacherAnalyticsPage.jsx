@@ -16,12 +16,12 @@ const isPersonalEmail = (email) => {
 
 const ADMIN_EMAILS = ['robtaube90@gmail.com', 'robtaube92@gmail.com'];
 
-// Unit definitions — add new units here as they're built
+// Unit definitions — order matters: film-music-project must come before film-music to avoid substring match
 const UNITS = {
-  'film-music-project': { label: 'Film Music', short: 'U1', badgeComplete: 'bg-blue-100 text-blue-800', badgePartial: 'bg-blue-50 text-blue-600', border: 'border-blue-200', heading: 'text-blue-700' },
+  'film-music-project': { label: 'The Loop Lab', short: 'U1', badgeComplete: 'bg-blue-100 text-blue-800', badgePartial: 'bg-blue-50 text-blue-600', border: 'border-blue-200', heading: 'text-blue-700' },
   'listening-lab': { label: 'Listening Lab', short: 'U2', badgeComplete: 'bg-purple-100 text-purple-800', badgePartial: 'bg-purple-50 text-purple-600', border: 'border-purple-200', heading: 'text-purple-700' },
-  // Future units:
-  // 'world-music': { label: 'World Music', short: 'U3', badgeComplete: 'bg-green-100 text-green-800', badgePartial: 'bg-green-50 text-green-600', border: 'border-green-200', heading: 'text-green-700' },
+  'music-journalist': { label: 'Music Agent', short: 'U3', badgeComplete: 'bg-sky-100 text-sky-800', badgePartial: 'bg-sky-50 text-sky-600', border: 'border-sky-200', heading: 'text-sky-700' },
+  'film-music': { label: 'Film Music', short: 'U4', badgeComplete: 'bg-amber-100 text-amber-800', badgePartial: 'bg-amber-50 text-amber-600', border: 'border-amber-200', heading: 'text-amber-700' },
 };
 
 const UNIT_IDS = Object.keys(UNITS);
@@ -92,12 +92,13 @@ const TeacherAnalyticsPage = () => {
       const route = session.lessonRoute || '';
 
       // Extract unit and lesson from route like /lessons/film-music-project/lesson3
+      // UNIT_IDS order matters: film-music-project must be checked before film-music (substring)
       let unitId = null;
       let lessonNum = null;
       for (const id of UNIT_IDS) {
         if (route.includes(id)) { unitId = id; break; }
       }
-      // Fallback: if no unit matched but has lesson, assume film-music-project (legacy)
+      // Fallback: if no unit matched but has lesson, assume film-music-project (legacy Loop Lab)
       const lessonMatch = route.match(/lesson(\d)/);
       if (lessonMatch) lessonNum = parseInt(lessonMatch[1]);
       if (!unitId && lessonNum) unitId = 'film-music-project';

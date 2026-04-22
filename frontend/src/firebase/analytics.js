@@ -84,6 +84,25 @@ export const logSessionCreated = async (teacherUid, teacherEmail, sessionData) =
   });
 
   // Log to global sessions for admin view
+  // For class sessions, archive the previous session before overwriting so lesson history is preserved
+  if (isClassSession) {
+    try {
+      const prevRef = ref(database, `pilotSessions/${sessionCode}`);
+      const prevSnap = await get(prevRef);
+      if (prevSnap.exists()) {
+        const prevData = prevSnap.val();
+        // Only archive if it's a different lesson (not a re-run of the same lesson)
+        if (prevData.lessonRoute && prevData.lessonRoute !== lessonRoute) {
+          const archiveKey = `${sessionCode}_${prevData.startTime || Date.now()}`;
+          await set(ref(database, `pilotSessions/${archiveKey}`), prevData);
+          console.log(`📊 Archived previous session: ${archiveKey}`);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not archive previous session:', e.message);
+    }
+  }
+
   await set(ref(database, `pilotSessions/${sessionCode}`), {
     teacherUid,
     teacherEmail,
