@@ -372,6 +372,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
   // UI state
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [hasSaved, setHasSaved] = useState(false);
+  const [pendingSwitch, setPendingSwitch] = useState(null); // { targetId } or { newChar: true }
 
   // Directions modal
   const directions = useDirectionsModal('motif-builder');
@@ -451,34 +452,8 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
     setRecordedInstrument(instrument);
   }, []);
 
-  // Playback — uses refs to always read latest notes/instrument
-  const playMotif = useCallback(async () => {
-    const notes = recordedNotesRef.current;
-    const instrument = recordedInstrumentRef.current;
-    if (!notes?.length) return;
-    if (Tone.context.state !== 'running') await Tone.start();
-
-    if (playbackSynthRef.current) { try { playbackSynthRef.current.dispose(); } catch(e) {} }
-    const inst = INSTRUMENTS[instrument];
-    if (inst) {
-      if (inst.useSampler && inst.samples) {
-        try {
-          const sampler = new Tone.Sampler({
-            urls: inst.samples.urls, baseUrl: inst.samples.baseUrl,
-            attack: inst.samplerAttack || 0, release: inst.config?.envelope?.release || 1,
-            onload: () => {}, onerror: () => {},
-          }).toDestination();
-          sampler.volume.value = -6;
-          playbackSynthRef.current = sampler;
-        } catch(e) {}
-      }
-      if (!playbackSynthRef.current) {
-        playbackSynthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
-        playbackSynthRef.current.volume.value = -6;
-      }
-    }
-
-    setIsPlaying(true);
+  // Schedule note playback with a ready synth
+  const schedulePlayback = useCallback((synth, notes) => {
     const timeouts = [];
     const filteredNotes = notes.filter(n => !n.note?.startsWith('drum-'));
 
@@ -486,8 +461,8 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
       const startMs = nd.timestamp * 1000;
       const durMs = (nd.duration || 0.3) * 1000;
       timeouts.push(setTimeout(() => {
-        if (playbackSynthRef.current) {
-          try { playbackSynthRef.current.triggerAttackRelease(nd.note, nd.duration || 0.3); } catch(e) {}
+        if (synth) {
+          try { synth.triggerAttackRelease(nd.note, nd.duration || 0.3); } catch(e) {}
         }
         setHighlightedKeys(prev => new Set(prev).add(nd.note));
       }, startMs));
@@ -503,7 +478,53 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
       setHighlightedKeys(new Set());
     }, totalMs));
     playbackTimeoutsRef.current = timeouts;
-  }, []); // uses refs — no deps needed
+  }, []);
+
+  // Playback — uses refs to always read latest notes/instrument
+  const playMotif = useCallback(async () => {
+    const notes = recordedNotesRef.current;
+    const instrument = recordedInstrumentRef.current;
+    if (!notes?.length) return;
+    if (Tone.context.state !== 'running') await Tone.start();
+
+    if (playbackSynthRef.current) { try { playbackSynthRef.current.dispose(); } catch(e) {} }
+    playbackSynthRef.current = null;
+    const inst = INSTRUMENTS[instrument];
+    if (!inst) return;
+
+    setIsPlaying(true);
+
+    if (inst.useSampler && inst.samples) {
+      try {
+        const sampler = new Tone.Sampler({
+          urls: inst.samples.urls, baseUrl: inst.samples.baseUrl,
+          attack: inst.samplerAttack || 0, release: inst.config?.envelope?.release || 1,
+          onload: () => {
+            // Sampler ready — now schedule the notes
+            schedulePlayback(sampler, notes);
+          },
+          onerror: () => {
+            // Fallback to PolySynth
+            const fallback = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
+            fallback.volume.value = -6;
+            playbackSynthRef.current = fallback;
+            schedulePlayback(fallback, notes);
+          },
+        }).toDestination();
+        sampler.volume.value = -6;
+        playbackSynthRef.current = sampler;
+      } catch(e) {
+        // Fallback to PolySynth
+        playbackSynthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
+        playbackSynthRef.current.volume.value = -6;
+        schedulePlayback(playbackSynthRef.current, notes);
+      }
+    } else {
+      playbackSynthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
+      playbackSynthRef.current.volume.value = -6;
+      schedulePlayback(playbackSynthRef.current, notes);
+    }
+  }, [schedulePlayback]); // uses refs — no other deps needed
 
   const stopPlayback = useCallback(() => {
     playbackTimeoutsRef.current.forEach(t => clearTimeout(t));
@@ -532,6 +553,59 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
 
   const handleComplete = () => { if (onComplete) onComplete(); };
 
+  // Check if there are unsaved recorded notes
+  const hasUnsavedNotes = recordedNotes.length > 0 && !hasSaved;
+
+  // Guard: prompt before switching characters if unsaved notes exist
+  const switchCharacter = (targetId) => {
+    if (targetId === selectedCharacterId) return;
+    if (hasUnsavedNotes) {
+      setPendingSwitch({ targetId });
+      return;
+    }
+    setSelectedCharacterId(targetId);
+  };
+
+  const switchToNewCharacter = () => {
+    if (hasUnsavedNotes) {
+      setPendingSwitch({ newChar: true });
+      return;
+    }
+    setSelectedCharacterId(null);
+    setCharDropdownOpen(true);
+    setRecordedNotes([]);
+    setHasSaved(false);
+  };
+
+  // Confirm save + switch
+  const confirmSaveAndSwitch = () => {
+    handleSave();
+    const target = pendingSwitch;
+    setPendingSwitch(null);
+    if (target?.newChar) {
+      setSelectedCharacterId(null);
+      setCharDropdownOpen(true);
+      setRecordedNotes([]);
+      setHasSaved(false);
+    } else if (target?.targetId) {
+      setSelectedCharacterId(target.targetId);
+    }
+  };
+
+  // Discard + switch
+  const confirmDiscardAndSwitch = () => {
+    const target = pendingSwitch;
+    setPendingSwitch(null);
+    if (target?.newChar) {
+      setSelectedCharacterId(null);
+      setCharDropdownOpen(true);
+      setRecordedNotes([]);
+      setHasSaved(false);
+    } else if (target?.targetId) {
+      setSelectedCharacterId(target.targetId);
+    }
+  };
+
   const noteCount = recordedNotes.filter(n => !n.note?.startsWith('drum-')).length;
   const canSave = noteCount >= 1 && selectedCharacterId;
   const selectedCharacter = CHARACTER_LIBRARY.find(c => c.id === selectedCharacterId);
@@ -556,7 +630,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
             return (
               <button
                 key={charId}
-                onClick={() => setSelectedCharacterId(charId)}
+                onClick={() => switchCharacter(charId)}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-orange-500/20 text-orange-300 ring-1 ring-orange-500'
@@ -575,7 +649,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
 
           {/* Add new motif button */}
           <button
-            onClick={() => { setSelectedCharacterId(null); setCharDropdownOpen(true); setRecordedNotes([]); setHasSaved(false); }}
+            onClick={switchToNewCharacter}
             className="flex items-center gap-1 px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg text-xs transition-colors flex-shrink-0"
             title="New character motif"
           >
@@ -640,7 +714,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
                   return (
                     <button
                       key={char.id}
-                      onClick={() => { setSelectedCharacterId(char.id); setCharDropdownOpen(false); }}
+                      onClick={() => { switchCharacter(char.id); setCharDropdownOpen(false); }}
                       className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
                         isSelected ? 'bg-orange-500/20 text-orange-300' : 'text-gray-300 hover:bg-gray-700'
                       }`}
@@ -802,6 +876,38 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
         steps={MOTIF_BUILDER_DIRECTIONS}
         bonusText="Try a different instrument — does it change the character's personality?"
       />
+
+      {/* Save before switching confirmation */}
+      {pendingSwitch && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-gray-800 border border-gray-600 rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
+            <h3 className="text-white text-lg font-bold mb-2">Save your leitmotif?</h3>
+            <p className="text-gray-400 text-sm mb-5">
+              You have an unsaved recording. Would you like to save it before switching characters?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={confirmDiscardAndSwitch}
+                className="flex-1 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-xl text-sm font-medium transition-colors"
+              >
+                Don't Save
+              </button>
+              <button
+                onClick={() => setPendingSwitch(null)}
+                className="flex-1 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm font-medium transition-colors"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={confirmSaveAndSwitch}
+                className="flex-1 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-bold transition-colors"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DirectionsReopenButton is inline in the header — no fixed-position one needed */}
     </div>

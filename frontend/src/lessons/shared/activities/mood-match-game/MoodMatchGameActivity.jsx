@@ -41,6 +41,7 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
   const currentLoopIndex = moodMatchState.currentLoopIndex;
   const currentLoop = currentLoopIndex >= 0 ? GAME_LOOPS[currentLoopIndex] : null;
   const showResults = moodMatchState.showResults;
+  const roundNumber = moodMatchState.roundNumber || currentLoopIndex + 1;
   const isGameComplete = currentLoopIndex >= GAME_LOOPS.length;
 
   // Subscribe to mood match state from Firebase (skip in demo mode)
@@ -287,7 +288,7 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
           {isDemo ? (
             <>
               <p className="text-xl text-green-400 mb-6">
-                Loop {currentLoopIndex + 1} of {GAME_LOOPS.length} complete!
+                Loop {roundNumber} of {GAME_LOOPS.length} complete!
               </p>
               {!isLastLoop ? (
                 <button
@@ -323,7 +324,7 @@ const MoodMatchGameActivity = ({ onComplete, isSessionMode = false, demoMode = f
       <div className="bg-black/30 py-4 px-6">
         <div className="text-center">
           <div className="text-2xl font-bold text-white">
-            LOOP {currentLoopIndex + 1} OF {GAME_LOOPS.length}
+            LOOP {roundNumber} OF {GAME_LOOPS.length}
           </div>
         </div>
       </div>

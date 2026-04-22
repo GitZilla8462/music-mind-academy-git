@@ -63,7 +63,7 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson, i
   // Reset mood match state on mount so students don't see stale data from a previous game
   useEffect(() => {
     if (!sessionCode) return;
-    setMoodMatchCurrentLoop(sessionCode, -1, false);
+    setMoodMatchCurrentLoop(sessionCode, -1, false, 0);
     clearMoodMatchVotes(sessionCode);
   }, [sessionCode]);
 
@@ -146,7 +146,7 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson, i
     if (sessionCode) {
       try {
         await clearMoodMatchVotes(sessionCode);
-        await setMoodMatchCurrentLoop(sessionCode, indices[0], false);
+        await setMoodMatchCurrentLoop(sessionCode, indices[0], false, 1);
       } catch (error) {
         console.error('Error starting game:', error);
       }
@@ -182,9 +182,9 @@ const MoodMatchTeacherView = ({ sessionCode: propSessionCode, onAdvanceLesson, i
     if (sessionCode) {
       try {
         if (nextRound < GAME_LOOPS.length) {
-          await setMoodMatchCurrentLoop(sessionCode, shuffledOrder[nextRound], false);
+          await setMoodMatchCurrentLoop(sessionCode, shuffledOrder[nextRound], false, nextRound + 1);
         } else {
-          await setMoodMatchCurrentLoop(sessionCode, GAME_LOOPS.length, false);
+          await setMoodMatchCurrentLoop(sessionCode, GAME_LOOPS.length, false, nextRound + 1);
         }
       } catch (error) {
         console.error('Error advancing to next loop:', error);

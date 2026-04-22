@@ -56,6 +56,7 @@ const VirtualInstrumentOverlay = ({
 
   // Synth refs
   const melodySynthRef = useRef(null);
+  const pendingSamplerRef = useRef(null); // sampler loading in background
   const drumSynthsRef = useRef({});
 
   // Recording state — use refs to avoid stale closures in note handlers
@@ -66,43 +67,56 @@ const VirtualInstrumentOverlay = ({
   const recordingStartTimeRef = useRef(recordingStartTime);
   recordingStartTimeRef.current = recordingStartTime;
 
-  // Initialize/update melody synth — use Sampler if samples available, PolySynth fallback
-  // Same logic as FloatingVirtualInstrument in the DAW
+  // Initialize/update melody synth — PolySynth plays instantly, Sampler swaps in when loaded
   useEffect(() => {
     const inst = INSTRUMENTS[selectedInstrument];
     if (!inst) return;
 
     if (melodySynthRef.current) {
       melodySynthRef.current.dispose();
+      melodySynthRef.current = null;
+    }
+    if (pendingSamplerRef.current) {
+      try { pendingSamplerRef.current.dispose(); } catch(e) {}
+      pendingSamplerRef.current = null;
     }
 
+    // Create PolySynth immediately — plays instantly, no loading needed
+    const polySynth = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
+    polySynth.volume.value = -6;
+    melodySynthRef.current = polySynth;
+
+    // Load Sampler in background, swap in when ready for better sound quality
     if (inst.useSampler && inst.samples) {
       const sampler = new Tone.Sampler({
         urls: inst.samples.urls,
         baseUrl: inst.samples.baseUrl,
         attack: inst.samplerAttack || 0,
         release: inst.config?.envelope?.release || 1,
-        onload: () => {},
+        onload: () => {
+          if (pendingSamplerRef.current !== sampler) { sampler.dispose(); return; }
+          const old = melodySynthRef.current;
+          melodySynthRef.current = sampler;
+          pendingSamplerRef.current = null;
+          if (old) try { old.dispose(); } catch(e) {}
+        },
         onerror: () => {
-          // Fallback to PolySynth if samples fail
-          if (melodySynthRef.current === sampler) {
-            sampler.dispose();
-            melodySynthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
-            melodySynthRef.current.volume.value = -6;
-          }
+          if (pendingSamplerRef.current === sampler) pendingSamplerRef.current = null;
+          try { sampler.dispose(); } catch(e) {}
         },
       }).toDestination();
       sampler.volume.value = -6;
-      melodySynthRef.current = sampler;
-    } else {
-      melodySynthRef.current = new Tone.PolySynth(Tone.Synth, inst.config).toDestination();
-      melodySynthRef.current.volume.value = -6;
+      pendingSamplerRef.current = sampler;
     }
 
     return () => {
       if (melodySynthRef.current) {
         melodySynthRef.current.dispose();
         melodySynthRef.current = null;
+      }
+      if (pendingSamplerRef.current) {
+        try { pendingSamplerRef.current.dispose(); } catch(e) {}
+        pendingSamplerRef.current = null;
       }
     };
   }, [selectedInstrument]);

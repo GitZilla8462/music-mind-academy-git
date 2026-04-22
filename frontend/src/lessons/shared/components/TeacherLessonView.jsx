@@ -3045,41 +3045,17 @@ const PresentationContent = ({
           setSavedRecording(currentRecording);
         };
 
-        // Playback — Tone.js + key highlighting
-        const playRecording = React.useCallback(async () => {
-          if (!recording?.notes?.length || !ToneLib || !instrumentsData) return;
-          if (ToneLib.context.state !== 'running') await ToneLib.start();
-
-          if (playbackSynthRef.current) { try { playbackSynthRef.current.dispose(); } catch(e){} }
-          const inst = instrumentsData[recording.instrument];
-          if (inst) {
-            if (inst.useSampler && inst.samples) {
-              try {
-                const sampler = new ToneLib.Sampler({
-                  urls: inst.samples.urls, baseUrl: inst.samples.baseUrl,
-                  attack: inst.samplerAttack || 0, release: inst.config?.envelope?.release || 1,
-                  onload: () => {}, onerror: () => {},
-                }).toDestination();
-                sampler.volume.value = -6;
-                playbackSynthRef.current = sampler;
-              } catch(e) {}
-            }
-            if (!playbackSynthRef.current) {
-              playbackSynthRef.current = new ToneLib.PolySynth(ToneLib.Synth, inst.config).toDestination();
-              playbackSynthRef.current.volume.value = -6;
-            }
-          }
-
-          setIsPlaying(true);
+        // Schedule note playback with a ready synth
+        const scheduleNotes = React.useCallback((synth, notesToPlay) => {
           const timeouts = [];
-          const notes = recording.notes.filter(n => !n.note?.startsWith('drum-'));
+          const filtered = notesToPlay.filter(n => !n.note?.startsWith('drum-'));
 
-          notes.forEach((nd) => {
+          filtered.forEach((nd) => {
             const startMs = nd.timestamp * 1000;
             const durMs = (nd.duration || 0.3) * 1000;
             timeouts.push(setTimeout(() => {
-              if (playbackSynthRef.current) {
-                try { playbackSynthRef.current.triggerAttackRelease(nd.note, nd.duration || 0.3); } catch(e){}
+              if (synth) {
+                try { synth.triggerAttackRelease(nd.note, nd.duration || 0.3); } catch(e){}
               }
               setHighlightedKeys(prev => new Set(prev).add(nd.note));
             }, startMs));
@@ -3088,7 +3064,7 @@ const PresentationContent = ({
             }, startMs + durMs));
           });
 
-          const lastNote = notes[notes.length - 1];
+          const lastNote = filtered[filtered.length - 1];
           const totalMs = lastNote ? (lastNote.timestamp + (lastNote.duration || 0.3)) * 1000 + 500 : 500;
           timeouts.push(setTimeout(() => {
             setIsPlaying(false);
@@ -3096,7 +3072,48 @@ const PresentationContent = ({
             setHighlightedKeys(new Set());
           }, totalMs));
           playbackTimeoutsRef.current = timeouts;
-        }, [recording, ToneLib, instrumentsData]);
+        }, []);
+
+        // Playback — Tone.js + key highlighting (waits for sampler to load)
+        const playRecording = React.useCallback(async () => {
+          if (!recording?.notes?.length || !ToneLib || !instrumentsData) return;
+          if (ToneLib.context.state !== 'running') await ToneLib.start();
+
+          if (playbackSynthRef.current) { try { playbackSynthRef.current.dispose(); } catch(e){} }
+          playbackSynthRef.current = null;
+          const inst = instrumentsData[recording.instrument];
+          if (!inst) return;
+
+          setIsPlaying(true);
+
+          if (inst.useSampler && inst.samples) {
+            try {
+              const sampler = new ToneLib.Sampler({
+                urls: inst.samples.urls, baseUrl: inst.samples.baseUrl,
+                attack: inst.samplerAttack || 0, release: inst.config?.envelope?.release || 1,
+                onload: () => {
+                  scheduleNotes(sampler, recording.notes);
+                },
+                onerror: () => {
+                  const fallback = new ToneLib.PolySynth(ToneLib.Synth, inst.config).toDestination();
+                  fallback.volume.value = -6;
+                  playbackSynthRef.current = fallback;
+                  scheduleNotes(fallback, recording.notes);
+                },
+              }).toDestination();
+              sampler.volume.value = -6;
+              playbackSynthRef.current = sampler;
+            } catch(e) {
+              playbackSynthRef.current = new ToneLib.PolySynth(ToneLib.Synth, inst.config).toDestination();
+              playbackSynthRef.current.volume.value = -6;
+              scheduleNotes(playbackSynthRef.current, recording.notes);
+            }
+          } else {
+            playbackSynthRef.current = new ToneLib.PolySynth(ToneLib.Synth, inst.config).toDestination();
+            playbackSynthRef.current.volume.value = -6;
+            scheduleNotes(playbackSynthRef.current, recording.notes);
+          }
+        }, [recording, ToneLib, instrumentsData, scheduleNotes]);
 
         const stopPlayback = React.useCallback(() => {
           playbackTimeoutsRef.current.forEach(t => clearTimeout(t));

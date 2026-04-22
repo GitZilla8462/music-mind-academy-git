@@ -421,17 +421,22 @@ export const logWarning = async (sessionCode, studentId, message, data = {}) => 
  * Set the current loop index for the Mood Match Game
  * Teacher controls which loop students are voting on
  */
-export const setMoodMatchCurrentLoop = async (sessionCode, loopIndex, showResults = false) => {
+export const setMoodMatchCurrentLoop = async (sessionCode, loopIndex, showResults = false, roundNumber = null) => {
   try {
     const moodMatchRef = ref(database, `sessions/${sessionCode}/moodMatch`);
 
-    await update(moodMatchRef, {
+    const updateData = {
       currentLoopIndex: loopIndex,
       showResults: showResults,
       updatedAt: Date.now()
-    });
+    };
+    if (roundNumber !== null) {
+      updateData.roundNumber = roundNumber;
+    }
 
-    console.log(`✅ Set mood match loop to ${loopIndex}, showResults: ${showResults}`);
+    await update(moodMatchRef, updateData);
+
+    console.log(`✅ Set mood match loop to ${loopIndex}, round: ${roundNumber}, showResults: ${showResults}`);
   } catch (error) {
     console.error('❌ Error setting mood match loop:', error);
     throw error;
