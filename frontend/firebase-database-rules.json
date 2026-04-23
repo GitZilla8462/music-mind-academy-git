@@ -112,6 +112,7 @@
         ".read": true,
         ".write": "auth != null && (!data.exists() || data.child('teacherUid').val() == auth.uid)",
         "currentSession": {
+          ".write": true,
           "studentsJoined": {
             ".write": true,
             "$seatId": {
@@ -141,6 +142,9 @@
             "$groupCode": {
               ".write": true
             }
+          },
+          "leitmotifSpotter": {
+            ".write": true
           }
         }
       }

@@ -9,7 +9,7 @@ import * as Tone from 'tone';
 import InstrumentKeyboard from './InstrumentKeyboard';
 import DrumPadGrid from './DrumPadGrid';
 import InstrumentSelector from './InstrumentSelector';
-import { INSTRUMENTS, KEY_TO_NOTE, KEY_TO_PAD, DRUM_PADS, SCALES } from './instrumentConfig';
+import { INSTRUMENTS, KEY_TO_NOTE, KEY_TO_PAD, DRUM_PADS, SCALES, OCTAVE_RANGES, getNotesForOctave, getScaleForOctave, getLabelsForOctave } from './instrumentConfig';
 
 const VirtualInstrumentOverlay = ({
   onClose,
@@ -23,6 +23,7 @@ const VirtualInstrumentOverlay = ({
   allowedNotes: externalAllowedNotes = undefined, // External override — when provided, scale dropdown is hidden
   defaultScale = null, // Optional default scale ID (e.g. 'major') for initial dropdown value
   highlightedKeys = null, // Optional Set of note strings to highlight (for playback visualization)
+  keyboardOnly = false, // When true: hide Pads/Bow mode toggle, keyboard only
 }) => {
   const [mode, setMode] = useState('keyboard'); // 'keyboard' | 'drums' | 'strings'
   const [selectedInstrument, setSelectedInstrument] = useState('piano');
@@ -34,25 +35,44 @@ const VirtualInstrumentOverlay = ({
   const [scaleDropdownOpen, setScaleDropdownOpen] = useState(false);
   const scaleDropdownRef = useRef(null);
 
-  // Determine the active scale
+  // Octave range state
+  const [selectedOctave, setSelectedOctave] = useState('middle'); // 'low' | 'middle' | 'high'
+  const [octaveDropdownOpen, setOctaveDropdownOpen] = useState(false);
+  const octaveDropdownRef = useRef(null);
+
+  const activeOctaveRange = OCTAVE_RANGES.find(o => o.id === selectedOctave) || OCTAVE_RANGES[1];
+  const octaveNotes = getNotesForOctave(activeOctaveRange.octave);
+
+  // Build key-to-note map for the current octave
+  const currentKeyToNote = {};
+  octaveNotes.forEach(n => { currentKeyToNote[n.key] = n.note; });
+
+  // Determine the active scale (shifted to current octave)
   const activeScale = (() => {
     if (externalAllowedNotes !== undefined) return null; // externally controlled
     return SCALES.find(s => s.id === selectedScaleId) || null;
   })();
-  const activeAllowedNotes = externalAllowedNotes !== undefined ? externalAllowedNotes : (activeScale?.notes || null);
-  const activeLabels = activeScale?.labels || null;
+  const activeAllowedNotes = externalAllowedNotes !== undefined
+    ? externalAllowedNotes
+    : (activeScale ? getScaleForOctave(activeScale, activeOctaveRange.octave) : null);
+  const activeLabels = externalAllowedNotes !== undefined
+    ? null
+    : (activeScale ? getLabelsForOctave(activeScale?.labels, activeOctaveRange.octave) : null);
 
-  // Close scale dropdown on click outside
+  // Close dropdowns on click outside
   useEffect(() => {
-    if (!scaleDropdownOpen) return;
+    if (!scaleDropdownOpen && !octaveDropdownOpen) return;
     const handle = (e) => {
-      if (scaleDropdownRef.current && !scaleDropdownRef.current.contains(e.target)) {
+      if (scaleDropdownOpen && scaleDropdownRef.current && !scaleDropdownRef.current.contains(e.target)) {
         setScaleDropdownOpen(false);
+      }
+      if (octaveDropdownOpen && octaveDropdownRef.current && !octaveDropdownRef.current.contains(e.target)) {
+        setOctaveDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handle);
     return () => document.removeEventListener('mousedown', handle);
-  }, [scaleDropdownOpen]);
+  }, [scaleDropdownOpen, octaveDropdownOpen]);
 
   // Synth refs
   const melodySynthRef = useRef(null);
@@ -156,6 +176,20 @@ const VirtualInstrumentOverlay = ({
     return note;
   }, [selectedInstrument]);
 
+  // Pre-warm audio context on first pointer interaction (no delay on first note)
+  const audioWarmedRef = useRef(false);
+  useEffect(() => {
+    const warmUp = () => {
+      if (!audioWarmedRef.current) {
+        Tone.start();
+        audioWarmedRef.current = true;
+      }
+    };
+    // Listen for any click/touch to start audio context early
+    document.addEventListener('pointerdown', warmUp, { once: true });
+    return () => document.removeEventListener('pointerdown', warmUp);
+  }, []);
+
   // Note start (keyboard)
   const handleNoteStart = useCallback((note) => {
     const synth = melodySynthRef.current;
@@ -165,7 +199,14 @@ const VirtualInstrumentOverlay = ({
 
     // Ensure audio context is running
     if (Tone.context.state !== 'running') {
-      Tone.start();
+      Tone.start().then(() => {
+        try { synth.triggerAttack(playNote, Tone.now()); } catch(e) {}
+      });
+      setPressedKeys(prev => new Set(prev).add(note));
+      if (isRecordingRef.current && recordingStartTimeRef.current != null) {
+        noteStartTimesRef.current[note] = Tone.now();
+      }
+      return;
     }
 
     synth.triggerAttack(playNote, Tone.now());
@@ -211,15 +252,19 @@ const VirtualInstrumentOverlay = ({
     const synth = drumSynthsRef.current[padId];
     if (!synth) return;
 
-    if (Tone.context.state !== 'running') {
-      Tone.start();
-    }
+    const playDrum = () => {
+      const pad = DRUM_PADS.find(p => p.id === padId);
+      if (pad.synthType === 'membrane') {
+        synth.triggerAttackRelease('C2', 0.2);
+      } else {
+        synth.triggerAttackRelease(0.2);
+      }
+    };
 
-    const pad = DRUM_PADS.find(p => p.id === padId);
-    if (pad.synthType === 'membrane') {
-      synth.triggerAttackRelease('C2', 0.2);
+    if (Tone.context.state !== 'running') {
+      Tone.start().then(playDrum);
     } else {
-      synth.triggerAttackRelease(0.2);
+      playDrum();
     }
 
     // Visual feedback
@@ -252,7 +297,7 @@ const VirtualInstrumentOverlay = ({
       const key = e.key.toLowerCase();
 
       if (mode === 'keyboard') {
-        const note = KEY_TO_NOTE[key];
+        const note = currentKeyToNote[key];
         // Block notes not in the active scale
         if (note && activeAllowedNotes && !activeAllowedNotes.has(note)) return;
         if (note && !pressedKeys.has(note)) {
@@ -270,7 +315,7 @@ const VirtualInstrumentOverlay = ({
       const key = e.key.toLowerCase();
 
       if (mode === 'keyboard') {
-        const note = KEY_TO_NOTE[key];
+        const note = currentKeyToNote[key];
         if (note) {
           handleNoteEnd(note);
         }
@@ -283,7 +328,7 @@ const VirtualInstrumentOverlay = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [mode, pressedKeys, handleNoteStart, handleNoteEnd, handlePadHit, activeAllowedNotes]);
+  }, [mode, pressedKeys, handleNoteStart, handleNoteEnd, handlePadHit, activeAllowedNotes, currentKeyToNote]);
 
   // Watch for external stop — when parent sets isRecording from true to false, flush notes
   const prevIsRecordingRef = useRef(isRecording);
@@ -355,20 +400,12 @@ const VirtualInstrumentOverlay = ({
       }`}
       style={embedded ? { height: '380px', width: '100%' } : { height: '55%' }}
     >
-      {/* Header bar */}
+      {/* Header bar: Scale → Instrument → Notes (octave) */}
       <div className="flex items-center justify-between bg-gray-800/80 border-b border-gray-700">
         <div className="flex items-center">
-          <InstrumentSelector
-            selectedInstrument={selectedInstrument}
-            onInstrumentChange={setSelectedInstrument}
-            mode={mode}
-            onModeChange={setMode}
-          />
-
-          {/* Scale dropdown — only in keyboard mode, only when not externally controlled */}
+          {/* 1. Scale dropdown — only in keyboard mode, only when not externally controlled */}
           {showScaleDropdown && (
             <>
-              <div className="w-px h-5 bg-gray-700 mx-1" />
               <div ref={scaleDropdownRef} className="relative">
                 <button
                   onClick={() => setScaleDropdownOpen(!scaleDropdownOpen)}
@@ -400,6 +437,53 @@ const VirtualInstrumentOverlay = ({
                             style={{ backgroundColor: s.color }}
                           />
                           <span>{label}</span>
+                          {isSelected && <span className="ml-auto text-blue-400 text-[10px]">active</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <div className="w-px h-5 bg-gray-700 mx-1" />
+            </>
+          )}
+
+          {/* 2. Instrument selector */}
+          <InstrumentSelector
+            selectedInstrument={selectedInstrument}
+            onInstrumentChange={setSelectedInstrument}
+            mode={mode}
+            onModeChange={setMode}
+            keyboardOnly={keyboardOnly}
+          />
+
+          {/* 3. Octave range — only in keyboard mode */}
+          {mode === 'keyboard' && (
+            <>
+              <div className="w-px h-5 bg-gray-700 mx-1" />
+              <div ref={octaveDropdownRef} className="relative">
+                <button
+                  onClick={() => setOctaveDropdownOpen(!octaveDropdownOpen)}
+                  className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 hover:bg-gray-600 rounded-lg text-[11px] font-medium text-white transition-colors mx-1"
+                >
+                  {activeOctaveRange.name} {activeOctaveRange.label}
+                  <ChevronDown size={10} className={`text-gray-400 transition-transform ${octaveDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {octaveDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-2xl py-1 z-50" style={{ minWidth: 200 }}>
+                    {OCTAVE_RANGES.map((o) => {
+                      const isSelected = selectedOctave === o.id;
+                      return (
+                        <button
+                          key={o.id}
+                          className={`w-full flex items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors ${
+                            isSelected ? 'bg-blue-600/20 text-blue-300' : 'text-gray-300 hover:bg-gray-700'
+                          }`}
+                          onClick={() => { setSelectedOctave(o.id); setOctaveDropdownOpen(false); }}
+                        >
+                          <span className="font-medium">{o.name}</span>
+                          <span className="text-gray-500">{o.label}</span>
                           {isSelected && <span className="ml-auto text-blue-400 text-[10px]">active</span>}
                         </button>
                       );
@@ -459,6 +543,7 @@ const VirtualInstrumentOverlay = ({
             allowedNotes={activeAllowedNotes}
             noteLabels={activeLabels}
             highlightedKeys={highlightedKeys}
+            notes={octaveNotes}
           />
         ) : (
           <DrumPadGrid

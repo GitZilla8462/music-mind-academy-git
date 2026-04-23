@@ -13,7 +13,8 @@ import { KEYBOARD_NOTES } from './instrumentConfig';
 const BLACK_KEY_HEIGHT_RATIO = 0.6;
 const BLACK_KEY_WIDTH_RATIO = 0.6;
 
-const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentColor = '#3B82F6', glide = false, allowedNotes = null, noteLabels = null, highlightedKeys = null }) => {
+const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentColor = '#3B82F6', glide = false, allowedNotes = null, noteLabels = null, highlightedKeys = null, notes: externalNotes = null }) => {
+  const ALL_NOTES = externalNotes || KEYBOARD_NOTES;
   // Merge pressed + highlighted for visual state
   const isActive = (note) => pressedKeys.has(note) || (highlightedKeys && highlightedKeys.has(note));
   const isDraggingRef = React.useRef(false);
@@ -32,7 +33,7 @@ const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentCol
   // SCALE MODE: Only show allowed notes as big centered keys
   // ========================================
   if (allowedNotes) {
-    const scaleNotes = KEYBOARD_NOTES.filter(n => allowedNotes.has(n.note));
+    const scaleNotes = ALL_NOTES.filter(n => allowedNotes.has(n.note));
     const count = scaleNotes.length;
     const maxKeyWidth = 120; // px
 
@@ -105,8 +106,8 @@ const InstrumentKeyboard = ({ pressedKeys, onNoteStart, onNoteEnd, instrumentCol
   // ========================================
   // CHROMATIC MODE: Traditional piano layout (default)
   // ========================================
-  const whiteNotes = KEYBOARD_NOTES.filter(n => !n.isBlack);
-  const blackNotes = KEYBOARD_NOTES.filter(n => n.isBlack);
+  const whiteNotes = ALL_NOTES.filter(n => !n.isBlack);
+  const blackNotes = ALL_NOTES.filter(n => n.isBlack);
   const whiteCount = whiteNotes.length;
 
   const getBlackKeyLeftPercent = (blackNote) => {

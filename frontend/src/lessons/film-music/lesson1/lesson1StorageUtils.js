@@ -11,14 +11,16 @@ export const STORAGE_KEYS = {
 };
 
 // ========================================
-// CHARACTER CARD (character pick, name, 3 words, color)
+// CHARACTER CARD (character pick, name, description, color, type)
 // ========================================
-export const saveCharacterCard = (characterId, characterName, threeWords, characterColor) => {
+export const saveCharacterCard = (characterId, characterName, characterDescription, characterColor, characterType, customType) => {
   const card = {
     characterId,
     characterName,
-    threeWords, // Array of 3 strings
+    characterDescription,
     characterColor,
+    characterType: characterType || 'hero',
+    customType: customType || '',
     savedAt: new Date().toISOString()
   };
   localStorage.setItem(STORAGE_KEYS.CHARACTER_CARD, JSON.stringify(card));

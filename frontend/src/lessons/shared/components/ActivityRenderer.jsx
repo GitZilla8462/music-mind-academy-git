@@ -77,6 +77,7 @@ import { StringDetectiveActivity } from '../activities/string-detective';
 // ✅ ADDED: Dynamics Dash for Lesson 1 (Strings & Dynamics)
 import { DynamicsDashActivity } from '../activities/dynamics-dash';
 import DynamicsDashStudentView from '../activities/dynamics-dash/DynamicsDashStudentView';
+import LeitmotifSpotterStudentView from '../activities/leitmotif-spotter/LeitmotifSpotterStudentView';
 
 // ✅ ADDED: Strings & Dynamics Lab for Lesson 1 (Bonus Activity)
 import StringsDynamicsLabActivity from '../activities/strings-dynamics-lab/StringsDynamicsLabActivity';
@@ -754,6 +755,16 @@ const ActivityRenderer = ({
           key={`dynamics-dash-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
+        />
+      );
+
+    // Leitmotif Spotter (Film Music Lesson 1)
+    case 'leitmotif-spotter':
+      return (
+        <LeitmotifSpotterStudentView
+          key={`leitmotif-spotter-student-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
         />
       );
 

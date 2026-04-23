@@ -19,15 +19,15 @@ const CATEGORIES = [
   },
   {
     name: 'Strings',
-    instruments: ['strings', 'plucked'],
+    instruments: ['violin', 'cello', 'doubleBass', 'plucked'],
   },
   {
-    name: 'Wind',
-    instruments: ['brass', 'woodwind'],
+    name: 'Brass',
+    instruments: ['trumpet', 'trombone', 'tuba', 'brass'],
   },
   {
-    name: 'Voice & Bass',
-    instruments: ['choir', 'bass'],
+    name: 'Woodwinds',
+    instruments: ['clarinet', 'oboe', 'bassoon', 'woodwind'],
   },
 ];
 
@@ -40,6 +40,7 @@ const InstrumentSelector = ({
   onOctaveChange,
   glide,
   onGlideChange,
+  keyboardOnly = false,
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
@@ -70,42 +71,44 @@ const InstrumentSelector = ({
 
   return (
     <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-800/60">
-      {/* Mode toggle — always visible */}
-      <div className="flex bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
-        <button
-          className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-all ${
-            mode === 'keyboard'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-gray-700'
-          }`}
-          onClick={() => onModeChange('keyboard')}
-        >
-          <Piano className="w-3 h-3" />
-          Keys
-        </button>
-        <button
-          className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-all ${
-            mode === 'drums'
-              ? 'bg-amber-600 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-gray-700'
-          }`}
-          onClick={() => onModeChange('drums')}
-        >
-          <Drum className="w-3 h-3" />
-          Pads
-        </button>
-        <button
-          className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-all ${
-            mode === 'strings'
-              ? 'bg-red-600 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-gray-700'
-          }`}
-          onClick={() => onModeChange('strings')}
-        >
-          <Waves className="w-3 h-3" />
-          Bow
-        </button>
-      </div>
+      {/* Mode toggle — hidden when keyboardOnly */}
+      {!keyboardOnly && (
+        <div className="flex bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
+          <button
+            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-all ${
+              mode === 'keyboard'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+            onClick={() => onModeChange('keyboard')}
+          >
+            <Piano className="w-3 h-3" />
+            Keys
+          </button>
+          <button
+            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-all ${
+              mode === 'drums'
+                ? 'bg-amber-600 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+            onClick={() => onModeChange('drums')}
+          >
+            <Drum className="w-3 h-3" />
+            Pads
+          </button>
+          <button
+            className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-all ${
+              mode === 'strings'
+                ? 'bg-red-600 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+            onClick={() => onModeChange('strings')}
+          >
+            <Waves className="w-3 h-3" />
+            Bow
+          </button>
+        </div>
+      )}
 
       {/* Instrument dropdown — keyboard and strings modes */}
       {(mode === 'keyboard' || mode === 'strings') && (

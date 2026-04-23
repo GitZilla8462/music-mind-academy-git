@@ -57,22 +57,6 @@ export const INSTRUMENTS = {
       envelope: { attack: 0.02, decay: 0.3, sustain: 0.3, release: 0.8 }
     }
   },
-  strings: {
-    id: 'strings',
-    name: 'Strings',
-    icon: 'Music',
-    trackTarget: 'motif',
-    useSampler: true,
-    samplerAttack: 0.15, // soft fade-in to smooth the bow attack
-    samples: {
-      urls: { A3: 'A3.mp3', C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3', C5: 'C5.mp3' },
-      baseUrl: `${SAMPLE_BASE}/strings/`,
-    },
-    config: {
-      oscillator: { type: 'sawtooth' },
-      envelope: { attack: 0.3, decay: 0.5, sustain: 0.8, release: 1.0 }
-    }
-  },
   brass: {
     id: 'brass',
     name: 'Brass',
@@ -90,12 +74,12 @@ export const INSTRUMENTS = {
   },
   woodwind: {
     id: 'woodwind',
-    name: 'Woodwind',
+    name: 'Flute',
     icon: 'Wind',
     trackTarget: 'motif',
     useSampler: true,
     samples: {
-      urls: { C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3', C5: 'C5.mp3' },
+      urls: { C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3', C5: 'C5.mp3', E5: 'E5.mp3', A5: 'A5.mp3', C6: 'C6.mp3' },
       baseUrl: `${SAMPLE_BASE}/woodwind/`,
     },
     config: {
@@ -116,7 +100,7 @@ export const INSTRUMENTS = {
   },
   plucked: {
     id: 'plucked',
-    name: 'Plucked',
+    name: 'Guitar',
     icon: 'Guitar',
     trackTarget: 'motif',
     useSampler: true,
@@ -129,32 +113,145 @@ export const INSTRUMENTS = {
       envelope: { attack: 0.005, decay: 0.3, sustain: 0.05, release: 0.4 }
     }
   },
-  choir: {
-    id: 'choir',
-    name: 'Choir',
-    icon: 'Users',
+  // ========================================
+  // ORCHESTRAL INSTRUMENTS (Philharmonia Orchestra samples)
+  // ========================================
+  trumpet: {
+    id: 'trumpet',
+    name: 'Trumpet',
+    icon: 'Volume2',
     trackTarget: 'motif',
-    useSampler: false, // Choir sounds better synthesized with detune
+    useSampler: true,
+    samples: {
+      urls: { C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3', C5: 'C5.mp3', E5: 'E5.mp3', A5: 'A5.mp3' },
+      baseUrl: `${SAMPLE_BASE}/trumpet/`,
+    },
     config: {
-      oscillator: { type: 'sine', detune: 8 },
-      envelope: { attack: 0.4, decay: 0.6, sustain: 0.7, release: 1.2 }
+      oscillator: { type: 'sawtooth' },
+      envelope: { attack: 0.05, decay: 0.2, sustain: 0.6, release: 0.4 }
     }
   },
-  bass: {
-    id: 'bass',
-    name: 'Electric Bass',
-    icon: 'Activity',
+  trombone: {
+    id: 'trombone',
+    name: 'Trombone',
+    icon: 'Volume2',
+    trackTarget: 'motif',
+    useSampler: true,
+    samples: {
+      urls: { E2: 'E2.mp3', E3: 'E3.mp3', A3: 'A3.mp3', C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3', C5: 'C5.mp3' },
+      baseUrl: `${SAMPLE_BASE}/trombone/`,
+    },
+    config: {
+      oscillator: { type: 'sawtooth' },
+      envelope: { attack: 0.08, decay: 0.3, sustain: 0.6, release: 0.5 }
+    }
+  },
+  tuba: {
+    id: 'tuba',
+    name: 'Tuba',
+    icon: 'Volume2',
     trackTarget: 'bass',
     useSampler: true,
     samples: {
-      urls: { C2: 'C2.mp3', E2: 'E2.mp3', A2: 'A2.mp3' },
-      baseUrl: `${SAMPLE_BASE}/bass/`,
+      urls: { C2: 'C2.mp3', E2: 'E2.mp3', A2: 'A2.mp3', C3: 'C3.mp3', A3: 'A3.mp3' },
+      baseUrl: `${SAMPLE_BASE}/tuba/`,
     },
-    // Bass plays one octave lower — handled by octave shift in the keyboard
-    octaveShift: -2,
     config: {
       oscillator: { type: 'sawtooth' },
-      envelope: { attack: 0.01, decay: 0.4, sustain: 0.5, release: 0.3 }
+      envelope: { attack: 0.1, decay: 0.3, sustain: 0.5, release: 0.6 }
+    }
+  },
+  clarinet: {
+    id: 'clarinet',
+    name: 'Clarinet',
+    icon: 'Wind',
+    trackTarget: 'motif',
+    useSampler: true,
+    samples: {
+      urls: { C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3', C5: 'C5.mp3', E5: 'E5.mp3', A5: 'A5.mp3', C6: 'C6.mp3' },
+      baseUrl: `${SAMPLE_BASE}/clarinet/`,
+    },
+    config: {
+      oscillator: { type: 'sine' },
+      envelope: { attack: 0.1, decay: 0.3, sustain: 0.6, release: 0.5 }
+    }
+  },
+  oboe: {
+    id: 'oboe',
+    name: 'Oboe',
+    icon: 'Wind',
+    trackTarget: 'motif',
+    useSampler: true,
+    samples: {
+      urls: { C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3', C5: 'C5.mp3', E5: 'E5.mp3', A5: 'A5.mp3', C6: 'C6.mp3' },
+      baseUrl: `${SAMPLE_BASE}/oboe/`,
+    },
+    config: {
+      oscillator: { type: 'sine' },
+      envelope: { attack: 0.12, decay: 0.3, sustain: 0.5, release: 0.5 }
+    }
+  },
+  bassoon: {
+    id: 'bassoon',
+    name: 'Bassoon',
+    icon: 'Wind',
+    trackTarget: 'motif',
+    useSampler: true,
+    samples: {
+      urls: { A2: 'A2.mp3', C3: 'C3.mp3', G3: 'G3.mp3', A3: 'A3.mp3', C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3', C5: 'C5.mp3' },
+      baseUrl: `${SAMPLE_BASE}/bassoon/`,
+    },
+    config: {
+      oscillator: { type: 'sawtooth' },
+      envelope: { attack: 0.1, decay: 0.3, sustain: 0.5, release: 0.6 }
+    }
+  },
+  violin: {
+    id: 'violin',
+    name: 'Violin',
+    icon: 'Music',
+    trackTarget: 'motif',
+    useSampler: true,
+    samplerAttack: 0.1,
+    samples: {
+      urls: { A3: 'A3.mp3', C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3', C5: 'C5.mp3', E5: 'E5.mp3', A5: 'A5.mp3', C6: 'C6.mp3' },
+      baseUrl: `${SAMPLE_BASE}/violin/`,
+    },
+    config: {
+      oscillator: { type: 'sawtooth' },
+      envelope: { attack: 0.2, decay: 0.4, sustain: 0.8, release: 0.8 }
+    }
+  },
+  cello: {
+    id: 'cello',
+    name: 'Cello',
+    icon: 'Music',
+    trackTarget: 'motif',
+    useSampler: true,
+    samplerAttack: 0.12,
+    samples: {
+      urls: { A2: 'A2.mp3', C3: 'C3.mp3', E3: 'E3.mp3', A3: 'A3.mp3', C4: 'C4.mp3', E4: 'E4.mp3', A4: 'A4.mp3' },
+      baseUrl: `${SAMPLE_BASE}/cello/`,
+    },
+    config: {
+      oscillator: { type: 'sawtooth' },
+      envelope: { attack: 0.25, decay: 0.5, sustain: 0.8, release: 1.0 }
+    }
+  },
+  doubleBass: {
+    id: 'doubleBass',
+    name: 'Double Bass',
+    icon: 'Music',
+    trackTarget: 'bass',
+    useSampler: true,
+    samplerAttack: 0.1,
+    samples: {
+      urls: { C2: 'C2.mp3', E2: 'E2.mp3', A2: 'A2.mp3', C3: 'C3.mp3', E3: 'E3.mp3', A3: 'A3.mp3' },
+      baseUrl: `${SAMPLE_BASE}/double-bass/`,
+    },
+    config: {
+      oscillator: { type: 'sawtooth' },
+      envelope: { attack: 0.2, decay: 0.5, sustain: 0.7, release: 0.8 }
     }
   }
 };
@@ -300,6 +397,66 @@ export const SCALES = [
     labels: null,
   },
 ];
+
+// ========================================
+// OCTAVE RANGE DEFINITIONS
+// ========================================
+export const OCTAVE_RANGES = [
+  { id: 'low', name: 'C3–C4', label: '(Lower Pitch)', octave: 3 },
+  { id: 'middle', name: 'C4–C5', label: '(Medium Pitch)', octave: 4 },
+  { id: 'high', name: 'C5–C6', label: '(Higher Pitch)', octave: 5 },
+];
+
+// Generate keyboard notes for a given base octave
+export const getNotesForOctave = (baseOctave) => {
+  const BASE_NOTES = [
+    { note: 'C', key: 'a', label: 'C', isBlack: false },
+    { note: 'C#', key: 'w', label: 'C#', isBlack: true },
+    { note: 'D', key: 's', label: 'D', isBlack: false },
+    { note: 'D#', key: 'e', label: 'D#', isBlack: true },
+    { note: 'E', key: 'd', label: 'E', isBlack: false },
+    { note: 'F', key: 'f', label: 'F', isBlack: false },
+    { note: 'F#', key: 't', label: 'F#', isBlack: true },
+    { note: 'G', key: 'g', label: 'G', isBlack: false },
+    { note: 'G#', key: 'y', label: 'G#', isBlack: true },
+    { note: 'A', key: 'h', label: 'A', isBlack: false },
+    { note: 'A#', key: 'u', label: 'A#', isBlack: true },
+    { note: 'B', key: 'j', label: 'B', isBlack: false },
+    { note: 'C', key: 'k', label: 'C', isBlack: false }, // top C is next octave
+  ];
+  return BASE_NOTES.map((n, i) => ({
+    ...n,
+    note: `${n.note}${i === BASE_NOTES.length - 1 ? baseOctave + 1 : baseOctave}`,
+  }));
+};
+
+// Generate scale notes shifted to a given octave
+export const getScaleForOctave = (scale, baseOctave) => {
+  if (!scale?.notes) return null;
+  const shifted = new Set();
+  scale.notes.forEach(note => {
+    const match = note.match(/([A-G]#?)(\d)/);
+    if (match) {
+      const offset = parseInt(match[2]) - 4; // scales are defined relative to octave 4
+      shifted.add(`${match[1]}${baseOctave + offset}`);
+    }
+  });
+  return shifted;
+};
+
+// Generate flat labels shifted to a given octave
+export const getLabelsForOctave = (labels, baseOctave) => {
+  if (!labels) return null;
+  const shifted = {};
+  Object.entries(labels).forEach(([note, label]) => {
+    const match = note.match(/([A-G]#?)(\d)/);
+    if (match) {
+      const offset = parseInt(match[2]) - 4;
+      shifted[`${match[1]}${baseOctave + offset}`] = label;
+    }
+  });
+  return shifted;
+};
 
 // Default scale for each character archetype
 export const CHARACTER_SCALE_MAP = {

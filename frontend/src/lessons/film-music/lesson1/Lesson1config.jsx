@@ -177,18 +177,44 @@ export const lessonSections = [
     ]
   },
   {
+    id: 'leitmotif-spotter',
+    title: '3. Leitmotif Spotter',
+    subtitle: 'Identify the Motif',
+    color: 'orange',
+    estimatedTime: 7,
+    stages: [
+      {
+        id: 'leitmotif-spotter-game',
+        type: 'activity',
+        label: '🔍 Unlock Leitmotif Spotter',
+        description: 'CLASS GAME: Listen to motifs and identify Mode, Instrument, and Register.',
+        bonusDescription: 'Can you get all 3 categories right?',
+        hasProgress: true,
+        hasTimer: false,
+        duration: 5
+      },
+      {
+        id: 'leitmotif-spotter-results',
+        type: 'activity',
+        label: '🏆 Leitmotif Spotter Results',
+        description: 'View class leaderboard and celebrate top scorers.',
+        duration: 2
+      }
+    ]
+  },
+  {
     id: 'keyboard-basics',
-    title: '3. Keyboard Basics',
+    title: '4. Keyboard Basics',
     subtitle: 'Your Keyboard Is a Piano',
     color: 'orange',
-    estimatedTime: 4,
+    estimatedTime: 2,
     stages: [
       {
         id: 'keyboard-diagram',
         type: 'summary',
         label: 'Your Keyboard Is a Piano',
         description: 'Show A=C, S=D, D=E, F=G, G=A. Try it for 60 seconds.',
-        duration: 3
+        duration: 1
       },
       {
         id: 'your-mission',
@@ -201,7 +227,7 @@ export const lessonSections = [
   },
   {
     id: 'create',
-    title: '4. Create',
+    title: '5. Create',
     subtitle: 'Motif Builder',
     color: 'orange',
     estimatedTime: 12,
@@ -220,7 +246,7 @@ export const lessonSections = [
   },
   {
     id: 'reflect',
-    title: '5. Reflect & Close',
+    title: '6. Reflect & Close',
     subtitle: 'Two Stars & a Wish',
     color: 'orange',
     estimatedTime: 4,
@@ -363,6 +389,33 @@ export const lessonStages = [
     }
   },
 
+  // --- Leitmotif Spotter Game ---
+  {
+    id: 'leitmotif-spotter-game',
+    label: '🔍 Unlock Leitmotif Spotter',
+    description: 'CLASS GAME: Listen to motifs and identify Mode, Instrument, and Register.',
+    bonusDescription: 'Can you get all 3 categories right?',
+    hasProgress: true,
+    type: 'activity',
+    hasTimer: false,
+    duration: 5,
+    presentationView: {
+      type: 'leitmotif-spotter-class-game'
+    }
+  },
+
+  // --- Leitmotif Spotter Results ---
+  {
+    id: 'leitmotif-spotter-results',
+    label: '🏆 Leitmotif Spotter Results',
+    description: 'View class leaderboard and celebrate top scorers.',
+    type: 'activity',
+    duration: 2,
+    presentationView: {
+      type: 'leitmotif-spotter-results'
+    }
+  },
+
   // --- Slide 7: Keyboard Basics ---
   {
     id: 'keyboard-diagram',
@@ -444,6 +497,8 @@ export const getActivityForStage = (stage) => {
     'example-villain': 'demo',
     'example-romantic': 'demo',
     'example-sneaky': 'demo',
+    'leitmotif-spotter-game': 'leitmotif-spotter',
+    'leitmotif-spotter-results': 'summary',
     'keyboard-diagram': 'summary',
     'your-mission': 'summary',
     'motif-builder': 'motif-builder',

@@ -483,6 +483,8 @@ const PresentationContent = ({
   const [GuessThatInstrumentTeacherView, setGuessThatInstrumentTeacherView] = useState(null);
   const [DynamicsDashClassGame, setDynamicsDashClassGame] = useState(null);
   const [DynamicsDashResults, setDynamicsDashResults] = useState(null);
+  const [LeitmotifSpotterClassGame, setLeitmotifSpotterClassGame] = useState(null);
+  const [LeitmotifSpotterResults, setLeitmotifSpotterResults] = useState(null);
   const [DynamicsShowcase, setDynamicsShowcase] = useState(null);
   const [WoodwindFamilyShowcase, setWoodwindFamilyShowcase] = useState(null);
   const [TempoShowcase, setTempoShowcase] = useState(null);
@@ -616,6 +618,16 @@ const PresentationContent = ({
     import('../../shared/activities/dynamics-dash/DynamicsDashResults')
       .then(module => setDynamicsDashResults(() => module.default))
       .catch(() => console.log('Dynamics Dash Results not available'));
+
+    // Unit 4 Film Music Lesson 1: Leitmotif Spotter Class Game
+    import('../../shared/activities/leitmotif-spotter/LeitmotifSpotterClassGame')
+      .then(module => setLeitmotifSpotterClassGame(() => module.default))
+      .catch(() => console.log('Leitmotif Spotter Class Game not available'));
+
+    // Unit 4 Film Music Lesson 1: Leitmotif Spotter Results
+    import('../../shared/activities/leitmotif-spotter/LeitmotifSpotterResults')
+      .then(module => setLeitmotifSpotterResults(() => module.default))
+      .catch(() => console.log('Leitmotif Spotter Results not available'));
 
     // Unit 2 Listening Lab Lesson 1: Dynamics Showcase (interactive slide)
     import('../../shared/activities/dynamics-dash/DynamicsShowcase')
@@ -1084,6 +1096,38 @@ const PresentationContent = ({
       return (
         <div className="absolute inset-0">
           <DynamicsDashResults sessionData={sessionData} />
+        </div>
+      );
+    }
+
+    // Leitmotif Spotter Class Game (Film Music Lesson 1)
+    if (type === 'leitmotif-spotter-class-game') {
+      if (!LeitmotifSpotterClassGame) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-violet-900">
+            <div className="text-white text-2xl">Loading Leitmotif Spotter...</div>
+          </div>
+        );
+      }
+      return (
+        <div className="absolute inset-0">
+          <LeitmotifSpotterClassGame sessionData={sessionData} onComplete={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Leitmotif Spotter Results (Film Music Lesson 1)
+    if (type === 'leitmotif-spotter-results') {
+      if (!LeitmotifSpotterResults) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-violet-900">
+            <div className="text-white text-2xl">Loading Results...</div>
+          </div>
+        );
+      }
+      return (
+        <div className="absolute inset-0">
+          <LeitmotifSpotterResults sessionData={sessionData} />
         </div>
       );
     }

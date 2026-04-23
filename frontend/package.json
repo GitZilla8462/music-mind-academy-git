@@ -20,6 +20,7 @@
     "firebase": "^12.4.0",
     "lucide-react": "^0.510.0",
     "opensheetmusicdisplay": "^1.9.0",
+    "perfect-freehand": "^1.2.3",
     "pixi.js": "^8.14.3",
     "prop-types": "^15.8.1",
     "qrcode": "^1.5.4",

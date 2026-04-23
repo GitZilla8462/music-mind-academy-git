@@ -7,7 +7,8 @@
 // Each character saves its own motif. Students can switch characters and present.
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Square, Save, Check, ChevronRight, ChevronDown, RotateCcw, Pencil, Eraser, Trash2, HelpCircle } from 'lucide-react';
+import { Play, Square, Save, Check, ChevronRight, ChevronDown, RotateCcw, Pencil, Eraser, Trash2, HelpCircle, Stamp } from 'lucide-react';
+import getStroke from 'perfect-freehand';
 import * as Tone from 'tone';
 import { CHARACTER_LIBRARY } from '../../../film-music/lesson1/Lesson1config';
 import { saveCharacterCard, getCharacterCard, saveMotif, getMotif } from '../../../film-music/lesson1/lesson1StorageUtils';
@@ -26,12 +27,12 @@ const COLOR_PALETTE = [
 const MOTIF_BUILDER_DIRECTIONS = [
   { text: 'Pick a character from the grid on the left' },
   { text: 'Draw your character, choose a color, and name them' },
-  { text: 'Describe your character in 3 words (e.g. brave, fierce, loyal)' },
+  { text: 'Choose your character type (Hero, Villain, etc.) and describe them in 1–2 sentences' },
   { text: 'Pick an instrument and scale that match your character' },
   { text: 'Press Record, then play 4-8 notes on the keyboard to create their theme' },
-  { text: 'Press Play to hear it back — does it sound like your 3 words?' },
+  { text: 'Press Play to hear it back — does it match your character?' },
   { text: 'If not, press Clear and try again!' },
-  { text: 'When you\'re happy, press Save' },
+  { text: 'Your motif auto-saves when you stop recording' },
 ];
 
 // ========================================
@@ -59,32 +60,73 @@ const saveCharacterDrawing = (charId, dataUrl) => {
 };
 
 // ========================================
-// Drawing Canvas with undo, fill, shapes
+// Drawing Canvas — perfect-freehand strokes + stamps
 // ========================================
 const DRAW_COLORS = [
   '#FFFFFF', '#1F2937', '#EF4444', '#F97316', '#F59E0B', '#84CC16',
   '#10B981', '#06B6D4', '#3B82F6', '#8B5CF6', '#EC4899', '#A855F7',
 ];
 
+// SVG stamp icons — music-themed + character accessories
+const STAMPS = [
+  { id: 'star', text: '⭐' },
+  { id: 'heart', text: '❤️' },
+  { id: 'lightning', text: '⚡' },
+  { id: 'music', text: '🎵' },
+  { id: 'note', text: '🎶' },
+  { id: 'fire', text: '🔥' },
+  { id: 'crown', text: '👑' },
+  { id: 'sword', text: '⚔️' },
+  { id: 'shield', text: '🛡️' },
+  { id: 'moon', text: '🌙' },
+  { id: 'sun', text: '☀️' },
+  { id: 'skull', text: '💀' },
+  { id: 'sparkle', text: '✨' },
+  { id: 'flower', text: '🌸' },
+  { id: 'eye', text: '👁️' },
+  { id: 'gem', text: '💎' },
+];
+
+// Convert perfect-freehand points to an SVG path then render onto canvas
+const renderFreehandStroke = (ctx, points, color, size) => {
+  const stroke = getStroke(points, {
+    size: size * 2,
+    thinning: 0.5,
+    smoothing: 0.5,
+    streamline: 0.5,
+  });
+  if (stroke.length < 2) return;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(stroke[0][0], stroke[0][1]);
+  for (let i = 1; i < stroke.length; i++) {
+    const [x, y] = stroke[i];
+    const [px, py] = stroke[i - 1];
+    ctx.quadraticCurveTo(px, py, (px + x) / 2, (py + y) / 2);
+  }
+  ctx.closePath();
+  ctx.fill();
+};
+
 const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [tool, setTool] = useState('pen'); // 'pen' | 'eraser' | 'fill' | 'circle' | 'square' | 'triangle'
+  const [tool, setTool] = useState('pen'); // 'pen' | 'eraser' | 'fill' | 'stamp'
   const [brushSize, setBrushSize] = useState(3);
   const [drawColor, setDrawColor] = useState(characterColor || '#FFFFFF');
-  const lastPosRef = useRef(null);
+  const [selectedStamp, setSelectedStamp] = useState(null);
+  const [showStamps, setShowStamps] = useState(false);
+  const strokePointsRef = useRef([]);
   const undoStackRef = useRef([]);
 
-  // Save current state to undo stack
   const pushUndo = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
     undoStackRef.current.push(data);
-    if (undoStackRef.current.length > 20) undoStackRef.current.shift(); // limit
+    if (undoStackRef.current.length > 20) undoStackRef.current.shift();
   };
 
-  // Load saved drawing
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -124,37 +166,23 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
     const ctx = canvas.getContext('2d');
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
-    const w = canvas.width;
-    const h = canvas.height;
-
-    // Parse fill color
+    const w = canvas.width, h = canvas.height;
     const temp = document.createElement('canvas').getContext('2d');
     temp.fillStyle = fillColor;
     temp.fillRect(0, 0, 1, 1);
     const fc = temp.getImageData(0, 0, 1, 1).data;
-
-    const sx = Math.floor(startX);
-    const sy = Math.floor(startY);
+    const sx = Math.floor(startX), sy = Math.floor(startY);
     const idx = (sy * w + sx) * 4;
     const tr = data[idx], tg = data[idx + 1], tb = data[idx + 2];
-
-    if (tr === fc[0] && tg === fc[1] && tb === fc[2]) return; // same color
-
+    if (tr === fc[0] && tg === fc[1] && tb === fc[2]) return;
     const stack = [[sx, sy]];
     const visited = new Set();
     const tolerance = 30;
-
-    const match = (i) => {
-      return Math.abs(data[i] - tr) <= tolerance &&
-             Math.abs(data[i + 1] - tg) <= tolerance &&
-             Math.abs(data[i + 2] - tb) <= tolerance;
-    };
-
+    const match = (i) => Math.abs(data[i] - tr) <= tolerance && Math.abs(data[i + 1] - tg) <= tolerance && Math.abs(data[i + 2] - tb) <= tolerance;
     while (stack.length > 0) {
       const [x, y] = stack.pop();
       const key = y * w + x;
-      if (visited.has(key)) continue;
-      if (x < 0 || x >= w || y < 0 || y >= h) continue;
+      if (visited.has(key) || x < 0 || x >= w || y < 0 || y >= h) continue;
       const i = key * 4;
       if (!match(i)) continue;
       visited.add(key);
@@ -164,29 +192,18 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
     ctx.putImageData(imageData, 0, 0);
   };
 
-  // Draw shape
-  const drawShape = (pos, shape) => {
+  // Place stamp on canvas
+  const placeStamp = (pos) => {
+    if (!selectedStamp) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const size = brushSize * 6;
-    ctx.fillStyle = drawColor;
-    ctx.strokeStyle = drawColor;
-    ctx.lineWidth = 2;
-
-    if (shape === 'circle') {
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (shape === 'square') {
-      ctx.fillRect(pos.x - size, pos.y - size, size * 2, size * 2);
-    } else if (shape === 'triangle') {
-      ctx.beginPath();
-      ctx.moveTo(pos.x, pos.y - size);
-      ctx.lineTo(pos.x - size, pos.y + size);
-      ctx.lineTo(pos.x + size, pos.y + size);
-      ctx.closePath();
-      ctx.fill();
-    }
+    const stampSize = Math.max(24, brushSize * 5);
+    // Use system emoji font to ensure color rendering
+    ctx.font = `${stampSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#FFFFFF'; // fallback for non-emoji chars
+    ctx.fillText(selectedStamp.text, pos.x, pos.y);
   };
 
   const startDraw = (e) => {
@@ -199,16 +216,16 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
       autoSave();
       return;
     }
-    if (tool === 'circle' || tool === 'square' || tool === 'triangle') {
+    if (tool === 'stamp') {
       pushUndo();
-      drawShape(pos, tool);
+      placeStamp(pos);
       autoSave();
       return;
     }
 
     pushUndo();
     setIsDrawing(true);
-    lastPosRef.current = pos;
+    strokePointsRef.current = [[pos.x, pos.y, 0.5]];
   };
 
   const draw = (e) => {
@@ -217,22 +234,43 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const pos = getPos(e);
-    const last = lastPosRef.current;
 
-    ctx.beginPath();
-    ctx.moveTo(last.x, last.y);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = tool === 'eraser' ? '#1F2937' : drawColor;
-    ctx.lineWidth = tool === 'eraser' ? brushSize * 3 : brushSize;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-    lastPosRef.current = pos;
+    if (tool === 'eraser') {
+      // Eraser uses simple line for immediate feedback
+      const last = strokePointsRef.current[strokePointsRef.current.length - 1];
+      ctx.beginPath();
+      ctx.moveTo(last[0], last[1]);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.strokeStyle = '#1F2937';
+      ctx.lineWidth = brushSize * 4;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+      strokePointsRef.current.push([pos.x, pos.y, 0.5]);
+    } else {
+      // Pen: accumulate points, re-render stroke for smooth output
+      strokePointsRef.current.push([pos.x, pos.y, 0.5]);
+      // Restore to before this stroke, then re-render
+      if (undoStackRef.current.length > 0) {
+        const base = undoStackRef.current[undoStackRef.current.length - 1];
+        ctx.putImageData(base, 0, 0);
+      }
+      renderFreehandStroke(ctx, strokePointsRef.current, drawColor, brushSize);
+    }
   };
 
   const stopDraw = () => {
     if (!isDrawing) return;
     setIsDrawing(false);
+    // Final render of the completed stroke
+    if (tool === 'pen' && strokePointsRef.current.length > 0) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (undoStackRef.current.length > 0) {
+        ctx.putImageData(undoStackRef.current[undoStackRef.current.length - 1], 0, 0);
+      }
+      renderFreehandStroke(ctx, strokePointsRef.current, drawColor, brushSize);
+    }
+    strokePointsRef.current = [];
     autoSave();
   };
 
@@ -257,8 +295,8 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
   const toolBtn = (id, icon, label) => (
     <button
       key={id}
-      onClick={() => setTool(id)}
-      className={`p-1.5 rounded transition-colors ${tool === id ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400 hover:text-white'}`}
+      onClick={() => { setTool(id); if (id !== 'stamp') setShowStamps(false); }}
+      className={`p-1 rounded transition-colors ${tool === id ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400 hover:text-white'}`}
       title={label}
     >
       {icon}
@@ -266,13 +304,13 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
   );
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <canvas
         ref={canvasRef}
-        width={240}
-        height={180}
+        width={300}
+        height={225}
         className="w-full rounded-lg border border-gray-600"
-        style={{ touchAction: 'none', aspectRatio: '4/3', cursor: tool === 'fill' ? 'crosshair' : tool === 'circle' || tool === 'square' || tool === 'triangle' ? 'cell' : 'crosshair' }}
+        style={{ touchAction: 'none', aspectRatio: '4/3', cursor: tool === 'stamp' ? 'copy' : tool === 'fill' ? 'crosshair' : 'crosshair' }}
         onMouseDown={startDraw}
         onMouseMove={draw}
         onMouseUp={stopDraw}
@@ -282,36 +320,55 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
         onTouchEnd={stopDraw}
       />
 
-      {/* Tool bar row 1: tools + undo + clear */}
-      <div className="flex items-center gap-1">
-        {toolBtn('pen', <Pencil size={13} />, 'Pen')}
-        {toolBtn('eraser', <Eraser size={13} />, 'Eraser')}
-        {toolBtn('fill', <span className="text-[11px] font-bold">Fill</span>, 'Fill bucket')}
-        {toolBtn('circle', <span className="w-3 h-3 rounded-full border-2 border-current inline-block" />, 'Circle')}
-        {toolBtn('square', <span className="w-3 h-3 border-2 border-current inline-block" />, 'Square')}
-        {toolBtn('triangle', <span className="text-[13px] leading-none">△</span>, 'Triangle')}
-
-        <div className="w-px h-4 bg-gray-700 mx-0.5" />
-
-        <button onClick={undo} className="p-1.5 rounded bg-gray-700 text-gray-400 hover:text-white transition-colors" title="Undo">
-          <RotateCcw size={13} />
-        </button>
-        <button onClick={clearCanvas} className="p-1.5 rounded bg-gray-700 text-gray-400 hover:text-white transition-colors" title="Clear all">
-          <Trash2 size={13} />
+      {/* Toolbar: pen, eraser, fill, stamps, undo, clear, size */}
+      <div className="flex items-center gap-0.5">
+        {toolBtn('pen', <Pencil size={12} />, 'Pen')}
+        {toolBtn('eraser', <Eraser size={12} />, 'Eraser')}
+        {toolBtn('fill', <span className="text-[10px] font-bold">Fill</span>, 'Fill bucket')}
+        <button
+          onClick={() => { setTool('stamp'); setShowStamps(!showStamps); }}
+          className={`p-1 rounded transition-colors ${tool === 'stamp' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400 hover:text-white'}`}
+          title="Stamps"
+        >
+          <Stamp size={12} />
         </button>
 
-        {/* Brush size + preview dot */}
-        <div className="flex items-center gap-1 ml-auto">
+        <div className="w-px h-3.5 bg-gray-700 mx-0.5" />
+
+        <button onClick={undo} className="p-1 rounded bg-gray-700 text-gray-400 hover:text-white transition-colors" title="Undo">
+          <RotateCcw size={12} />
+        </button>
+        <button onClick={clearCanvas} className="p-1 rounded bg-gray-700 text-gray-400 hover:text-white transition-colors" title="Clear">
+          <Trash2 size={12} />
+        </button>
+
+        <div className="flex items-center gap-0.5 ml-auto">
           <div className="w-3 h-3 flex items-center justify-center">
             <div className="rounded-full bg-white" style={{ width: Math.max(3, brushSize), height: Math.max(3, brushSize) }} />
           </div>
           <input
             type="range" min="1" max="12" value={brushSize}
             onChange={(e) => setBrushSize(Number(e.target.value))}
-            className="w-14 h-1 accent-blue-500"
+            className="w-12 h-1 accent-blue-500"
           />
         </div>
       </div>
+
+      {/* Stamp palette — collapsible */}
+      {showStamps && (
+        <div className="grid grid-cols-8 gap-1 bg-gray-800 rounded-lg p-1.5">
+          {STAMPS.map(s => (
+            <button
+              key={s.id}
+              onClick={() => { setSelectedStamp(s); setTool('stamp'); }}
+              className={`text-lg p-0.5 rounded transition-all ${selectedStamp?.id === s.id ? 'bg-blue-600 scale-110' : 'hover:bg-gray-700'}`}
+              title={s.text}
+            >
+              {s.text}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Color row */}
       <div className="flex gap-1 flex-wrap">
@@ -319,7 +376,7 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
           <button
             key={c}
             onClick={() => { setDrawColor(c); if (tool === 'eraser') setTool('pen'); }}
-            className={`w-5 h-5 rounded-full border-2 transition-all ${drawColor === c && tool !== 'eraser' ? 'border-white scale-110' : 'border-gray-600'}`}
+            className={`w-4 h-4 rounded-full border-2 transition-all ${drawColor === c && tool !== 'eraser' ? 'border-white scale-110' : 'border-gray-600'}`}
             style={{ backgroundColor: c }}
           />
         ))}
@@ -335,11 +392,21 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
   // Character card state
   const [selectedCharacterId, setSelectedCharacterId] = useState(null);
   const [characterName, setCharacterName] = useState('');
-  const [threeWords, setThreeWords] = useState(['', '', '']);
+  const [characterDescription, setCharacterDescription] = useState('');
+  const [characterType, setCharacterType] = useState('hero'); // hero, villain, romantic, sneaky, other
+  const [customType, setCustomType] = useState('');
   const [characterColor, setCharacterColor] = useState('#3B82F6');
   const [showDrawing, setShowDrawing] = useState(false);
   const [charDropdownOpen, setCharDropdownOpen] = useState(false);
   const charDropdownRef = useRef(null);
+
+  const CHARACTER_TYPES = [
+    { id: 'hero', label: 'Hero' },
+    { id: 'villain', label: 'Villain' },
+    { id: 'romantic', label: 'Romantic' },
+    { id: 'sneaky', label: 'Sneaky' },
+    { id: 'other', label: 'Other...' },
+  ];
 
   // Close character dropdown on click outside
   useEffect(() => {
@@ -382,18 +449,24 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
     const savedCard = getCharacterCard();
     if (savedCard && savedCard.characterId === selectedCharacterId) {
       setCharacterName(savedCard.characterName || '');
-      setThreeWords(savedCard.threeWords || ['', '', '']);
+      setCharacterDescription(savedCard.characterDescription || '');
+      setCharacterType(savedCard.characterType || 'hero');
+      setCustomType(savedCard.customType || '');
       setCharacterColor(savedCard.characterColor || '#3B82F6');
     } else {
       // Load per-character motif data for name/words if available
       const savedMotif = getCharacterMotif(selectedCharacterId);
       if (savedMotif) {
         setCharacterName(savedMotif.characterName || '');
-        setThreeWords(savedMotif.threeWords || ['', '', '']);
+        setCharacterDescription(savedMotif.characterDescription || '');
+        setCharacterType(savedMotif.characterType || 'hero');
+        setCustomType(savedMotif.customType || '');
         setCharacterColor(savedMotif.characterColor || CHARACTER_LIBRARY.find(c => c.id === selectedCharacterId)?.defaultColor || '#3B82F6');
       } else {
         setCharacterName('');
-        setThreeWords(['', '', '']);
+        setCharacterDescription('');
+        setCharacterType('hero');
+        setCustomType('');
         setCharacterColor(CHARACTER_LIBRARY.find(c => c.id === selectedCharacterId)?.defaultColor || '#3B82F6');
       }
     }
@@ -451,15 +524,15 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
 
     // Auto-save when recording stops (if there are notes and a character selected)
     if (notes.length > 0 && selectedCharacterId) {
-      const charData = { characterName, threeWords, characterColor };
-      saveCharacterCard(selectedCharacterId, characterName, threeWords, characterColor);
+      const charData = { characterName, characterDescription, characterType, customType, characterColor };
+      saveCharacterCard(selectedCharacterId, characterName, characterDescription, characterColor, characterType, customType);
       saveCharacterMotif(selectedCharacterId, notes, instrument, charData);
       saveMotif(notes, selectedCharacterId, instrument, 80);
       setHasSaved(true);
       setShowSaveSuccess(true);
       setTimeout(() => setShowSaveSuccess(false), 3000);
     }
-  }, [selectedCharacterId, characterName, threeWords, characterColor]);
+  }, [selectedCharacterId, characterName, characterDescription, characterType, customType, characterColor]);
 
   // Schedule note playback with a ready synth
   const schedulePlayback = useCallback((synth, notes) => {
@@ -550,8 +623,8 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
   // Save — per character
   const handleSave = () => {
     if (recordedNotes.length < 1 || !selectedCharacterId) return;
-    const charData = { characterName, threeWords, characterColor };
-    saveCharacterCard(selectedCharacterId, characterName, threeWords, characterColor);
+    const charData = { characterName, characterDescription, characterType, customType, characterColor };
+    saveCharacterCard(selectedCharacterId, characterName, characterDescription, characterColor, characterType, customType);
     saveCharacterMotif(selectedCharacterId, recordedNotes, recordedInstrument, charData);
     // Also save to the original storage for backward compat
     saveMotif(recordedNotes, selectedCharacterId, recordedInstrument, 80);
@@ -648,17 +721,16 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* Main Content — LEFT: artwork | RIGHT: info + keyboard */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
 
-        {/* ====== LEFT SIDE: Character Card ====== */}
-        <div className="w-[340px] flex-shrink-0 border-r border-gray-700 flex flex-col overflow-y-auto p-4 space-y-3">
-
+        {/* ====== LEFT: Character picker + artwork ====== */}
+        <div className="w-[260px] flex-shrink-0 border-r border-gray-700 flex flex-col overflow-y-auto p-3 space-y-2">
           {/* Character dropdown */}
           <div className="relative" ref={charDropdownRef}>
             <button
               onClick={() => setCharDropdownOpen(!charDropdownOpen)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+              className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors ${
                 !selectedCharacterId
                   ? 'bg-green-600/20 border border-green-500/50 animate-pulse'
                   : 'bg-gray-800 hover:bg-gray-700'
@@ -666,7 +738,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
             >
               {selectedCharacter ? (
                 <>
-                  <span className="text-xl">{selectedCharacter.emoji}</span>
+                  <span className="text-lg">{selectedCharacter.emoji}</span>
                   <span className="text-sm font-medium text-white flex-1 text-left">{selectedCharacter.name}</span>
                 </>
               ) : (
@@ -684,7 +756,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
                     <button
                       key={char.id}
                       onClick={() => { switchCharacter(char.id); setCharDropdownOpen(false); }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
+                      className={`w-full flex items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors ${
                         isSelected ? 'bg-orange-500/20 text-orange-300' : 'text-gray-300 hover:bg-gray-700'
                       }`}
                     >
@@ -698,13 +770,12 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
             )}
           </div>
 
-          {/* Character card — only when selected */}
+          {/* Drawing / emoji + color */}
           {selectedCharacterId && (
             <div
-              className="rounded-xl p-4 border-2 flex-1 flex flex-col"
+              className="rounded-xl p-3 border-2 flex-1 flex flex-col min-h-0"
               style={{ borderColor: characterColor, background: `${characterColor}15` }}
             >
-              {/* Drawing canvas or emoji — custom always shows canvas */}
               {showDrawing || selectedCharacter?.isCustom ? (
                 <DrawingCanvas
                   characterId={selectedCharacterId}
@@ -717,57 +788,76 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
                 </div>
               )}
 
-              {/* Toggle draw — hidden for custom (always drawing) */}
               {!selectedCharacter?.isCustom && (
                 <button
                   onClick={() => setShowDrawing(!showDrawing)}
-                className="w-full mt-2 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
-              >
-                <Pencil size={12} />
+                  className="w-full mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
+                >
+                  <Pencil size={12} />
                   {showDrawing ? 'Hide Drawing' : 'Draw Your Character'}
                 </button>
               )}
 
-              {/* Name field */}
-              <input
-                type="text"
-                value={characterName}
-                onChange={(e) => setCharacterName(e.target.value.slice(0, 20))}
-                placeholder="Name your character"
-                className="w-full bg-transparent text-center text-white text-lg font-bold placeholder-gray-500 outline-none border-b border-gray-600 focus:border-orange-400 pb-1 mt-3 mb-3"
-                maxLength={20}
-              />
-
-              {/* 3 words — stacked */}
-              <p className="text-xs text-gray-400 mb-2 text-center">Describe in 3 words:</p>
-              <div className="space-y-1.5">
-                {threeWords.map((word, i) => (
-                  <input
-                    key={i}
-                    type="text"
-                    value={word}
-                    onChange={(e) => {
-                      const next = [...threeWords];
-                      next[i] = e.target.value.slice(0, 20);
-                      setThreeWords(next);
-                    }}
-                    placeholder={`Word ${i + 1}`}
-                    className="w-full bg-gray-800 text-center text-white text-sm rounded-lg px-3 py-2 placeholder-gray-600 outline-none focus:ring-1 focus:ring-orange-400"
-                    maxLength={20}
-                  />
-                ))}
-              </div>
             </div>
           )}
         </div>
 
-        {/* ====== RIGHT SIDE: Keyboard + all controls below ====== */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Keyboard overlay — no Record button (moved below) */}
-          <div className="flex-1 relative">
+        {/* ====== RIGHT: Name/type/description + keyboard + controls ====== */}
+        <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+
+          {/* Character info bar — compact row above keyboard */}
+          {selectedCharacterId && (
+            <div className="flex-shrink-0 px-3 py-2 border-b border-gray-700 flex items-center gap-3">
+              {/* Name */}
+              <input
+                type="text"
+                value={characterName}
+                onChange={(e) => setCharacterName(e.target.value.slice(0, 20))}
+                placeholder="Name"
+                className="w-[140px] bg-gray-800 text-white text-sm font-bold placeholder-gray-500 outline-none rounded-lg px-2.5 py-1.5 border border-gray-700 focus:border-orange-400"
+                maxLength={20}
+              />
+
+              {/* Character type */}
+              <select
+                value={characterType}
+                onChange={(e) => setCharacterType(e.target.value)}
+                className="bg-gray-800 text-white text-xs rounded-lg px-2 py-1.5 outline-none border border-gray-700 focus:border-orange-400"
+              >
+                {CHARACTER_TYPES.map(t => (
+                  <option key={t.id} value={t.id}>{t.label}</option>
+                ))}
+              </select>
+              {characterType === 'other' && (
+                <input
+                  type="text"
+                  value={customType}
+                  onChange={(e) => setCustomType(e.target.value.slice(0, 20))}
+                  placeholder="Type..."
+                  className="w-[100px] bg-gray-800 text-white text-xs rounded-lg px-2 py-1.5 placeholder-gray-500 outline-none border border-gray-700 focus:border-orange-400"
+                  maxLength={20}
+                />
+              )}
+
+              {/* Description */}
+              <textarea
+                rows={2}
+                value={characterDescription}
+                onChange={(e) => setCharacterDescription(e.target.value.slice(0, 150))}
+                placeholder="Describe your character (e.g. A brave knight who protects the village)"
+                className="flex-1 bg-gray-800 text-white text-xs rounded-lg px-2.5 py-1.5 placeholder-gray-500 outline-none border border-gray-700 focus:border-orange-400 resize-none"
+                maxLength={150}
+              />
+            </div>
+          )}
+
+          {/* Keyboard */}
+          <div className="flex-1 min-h-0">
             <VirtualInstrumentOverlay
               embedded={true}
               showRecord={false}
+              keyboardOnly={true}
+              defaultScale="major"
               isRecording={isRecording}
               recordingStartTime={recordingStartTime}
               onRecordStart={handleRecordStart}
@@ -778,13 +868,12 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
             />
           </div>
 
-          {/* All controls below piano: Play, Clear, Record, Save */}
-          <div className="flex-shrink-0 border-t border-gray-700 px-4 py-2 flex items-center gap-2 bg-gray-800/60">
-            {/* Play */}
+          {/* Controls directly under piano */}
+          <div className="flex-shrink-0 px-3 py-1.5 flex items-center gap-2 bg-gray-900">
             <button
               onClick={isPlaying ? stopPlayback : playMotif}
               disabled={recordedNotes.length === 0 || isRecording}
-              className={`flex items-center gap-1.5 px-5 py-2 rounded-lg font-semibold text-sm transition-colors ${
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg font-semibold text-sm transition-colors ${
                 recordedNotes.length === 0 || isRecording
                   ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
                   : isPlaying ? 'bg-green-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'
@@ -793,21 +882,19 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
               {isPlaying ? <><Square size={14} fill="currentColor" /> Stop</> : <><Play size={14} fill="currentColor" /> Play</>}
             </button>
 
-            {/* Clear */}
             <button
               onClick={clearMotif}
               disabled={recordedNotes.length === 0 || isRecording}
-              className="flex items-center gap-1.5 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-400 rounded-lg text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-400 rounded-lg text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <RotateCcw size={14} /> Clear
             </button>
 
             <div className="flex-1" />
 
-            {/* Record */}
             <button
               onClick={isRecording ? handleRecordStop : handleRecordStart}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg font-semibold text-sm transition-all ${
                 isRecording
                   ? 'bg-red-600 text-white animate-pulse shadow-lg shadow-red-600/40'
                   : 'bg-gray-700 text-gray-300 hover:bg-red-600/80 hover:text-white'
@@ -816,11 +903,10 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
               {isRecording ? <><Square size={14} fill="currentColor" /> Stop Rec</> : <><span className="w-3 h-3 rounded-full bg-red-500" /> Record</>}
             </button>
 
-            {/* Save */}
             <button
               onClick={handleSave}
               disabled={!canSave}
-              className={`flex items-center gap-1.5 px-5 py-2 rounded-lg font-semibold text-sm transition-colors ${
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg font-semibold text-sm transition-colors ${
                 canSave ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'
               }`}
             >
