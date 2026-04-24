@@ -7,7 +7,7 @@ import { Check, Trophy, Volume2 } from 'lucide-react';
 import { useSession } from '../../../../context/SessionContext';
 import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { getPlayerColor, getPlayerEmoji, getStudentDisplayName, formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
-import { INSTRUMENT_FAMILIES, MODES, REGISTERS, SCORING, TOTAL_ROUNDS, formatInstrument } from './leitmotifSpotterConfig';
+import { CHARACTER_TYPES, INSTRUMENT_FAMILIES, MODES, REGISTERS, SCORING, TOTAL_ROUNDS, formatInstrument } from './leitmotifSpotterConfig';
 
 const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
   const { sessionCode, classId, userId: contextUserId } = useSession();
@@ -38,13 +38,15 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [playStartTime, setPlayStartTime] = useState(null);
 
-  // Student's picks (3 categories)
+  // Student's picks (4 categories)
+  const [selectedCharacter, setSelectedCharacter] = useState(null);
   const [selectedMode, setSelectedMode] = useState(null);
   const [selectedInstrument, setSelectedInstrument] = useState(null);
   const [selectedRegister, setSelectedRegister] = useState(null);
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
 
   // Results per round
+  const [characterCorrect, setCharacterCorrect] = useState(null);
   const [modeCorrect, setModeCorrect] = useState(null);
   const [instrumentCorrect, setInstrumentCorrect] = useState(null);
   const [registerCorrect, setRegisterCorrect] = useState(null);
@@ -58,6 +60,7 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
   const scoredRoundRef = useRef(-1);
   const scoreRef = useRef(0);
   const currentRoundRef = useRef(0);
+  const selectedCharacterRef = useRef(null);
   const selectedModeRef = useRef(null);
   const selectedInstrumentRef = useRef(null);
   const selectedRegisterRef = useRef(null);
@@ -89,6 +92,7 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
   // Keep refs in sync
   useEffect(() => { scoreRef.current = score; }, [score]);
   useEffect(() => { currentRoundRef.current = currentRound; }, [currentRound]);
+  useEffect(() => { selectedCharacterRef.current = selectedCharacter; }, [selectedCharacter]);
   useEffect(() => { selectedModeRef.current = selectedMode; }, [selectedMode]);
   useEffect(() => { selectedInstrumentRef.current = selectedInstrument; }, [selectedInstrument]);
   useEffect(() => { selectedRegisterRef.current = selectedRegister; }, [selectedRegister]);
@@ -121,14 +125,17 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
 
         // New round — reset picks
         if (data.currentRound !== currentRoundRef.current) {
+          selectedCharacterRef.current = null;
           selectedModeRef.current = null;
           selectedInstrumentRef.current = null;
           selectedRegisterRef.current = null;
           answerSubmittedRef.current = false;
+          setSelectedCharacter(null);
           setSelectedMode(null);
           setSelectedInstrument(null);
           setSelectedRegister(null);
           setAnswerSubmitted(false);
+          setCharacterCorrect(null);
           setModeCorrect(null);
           setInstrumentCorrect(null);
           setRegisterCorrect(null);
@@ -164,21 +171,24 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
         if (answerSubmittedRef.current && scoredRoundRef.current !== roundNum) {
           scoredRoundRef.current = roundNum;
 
+          const cOk = selectedCharacterRef.current === correct.character;
           const mOk = selectedModeRef.current === correct.mode;
           const iOk = selectedInstrumentRef.current === correct.instrument;
           const rOk = selectedRegisterRef.current === correct.register;
 
+          setCharacterCorrect(cOk);
           setModeCorrect(mOk);
           setInstrumentCorrect(iOk);
           setRegisterCorrect(rOk);
 
           let points = 0;
+          if (cOk) points += SCORING.perCategory;
           if (mOk) points += SCORING.perCategory;
           if (iOk) points += SCORING.perCategory;
           if (rOk) points += SCORING.perCategory;
 
-          // Speed bonus if all 3 correct
-          if (mOk && iOk && rOk) {
+          // Speed bonus if all 4 correct
+          if (cOk && mOk && iOk && rOk) {
             const answerTime = Date.now() - (playStartTimeRef.current || Date.now());
             if (answerTime < SCORING.speedThreshold) {
               points += SCORING.speedBonus;
@@ -228,12 +238,12 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
   // Submit answer (all 3 picks at once)
   const submitAnswer = () => {
     if (answerSubmitted || gamePhase !== 'guessing') return;
-    if (!selectedMode || !selectedInstrument || !selectedRegister) return;
+    if (!selectedCharacter || !selectedMode || !selectedInstrument || !selectedRegister) return;
 
     answerSubmittedRef.current = true;
     setAnswerSubmitted(true);
 
-    const answer = { mode: selectedMode, instrument: selectedInstrument, register: selectedRegister };
+    const answer = { character: selectedCharacter, mode: selectedMode, instrument: selectedInstrument, register: selectedRegister };
 
     if (studentsPath && userId) {
       const db = getDatabase();
@@ -244,7 +254,7 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
     }
   };
 
-  const allPicked = selectedMode && selectedInstrument && selectedRegister;
+  const allPicked = selectedCharacter && selectedMode && selectedInstrument && selectedRegister;
 
   // ============ FINISHED ============
   if (gamePhase === 'finished') {
@@ -315,7 +325,7 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
     return (
       <div className="h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-violet-900 flex items-center justify-center p-6">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-white mb-4">Leitmotif Spotter</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">Mystery Motif</h1>
           <p className="text-xl text-purple-200 mb-8">Waiting for teacher to start...</p>
           <div className="bg-white/10 rounded-2xl p-6 inline-block">
             <span className="text-4xl mb-2 block">{playerEmoji}</span>
@@ -366,21 +376,46 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
           <div className="w-full max-w-md">
             <p className="text-center text-purple-200 text-sm mb-4">Listen to the main screen, then pick:</p>
 
+            {/* Character */}
+            <div className="mb-3">
+              <label className="text-xs font-bold text-purple-300 uppercase mb-1.5 block">Character Type?</label>
+              <div className="grid grid-cols-4 gap-2">
+                {CHARACTER_TYPES.map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedCharacter(c.id)}
+                    className={`p-3 rounded-xl text-center transition-all duration-200 active:scale-95 font-bold ${
+                      selectedCharacter === c.id
+                        ? 'bg-purple-500 text-white ring-2 ring-white scale-105'
+                        : selectedCharacter
+                        ? 'bg-white/10 text-white/40 hover:text-white/70 hover:bg-white/15'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    <div className="text-lg">{c.label}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Mode */}
             <div className="mb-3">
-              <label className="text-xs font-bold text-purple-300 uppercase mb-1.5 block">Major or Minor?</label>
+              <label className="text-xs font-bold text-purple-300 uppercase mb-1.5 block">Bright or Dark?</label>
               <div className="flex gap-2">
                 {MODES.map(m => (
                   <button
                     key={m.id}
                     onClick={() => setSelectedMode(m.id)}
-                    className={`flex-1 p-3 rounded-xl text-center transition-all active:scale-95 text-white font-bold ${
-                      selectedMode === m.id ? 'ring-3 ring-white scale-105' : 'opacity-70 hover:opacity-100'
+                    className={`flex-1 p-3 rounded-xl text-center transition-all duration-200 active:scale-95 font-bold ${
+                      selectedMode === m.id
+                        ? 'bg-purple-500 text-white ring-2 ring-white scale-105'
+                        : selectedMode
+                        ? 'bg-white/10 text-white/40 hover:text-white/70 hover:bg-white/15'
+                        : 'bg-white/10 text-white hover:bg-white/20'
                     }`}
-                    style={{ backgroundColor: m.color }}
                   >
                     <div className="text-lg">{m.label}</div>
-                    <div className="text-xs opacity-80">{m.description}</div>
+                    <div className="text-xs opacity-70">{m.description}</div>
                   </button>
                 ))}
               </div>
@@ -394,13 +429,15 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
                   <button
                     key={f.id}
                     onClick={() => setSelectedInstrument(f.id)}
-                    className={`p-3 rounded-xl text-center transition-all active:scale-95 text-white font-bold ${
-                      selectedInstrument === f.id ? 'ring-3 ring-white scale-105' : 'opacity-70 hover:opacity-100'
+                    className={`p-3 rounded-xl text-center transition-all duration-200 active:scale-95 font-bold ${
+                      selectedInstrument === f.id
+                        ? 'bg-purple-500 text-white ring-2 ring-white scale-105'
+                        : selectedInstrument
+                        ? 'bg-white/10 text-white/40 hover:text-white/70 hover:bg-white/15'
+                        : 'bg-white/10 text-white hover:bg-white/20'
                     }`}
-                    style={{ backgroundColor: f.color }}
                   >
-                    <div className="text-xl">{f.emoji}</div>
-                    <div className="text-xs">{f.label}</div>
+                    <div className="text-lg">{f.label}</div>
                   </button>
                 ))}
               </div>
@@ -414,13 +451,16 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
                   <button
                     key={r.id}
                     onClick={() => setSelectedRegister(r.id)}
-                    className={`flex-1 p-3 rounded-xl text-center transition-all active:scale-95 text-white font-bold ${
-                      selectedRegister === r.id ? 'ring-3 ring-white scale-105' : 'opacity-70 hover:opacity-100'
+                    className={`flex-1 p-3 rounded-xl text-center transition-all duration-200 active:scale-95 font-bold ${
+                      selectedRegister === r.id
+                        ? 'bg-purple-500 text-white ring-2 ring-white scale-105'
+                        : selectedRegister
+                        ? 'bg-white/10 text-white/40 hover:text-white/70 hover:bg-white/15'
+                        : 'bg-white/10 text-white hover:bg-white/20'
                     }`}
-                    style={{ backgroundColor: r.color }}
                   >
                     <div className="text-lg">{r.label}</div>
-                    <div className="text-xs opacity-80">{r.description}</div>
+                    <div className="text-xs opacity-70">{r.description}</div>
                   </button>
                 ))}
               </div>
@@ -432,7 +472,7 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
               disabled={!allPicked}
               className="w-full py-4 rounded-xl text-lg font-bold transition-all active:scale-95 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
             >
-              {allPicked ? '🔒 Lock In Answer' : 'Pick all 3 to submit'}
+              {allPicked ? '🔒 Lock In Answer' : 'Pick all 4 to submit'}
             </button>
           </div>
         )}
@@ -443,7 +483,10 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
             <div className="bg-white/20 rounded-2xl p-6 inline-block">
               <Check size={48} className="mx-auto text-green-400 mb-3" />
               <p className="text-xl text-white font-bold mb-3">Answer Locked In!</p>
-              <div className="flex gap-2 mb-3">
+              <div className="flex flex-wrap gap-2 mb-3 justify-center">
+                <span className="px-3 py-1 rounded-full text-sm font-bold text-white" style={{ backgroundColor: CHARACTER_TYPES.find(c => c.id === selectedCharacter)?.color }}>
+                  {CHARACTER_TYPES.find(c => c.id === selectedCharacter)?.label}
+                </span>
                 <span className="px-3 py-1 rounded-full text-sm font-bold text-white" style={{ backgroundColor: MODES.find(m => m.id === selectedMode)?.color }}>
                   {MODES.find(m => m.id === selectedMode)?.label}
                 </span>
@@ -465,23 +508,23 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
             {/* Score summary */}
             {answerSubmitted ? (
               <div className={`rounded-2xl p-5 mb-4 ${
-                earnedPoints >= 30 ? 'bg-green-500/30' :
-                earnedPoints >= 20 ? 'bg-yellow-500/30' :
+                earnedPoints >= 40 ? 'bg-green-500/30' :
+                earnedPoints >= 30 ? 'bg-yellow-500/30' :
                 earnedPoints >= 10 ? 'bg-orange-500/30' :
                 'bg-red-500/30'
               }`}>
                 <p className="text-3xl font-bold mb-1" style={{ color:
-                  earnedPoints >= 30 ? '#4ADE80' :
-                  earnedPoints >= 20 ? '#FBBF24' :
+                  earnedPoints >= 40 ? '#4ADE80' :
+                  earnedPoints >= 30 ? '#FBBF24' :
                   earnedPoints >= 10 ? '#FB923C' :
                   '#F87171'
                 }}>
-                  {earnedPoints >= 30 ? 'Perfect!' :
-                   earnedPoints >= 20 ? 'Great!' :
+                  {earnedPoints >= 40 ? 'Perfect!' :
+                   earnedPoints >= 30 ? 'Great!' :
                    earnedPoints >= 10 ? 'Good try!' :
                    'Not quite!'}
                 </p>
-                <p className="text-xl text-white">+{earnedPoints} points{earnedPoints > 30 ? ' (speed bonus!)' : ''}</p>
+                <p className="text-xl text-white">+{earnedPoints} points{earnedPoints > 40 ? ' (speed bonus!)' : ''}</p>
               </div>
             ) : (
               <div className="bg-gray-500/30 rounded-2xl p-5 mb-4">
@@ -491,6 +534,18 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
 
             {/* Category results */}
             <div className="space-y-2 mb-4">
+              {/* Character */}
+              <div className={`flex items-center gap-3 p-3 rounded-xl ${characterCorrect ? 'bg-green-500/20' : characterCorrect === false ? 'bg-red-500/20' : 'bg-white/10'}`}>
+                <span className="text-xl">{characterCorrect ? '✅' : characterCorrect === false ? '❌' : '➖'}</span>
+                <div className="flex-1 text-left">
+                  <div className="text-xs text-purple-300">Character</div>
+                  <div className="text-white font-bold">{CHARACTER_TYPES.find(c => c.id === correctAnswer.character)?.label}</div>
+                </div>
+                {selectedCharacter && selectedCharacter !== correctAnswer.character && (
+                  <span className="text-sm text-red-300">You: {CHARACTER_TYPES.find(c => c.id === selectedCharacter)?.label}</span>
+                )}
+              </div>
+
               {/* Mode */}
               <div className={`flex items-center gap-3 p-3 rounded-xl ${modeCorrect ? 'bg-green-500/20' : modeCorrect === false ? 'bg-red-500/20' : 'bg-white/10'}`}>
                 <span className="text-xl">{modeCorrect ? '✅' : modeCorrect === false ? '❌' : '➖'}</span>
@@ -507,7 +562,7 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
               <div className={`flex items-center gap-3 p-3 rounded-xl ${instrumentCorrect ? 'bg-green-500/20' : instrumentCorrect === false ? 'bg-red-500/20' : 'bg-white/10'}`}>
                 <span className="text-xl">{instrumentCorrect ? '✅' : instrumentCorrect === false ? '❌' : '➖'}</span>
                 <div className="flex-1 text-left">
-                  <div className="text-xs text-purple-300">Instrument</div>
+                  <div className="text-xs text-purple-300">Instrument Family</div>
                   <div className="text-white font-bold">{formatInstrument(correctAnswer.instrument, correctAnswer.instrumentDetail)}</div>
                 </div>
                 {selectedInstrument && selectedInstrument !== correctAnswer.instrument && (

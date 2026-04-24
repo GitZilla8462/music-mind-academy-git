@@ -24,49 +24,53 @@ export const LEITMOTIF_EXAMPLES = [
     id: 'hero',
     name: 'The Hero',
     color: '#EF4444',
+    emoji: '🦸',
     reasons: [
       { bold: 'Bold and loud', detail: 'the music wants to be heard' },
       { bold: 'Major key, bright sound', detail: 'feels confident and strong' },
       { bold: 'Rising melody', detail: 'notes climb up, like they\'re rising to the challenge' },
     ],
     teacherPrompt: 'What instrument did you hear? Why does it fit a hero?',
-    recording: null, // paste dev recording JSON here
+    audioPath: 'https://media.musicmindacademy.com/audio/leitmotifs/hero-brass-frenchhorn-major-high.wav',
   },
   {
     id: 'villain',
     name: 'The Villain',
     color: '#7C3AED',
+    emoji: '🦹',
     reasons: [
       { bold: 'Low and heavy', detail: 'deep instruments feel powerful and threatening' },
       { bold: 'Minor key', detail: 'dark, unsettling sound' },
       { bold: 'Slow and steady', detail: 'like they\'re marching toward you, and you can\'t stop them' },
     ],
     teacherPrompt: 'Does this music sound scary or evil? What\'s the difference?',
-    recording: null,
+    audioPath: 'https://media.musicmindacademy.com/audio/leitmotifs/villain-strings-bass-minor-low.wav',
   },
   {
     id: 'romantic',
     name: 'The Romantic',
     color: '#EC4899',
+    emoji: '💕',
     reasons: [
       { bold: 'Smooth and flowing', detail: 'notes move gently, no sharp edges' },
       { bold: 'Warm instrument', detail: 'strings or piano, something that feels like a hug' },
       { bold: 'Rises and falls like breathing', detail: 'it feels like emotion, not action' },
     ],
-    teacherPrompt: 'Where else have you heard music like this? What was happening on screen?',
-    recording: null,
+    teacherPrompt: 'Where else have you heard music like this? What kind of scene would it fit?',
+    audioPath: 'https://media.musicmindacademy.com/audio/leitmotifs/romantic-strings-violin-major-high.wav',
   },
   {
     id: 'sneaky',
     name: 'The Sneaky One',
     color: '#F59E0B',
+    emoji: '🕵️',
     reasons: [
       { bold: 'Short, quick notes', detail: 'like tiptoeing' },
       { bold: 'Playful, not scary', detail: 'this character is up to something, but it\'s fun' },
       { bold: 'Lots of space between notes', detail: 'like they\'re hiding, then popping out' },
     ],
     teacherPrompt: 'What\'s the difference between sneaky music and villain music?',
-    recording: null,
+    audioPath: 'https://media.musicmindacademy.com/audio/leitmotifs/sneaky-woodwind-clarinet-minor-medium.wav',
   }
 ];
 
@@ -178,17 +182,24 @@ export const lessonSections = [
   },
   {
     id: 'leitmotif-spotter',
-    title: '3. Leitmotif Spotter',
+    title: '3. Mystery Motif',
     subtitle: 'Identify the Motif',
     color: 'orange',
-    estimatedTime: 7,
+    estimatedTime: 9,
     stages: [
+      {
+        id: 'leitmotif-spotter-instructions',
+        type: 'summary',
+        label: 'Mystery Motif Instructions',
+        description: 'Explain the game rules.',
+        duration: 2
+      },
       {
         id: 'leitmotif-spotter-game',
         type: 'activity',
-        label: '🔍 Unlock Leitmotif Spotter',
-        description: 'CLASS GAME: Listen to motifs and identify Mode, Instrument, and Register.',
-        bonusDescription: 'Can you get all 3 categories right?',
+        label: 'Unlock Mystery Motif',
+        description: 'CLASS GAME: Listen to motifs and identify Character, Mode, Instrument Family, and Register.',
+        bonusDescription: 'Can you get all 4 categories right?',
         hasProgress: true,
         hasTimer: false,
         duration: 5
@@ -196,38 +207,15 @@ export const lessonSections = [
       {
         id: 'leitmotif-spotter-results',
         type: 'activity',
-        label: '🏆 Leitmotif Spotter Results',
+        label: 'Mystery Motif Results',
         description: 'View class leaderboard and celebrate top scorers.',
         duration: 2
       }
     ]
   },
   {
-    id: 'keyboard-basics',
-    title: '4. Keyboard Basics',
-    subtitle: 'Your Keyboard Is a Piano',
-    color: 'orange',
-    estimatedTime: 2,
-    stages: [
-      {
-        id: 'keyboard-diagram',
-        type: 'summary',
-        label: 'Your Keyboard Is a Piano',
-        description: 'Show A=C, S=D, D=E, F=G, G=A. Try it for 60 seconds.',
-        duration: 1
-      },
-      {
-        id: 'your-mission',
-        type: 'summary',
-        label: 'Your Mission',
-        description: 'Pick a character, describe in 3 words, compose a 4-8 note theme.',
-        duration: 1
-      }
-    ]
-  },
-  {
     id: 'create',
-    title: '5. Create',
+    title: '4. Create',
     subtitle: 'Motif Builder',
     color: 'orange',
     estimatedTime: 12,
@@ -245,31 +233,22 @@ export const lessonSections = [
     ]
   },
   {
-    id: 'reflect',
-    title: '6. Reflect & Close',
-    subtitle: 'Two Stars & a Wish',
+    id: 'gallery',
+    title: '5. Gallery',
+    subtitle: 'Class Showcase',
     color: 'orange',
-    estimatedTime: 4,
+    estimatedTime: 5,
     stages: [
       {
-        id: 'reflection',
+        id: 'motif-gallery',
         type: 'activity',
-        label: '⭐ Two Stars & a Wish',
-        duration: 3,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'STUDENTS WORK: Reflect on their theme.',
-        bonusDescription: 'Bonus: Share your reflection with a partner.'
-      },
-      {
-        id: 'closing',
-        type: 'summary',
-        label: 'You Made a Leitmotif Today',
-        description: 'Wrap up: You decided WHO, picked an instrument, wrote a theme.',
-        duration: 1
+        label: 'Motif Gallery',
+        duration: 5,
+        hasTimer: false,
+        description: 'CLASS ACTIVITY: Teacher features student motifs, class guesses character type.',
       }
     ]
-  }
+  },
 ];
 
 export const fmLesson1Config = {
@@ -291,11 +270,17 @@ export const fmLesson1Config = {
       title: "Motif Builder",
       estimatedTime: "12 min"
     },
+{
+      id: 3,
+      type: "leitmotif-spotter",
+      title: "Mystery Motif",
+      estimatedTime: "7 min"
+    },
     {
-      id: 2,
-      type: "two-stars-wish",
-      title: "Two Stars & a Wish",
-      estimatedTime: "3 min"
+      id: 4,
+      type: "motif-gallery",
+      title: "Motif Gallery",
+      estimatedTime: "5 min"
     }
   ]
 };
@@ -389,12 +374,24 @@ export const lessonStages = [
     }
   },
 
+  // --- Leitmotif Spotter Instructions ---
+  {
+    id: 'leitmotif-spotter-instructions',
+    label: 'Mystery Motif Instructions',
+    description: 'Explain the game before starting.',
+    type: 'summary',
+    duration: 2,
+    presentationView: {
+      type: 'leitmotif-spotter-instructions'
+    }
+  },
+
   // --- Leitmotif Spotter Game ---
   {
     id: 'leitmotif-spotter-game',
-    label: '🔍 Unlock Leitmotif Spotter',
-    description: 'CLASS GAME: Listen to motifs and identify Mode, Instrument, and Register.',
-    bonusDescription: 'Can you get all 3 categories right?',
+    label: 'Mystery Motif Game',
+    description: 'CLASS GAME: Listen to motifs and identify Character, Mode, Instrument Family, and Register.',
+    bonusDescription: 'Can you get all 4 categories right?',
     hasProgress: true,
     type: 'activity',
     hasTimer: false,
@@ -407,7 +404,7 @@ export const lessonStages = [
   // --- Leitmotif Spotter Results ---
   {
     id: 'leitmotif-spotter-results',
-    label: '🏆 Leitmotif Spotter Results',
+    label: 'Mystery Motif Results',
     description: 'View class leaderboard and celebrate top scorers.',
     type: 'activity',
     duration: 2,
@@ -416,20 +413,7 @@ export const lessonStages = [
     }
   },
 
-  // --- Slide 7: Keyboard Basics ---
-  {
-    id: 'keyboard-diagram',
-    label: 'Your Keyboard Is a Piano',
-    description: 'Show A=C, S=D, D=E, F=G, G=A. Try it for 60 seconds.',
-    type: 'summary',
-    duration: 3,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music/lesson1/slides/7.svg'
-    }
-  },
-
-  // --- Slide 8: Your Mission ---
+  // --- Your Mission ---
   {
     id: 'your-mission',
     label: 'Your Mission',
@@ -458,34 +442,19 @@ export const lessonStages = [
     }
   },
 
-  // --- Slide 10: Two Stars & a Wish ---
+  // --- Motif Gallery ---
   {
-    id: 'reflection',
-    label: '⭐ Two Stars & a Wish',
-    description: 'STUDENTS WORK: Reflect on their theme.',
-    bonusDescription: 'Bonus: Share your reflection with a partner.',
-    hasProgress: true,
+    id: 'motif-gallery',
+    label: 'Motif Gallery',
+    description: 'CLASS ACTIVITY: Teacher features student motifs, class guesses character type.',
     type: 'activity',
-    hasTimer: true,
-    duration: 3,
+    hasTimer: false,
+    duration: 5,
     presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music/lesson1/slides/10.svg'
+      type: 'motif-gallery-teacher'
     }
   },
 
-  // --- Slide 11: Closing ---
-  {
-    id: 'closing',
-    label: 'You Made a Leitmotif Today',
-    description: 'Wrap up: You decided WHO, picked an instrument, wrote a theme.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'slide',
-      slidePath: '/lessons/film-music/lesson1/slides/11.svg'
-    }
-  }
 ];
 
 // Helper function to map session stage to activity type
@@ -497,13 +466,12 @@ export const getActivityForStage = (stage) => {
     'example-villain': 'demo',
     'example-romantic': 'demo',
     'example-sneaky': 'demo',
+    'leitmotif-spotter-instructions': 'summary',
     'leitmotif-spotter-game': 'leitmotif-spotter',
     'leitmotif-spotter-results': 'summary',
-    'keyboard-diagram': 'summary',
     'your-mission': 'summary',
     'motif-builder': 'motif-builder',
-    'reflection': 'two-stars-wish',
-    'closing': 'summary'
+    'motif-gallery': 'motif-gallery'
   };
   return stageMap[stage];
 };

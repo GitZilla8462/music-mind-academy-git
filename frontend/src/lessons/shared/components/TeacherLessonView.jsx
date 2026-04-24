@@ -485,6 +485,7 @@ const PresentationContent = ({
   const [DynamicsDashResults, setDynamicsDashResults] = useState(null);
   const [LeitmotifSpotterClassGame, setLeitmotifSpotterClassGame] = useState(null);
   const [LeitmotifSpotterResults, setLeitmotifSpotterResults] = useState(null);
+  const [MotifGalleryTeacher, setMotifGalleryTeacher] = useState(null);
   const [DynamicsShowcase, setDynamicsShowcase] = useState(null);
   const [WoodwindFamilyShowcase, setWoodwindFamilyShowcase] = useState(null);
   const [TempoShowcase, setTempoShowcase] = useState(null);
@@ -628,6 +629,11 @@ const PresentationContent = ({
     import('../../shared/activities/leitmotif-spotter/LeitmotifSpotterResults')
       .then(module => setLeitmotifSpotterResults(() => module.default))
       .catch(() => console.log('Leitmotif Spotter Results not available'));
+
+    // Unit 4 Film Music Lesson 1: Motif Gallery Teacher
+    import('../../shared/activities/motif-gallery/MotifGalleryTeacher')
+      .then(module => setMotifGalleryTeacher(() => module.default))
+      .catch(() => console.log('Motif Gallery not available'));
 
     // Unit 2 Listening Lab Lesson 1: Dynamics Showcase (interactive slide)
     import('../../shared/activities/dynamics-dash/DynamicsShowcase')
@@ -1100,6 +1106,39 @@ const PresentationContent = ({
       );
     }
 
+    // Mystery Motif Instructions
+    if (type === 'leitmotif-spotter-instructions') {
+      return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-violet-900 p-10">
+          <h1 className="text-5xl font-black text-white mb-8">Mystery Motif</h1>
+          <p className="text-2xl text-purple-200 mb-10">How well can you identify a leitmotif?</p>
+          <div className="max-w-3xl w-full space-y-6">
+            <div className="flex items-start gap-4 bg-white/10 rounded-2xl p-6">
+              <span className="text-3xl font-bold text-white">1.</span>
+              <div>
+                <p className="text-2xl font-bold text-white">Listen</p>
+                <p className="text-lg text-purple-200">A mystery motif will play on the main screen. Listen carefully!</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 bg-white/10 rounded-2xl p-6">
+              <span className="text-3xl font-bold text-white">2.</span>
+              <div>
+                <p className="text-2xl font-bold text-white">Identify 4 Things</p>
+                <p className="text-lg text-purple-200">On your device, pick the <span className="font-bold text-white">Character Type</span> (Hero, Villain, Romantic, Sneaky), <span className="font-bold text-white">Mode</span> (Bright or Dark), <span className="font-bold text-white">Instrument Family</span>, and <span className="font-bold text-white">Register</span> (Low, Mid, High).</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 bg-white/10 rounded-2xl p-6">
+              <span className="text-3xl font-bold text-white">3.</span>
+              <div>
+                <p className="text-2xl font-bold text-white">Lock In Your Answer</p>
+                <p className="text-lg text-purple-200">Pick all 4 categories, then hit Lock In. Be fast for a speed bonus!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     // Leitmotif Spotter Class Game (Film Music Lesson 1)
     if (type === 'leitmotif-spotter-class-game') {
       if (!LeitmotifSpotterClassGame) {
@@ -1112,6 +1151,22 @@ const PresentationContent = ({
       return (
         <div className="absolute inset-0">
           <LeitmotifSpotterClassGame sessionData={sessionData} onComplete={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Motif Gallery Teacher (Film Music Lesson 1)
+    if (type === 'motif-gallery-teacher') {
+      if (!MotifGalleryTeacher) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-violet-900">
+            <div className="text-white text-2xl">Loading Motif Gallery...</div>
+          </div>
+        );
+      }
+      return (
+        <div className="absolute inset-0">
+          <MotifGalleryTeacher sessionData={sessionData} onComplete={goToNextStage} />
         </div>
       );
     }
@@ -2994,271 +3049,77 @@ const PresentationContent = ({
     }
 
     // Leitmotif Example (Film Music Lesson 1 — slides 3-6)
-    // Left 50%: character info (big text). Right 50%: virtual keyboard (compact, centered).
-    // Record/Stop on keyboard, Save downloads JSON, Play loads from /public/ JSON file.
-    // Keys light up during playback. Next button after playback.
+    // Leitmotif example slide — full-width character info + play button for R2 audio
     if (type === 'leitmotif-example') {
       const example = currentStageData.presentationView.example;
 
       const LeitmotifExampleSlide = () => {
-        const [OverlayComponent, setOverlayComponent] = React.useState(null);
-        const [ToneLib, setToneLib] = React.useState(null);
-        const [instrumentsData, setInstrumentsData] = React.useState(null);
-
-        React.useEffect(() => {
-          Promise.all([
-            import('tone'),
-            import('../../film-music/shared/virtual-instrument/VirtualInstrumentOverlay').then(m => m.default),
-            import('../../film-music/shared/virtual-instrument/instrumentConfig'),
-          ]).then(([tone, Overlay, config]) => {
-            setToneLib(tone);
-            setOverlayComponent(() => Overlay);
-            setInstrumentsData(config.INSTRUMENTS);
-          });
-        }, []);
-
-        const defaultScaleId = { hero: 'major', villain: 'minor', romantic: 'pentatonic-major', sneaky: 'pentatonic-minor' }[example?.id] || 'major';
-        const recordingPath = `/lessons/film-music/lesson1/recordings/${example?.id}.json`;
-
-        // Recording state
-        const [isRecording, setIsRecording] = React.useState(false);
-        const [recordingStartTime, setRecordingStartTime] = React.useState(null);
-        const [currentRecording, setCurrentRecording] = React.useState(null); // just recorded, not yet saved
-
-        // Saved recording (loaded from JSON file)
-        const [savedRecording, setSavedRecording] = React.useState(null);
-        const [loadingRecording, setLoadingRecording] = React.useState(true);
-
-        // Playback state
+        const audioRef = React.useRef(null);
         const [isPlaying, setIsPlaying] = React.useState(false);
         const [hasPlayed, setHasPlayed] = React.useState(false);
-        const [highlightedKeys, setHighlightedKeys] = React.useState(new Set());
-        const playbackSynthRef = React.useRef(null);
-        const playbackTimeoutsRef = React.useRef([]);
-
-        // Load saved recording from JSON file on mount
-        React.useEffect(() => {
-          fetch(recordingPath)
-            .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
-            .then(data => { setSavedRecording(data); setLoadingRecording(false); })
-            .catch(() => setLoadingRecording(false));
-        }, [recordingPath]);
 
         React.useEffect(() => {
-          return () => {
-            playbackTimeoutsRef.current.forEach(t => clearTimeout(t));
-            if (playbackSynthRef.current) { try { playbackSynthRef.current.dispose(); } catch(e){} }
-          };
+          return () => { if (audioRef.current) audioRef.current.pause(); };
         }, []);
 
-        // The active recording — use freshly recorded if available, otherwise saved file
-        const recording = currentRecording || savedRecording;
-
-        // Recording callbacks
-        const handleRecordStart = React.useCallback(async () => {
-          if (ToneLib) {
-            if (ToneLib.context.state !== 'running') await ToneLib.start();
-            setRecordingStartTime(ToneLib.now());
-          }
-          setCurrentRecording(null); // clear previous
-          setIsRecording(true);
-          setHasPlayed(false);
-        }, [ToneLib]);
-
-        const handleRecordStop = React.useCallback(() => {
-          setIsRecording(false);
-          setRecordingStartTime(null);
-        }, []);
-
-        const handleRecordingComplete = React.useCallback((notes, instrument) => {
-          const data = { notes, instrument, scale: defaultScaleId, character: example?.id };
-          setCurrentRecording(data);
-        }, [example?.id, defaultScaleId]);
-
-        // Save — downloads JSON file
-        const saveRecording = () => {
-          if (!currentRecording) return;
-          const json = JSON.stringify(currentRecording, null, 2);
-          const blob = new Blob([json], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `${example?.id}.json`;
-          a.click();
-          URL.revokeObjectURL(url);
-          setSavedRecording(currentRecording);
+        const playAudio = () => {
+          if (!example?.audioPath) return;
+          if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+          const audio = new Audio(example.audioPath);
+          audioRef.current = audio;
+          audio.play().catch(() => {});
+          setIsPlaying(true);
+          audio.onended = () => { setIsPlaying(false); setHasPlayed(true); };
         };
 
-        // Schedule note playback with a ready synth
-        const scheduleNotes = React.useCallback((synth, notesToPlay) => {
-          const timeouts = [];
-          const filtered = notesToPlay.filter(n => !n.note?.startsWith('drum-'));
-
-          filtered.forEach((nd) => {
-            const startMs = nd.timestamp * 1000;
-            const durMs = (nd.duration || 0.3) * 1000;
-            timeouts.push(setTimeout(() => {
-              if (synth) {
-                try { synth.triggerAttackRelease(nd.note, nd.duration || 0.3); } catch(e){}
-              }
-              setHighlightedKeys(prev => new Set(prev).add(nd.note));
-            }, startMs));
-            timeouts.push(setTimeout(() => {
-              setHighlightedKeys(prev => { const n = new Set(prev); n.delete(nd.note); return n; });
-            }, startMs + durMs));
-          });
-
-          const lastNote = filtered[filtered.length - 1];
-          const totalMs = lastNote ? (lastNote.timestamp + (lastNote.duration || 0.3)) * 1000 + 500 : 500;
-          timeouts.push(setTimeout(() => {
-            setIsPlaying(false);
-            setHasPlayed(true);
-            setHighlightedKeys(new Set());
-          }, totalMs));
-          playbackTimeoutsRef.current = timeouts;
-        }, []);
-
-        // Playback — Tone.js + key highlighting (waits for sampler to load)
-        const playRecording = React.useCallback(async () => {
-          if (!recording?.notes?.length || !ToneLib || !instrumentsData) return;
-          if (ToneLib.context.state !== 'running') await ToneLib.start();
-
-          if (playbackSynthRef.current) { try { playbackSynthRef.current.dispose(); } catch(e){} }
-          playbackSynthRef.current = null;
-          const inst = instrumentsData[recording.instrument];
-          if (!inst) return;
-
-          setIsPlaying(true);
-
-          if (inst.useSampler && inst.samples) {
-            try {
-              const sampler = new ToneLib.Sampler({
-                urls: inst.samples.urls, baseUrl: inst.samples.baseUrl,
-                attack: inst.samplerAttack || 0, release: inst.config?.envelope?.release || 1,
-                onload: () => {
-                  scheduleNotes(sampler, recording.notes);
-                },
-                onerror: () => {
-                  const fallback = new ToneLib.PolySynth(ToneLib.Synth, inst.config).toDestination();
-                  fallback.volume.value = -6;
-                  playbackSynthRef.current = fallback;
-                  scheduleNotes(fallback, recording.notes);
-                },
-              }).toDestination();
-              sampler.volume.value = -6;
-              playbackSynthRef.current = sampler;
-            } catch(e) {
-              playbackSynthRef.current = new ToneLib.PolySynth(ToneLib.Synth, inst.config).toDestination();
-              playbackSynthRef.current.volume.value = -6;
-              scheduleNotes(playbackSynthRef.current, recording.notes);
-            }
-          } else {
-            playbackSynthRef.current = new ToneLib.PolySynth(ToneLib.Synth, inst.config).toDestination();
-            playbackSynthRef.current.volume.value = -6;
-            scheduleNotes(playbackSynthRef.current, recording.notes);
-          }
-        }, [recording, ToneLib, instrumentsData, scheduleNotes]);
-
-        const stopPlayback = React.useCallback(() => {
-          playbackTimeoutsRef.current.forEach(t => clearTimeout(t));
+        const stopAudio = () => {
+          if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
           setIsPlaying(false);
-          setHighlightedKeys(new Set());
-        }, []);
+        };
 
         if (!example) return <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-white text-2xl">Example not found</div>;
 
         return (
-          <div className="absolute inset-0 flex bg-gray-900">
-            {/* ====== LEFT SIDE: Character info (big text) ====== */}
-            <div className="w-1/2 flex flex-col items-center justify-center p-10 border-r border-gray-700">
-              <h1 className="text-6xl font-bold mb-8" style={{ color: example.color }}>
-                {example.name}
-              </h1>
-              <div className="space-y-5 max-w-lg">
-                {example.reasons.map((r, i) => (
-                  <div key={i} className="flex items-start gap-4">
-                    <span className="text-3xl font-bold text-white mt-0.5">{i + 1}.</span>
-                    <p className="text-2xl text-gray-200 leading-snug">
-                      <span className="font-bold text-white">{r.bold}</span>
-                      <span className="text-gray-400"> — {r.detail}</span>
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-8 text-xl text-gray-500 italic max-w-lg text-center">
-                "{example.teacherPrompt}"
-              </p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 p-10">
+            <h1 className="text-6xl font-bold mb-8" style={{ color: example.color }}>
+              {example.name}
+            </h1>
+            <div className="space-y-5 max-w-2xl mb-8">
+              {example.reasons.map((r, i) => (
+                <div key={i} className="flex items-start gap-4">
+                  <span className="text-3xl font-bold text-white mt-0.5">{i + 1}.</span>
+                  <p className="text-2xl text-gray-200 leading-snug">
+                    <span className="font-bold text-white">{r.bold}</span>
+                    <span className="text-gray-400"> — {r.detail}</span>
+                  </p>
+                </div>
+              ))}
             </div>
-
-            {/* ====== RIGHT SIDE: Keyboard centered + buttons below ====== */}
-            <div className="w-1/2 flex flex-col items-center justify-center">
-              {/* Keyboard — compact, centered */}
-              <div className="w-full max-w-[560px] px-4">
-                {OverlayComponent ? (
-                  <OverlayComponent
-                    embedded={true}
-                    showRecord={true}
-                    isRecording={isRecording}
-                    recordingStartTime={recordingStartTime}
-                    onRecordStart={handleRecordStart}
-                    onRecordStop={handleRecordStop}
-                    onRecordingComplete={handleRecordingComplete}
-                    onClose={() => {}}
-                    defaultScale={defaultScaleId}
-                    highlightedKeys={highlightedKeys.size > 0 ? highlightedKeys : null}
-                  />
+            <p className="text-xl text-gray-500 italic max-w-2xl text-center mb-10">
+              "{example.teacherPrompt}"
+            </p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={isPlaying ? stopAudio : playAudio}
+                className={`flex items-center gap-3 px-10 py-4 text-xl font-bold rounded-2xl transition-all shadow-lg hover:scale-105 active:scale-95 ${
+                  isPlaying ? 'bg-gray-600 text-white' : 'text-white hover:brightness-110'
+                }`}
+                style={!isPlaying ? { backgroundColor: example.color } : {}}
+              >
+                {isPlaying ? (
+                  <><span className="w-5 h-5 bg-white rounded-sm" /> Stop</>
                 ) : (
-                  <div className="h-[320px] flex items-center justify-center text-gray-500">Loading keyboard...</div>
+                  <><span className="w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-l-[18px] border-l-white" /> Play Example</>
                 )}
-              </div>
-
-              {/* Buttons below keyboard */}
-              <div className="flex items-center gap-3 mt-5">
-                {/* Save button — only shows after recording */}
-                {currentRecording && !isRecording && (
-                  <button
-                    onClick={saveRecording}
-                    className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-bold rounded-xl transition-all shadow-lg"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-                    Save Recording
-                  </button>
-                )}
-
-                {/* Play button */}
-                {recording?.notes?.length && !isRecording ? (
-                  <button
-                    onClick={isPlaying ? stopPlayback : playRecording}
-                    className={`flex items-center gap-2 px-8 py-3 text-lg font-bold rounded-xl transition-all shadow-lg ${
-                      isPlaying ? 'bg-gray-600 text-white' : 'text-white hover:brightness-110'
-                    }`}
-                    style={!isPlaying ? { backgroundColor: example.color } : {}}
-                  >
-                    {isPlaying ? (
-                      <><span className="w-4 h-4 bg-white rounded-sm" /> Stop</>
-                    ) : (
-                      <><span className="w-0 h-0 border-t-[10px] border-t-transparent border-b-[10px] border-b-transparent border-l-[16px] border-l-white" /> Play Example</>
-                    )}
-                  </button>
-                ) : !isRecording && !recording?.notes?.length && !loadingRecording ? (
-                  <span className="text-gray-500 text-sm">Record a motif, then save it</span>
-                ) : null}
-
-                {/* Next button — after playback */}
-                {hasPlayed && (
-                  <button
-                    onClick={() => {
-                      if (typeof setCurrentStage === 'function') {
-                        const idx = lessonStages.findIndex(s => s.id === currentStage);
-                        if (idx >= 0 && idx < lessonStages.length - 1) setCurrentStage(lessonStages[idx + 1].id);
-                      }
-                    }}
-                    className="flex items-center gap-2 px-6 py-3 bg-white text-gray-900 text-lg font-bold rounded-xl hover:bg-gray-100 transition-all shadow-lg"
-                  >
-                    Next <ChevronRight size={20} />
-                  </button>
-                )}
-              </div>
+              </button>
+              {hasPlayed && (
+                <button
+                  onClick={goToNextStage}
+                  className="flex items-center gap-2 px-8 py-4 bg-white text-gray-900 text-xl font-bold rounded-2xl hover:bg-gray-100 transition-all shadow-lg hover:scale-105 active:scale-95"
+                >
+                  Next <ChevronRight size={22} />
+                </button>
+              )}
             </div>
           </div>
         );

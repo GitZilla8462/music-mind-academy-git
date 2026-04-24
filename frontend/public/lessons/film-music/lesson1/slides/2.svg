@@ -6,32 +6,20 @@
     </linearGradient>
   </defs>
   <rect width="1920" height="1080" fill="url(#bg2)"/>
-  <text x="960" y="120" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="64" font-weight="bold">Today's Agenda</text>
 
-  <rect x="300" y="200" width="1320" height="100" rx="12" fill="#1e3a5f"/>
-  <text x="360" y="265" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">1.</text>
-  <text x="420" y="265" fill="#ffffff" font-family="Arial, sans-serif" font-size="36">Introduction</text>
-  <text x="900" y="265" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Hook + What is a leitmotif?</text>
+  <text x="960" y="160" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="72" font-weight="bold">What Is a Leitmotif?</text>
 
-  <rect x="300" y="320" width="1320" height="100" rx="12" fill="#1e3a5f"/>
-  <text x="360" y="385" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">2.</text>
-  <text x="420" y="385" fill="#ffffff" font-family="Arial, sans-serif" font-size="36">Keyboard Basics</text>
-  <text x="900" y="385" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Learn to play notes</text>
+  <rect x="260" y="240" width="1400" height="180" rx="16" fill="#1e3a5f"/>
+  <text x="960" y="320" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="40" font-weight="bold">A short musical idea that represents</text>
+  <text x="960" y="380" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="40" font-weight="bold">a character, place, or idea in a story.</text>
 
-  <rect x="300" y="440" width="1320" height="100" rx="12" fill="#1e3a5f"/>
-  <text x="360" y="505" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">3.</text>
-  <text x="420" y="505" fill="#ffffff" font-family="Arial, sans-serif" font-size="36">Leitmotif Detective</text>
-  <text x="900" y="505" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Identify character themes</text>
+  <text x="960" y="510" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="32" font-style="italic">"Leit" = leading &amp; "Motif" = musical idea</text>
 
-  <rect x="300" y="560" width="1320" height="100" rx="12" fill="#1e3a5f"/>
-  <text x="360" y="625" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">4.</text>
-  <text x="420" y="625" fill="#ffffff" font-family="Arial, sans-serif" font-size="36">Motif Builder</text>
-  <text x="900" y="625" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Create your character theme</text>
+  <text x="960" y="620" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">Every time that character appears...</text>
+  <text x="960" y="680" text-anchor="middle" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="36">you hear their music.</text>
 
-  <rect x="300" y="680" width="1320" height="100" rx="12" fill="#1e3a5f"/>
-  <text x="360" y="745" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">5.</text>
-  <text x="420" y="745" fill="#ffffff" font-family="Arial, sans-serif" font-size="36">Reflection</text>
-  <text x="900" y="745" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">Two Stars and a Wish</text>
+  <rect x="360" y="750" width="1200" height="120" rx="12" fill="#f97316" fill-opacity="0.1" stroke="#f97316" stroke-width="2"/>
+  <text x="960" y="825" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="34">Think: Darth Vader, Hedwig's Theme, Jaws</text>
 
-  <text x="960" y="920" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="28">~40 minutes</text>
+  <text x="960" y="980" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="26">Before you see the character, you can HEAR them coming.</text>
 </svg>

@@ -10,7 +10,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Square, Save, Check, ChevronRight, ChevronDown, RotateCcw, Pencil, Eraser, Trash2, HelpCircle, Stamp } from 'lucide-react';
 import getStroke from 'perfect-freehand';
 import * as Tone from 'tone';
-import { CHARACTER_LIBRARY } from '../../../film-music/lesson1/Lesson1config';
+import { getDatabase, ref, update } from 'firebase/database';
+import { useSession } from '../../../../context/SessionContext';
+import { CHARACTER_LIBRARY, MOTIF_INSTRUMENTS } from '../../../film-music/lesson1/Lesson1config';
 import { saveCharacterCard, getCharacterCard, saveMotif, getMotif } from '../../../film-music/lesson1/lesson1StorageUtils';
 import VirtualInstrumentOverlay from '../../../film-music/shared/virtual-instrument/VirtualInstrumentOverlay';
 import { INSTRUMENTS } from '../../../film-music/shared/virtual-instrument/instrumentConfig';
@@ -389,6 +391,64 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
 // Main Component
 // ========================================
 const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = false }) => {
+  // Session context for Firebase sync
+  const { classId, sessionCode, userId: contextUserId } = useSession();
+  const userId = contextUserId || localStorage.getItem('current-session-userId');
+
+  const studentsPath = React.useMemo(() => {
+    if (classId) return `classes/${classId}/currentSession/studentsJoined`;
+    if (sessionCode) return `sessions/${sessionCode}/studentsJoined`;
+    return null;
+  }, [classId, sessionCode]);
+
+  // Derive register from recorded notes
+  const deriveRegister = (notes) => {
+    if (!notes || notes.length === 0) return 'mid';
+    const octaves = notes
+      .filter(n => n.note && !n.note.startsWith('drum-'))
+      .map(n => parseInt(n.note.replace(/[^0-9]/g, '')) || 4);
+    if (octaves.length === 0) return 'mid';
+    const avg = octaves.reduce((a, b) => a + b, 0) / octaves.length;
+    if (avg <= 3) return 'low';
+    if (avg >= 5) return 'high';
+    return 'mid';
+  };
+
+  // Derive mode from character type
+  const deriveMode = (charType) => {
+    return (charType === 'villain' || charType === 'sneaky') ? 'minor' : 'major';
+  };
+
+  // Derive instrument family from instrument ID using MOTIF_INSTRUMENTS config
+  const deriveInstrumentFamily = (instrumentId) => {
+    const motifInst = MOTIF_INSTRUMENTS.find(i => i.id === instrumentId);
+    if (motifInst) return motifInst.family.toLowerCase();
+    return 'strings';
+  };
+
+  // Sync motif to Firebase so teacher can see it in Gallery
+  const syncMotifToFirebase = useCallback((charId, notes, instrument, charData) => {
+    if (!studentsPath || !userId) return;
+    const db = getDatabase();
+    const charType = charData.characterType || 'hero';
+    update(ref(db, `${studentsPath}/${userId}`), {
+      motifSubmission: JSON.stringify({
+        characterId: charId,
+        notes,
+        instrument,
+        characterName: charData.characterName || '',
+        characterDescription: charData.characterDescription || '',
+        characterType: charType,
+        characterColor: charData.characterColor || '#3B82F6',
+        // Derived categories for Gallery guessing
+        mode: deriveMode(charType),
+        instrumentFamily: deriveInstrumentFamily(instrument),
+        register: deriveRegister(notes),
+        submittedAt: Date.now(),
+      })
+    });
+  }, [studentsPath, userId]);
+
   // Character card state
   const [selectedCharacterId, setSelectedCharacterId] = useState(null);
   const [characterName, setCharacterName] = useState('');
@@ -528,11 +588,12 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
       saveCharacterCard(selectedCharacterId, characterName, characterDescription, characterColor, characterType, customType);
       saveCharacterMotif(selectedCharacterId, notes, instrument, charData);
       saveMotif(notes, selectedCharacterId, instrument, 80);
+      syncMotifToFirebase(selectedCharacterId, notes, instrument, charData);
       setHasSaved(true);
       setShowSaveSuccess(true);
       setTimeout(() => setShowSaveSuccess(false), 3000);
     }
-  }, [selectedCharacterId, characterName, characterDescription, characterType, customType, characterColor]);
+  }, [selectedCharacterId, characterName, characterDescription, characterType, customType, characterColor, syncMotifToFirebase]);
 
   // Schedule note playback with a ready synth
   const schedulePlayback = useCallback((synth, notes) => {
@@ -628,6 +689,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
     saveCharacterMotif(selectedCharacterId, recordedNotes, recordedInstrument, charData);
     // Also save to the original storage for backward compat
     saveMotif(recordedNotes, selectedCharacterId, recordedInstrument, 80);
+    syncMotifToFirebase(selectedCharacterId, recordedNotes, recordedInstrument, charData);
     setHasSaved(true);
     setShowSaveSuccess(true);
     setTimeout(() => setShowSaveSuccess(false), 3000);
@@ -857,7 +919,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
               embedded={true}
               showRecord={false}
               keyboardOnly={true}
-              defaultScale="major"
+              defaultScale={characterType === 'villain' || characterType === 'sneaky' ? 'minor' : 'major'}
               isRecording={isRecording}
               recordingStartTime={recordingStartTime}
               onRecordStart={handleRecordStart}

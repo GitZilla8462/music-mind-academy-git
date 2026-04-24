@@ -8,7 +8,7 @@ import { getDatabase, ref, update, onValue, get } from 'firebase/database';
 import { useSession } from '../../../../context/SessionContext';
 import { formatFirstNameLastInitial } from '../layer-detective/nameGenerator';
 import {
-  ROUNDS, TOTAL_ROUNDS, INSTRUMENT_FAMILIES, MODES, REGISTERS, SCORING,
+  ROUNDS, TOTAL_ROUNDS, CHARACTER_TYPES, INSTRUMENT_FAMILIES, MODES, REGISTERS, SCORING,
   shuffleArray, formatInstrument
 } from './leitmotifSpotterConfig';
 
@@ -161,7 +161,8 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
     }
 
     // Calculate results
-    let correctAllThree = 0;
+    let correctAllFour = 0;
+    let correctCharacter = 0;
     let correctMode = 0;
     let correctInstrument = 0;
     let correctRegister = 0;
@@ -169,21 +170,24 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
     students.forEach(s => {
       if (!s.answer) return;
       const a = typeof s.answer === 'string' ? JSON.parse(s.answer) : s.answer;
+      const charOk = a.character === round.correctCharacter;
       const modeOk = a.mode === round.correctMode;
       const instOk = a.instrument === round.correctInstrument;
       const regOk = a.register === round.correctRegister;
+      if (charOk) correctCharacter++;
       if (modeOk) correctMode++;
       if (instOk) correctInstrument++;
       if (regOk) correctRegister++;
-      if (modeOk && instOk && regOk) correctAllThree++;
+      if (charOk && modeOk && instOk && regOk) correctAllFour++;
     });
 
-    setRoundResults({ correctAllThree, correctMode, correctInstrument, correctRegister });
+    setRoundResults({ correctAllFour, correctCharacter, correctMode, correctInstrument, correctRegister });
     setGamePhase('revealed');
 
     updateGame({
       phase: 'revealed',
       correctAnswer: JSON.stringify({
+        character: round.correctCharacter,
         mode: round.correctMode,
         instrument: round.correctInstrument,
         instrumentDetail: round.instrumentDetail,
@@ -245,7 +249,7 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="text-8xl mb-6">🔍</div>
-            <h1 className="text-5xl font-black text-white mb-3">Leitmotif Spotter</h1>
+            <h1 className="text-5xl font-black text-white mb-3">Mystery Motif</h1>
             <p className="text-2xl text-purple-200 mb-2">Can you identify the motif?</p>
             <p className="text-lg text-purple-300 mb-8">
               {totalStudents} student{totalStudents !== 1 ? 's' : ''} connected
@@ -285,6 +289,7 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
   }
 
   // ============ PLAYING / GUESSING / REVEALED ============
+  const charInfo = CHARACTER_TYPES.find(c => c.id === round?.correctCharacter);
   const modeInfo = MODES.find(m => m.id === round?.correctMode);
   const instInfo = INSTRUMENT_FAMILIES.find(f => f.id === round?.correctInstrument);
   const regInfo = REGISTERS.find(r => r.id === round?.correctRegister);
@@ -319,11 +324,15 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
                 <p className="text-2xl text-purple-200 mb-6">Play the motif for students to identify</p>
                 <div className="flex gap-4 justify-center mb-6">
                   <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
-                    <div className="text-sm text-purple-300 mb-1">Mode</div>
-                    <div className="text-lg font-bold text-white">Major or Minor?</div>
+                    <div className="text-sm text-purple-300 mb-1">Character</div>
+                    <div className="text-lg font-bold text-white">Hero, Villain, Romantic, or Sneaky?</div>
                   </div>
                   <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
-                    <div className="text-sm text-purple-300 mb-1">Instrument</div>
+                    <div className="text-sm text-purple-300 mb-1">Mode</div>
+                    <div className="text-lg font-bold text-white">Bright or Dark?</div>
+                  </div>
+                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                    <div className="text-sm text-purple-300 mb-1">Instrument Family</div>
                     <div className="text-lg font-bold text-white">What family?</div>
                   </div>
                   <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
@@ -342,11 +351,27 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
 
             {gamePhase === 'guessing' && (
               <div className="text-center">
-                <div className="text-6xl mb-4">🎵</div>
-                <h2 className="text-4xl font-black text-white mb-2">LISTEN!</h2>
                 <p className="text-xl text-purple-200 mb-6">
                   {lockedCount} of {totalStudents} students answered
                 </p>
+                <div className="flex gap-4 justify-center mb-6">
+                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                    <div className="text-sm text-purple-300 mb-1">Character</div>
+                    <div className="text-lg font-bold text-white">Hero, Villain, Romantic, or Sneaky?</div>
+                  </div>
+                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                    <div className="text-sm text-purple-300 mb-1">Mode</div>
+                    <div className="text-lg font-bold text-white">Bright or Dark?</div>
+                  </div>
+                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                    <div className="text-sm text-purple-300 mb-1">Instrument Family</div>
+                    <div className="text-lg font-bold text-white">What family?</div>
+                  </div>
+                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                    <div className="text-sm text-purple-300 mb-1">Register</div>
+                    <div className="text-lg font-bold text-white">Low, Mid, or High?</div>
+                  </div>
+                </div>
                 <div className="flex gap-4 justify-center">
                   <button
                     onClick={replayAudio}
@@ -368,7 +393,19 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
               <div className="text-center w-full max-w-2xl">
                 <h2 className="text-3xl font-black text-white mb-6">The Answer Is...</h2>
 
-                <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  {/* Character */}
+                  <div className="rounded-2xl p-5 text-white" style={{ backgroundColor: charInfo?.color || '#666' }}>
+                    <div className="text-sm opacity-80 mb-1">Character</div>
+                    <div className="text-3xl font-black">{charInfo?.emoji}</div>
+                    <div className="text-lg font-bold">{charInfo?.label}</div>
+                    {roundResults && (
+                      <div className="mt-2 text-sm font-bold bg-black/20 rounded-lg px-2 py-1">
+                        {roundResults.correctCharacter}/{answeredStudents.length} correct
+                      </div>
+                    )}
+                  </div>
+
                   {/* Mode */}
                   <div className="rounded-2xl p-5 text-white" style={{ backgroundColor: modeInfo?.color || '#666' }}>
                     <div className="text-sm opacity-80 mb-1">Mode</div>
@@ -383,7 +420,7 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
 
                   {/* Instrument */}
                   <div className="rounded-2xl p-5 text-white" style={{ backgroundColor: instInfo?.color || '#666' }}>
-                    <div className="text-sm opacity-80 mb-1">Instrument</div>
+                    <div className="text-sm opacity-80 mb-1">Instrument Family</div>
                     <div className="text-3xl font-black">{instInfo?.emoji}</div>
                     <div className="text-lg font-bold">
                       {formatInstrument(round.correctInstrument, round.instrumentDetail)}
@@ -410,7 +447,7 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
 
                 {roundResults && (
                   <p className="text-xl text-purple-200 mb-6">
-                    {roundResults.correctAllThree} of {answeredStudents.length} got all 3 correct!
+                    {roundResults.correctAllFour} of {answeredStudents.length} got all 4 correct!
                   </p>
                 )}
 

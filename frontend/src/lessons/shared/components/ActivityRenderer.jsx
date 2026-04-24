@@ -65,6 +65,7 @@ import NameThatGameActivity from '../activities/name-that-game';
 // ✅ ADDED: Film Music Lesson 1 - Leitmotif & Melody Activities
 import LeitmotifDetectiveActivity from '../activities/leitmotif-detective';
 import MotifBuilderActivity from '../activities/motif-builder';
+import { MotifGalleryStudent } from '../activities/motif-gallery';
 import KeyboardTutorialActivity from '../activities/keyboard-tutorial';
 
 // ✅ ADDED: Unit 2 - The Listening Lab Activities
@@ -621,6 +622,16 @@ const ActivityRenderer = ({
           key={`motif-builder-${activity.id}`}
           onComplete={onComplete}
           viewMode={viewMode}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    // ✅ ADDED: Motif Gallery (Film Music Lesson 1 - student motif showcase)
+    case 'motif-gallery':
+      return (
+        <MotifGalleryStudent
+          key={`motif-gallery-${activity.id}`}
+          onComplete={onComplete}
           isSessionMode={isSessionMode}
         />
       );

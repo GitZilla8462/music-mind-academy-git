@@ -5,78 +5,8 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSession } from "../../../context/SessionContext";
-import { Monitor, Video, X, Play, Music } from 'lucide-react';
+import { Monitor, Video, Music } from 'lucide-react';
 import { getDatabase, ref, onValue } from 'firebase/database';
-
-// First-time tutorial modal for teachers
-const FMLesson1TutorialModal = ({ onClose }) => {
-  const [dontShowAgain, setDontShowAgain] = useState(false);
-
-  const handleClose = () => {
-    if (dontShowAgain) {
-      localStorage.setItem('fm-lesson1-tutorial-seen', 'true');
-    }
-    onClose();
-  };
-
-  const handleWatchVideo = () => {
-    window.open('/lessons/TutorialVideo.mp4', '_blank', 'width=1280,height=720,menubar=no,toolbar=no');
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 to-amber-600 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">Film Scoring Studio</h2>
-          <button
-            onClick={handleClose}
-            className="text-white/80 hover:text-white transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="px-6 py-5">
-          <p className="text-gray-700 text-lg mb-5">
-            Welcome to the Film Music unit! This lesson introduces leitmotifs and character themes.
-          </p>
-
-          {/* Watch Tutorial Button */}
-          <button
-            onClick={handleWatchVideo}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-semibold py-3 px-4 rounded-lg transition-all mb-4"
-          >
-            <Play size={20} fill="currentColor" />
-            Watch: How to Run a Lesson (2 min)
-          </button>
-
-          {/* Don't show again checkbox */}
-          <label className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-gray-800">
-            <input
-              type="checkbox"
-              checked={dontShowAgain}
-              onChange={(e) => setDontShowAgain(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
-            />
-            <span className="text-sm">Don't show this again</span>
-          </label>
-        </div>
-
-        {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-          <button
-            onClick={handleClose}
-            className="w-full bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2.5 px-4 rounded-lg transition-colors"
-          >
-            Got it, let's start!
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Config
 import { fmLesson1Config, lessonStages, getActivityForStage } from './Lesson1config';
@@ -343,18 +273,9 @@ const Lesson1 = () => {
   // Uses TeacherLessonView for combined sidebar + presentation
   // ========================================
 
-  // Tutorial modal state - only show if teacher hasn't seen it
-  const [showTutorialModal, setShowTutorialModal] = React.useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('fm-lesson1-tutorial-seen') !== 'true';
-  });
-
   if (sessionMode.isSessionMode && effectiveRole === 'teacher') {
     return (
       <>
-        {showTutorialModal && (
-          <FMLesson1TutorialModal onClose={() => setShowTutorialModal(false)} />
-        )}
         <TeacherLessonView
           config={fmLesson1Config}
           sessionCode={sessionCode}
