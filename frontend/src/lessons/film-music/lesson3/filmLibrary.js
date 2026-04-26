@@ -59,6 +59,20 @@ export const FILM_LIBRARY = [
     moods: ['Funny', 'Peaceful', 'Sneaky', 'Triumphant'],
     tags: ['Classic', 'Black & White', '1928', 'Comedy'],
   },
+  {
+    id: 'felix-sure-locked-homes',
+    title: 'Felix the Cat: Sure-Locked Homes',
+    description: 'Felix the Cat investigates mysterious things that go bump in the night in this spooky silent cartoon adventure.',
+    background: 'A 1928 Felix the Cat cartoon by Pat Sullivan and Otto Messmer. Felix was one of the biggest cartoon stars of the silent film era — before Mickey Mouse existed. Public domain from the Internet Archive.',
+    duration: 180, // trimmed to ~3:00
+    thumbnail: 'https://media.musicmindacademy.com/videos/film-scoring/felix-sure-locked-homes-thumb.jpg',
+    videoUrl: 'https://media.musicmindacademy.com/videos/film-scoring/felix-sure-locked-homes.mp4',
+    attribution: 'Public Domain (1928)',
+    license: 'Public Domain',
+    characters: ['Felix the Cat'],
+    moods: ['Scary', 'Mysterious', 'Funny', 'Sneaky'],
+    tags: ['Classic', 'Black & White', '1928', 'Mystery'],
+  },
 ];
 
 // Mood options for scene planning
