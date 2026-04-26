@@ -742,7 +742,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
         viewRoute: '/lessons/film-music/lesson1?view=saved',
         subtitle: `${characterName || 'Unnamed'} (${characterType})`,
         category: 'Film Music: Scoring the Story',
-        lessonId: 'fms-lesson1',
+        lessonId: 'fm-lesson1',
         data: {
           characterId: selectedCharacterId,
           characterName,

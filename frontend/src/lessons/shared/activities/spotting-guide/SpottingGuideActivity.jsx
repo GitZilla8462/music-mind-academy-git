@@ -429,7 +429,7 @@ const SpottingGuideActivity = ({ onComplete, isSessionMode = false, viewMode = f
       viewRoute: VIEW_ROUTE,
       subtitle: `${selectedFilm.title} • ${scenes.length} scenes`,
       category: 'Film Music: Scoring the Story',
-      lessonId: 'fms-lesson3',
+      lessonId: 'fm-lesson3',
       data,
     }, studentId, authInfo);
 

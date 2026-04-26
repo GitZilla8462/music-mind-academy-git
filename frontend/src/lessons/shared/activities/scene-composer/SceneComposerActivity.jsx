@@ -564,7 +564,7 @@ const SceneComposerActivity = ({ onComplete, isSessionMode = false, viewMode = f
       viewRoute: VIEW_ROUTE,
       subtitle: `${currentScenes.length} scenes • ${loops.length} loops`,
       category: 'Film Music: Scoring the Story',
-      lessonId: 'fms-lesson2',
+      lessonId: 'fm-lesson2',
       data: {
         placedLoops: loops,
         scenes: currentScenes,

@@ -214,7 +214,7 @@ export const CURRICULUM = [
     color: 'orange',
     lessons: [
       {
-        id: 'fms-lesson1',
+        id: 'fm-lesson1',
         name: 'Lesson 1: WHO Is In The Story?',
         shortName: 'Leitmotif',
         concept: 'Leitmotif & Melody — character identity through music',
@@ -224,7 +224,7 @@ export const CURRICULUM = [
         ]
       },
       {
-        id: 'fms-lesson2',
+        id: 'fm-lesson2',
         name: 'Lesson 2: WHAT Do They Feel?',
         shortName: 'Instruments',
         concept: 'Instruments & Emotion — how instrument choice affects feeling',
@@ -234,7 +234,7 @@ export const CURRICULUM = [
         ]
       },
       {
-        id: 'fms-lesson3',
+        id: 'fm-lesson3',
         name: 'Lesson 3: Plan Your Score',
         shortName: 'Spotting',
         concept: 'Choose a film & build your spotting guide',
@@ -244,7 +244,7 @@ export const CURRICULUM = [
         ]
       },
       {
-        id: 'fms-lesson4',
+        id: 'fm-lesson4',
         name: 'Lesson 4: HOW Does Tension Build?',
         shortName: 'Tension',
         concept: 'Tension & Harmony — how music follows the story arc',
@@ -252,7 +252,7 @@ export const CURRICULUM = [
         activities: []
       },
       {
-        id: 'fms-lesson5',
+        id: 'fm-lesson5',
         name: 'Lesson 5: Complete Story',
         shortName: 'Capstone',
         concept: 'Integration & Refinement — complete film score',
