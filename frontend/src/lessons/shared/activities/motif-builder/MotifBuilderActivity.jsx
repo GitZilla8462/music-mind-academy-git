@@ -17,6 +17,7 @@ import { saveCharacterCard, getCharacterCard, saveMotif, getMotif } from '../../
 import VirtualInstrumentOverlay from '../../../film-music/shared/virtual-instrument/VirtualInstrumentOverlay';
 import { INSTRUMENTS } from '../../../film-music/shared/virtual-instrument/instrumentConfig';
 import DirectionsModal, { DirectionsReopenButton } from '../../components/DirectionsModal';
+import { saveStudentWork, getStudentId, getClassAuthInfo } from '../../../../utils/studentWorkStorage';
 import useDirectionsModal from '../../hooks/useDirectionsModal';
 
 // Color palette
@@ -42,6 +43,7 @@ const MOTIF_BUILDER_PAGES = [
       'Press Record, then play 4–8 notes on the keyboard',
       'Press Play to hear it back — does it match your character?',
       'If not, press Clear and try again!',
+      'Press Save to save your motif — your best one will be shared with the class!',
     ]
   }
 ];
@@ -464,22 +466,25 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
     if (!studentsPath || !userId) return;
     const db = getDatabase();
     const charType = charData.characterType || 'hero';
+    const motifData = {
+      characterId: charId,
+      notes,
+      instrument,
+      characterName: charData.characterName || '',
+      characterDescription: charData.characterDescription || '',
+      characterType: charType,
+      characterColor: charData.characterColor || '#3B82F6',
+      mode: deriveMode(charType),
+      instrumentFamily: deriveInstrumentFamily(instrument),
+      register: deriveRegister(notes),
+      submittedAt: Date.now(),
+    };
+    // Save as primary submission (gallery reads this)
     update(ref(db, `${studentsPath}/${userId}`), {
-      motifSubmission: JSON.stringify({
-        characterId: charId,
-        notes,
-        instrument,
-        characterName: charData.characterName || '',
-        characterDescription: charData.characterDescription || '',
-        characterType: charType,
-        characterColor: charData.characterColor || '#3B82F6',
-        // Derived categories for Gallery guessing
-        mode: deriveMode(charType),
-        instrumentFamily: deriveInstrumentFamily(instrument),
-        register: deriveRegister(notes),
-        submittedAt: Date.now(),
-      })
+      motifSubmission: JSON.stringify(motifData)
     });
+    // Also save per-character so teacher can browse all motifs
+    update(ref(db, `${studentsPath}/${userId}/allMotifs/${charId}`), motifData);
   }, [studentsPath, userId]);
 
   // Force re-render when characters are deleted
@@ -726,6 +731,34 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
     // Also save to the original storage for backward compat
     saveMotif(recordedNotes, selectedCharacterId, recordedInstrument, 80);
     syncMotifToFirebase(selectedCharacterId, recordedNotes, recordedInstrument, charData);
+
+    // Save first motif to student dashboard + teacher gradebook (don't overwrite)
+    const studentId = getStudentId();
+    const authInfo = getClassAuthInfo();
+    try {
+      const existing = localStorage.getItem(`mma-saved-${studentId || 'anon'}-fm-motif-builder`);
+      if (!existing) {
+        saveStudentWork('fm-motif-builder', {
+          title: 'Motif Builder',
+          emoji: '🎵',
+          viewRoute: '/lessons/film-music/lesson1?view=saved',
+          subtitle: `${characterName || 'Unnamed'} (${characterType})`,
+          category: 'Film Music: Scoring the Story',
+          lessonId: 'fms-lesson1',
+          data: {
+            characterId: selectedCharacterId,
+            characterName,
+            characterDescription,
+            characterType,
+            customType,
+            characterColor,
+            notes: recordedNotes,
+            instrument: recordedInstrument,
+          }
+        }, studentId, authInfo);
+      }
+    } catch(e) {}
+
     setHasSaved(true);
     setShowSaveSuccess(true);
     setTimeout(() => setShowSaveSuccess(false), 3000);

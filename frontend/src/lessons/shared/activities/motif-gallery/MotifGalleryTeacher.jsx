@@ -138,7 +138,13 @@ const MotifGalleryTeacher = ({ sessionData, onComplete }) => {
         .filter(([, s]) => s.motifSubmission)
         .map(([id, s]) => {
           const motif = typeof s.motifSubmission === 'string' ? JSON.parse(s.motifSubmission) : s.motifSubmission;
-          return { id, studentName: formatFirstNameLastInitial(s.displayName || s.playerName || s.name || 'Student'), ...motif };
+          const name = formatFirstNameLastInitial(s.displayName || s.playerName || s.name || 'Student');
+          // Collect all motifs for this student (for search/browse)
+          const allMotifsObj = s.allMotifs || {};
+          const allMotifsList = Object.entries(allMotifsObj)
+            .filter(([, m]) => m.notes && m.notes.length > 0)
+            .map(([charId, m]) => ({ ...m, characterId: charId }));
+          return { id, studentName: name, ...motif, allMotifs: allMotifsList };
         })
         .filter(s => s.notes && s.notes.length > 0);
       setSubmissions(list);
@@ -341,22 +347,47 @@ const MotifGalleryTeacher = ({ sessionData, onComplete }) => {
                   <p className="text-center text-purple-300 py-8">No submissions found</p>
                 ) : (
                   searchResults.map(sub => (
-                    <button
-                      key={sub.id}
-                      onClick={() => playStudent(sub)}
-                      className="w-full flex items-center gap-4 p-4 rounded-xl bg-white/10 hover:bg-white/20 transition-all text-left"
-                    >
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0"
-                        style={{ backgroundColor: sub.characterColor || '#3B82F6' }}
+                    <div key={sub.id} className="rounded-xl bg-white/10 overflow-hidden">
+                      {/* Primary motif */}
+                      <button
+                        onClick={() => playStudent(sub)}
+                        className="w-full flex items-center gap-4 p-4 hover:bg-white/10 transition-all text-left"
                       >
-                        {(sub.studentName || '?')[0]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-white font-bold truncate">{sub.studentName}</div>
-                        <div className="text-purple-300 text-sm">{sub.notes?.length || 0} notes — {INSTRUMENTS[sub.instrument]?.name || sub.instrument}</div>
-                      </div>
-                      <Play size={20} className="text-purple-300 shrink-0" />
-                    </button>
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0"
+                          style={{ backgroundColor: sub.characterColor || '#3B82F6' }}
+                        >
+                          {(sub.studentName || '?')[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white font-bold truncate">{sub.studentName}</div>
+                          <div className="text-purple-300 text-sm">
+                            {sub.characterName || 'Unnamed'} — {sub.notes?.length || 0} notes — {INSTRUMENTS[sub.instrument]?.name || sub.instrument}
+                          </div>
+                        </div>
+                        <Play size={20} className="text-purple-300 shrink-0" />
+                      </button>
+                      {/* Additional motifs (if student made multiple characters) */}
+                      {sub.allMotifs && sub.allMotifs.length > 1 && (
+                        <div className="border-t border-white/10 px-4 pb-2 pt-1">
+                          <div className="text-[10px] text-purple-400 font-bold uppercase mb-1">All Characters ({sub.allMotifs.length})</div>
+                          {sub.allMotifs.map((m, i) => (
+                            <button
+                              key={m.characterId || i}
+                              onClick={() => playStudent({ ...sub, ...m })}
+                              className="w-full flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-white/10 transition-all text-left text-sm"
+                            >
+                              <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                                style={{ backgroundColor: m.characterColor || '#3B82F6' }}>
+                                {i + 1}
+                              </div>
+                              <span className="text-white font-medium truncate flex-1">{m.characterName || 'Unnamed'}</span>
+                              <span className="text-purple-400 text-xs">{m.characterType}</span>
+                              <Play size={14} className="text-purple-400 shrink-0" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))
                 )}
               </div>
