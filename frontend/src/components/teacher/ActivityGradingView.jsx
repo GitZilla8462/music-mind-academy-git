@@ -978,7 +978,7 @@ const ActivityGradingView = ({
                 ))}
               </div>
             </div>
-          ) : currentWork?.data?.answers || currentWork?.data?.entries ? (
+          ) : currentWork?.data?.answers || currentWork?.data?.entries || currentWork?.data?.notes ? (
             renderWorkContent(currentWork)
           ) : currentWork ? (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8">
