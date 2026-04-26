@@ -543,6 +543,43 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
   // Directions modal
   const directions = useDirectionsModal('motif-builder');
 
+  // Migrate existing motifs to student dashboard on mount
+  useEffect(() => {
+    try {
+      const studentId = getStudentId();
+      const existingKey = `mma-saved-${studentId}-fm-motif-builder`;
+      if (localStorage.getItem(existingKey)) return; // already migrated
+
+      // Find first saved motif from old format
+      for (const char of CHARACTER_LIBRARY) {
+        const motif = getCharacterMotif(char.id);
+        if (motif?.notes?.length >= 4) {
+          const authInfo = getClassAuthInfo();
+          saveStudentWork('fm-motif-builder', {
+            title: 'Motif Builder',
+            emoji: '🎵',
+            viewRoute: '/lessons/film-music/lesson1?view=saved',
+            subtitle: `${motif.characterName || char.name} (${motif.characterType || 'hero'})`,
+            category: 'Film Music: Scoring the Story',
+            lessonId: 'fm-lesson1',
+            data: {
+              characterId: char.id,
+              characterName: motif.characterName || char.name,
+              characterDescription: motif.characterDescription || '',
+              characterType: motif.characterType || 'hero',
+              customType: motif.customType || '',
+              characterColor: motif.characterColor || '#3B82F6',
+              notes: motif.notes,
+              instrument: motif.instrument || 'piano',
+            }
+          }, studentId, authInfo);
+          console.log('📦 Migrated existing motif to student dashboard:', char.id);
+          break; // only migrate the first one
+        }
+      }
+    } catch(e) { console.error('Motif migration failed:', e); }
+  }, []);
+
   // Load saved data for selected character
   useEffect(() => {
     if (!selectedCharacterId) return;
