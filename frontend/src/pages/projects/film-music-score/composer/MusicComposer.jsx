@@ -100,7 +100,21 @@ const MusicComposer = ({
   // NEW: Initial custom loops (e.g., beats from StudentBeatMakerActivity)
   initialCustomLoops = null,
   // NEW: Initial cursor position (for seamless cursor when MusicComposer remounts)
-  initialCursorPosition = null
+  initialCursorPosition = null,
+  // NEW: Auto-open virtual instrument on mount
+  defaultVirtualInstrumentOpen = false,
+  // NEW: Primary tool to highlight in CreatorPanel
+  primaryCreatorTool = null,
+  // NEW: Override track count (default uses TIMELINE_CONSTANTS.NUM_TRACKS)
+  maxTracks = null,
+  // NEW: Custom content to replace the VideoPlayer (e.g., drawn scenes)
+  customVideoContent = null,
+  // NEW: Scene blocks data for timeline (array of {startTime, endTime, label, active, onClick})
+  sceneBlocks = null,
+  // NEW: Initial height of the top panel (video/drawing area). Default 400.
+  initialTopPanelHeight = null,
+  // NEW: Callback with currentTime during playback (for syncing external UI)
+  onTimeUpdate = null,
 }) => {
   const { videoId, assignmentId } = useParams();
   const navigate = useNavigate();
@@ -116,7 +130,7 @@ const MusicComposer = ({
   const [creatorMenuOpen, setCreatorMenuOpen] = useState(false);
   const [beatMakerOpen, setBeatMakerOpen] = useState(false);
   const [melodyMakerOpen, setMelodyMakerOpen] = useState(false);
-  const [virtualInstrumentOpen, setVirtualInstrumentOpen] = useState(false);
+  const [virtualInstrumentOpen, setVirtualInstrumentOpen] = useState(defaultVirtualInstrumentOpen);
   const [floatingLoopLibraryOpen, setFloatingLoopLibraryOpen] = useState(false);
   const [pianoRollLoop, setPianoRollLoop] = useState(null); // loop being edited in piano roll
 
@@ -189,7 +203,7 @@ const MusicComposer = ({
     isResizingTop,
     setIsResizingTop,
     containerRef
-  } = useComposerState(preselectedVideo);
+  } = useComposerState(preselectedVideo, { initialTopPanelHeight });
 
   // 🛡️ CHROMEBOOK SWIPE PROTECTION
   // Prevents two-finger swipe back gesture and other accidental navigation
@@ -299,6 +313,15 @@ const MusicComposer = ({
     activeGainNodesRef  // ✅ NEW: For real-time volume updates during playback
   } = useAudioEngine(selectedVideo?.duration);
 
+  // Notify parent of time updates (for scene switching on playback AND scrubbing)
+  const onTimeUpdateRef = useRef(onTimeUpdate);
+  onTimeUpdateRef.current = onTimeUpdate;
+  useEffect(() => {
+    if (onTimeUpdateRef.current) {
+      onTimeUpdateRef.current(currentTime);
+    }
+  }, [currentTime]);
+
   // 🛑 CLEANUP: Stop audio on component unmount
   // This prevents music from playing in the background after navigating away
   useEffect(() => {
@@ -321,7 +344,7 @@ const MusicComposer = ({
     // For normal mode: DAW is ready when we have video AND audio
     const isDawReady = tutorialMode
       ? audioReady && !videoLoading  // Tutorial just needs audio
-      : selectedVideo && audioReady && !videoLoading;  // Normal needs video + audio
+      : (selectedVideo || customVideoContent) && audioReady && !videoLoading;  // Normal needs video/custom content + audio
 
     if (isDawReady && !dawReadyCalledRef.current && onDAWReadyCallback) {
       console.log('✅ DAW is fully initialized - calling onDAWReadyCallback');
@@ -1051,7 +1074,7 @@ const MusicComposer = ({
   // FIXED: Wait for custom beat re-rendering to complete before hiding loading screen
   // This prevents the 2-3 second lag on Chromebook after loading screen hides
   useEffect(() => {
-    const isVideoReady = tutorialMode || (selectedVideo && !videoLoading);
+    const isVideoReady = tutorialMode || customVideoContent || (selectedVideo && !videoLoading);
 
     // Check if any custom beats still need rendering
     const customBeatsNeedRender = placedLoops.some(loop =>
@@ -1172,6 +1195,10 @@ const MusicComposer = ({
         highlightSelector={highlightSelector}
         currentlyPlayingPreview={currentlyPlayingPreview}
         assignmentPanelContent={assignmentPanelContent}
+        customVideoContent={customVideoContent}
+        sceneBlocks={sceneBlocks}
+        primaryCreatorTool={primaryCreatorTool}
+        maxTracks={maxTracks}
         playersReady={audioReady}  // FIX: Pass playersReady to enable play button
         // Creator tools (Beat Maker, Melody Maker, Virtual Instrument)
         showCreatorTools={showCreatorTools}

@@ -1,5 +1,6 @@
 // File: /lessons/film-music/lesson2/Lesson2.jsx
-// Film Music Lesson 2: WHAT Do They Feel? - Orchestration & Bass
+// Film Music Lesson 2: WHAT Do They Feel? — Instruments & Emotion
+// Hook → 4 instrument demos → Scene Composer (draw + record two character themes)
 // Uses TeacherLessonView for combined sidebar + presentation
 
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
@@ -59,6 +60,7 @@ const Lesson2 = () => {
   const searchParams = new URLSearchParams(location.search);
   const isPreviewMode = searchParams.get('preview') === 'true';
   const isMuted = searchParams.get('muted') === 'true';
+  const viewSavedMode = searchParams.get('view') === 'saved';
 
   const currentStageData = useMemo(() => {
     return lessonStages.find(stage => stage.id === currentStage);
@@ -213,6 +215,25 @@ const Lesson2 = () => {
         resumeActivityTimer={timers.resumeActivityTimer}
         resetActivityTimer={timers.resetActivityTimer}
       />
+    );
+  }
+
+  // ========================================
+  // VIEW SAVED MODE: Read-only composition viewer
+  // ========================================
+  if (viewSavedMode) {
+    const savedActivity = fmLesson2Config.activities.find(a => a.type === 'scene-composer');
+    return (
+      <div className="h-screen flex flex-col bg-gray-900">
+        <div className="flex-1 overflow-hidden">
+          <ActivityRenderer
+            activity={savedActivity}
+            onComplete={() => {}}
+            viewMode={true}
+            isSessionMode={false}
+          />
+        </div>
+      </div>
     );
   }
 

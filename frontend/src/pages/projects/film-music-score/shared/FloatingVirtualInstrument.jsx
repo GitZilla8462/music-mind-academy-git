@@ -142,10 +142,10 @@ const FloatingVirtualInstrument = ({
       setPosition({ x: Math.max(10, (vw - w) / 2), y: vh });
       setIsMinimized(false);
       setIsAnimating(true);
-      // Slide up after a frame
+      // Slide up after a frame — position flush to bottom
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          setPosition({ x: Math.max(10, (vw - w) / 2), y: vh - defaultHeight - 30 });
+          setPosition({ x: Math.max(10, (vw - w) / 2), y: vh - defaultHeight - 5 });
           setTimeout(() => setIsAnimating(false), 400);
         });
       });
@@ -337,6 +337,9 @@ const FloatingVirtualInstrument = ({
 
     const handleKeyDown = (e) => {
       if (e.repeat) return;
+      // Ignore keyboard events from text inputs so typing doesn't trigger notes
+      const tag = e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
       const key = e.key.toLowerCase();
       if (mode === 'keyboard') {
         const note = KEY_TO_NOTE[key];
@@ -348,6 +351,8 @@ const FloatingVirtualInstrument = ({
     };
 
     const handleKeyUp = (e) => {
+      const tag = e.target.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
       const key = e.key.toLowerCase();
       if (mode === 'keyboard') {
         const note = KEY_TO_NOTE[key];

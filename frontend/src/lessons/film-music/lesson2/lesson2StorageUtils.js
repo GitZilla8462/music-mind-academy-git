@@ -1,76 +1,84 @@
 // File: /src/lessons/film-music/lesson2/lesson2StorageUtils.js
-// Storage management for Film Music Lesson 2 - WHAT Do They Feel? (Orchestration & Bass)
+// Storage management for Film Music Lesson 2 — WHAT Do They Feel? (Instruments & Emotion)
+// Supports dynamic number of scenes (1-8)
+
+const PREFIX = 'fm-lesson2';
 
 export const STORAGE_KEYS = {
-  EMOTION_LAB: 'fm-lesson2-emotion-lab',
-  BASS_BUILDER: 'fm-lesson2-bass-builder',
-  REFLECTION: 'fm-lesson2-reflection',
-  LESSON_TIMER: 'fm-lesson2-timer',
-  LESSON_PROGRESS: 'fm-lesson2-progress'
+  LESSON_TIMER: `${PREFIX}-timer`,
+  LESSON_PROGRESS: `${PREFIX}-progress`
 };
 
-export const saveEmotionLabResults = (ratings) => {
-  const data = {
-    ratings,
-    completedAt: new Date().toISOString()
-  };
-  localStorage.setItem(STORAGE_KEYS.EMOTION_LAB, JSON.stringify(data));
+// ========================================
+// Generic per-scene storage (supports any scene number)
+// ========================================
+const sceneKey = (sceneNum, field) => `${PREFIX}-scene${sceneNum}-${field}`;
+
+// Scene drawing (base64 PNG data URL)
+export const saveSceneDrawing = (sceneNum, dataUrl) => {
+  try { localStorage.setItem(sceneKey(sceneNum, 'drawing'), dataUrl); } catch (e) {}
+};
+
+export const getSceneDrawing = (sceneNum) => {
+  try { return localStorage.getItem(sceneKey(sceneNum, 'drawing')) || null; } catch { return null; }
+};
+
+// Scene background ID
+export const saveSceneBackground = (sceneNum, bgId) => {
+  localStorage.setItem(sceneKey(sceneNum, 'bg'), bgId);
+};
+
+export const getSceneBackground = (sceneNum) => {
+  return localStorage.getItem(sceneKey(sceneNum, 'bg')) || null;
+};
+
+// Scene recording (array of {note, timestamp, duration})
+export const saveSceneRecording = (sceneNum, notes, instrument) => {
+  const data = { notes, instrument, savedAt: new Date().toISOString() };
+  localStorage.setItem(sceneKey(sceneNum, 'recording'), JSON.stringify(data));
+  localStorage.setItem(sceneKey(sceneNum, 'instrument'), instrument);
   return data;
 };
 
-export const getEmotionLabResults = () => {
+export const getSceneRecording = (sceneNum) => {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.EMOTION_LAB);
+    const data = localStorage.getItem(sceneKey(sceneNum, 'recording'));
     return data ? JSON.parse(data) : null;
-  } catch (error) {
-    console.error('Error loading emotion lab results:', error);
-    return null;
-  }
+  } catch { return null; }
 };
 
-export const saveBassBuilder = (recordedNotes) => {
-  const data = {
-    recordedNotes,
-    noteCount: recordedNotes.length,
-    savedAt: new Date().toISOString()
-  };
-  localStorage.setItem(STORAGE_KEYS.BASS_BUILDER, JSON.stringify(data));
-  return data;
+export const getSceneInstrument = (sceneNum) => {
+  return localStorage.getItem(sceneKey(sceneNum, 'instrument')) || null;
 };
 
-export const getBassBuilder = () => {
+// Character name
+export const saveSceneCharacter = (sceneNum, name) => {
+  localStorage.setItem(sceneKey(sceneNum, 'character'), name);
+};
+
+export const getSceneCharacter = (sceneNum) => {
+  return localStorage.getItem(sceneKey(sceneNum, 'character')) || '';
+};
+
+// ========================================
+// Spotting guide data per scene (character type, description)
+// ========================================
+export const saveSceneSpotting = (sceneNum, data) => {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.BASS_BUILDER);
-    return data ? JSON.parse(data) : null;
-  } catch (error) {
-    console.error('Error loading bass builder:', error);
-    return null;
-  }
+    localStorage.setItem(sceneKey(sceneNum, 'spotting'), JSON.stringify(data));
+  } catch (e) {}
 };
 
-export const saveReflection = (reviewType, partnerName, star1, star2, wish) => {
-  const reflection = {
-    reviewType,
-    partnerName,
-    star1,
-    star2,
-    wish,
-    submittedAt: new Date().toISOString()
-  };
-  localStorage.setItem(STORAGE_KEYS.REFLECTION, JSON.stringify(reflection));
-  return reflection;
-};
-
-export const getReflection = () => {
+export const getSceneSpotting = (sceneNum) => {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.REFLECTION);
+    const data = localStorage.getItem(sceneKey(sceneNum, 'spotting'));
     return data ? JSON.parse(data) : null;
-  } catch (error) {
-    console.error('Error loading reflection:', error);
-    return null;
-  }
+  } catch { return null; }
 };
 
+// ========================================
+// Lesson progress
+// ========================================
 export const saveLessonProgress = (currentActivity, completedActivities) => {
   const progress = {
     currentActivity,
@@ -85,23 +93,15 @@ export const getLessonProgress = () => {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.LESSON_PROGRESS);
     return data ? JSON.parse(data) : null;
-  } catch (error) {
-    console.error('Error loading lesson progress:', error);
-    return null;
-  }
+  } catch { return null; }
 };
 
 export const clearAllFMLesson2Data = () => {
-  Object.values(STORAGE_KEYS).forEach(key => {
-    localStorage.removeItem(key);
-  });
-};
-
-export const getFMLesson2Summary = () => {
-  return {
-    emotionLab: getEmotionLabResults(),
-    bassBuilder: getBassBuilder(),
-    reflection: getReflection(),
-    progress: getLessonProgress()
-  };
+  // Clear all fm-lesson2 keys
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(PREFIX)) keysToRemove.push(key);
+  }
+  keysToRemove.forEach(key => localStorage.removeItem(key));
 };

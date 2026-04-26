@@ -1,73 +1,29 @@
 // File: /src/lessons/film-music/lesson3/lesson3StorageUtils.js
-// Storage management for Film Music Lesson 3 - WHEN Does Music Speak? (Spotting & Silence)
+// Storage management for Film Music Lesson 3 - Plan Your Score (Spotting Guide)
 
 export const STORAGE_KEYS = {
-  SILENCE_STUDY: 'fm-lesson3-silence-study',
-  SPOTTING_SESSION: 'fm-lesson3-spotting-session',
-  REFLECTION: 'fm-lesson3-reflection',
+  SPOTTING_GUIDE: 'fm-lesson3-spotting-guide',
   LESSON_TIMER: 'fm-lesson3-timer',
   LESSON_PROGRESS: 'fm-lesson3-progress'
 };
 
-export const saveSilenceStudy = (answers) => {
-  const data = {
-    answers,
-    completedAt: new Date().toISOString()
-  };
-  localStorage.setItem(STORAGE_KEYS.SILENCE_STUDY, JSON.stringify(data));
-  return data;
-};
-
-export const getSilenceStudy = () => {
+export const saveSpottingGuide = (data) => {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.SILENCE_STUDY);
-    return data ? JSON.parse(data) : null;
+    localStorage.setItem(STORAGE_KEYS.SPOTTING_GUIDE, JSON.stringify({
+      ...data,
+      savedAt: new Date().toISOString()
+    }));
   } catch (error) {
-    console.error('Error loading silence study:', error);
-    return null;
+    console.error('Error saving spotting guide:', error);
   }
 };
 
-export const saveSpottingSession = (decisions, reasons) => {
-  const data = {
-    decisions,
-    reasons,
-    cuePointCount: Object.keys(decisions).length,
-    completedAt: new Date().toISOString()
-  };
-  localStorage.setItem(STORAGE_KEYS.SPOTTING_SESSION, JSON.stringify(data));
-  return data;
-};
-
-export const getSpottingSession = () => {
+export const getSpottingGuide = () => {
   try {
-    const data = localStorage.getItem(STORAGE_KEYS.SPOTTING_SESSION);
+    const data = localStorage.getItem(STORAGE_KEYS.SPOTTING_GUIDE);
     return data ? JSON.parse(data) : null;
   } catch (error) {
-    console.error('Error loading spotting session:', error);
-    return null;
-  }
-};
-
-export const saveReflection = (reviewType, partnerName, star1, star2, wish) => {
-  const reflection = {
-    reviewType,
-    partnerName,
-    star1,
-    star2,
-    wish,
-    submittedAt: new Date().toISOString()
-  };
-  localStorage.setItem(STORAGE_KEYS.REFLECTION, JSON.stringify(reflection));
-  return reflection;
-};
-
-export const getReflection = () => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEYS.REFLECTION);
-    return data ? JSON.parse(data) : null;
-  } catch (error) {
-    console.error('Error loading reflection:', error);
+    console.error('Error loading spotting guide:', error);
     return null;
   }
 };
@@ -100,9 +56,7 @@ export const clearAllFMLesson3Data = () => {
 
 export const getFMLesson3Summary = () => {
   return {
-    silenceStudy: getSilenceStudy(),
-    spottingSession: getSpottingSession(),
-    reflection: getReflection(),
+    spottingGuide: getSpottingGuide(),
     progress: getLessonProgress()
   };
 };

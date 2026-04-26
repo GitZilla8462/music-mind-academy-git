@@ -188,60 +188,56 @@ const FilmMusicHub = () => {
         { title: 'Two Stars & a Wish', description: 'Reflect on your theme', time: 3, activityType: 'two-stars-wish' }
       ]
     },
-    // Lesson 2: WHAT Do They Feel? (Orchestration/Bass)
+    // Lesson 2: WHAT Do They Feel? (Instruments & Emotion)
     {
       id: 'fm-lesson2',
       number: 2,
       icon: '💭',
       title: 'WHAT Do They Feel?',
-      concept: 'Orchestration & Bass',
+      concept: 'Instruments & Emotion',
       essentialQuestion: 'How do instruments reveal inner emotion?',
       color: 'from-blue-500 to-indigo-600',
       route: '/lessons/film-music/lesson2',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students learn that we hear what characters feel inside, even when they hide it. They explore how different instruments change emotional meaning, then add a bassline to their theme.',
+      inThisLesson: 'Students learn that different instruments tell different feelings. They hear the same melody on flute, bassoon, trumpet, and low brass, then compose two character themes on a scene timeline.',
       studentsWill: [
         'Understand how instrument choice (timbre) affects emotional meaning',
-        'Play bass notes with the left hand (slower, sustained notes)',
-        'Add a bassline underneath Theme A from Lesson 1'
+        'Identify the emotional qualities of flute, bassoon, trumpet, and low brass',
+        'Compose two character themes using different instruments on a scene timeline'
       ],
       activities: [
-        { title: 'Hook', description: 'Scene: Character smiles but music is sad. "What do they REALLY feel?"', time: 3 },
-        { title: 'Learn', description: 'Instruments carry emotion. Same melody, different instrument = different feeling.', time: 5 },
-        { title: 'Bass Basics', description: 'Bass clef range, playing with left hand, slower movement', time: 5, activityType: 'bass-tutorial' },
-        { title: 'Instrument Emotion Lab', description: 'Same melody, 6 instruments, rate emotions', time: 8, activityType: 'instrument-emotion-lab' },
-        { title: 'Bass Builder', description: 'Experiment with bass notes under your melody', time: 7, activityType: 'bass-builder' },
-        { title: 'Compose', description: 'Add bassline underneath Theme A from Lesson 1', time: 10, activityType: 'fm-composition' },
-        { title: 'Partner Share', description: 'Why did you choose that bass approach?', time: 2 }
+        { title: 'Hook', description: 'Same melody on flute then bassoon — "Why do they feel so different?"', time: 3 },
+        { title: 'Learn', description: 'The melody tells us WHO. The instrument tells us WHAT they feel.', time: 3 },
+        { title: 'Instrument Demos', description: 'Flute, Bassoon, Trumpet, Low Brass — hear each one', time: 6 },
+        { title: 'Scene Composer', description: 'Draw two scenes, pick instruments, compose themes', time: 15, activityType: 'scene-composer' },
+        { title: 'Partner Share', description: 'Play your timeline — did your partner hear the scene change?', time: 3 }
       ]
     },
-    // Lesson 3: WHEN Does Music Speak? (Spotting/Silence)
+    // Lesson 3: Plan Your Score (Spotting Guide)
     {
       id: 'fm-lesson3',
       number: 3,
-      icon: '🔇',
-      title: 'WHEN Does Music Speak?',
-      concept: 'Spotting & Silence',
-      essentialQuestion: 'When should music talk and when should it listen?',
+      icon: '🎬',
+      title: 'Plan Your Score',
+      concept: 'Spotting Guide',
+      essentialQuestion: 'How do composers plan before they write?',
       color: 'from-slate-500 to-gray-700',
       route: '/lessons/film-music/lesson3',
       available: true,
       hasLessonPlan: false,
-      inThisLesson: 'Students discover that silence is powerful. They learn spotting (deciding where music goes), explore sound effects, then adjust their composition with intentional silence.',
+      inThisLesson: 'Students choose a film for their final project, watch it, break it into scenes, and plan their music for each scene — just like real film composers.',
       studentsWill: [
         'Understand spotting: deciding where music enters and exits',
-        'Identify diegetic vs. non-diegetic sound',
-        'Use intentional silence and sound effects purposefully'
+        'Break a film into scenes based on mood, action, and character changes',
+        'Plan instrument, mood, and character choices for each scene'
       ],
       activities: [
-        { title: 'Hook', description: 'Same scene: with music vs. without. "Which is more powerful? When?"', time: 4 },
-        { title: 'Learn', description: 'Spotting = deciding where music goes. Diegetic vs. non-diegetic.', time: 5 },
-        { title: 'SFX Intro', description: 'Types of SFX: ambient, impact, tension, transition', time: 4, activityType: 'sfx-intro' },
-        { title: 'Silence Study', description: 'Compare scenes with/without strategic silence', time: 8, activityType: 'silence-study' },
-        { title: 'Spotting Session', description: 'Mark IN/OUT points on professional scene', time: 8, activityType: 'spotting-session' },
-        { title: 'Compose', description: 'Adjust Theme A + Bass placement, add silence and SFX', time: 9, activityType: 'fm-composition' },
-        { title: 'Reflect', description: 'Why did you put silence THERE?', time: 2 }
+        { title: 'Hook', description: 'Real composers plan before they compose.', time: 3 },
+        { title: 'Spotting Concept', description: 'Spotting = deciding where music goes and stops.', time: 2 },
+        { title: 'Spotting Guide', description: 'Choose a film, watch it, add scene breaks, plan your music.', time: 30, activityType: 'spotting-guide' },
+        { title: 'Partner Share', description: 'Compare your plans — same scenes? Same moods?', time: 4 },
+        { title: 'Close', description: 'Next class: you compose!', time: 1 }
       ]
     },
     // Lesson 4: HOW Does Tension Build? (Harmony)
@@ -440,7 +436,7 @@ const FilmMusicHub = () => {
           <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
             <span className="px-3 py-1.5 bg-orange-100 text-orange-800 rounded-lg">L1: Theme</span>
             <span className="text-emerald-400">→</span>
-            <span className="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg">L2: + Bass</span>
+            <span className="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg">L2: + Instruments</span>
             <span className="text-emerald-400">→</span>
             <span className="px-3 py-1.5 bg-slate-100 text-slate-800 rounded-lg">L3: + Silence/SFX</span>
             <span className="text-emerald-400">→</span>

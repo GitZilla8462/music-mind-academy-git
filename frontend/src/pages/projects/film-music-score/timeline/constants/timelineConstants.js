@@ -2,7 +2,7 @@
 
 export const TIMELINE_CONSTANTS = {
   TRACK_HEIGHT: 48, // REDUCED from 96 to 48 (50% reduction)
-  VIDEO_TRACK_HEIGHT: 18,
+  VIDEO_TRACK_HEIGHT: 32, // Increased from 18 to 32 to fit scene blocks
   HEADER_HEIGHT: 32,
   NUM_TRACKS: 8,
   MARGIN_WIDTH: 200,

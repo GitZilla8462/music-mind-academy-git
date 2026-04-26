@@ -168,9 +168,16 @@ import FilmMusicCompositionActivity from '../activities/FilmMusicCompositionActi
 import ComposersNotes from '../../film-music/shared/composers-notes/ComposersNotes';
 import ViewingPartyMode from '../../film-music/shared/viewing-party/ViewingPartyMode';
 
+// ✅ ADDED: Score This Character game (Film Music Lesson 2)
+import { ScoreThisCharacterStudent } from '../activities/score-this-character';
+
+// ✅ ADDED: Spotting Guide (Film Music Lesson 3)
+import { SpottingGuideActivity } from '../activities/spotting-guide';
+
 // Film Music Lesson 2-4 Activities
 import InstrumentEmotionLabActivity from '../activities/instrument-emotion-lab/InstrumentEmotionLabActivity';
 import BassBuilderActivity from '../activities/bass-builder/BassBuilderActivity';
+import SceneComposerActivity from '../activities/scene-composer/SceneComposerActivity';
 import SilenceStudyActivity from '../activities/silence-study/SilenceStudyActivity';
 import SpottingSessionActivity from '../activities/spotting-session/SpottingSessionActivity';
 import TensionTimelineActivity from '../activities/tension-timeline/TensionTimelineActivity';
@@ -655,6 +662,35 @@ const ActivityRenderer = ({
           key={`bass-builder-${activity.id}`}
           onComplete={onComplete}
           isSessionMode={isSessionMode}
+        />
+      );
+
+    case 'score-this-character':
+      return (
+        <ScoreThisCharacterStudent
+          key={`stc-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+        />
+      );
+
+    case 'spotting-guide':
+      return (
+        <SpottingGuideActivity
+          key={`spotting-guide-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+          viewMode={viewMode}
+        />
+      );
+
+    case 'scene-composer':
+      return (
+        <SceneComposerActivity
+          key={`scene-composer-${activity.id}`}
+          onComplete={onComplete}
+          isSessionMode={isSessionMode}
+          viewMode={viewMode}
         />
       );
 

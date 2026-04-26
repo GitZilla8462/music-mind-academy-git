@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 
-export const useComposerState = (preselectedVideo) => {
+export const useComposerState = (preselectedVideo, { initialTopPanelHeight } = {}) => {
   // FIXED: If preselectedVideo is provided, don't start in loading state
   const initialVideoLoading = !preselectedVideo;
 
@@ -48,7 +48,7 @@ export const useComposerState = (preselectedVideo) => {
   
   // Panel sizing state
   const [leftPanelWidth, setLeftPanelWidth] = useState(160); // CHANGED from 320 to 160 (50% width)
-  const [topPanelHeight, setTopPanelHeight] = useState(400);
+  const [topPanelHeight, setTopPanelHeight] = useState(initialTopPanelHeight || 400);
   const [isResizingLeft, setIsResizingLeft] = useState(false);
   const [isResizingTop, setIsResizingTop] = useState(false);
   

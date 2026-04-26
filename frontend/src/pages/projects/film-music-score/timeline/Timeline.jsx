@@ -8,7 +8,6 @@ import TimelineContent from './TimelineContent';
 import TimelineScrollbar from './TimelineScrollbar';
 import TimelineStatusBar from './TimelineStatusBar';
 import { useTimelineState } from './hooks/useTimelineState';
-import { useTimelineScroll } from './hooks/useTimelineScroll';
 import { useSelectionBox } from './hooks/useSelectionBox';
 
 const Timeline = ({
@@ -39,7 +38,9 @@ const Timeline = ({
   // NEW: Track if audio players are ready
   playersReady = true,
   // Composition key for loading saved track states (fades, volume, etc.) from localStorage
-  compositionKey = null
+  compositionKey = null,
+  // Scene blocks rendered in the video track area (array of {startTime, endTime, label, color, active, onClick})
+  sceneBlocks = null
 }) => {
   // Debug: Log duration when it changes
   React.useEffect(() => {
@@ -48,8 +49,6 @@ const Timeline = ({
   // Refs for timeline elements
   const timelineRef = useRef(null);
   const timelineScrollRef = useRef(null);
-  const headerScrollRef = useRef(null);
-  const timeHeaderRef = useRef(null);
 
   // Multi-selection state
   const [multiSelectedLoops, setMultiSelectedLoops] = useState([]);
@@ -98,13 +97,6 @@ const Timeline = ({
     }
   }, [trackStates, onTrackStateChange]);
 
-  // Custom hooks for scroll synchronization
-  const {
-    handleTimelineScroll,
-    handleHeaderScroll,
-    handleTimeHeaderScroll
-  } = useTimelineScroll(timelineScrollRef, headerScrollRef, timeHeaderRef);
-
   // Wrap zoom change to notify parent
   const handleZoomChangeWithCallback = (newZoom) => {
     const oldZoom = localZoom;
@@ -143,7 +135,7 @@ const Timeline = ({
   return (
     <>
       {/* Timeline Container */}
-      <div className="flex-1 bg-gray-900 border border-gray-700 rounded-lg overflow-hidden flex flex-col" style={{ paddingBottom: '60px' }}>
+      <div className="flex-1 bg-gray-900 border border-gray-700 rounded-lg flex flex-col min-h-0" style={{ paddingBottom: '28px' }}>
         {/* Timeline Header */}
         <TimelineHeader 
           placedLoops={placedLoops}
@@ -165,9 +157,7 @@ const Timeline = ({
         <TimelineContent
           ref={{
             timelineRef,
-            timelineScrollRef,
-            headerScrollRef,
-            timeHeaderRef
+            timelineScrollRef
           }}
           placedLoops={placedLoops}
           duration={duration}
@@ -192,9 +182,6 @@ const Timeline = ({
           onLoopResizeCallback={onLoopResizeCallback}
           onSeek={onSeek}
           onPlayheadMouseDown={() => setIsDraggingPlayhead(true)}
-          onTimelineScroll={handleTimelineScroll}
-          onHeaderScroll={handleHeaderScroll}
-          onTimeHeaderScroll={handleTimeHeaderScroll}
           updateTrackState={updateTrackState}
           selectedLoop={selectedLoop}
           localZoom={localZoom}
@@ -209,6 +196,7 @@ const Timeline = ({
           setSelectedLoopIds={setSelectedLoopIds}
           handleSelectionStart={handleSelectionStart}
           isSelectingBox={isSelectingBox}
+          sceneBlocks={sceneBlocks}
         />
       </div>
 

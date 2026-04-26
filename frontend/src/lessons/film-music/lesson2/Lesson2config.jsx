@@ -1,17 +1,125 @@
 // File: /lessons/film-music/lesson2/Lesson2config.jsx
-// Film Music Lesson 2: WHAT Do They Feel? - Orchestration & Bass
-// Students learn how instrument choice affects emotional meaning
+// Film Music Lesson 2: WHAT Do They Feel? — Music Changes With the Scene (~40 minutes)
+// Students compose motifs for characters (class game), then score two scenes
+// with different instruments on a drawing timeline.
 //
 // ========================================
 // LESSON OVERVIEW
 // ========================================
-// Essential Understanding: We hear what characters feel inside — even when they hide it
-// Film Skill: Orchestration / Timbre
-// Music Skill: Playing bass notes, understanding instrument emotion
-// Standards: MU:Cr1.1.5a, MU:Re7.2.5a, MU:Cn11.0.8a
+// Essential Understanding: Music changes in time — when the scene changes, the music changes
+// Film Skill: Orchestration / Timbre / Scene contrast
+// Music Skill: Choosing instruments to match character emotion, scoring against picture
+// Standards: MU:Cr1.1.5a, MU:Cr2.1.5a, MU:Re7.2.5a, MU:Cn11.0.8a
 
 export const LESSON_PROGRESS_KEY = 'fm-lesson2-progress';
 export const LESSON_TIMER_KEY = 'fm-lesson2-timer';
+
+// ========================================
+// INSTRUMENT DEMO DATA (for slides 3–6)
+// ========================================
+export const INSTRUMENT_DEMOS = [
+  {
+    id: 'flute',
+    name: 'The Flute',
+    emoji: '🎶',
+    color: '#06B6D4',
+    family: 'Woodwind',
+    feelsLike: [
+      { bold: 'High and light', detail: 'feels like flying or floating' },
+      { bold: 'Smooth and pure', detail: 'gentle, peaceful, magical' },
+      { bold: 'Quick and playful', detail: 'can dance and dart around' },
+    ],
+    greatFor: 'Fairies, birds, kids, magical creatures, anything small or light',
+    instrumentId: 'flute',
+    audioPath: 'https://media.musicmindacademy.com/audio/leitmotifs/romantic-woodwinds-flute-major-high.wav',
+  },
+  {
+    id: 'bassoon',
+    name: 'The Bassoon',
+    emoji: '🎵',
+    color: '#7C2D12',
+    family: 'Woodwind',
+    feelsLike: [
+      { bold: 'Low and round', detail: 'warm, deep, woody' },
+      { bold: 'A little funny', detail: 'can sound silly or grumpy' },
+      { bold: 'Slow and clumsy', detail: 'like someone walking heavy' },
+    ],
+    greatFor: 'Bears, goofy villains, big creatures, foxes, sneaky-but-not-scary characters',
+    instrumentId: 'bassoon',
+    audioPath: 'https://media.musicmindacademy.com/audio/leitmotifs/hero-woodwind-bassoon-major-medium.wav',
+  },
+  {
+    id: 'trumpet',
+    name: 'The Trumpet',
+    emoji: '🎺',
+    color: '#EF4444',
+    family: 'Brass',
+    feelsLike: [
+      { bold: 'Bright and bold', detail: 'wants to be noticed' },
+      { bold: 'Strong and confident', detail: 'feels like a hero arriving' },
+      { bold: 'Sharp and clear', detail: 'cuts through everything' },
+    ],
+    greatFor: 'Heroes, kings, knights, big announcements, victory',
+    instrumentId: 'trumpet',
+    audioPath: 'https://media.musicmindacademy.com/audio/leitmotifs/hero-brass-frenchhorn-major-high.wav',
+  },
+  {
+    id: 'low-brass',
+    name: 'Low Brass',
+    emoji: '📯',
+    color: '#DC2626',
+    family: 'Brass',
+    feelsLike: [
+      { bold: 'Heavy and powerful', detail: 'feels huge' },
+      { bold: 'Threatening', detail: 'can sound scary or evil' },
+      { bold: 'Slow and serious', detail: 'like something big approaching' },
+    ],
+    greatFor: 'Villains, monsters, dragons, dark forces, danger',
+    instrumentId: 'low-brass',
+    audioPath: 'https://media.musicmindacademy.com/audio/leitmotifs/villain-strings-bass-minor-low.wav',
+  },
+];
+
+// Demo melody: simple 5-note pentatonic phrase, same for all instruments
+// C4 → E4 → G4 → E4 → C4 (gentle arc, works on all instruments)
+export const DEMO_MELODY = [
+  { note: 'C4', duration: 0.5 },
+  { note: 'E4', duration: 0.5 },
+  { note: 'G4', duration: 0.7 },
+  { note: 'E4', duration: 0.5 },
+  { note: 'C4', duration: 0.8 },
+];
+
+// Hook melody — same notes, played on flute then bassoon
+export const HOOK_INSTRUMENTS = ['flute', 'bassoon'];
+
+// ========================================
+// SCENE BACKGROUNDS for compose activity
+// ========================================
+export const SCENE_BACKGROUNDS = [
+  { id: 'blue-forest', name: 'Forest', emoji: '🌲' },
+  { id: 'mountain-peak', name: 'Mountain', emoji: '⛰️' },
+  { id: 'dark-forest', name: 'Dark Forest', emoji: '🌳' },
+  { id: 'winter-night', name: 'Winter', emoji: '❄️' },
+  { id: 'night-mountain', name: 'Night', emoji: '🏔️' },
+  { id: 'autumn-forest', name: 'Autumn', emoji: '🍂' },
+  { id: 'city', name: 'City', emoji: '🏙️' },
+  { id: 'clouds-sunset', name: 'Sunset', emoji: '🌅' },
+  { id: 'clouds-night', name: 'Starry Sky', emoji: '🌙' },
+  { id: 'sky-14', name: 'Cherry Blossom', emoji: '🌸' },
+];
+
+// ========================================
+// CHARACTER SUGGESTIONS for the mission slide
+// ========================================
+export const CHARACTER_SUGGESTIONS = [
+  'A small flying creature',
+  'A heavy slow giant',
+  'A brave hero',
+  'A sad lonely traveler',
+  'A sneaky thief',
+  'A scary monster',
+];
 
 // ========================================
 // SECTION-BASED GROUPING FOR TEACHER CONTROL
@@ -20,157 +128,83 @@ export const lessonSections = [
   {
     id: 'introduction',
     title: '1. Introduction',
-    subtitle: 'Hook → Learn',
-    color: 'orange',
-    estimatedTime: 8,
-    stages: [
-      {
-        id: 'welcome-intro',
-        type: 'summary',
-        label: 'WHAT Do They Feel?',
-        description: 'Introduce the lesson and essential question.',
-        duration: 1
-      },
-      {
-        id: 'show-agenda',
-        type: 'summary',
-        label: 'Agenda',
-        description: 'Review the lesson agenda.',
-        duration: 1
-      },
-      {
-        id: 'hook-scene',
-        type: 'demo',
-        label: 'Hook: Hidden Emotions',
-        description: 'DEMO: Character smiles, but music is sad. "What do they REALLY feel?"',
-        duration: 3
-      },
-      {
-        id: 'timbre-emotion',
-        type: 'summary',
-        label: 'Timbre & Emotion',
-        description: 'Same melody, different instruments = completely different feeling.',
-        duration: 3
-      }
-    ]
-  },
-  {
-    id: 'bass-basics',
-    title: '2. Bass Basics',
-    subtitle: 'Left Hand Playing',
+    subtitle: 'Hook → Concept',
     color: 'orange',
     estimatedTime: 5,
     stages: [
       {
-        id: 'bass-intro',
-        type: 'summary',
-        label: 'Bass Basics',
-        description: 'Bass clef range, left hand, how bass anchors a melody.',
+        id: 'hook',
+        type: 'demo',
+        label: 'Hook: Music Changes With the Scene',
+        description: '"What happened to the music when the scene changed?"',
         duration: 3
       },
       {
-        id: 'bass-demo',
-        type: 'demo',
-        label: 'Bass Demo',
-        description: 'DEMO: Show pedal tone, walking bass, root & fifth patterns.',
+        id: 'concept',
+        type: 'summary',
+        label: 'Music Lives in Time',
+        description: 'When the scene changes, the music changes. You control WHEN.',
         duration: 2
       }
     ]
   },
   {
-    id: 'practice',
-    title: '3. Practice',
-    subtitle: 'Instrument Emotion Lab',
+    id: 'score-this-character',
+    title: '2. Score This Character',
+    subtitle: 'Class Game',
     color: 'orange',
-    estimatedTime: 8,
+    estimatedTime: 15,
     stages: [
       {
-        id: 'emotion-lab-intro',
-        type: 'summary',
-        label: 'Emotion Lab Introduction',
-        description: 'Explain: same melody through 6 instruments, rate the emotion.',
-        duration: 1
-      },
-      {
-        id: 'instrument-emotion-lab',
+        id: 'score-this-character',
         type: 'activity',
-        label: '🎮 Unlock Instrument Emotion Lab',
-        duration: 7,
+        label: '🎬 Score This Character',
+        duration: 15,
         hasTimer: true,
         trackProgress: true,
-        description: 'STUDENTS WORK: Listen to melody on each instrument, rate emotions.',
-        bonusDescription: 'Bonus: Which instrument fits YOUR character?'
-      }
-    ]
-  },
-  {
-    id: 'bass-builder',
-    title: '4. Bass Builder',
-    subtitle: 'Experiment with Bass',
-    color: 'orange',
-    estimatedTime: 7,
-    stages: [
-      {
-        id: 'bass-builder-intro',
-        type: 'summary',
-        label: 'Bass Builder Introduction',
-        description: 'Show how to try different bass patterns underneath a melody.',
-        duration: 1
-      },
-      {
-        id: 'bass-builder',
-        type: 'activity',
-        label: '🎮 Unlock Bass Builder',
-        duration: 6,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'STUDENTS WORK: Try bass patterns, record your own bassline.',
-        bonusDescription: 'Bonus: Try all three patterns before recording!'
+        description: 'CLASS GAME: Create characters, compose motifs, vote on the best match!',
       }
     ]
   },
   {
     id: 'compose',
-    title: '5. Compose',
-    subtitle: 'Add Bassline to Score',
+    title: '3. Scene Composer',
+    subtitle: 'Two Scenes, Two Themes',
     color: 'orange',
-    estimatedTime: 10,
+    estimatedTime: 25,
     stages: [
       {
-        id: 'composition-instructions',
-        type: 'summary',
-        label: 'Composition Requirements',
-        description: 'Add a bassline underneath your Theme A using the virtual instrument.',
-        duration: 1
-      },
-      {
-        id: 'composition',
+        id: 'compose',
         type: 'activity',
-        label: '🎬 Unlock Composition',
-        duration: 9,
+        label: '🎬 Scene Composer',
+        duration: 25,
         hasTimer: true,
         trackProgress: true,
-        description: 'STUDENTS WORK: Open DAW, add bassline underneath Theme A.',
-        bonusDescription: 'Bonus: Try switching instruments for your melody!'
+        description: 'STUDENTS WORK: Draw two scenes, choose instruments, compose themes.',
+        bonusDescription: 'Bonus: Make your scene change as dramatic as possible!'
       }
     ]
   },
   {
-    id: 'reflect',
-    title: '6. Reflect',
-    subtitle: 'Two Stars and a Wish',
+    id: 'share',
+    title: '4. Share & Close',
+    subtitle: 'Partner Share → Closing',
     color: 'orange',
-    estimatedTime: 3,
+    estimatedTime: 5,
     stages: [
       {
-        id: 'reflection',
-        type: 'activity',
-        label: '🎮 Unlock Reflection',
-        duration: 3,
-        hasTimer: true,
-        trackProgress: true,
-        description: 'STUDENTS WORK: Complete Two Stars and a Wish.',
-        bonusDescription: 'Bonus: Share your reflection with a partner.'
+        id: 'partner-share',
+        type: 'discussion',
+        label: 'Partner Share',
+        description: 'Play your timeline for a partner — did they hear the scene change?',
+        duration: 4
+      },
+      {
+        id: 'closing',
+        type: 'summary',
+        label: 'Closing',
+        description: 'Review what we learned today.',
+        duration: 1
       }
     ]
   }
@@ -180,44 +214,32 @@ export const fmLesson2Config = {
   id: 'fm-lesson2',
   lessonPath: '/lessons/film-music/lesson2',
   title: "WHAT Do They Feel?",
-  subtitle: "Orchestration & Bass",
+  subtitle: "Music Changes With the Scene",
   unitTitle: "Film Music: Scoring the Story",
   learningObjectives: [
-    "Understand how instrument choice (timbre) affects emotional meaning.",
-    "Play bass notes with the left hand (slower, sustained notes).",
-    "Add a bassline underneath Theme A from Lesson 1."
+    "Understand that music changes in time — when the scene changes, the music changes.",
+    "Choose instruments that match a character's personality and emotion.",
+    "Compose two contrasting character themes on a scene timeline."
   ],
   lessonSections,
   activities: [
     {
+      id: 0,
+      type: "score-this-character",
+      title: "Score This Character",
+      estimatedTime: "15 min"
+    },
+    {
       id: 1,
-      type: "instrument-emotion-lab",
-      title: "Instrument Emotion Lab",
-      estimatedTime: "7 min"
-    },
-    {
-      id: 2,
-      type: "bass-builder",
-      title: "Bass Builder",
-      estimatedTime: "6 min"
-    },
-    {
-      id: 3,
-      type: "film-music-daw",
-      title: "Film Music DAW",
-      estimatedTime: "9 min"
-    },
-    {
-      id: 4,
-      type: "two-stars-wish",
-      title: "Reflection Activity",
-      estimatedTime: "3 min"
+      type: "scene-composer",
+      title: "Scene Composer",
+      estimatedTime: "25 min"
     }
   ]
 };
 
 // ========================================
-// LESSON STAGES - With presentationView data for each stage
+// LESSON STAGES — presentationView data for each stage
 // ========================================
 export const lessonStages = [
   {
@@ -227,288 +249,138 @@ export const lessonStages = [
     type: 'waiting'
   },
   {
-    id: 'welcome-intro',
-    label: 'WHAT Do They Feel?',
-    description: 'Introduce the lesson and essential question.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'WHAT Do They Feel?',
-      subtitle: 'Orchestration & Bass',
-      bullets: [
-        'Essential Question: How do instruments reveal inner emotion?',
-        'Last time you created Theme A — your character\'s identity in sound',
-        'Today: the same melody on different instruments changes EVERYTHING',
-        'You will add a BASS LINE underneath your theme'
-      ]
-    }
-  },
-  {
-    id: 'show-agenda',
-    label: 'Agenda',
-    description: 'Review the lesson agenda.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'Today\'s Agenda',
-      sections: [
-        {
-          heading: 'Learn',
-          bullets: [
-            'Hook: Hidden emotions — what does the music reveal?',
-            'Timbre & Emotion — same melody, 6 instruments, 6 feelings',
-            'Bass Basics — how low notes anchor a melody'
-          ]
-        },
-        {
-          heading: 'Create',
-          bullets: [
-            'Instrument Emotion Lab — rate each instrument\'s emotional effect',
-            'Bass Builder — experiment with bass patterns',
-            'Compose — add a bassline underneath your Theme A'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'hook-scene',
-    label: 'Hook: Hidden Emotions',
-    description: 'DEMO: Character smiles, but music is sad. "What do they REALLY feel?"',
+    id: 'hook',
+    label: 'Hook: Music Changes With the Scene',
+    description: '"What happened to the music when the scene changed?"',
     type: 'demo',
     duration: 3,
     presentationView: {
       type: 'summary',
-      title: 'Hidden Emotions',
-      subtitle: 'Watch this scene closely...',
-      bullets: [
-        'The character is SMILING — but listen to the music underneath',
-        'The music is SAD. Slow strings. Minor key.',
-        'The audience knows what the character really feels BECAUSE OF THE MUSIC',
-        'Film composers use instruments to reveal what\'s hidden inside'
-      ]
-    }
-  },
-  {
-    id: 'timbre-emotion',
-    label: 'Timbre & Emotion',
-    description: 'Same melody, different instruments = completely different feeling.',
-    type: 'summary',
-    duration: 3,
-    presentationView: {
-      type: 'summary',
-      title: 'Timbre & Emotion',
-      subtitle: 'Same melody. Different instrument. Completely different feeling.',
+      title: 'Watch What Happens When the Scene Changes',
       sections: [
         {
-          heading: 'What Is Timbre?',
+          heading: '',
           bullets: [
-            'Timbre (TAM-ber) = the unique sound quality of an instrument',
-            'A piano and a violin can play the SAME note — but they sound completely different',
-            'Timbre is HOW a sound sounds, not WHAT note it plays'
+            'Listen to this short clip...',
+            'The scene changes halfway through.',
+            'What happened to the music?'
           ]
         },
         {
-          heading: 'Why It Matters in Film',
+          heading: 'Turn and Talk:',
           bullets: [
-            'Strings = emotional, romantic, sweeping',
-            'Brass = heroic, powerful, military',
-            'Woodwinds = playful, mysterious, gentle',
-            'Instrument choice IS emotional choice'
+            'What changed? Did the instrument change?',
+            'Did the feeling change?',
+            'Why would a composer do that?'
           ]
         }
       ]
     }
   },
   {
-    id: 'bass-intro',
-    label: 'Bass Basics',
-    description: 'Bass clef range, left hand, how bass anchors a melody.',
+    id: 'concept',
+    label: 'Music Lives in Time',
+    description: 'When the scene changes, the music changes. You control WHEN.',
     type: 'summary',
-    duration: 3,
-    presentationView: {
-      type: 'summary',
-      title: 'Bass Basics',
-      subtitle: 'The foundation underneath the melody',
-      sections: [
-        {
-          heading: 'What Does Bass Do?',
-          bullets: [
-            'Bass notes are LOW — they sit underneath the melody like a foundation',
-            'Without bass, music feels thin and floating',
-            'WITH bass, music feels grounded and powerful'
-          ]
-        },
-        {
-          heading: 'Three Bass Approaches',
-          bullets: [
-            'PEDAL TONE — one note held steady (creates tension or calm)',
-            'WALKING BASS — moves step by step (creates forward motion)',
-            'ROOT & FIFTH — alternates between two strong notes (creates stability)'
-          ]
-        }
-      ]
-    }
-  },
-  {
-    id: 'bass-demo',
-    label: 'Bass Demo',
-    description: 'DEMO: Show pedal tone, walking bass, root & fifth patterns.',
-    type: 'demo',
     duration: 2,
     presentationView: {
       type: 'summary',
-      title: 'Bass Demo',
-      subtitle: 'Teacher demonstrates three bass patterns on the virtual keyboard',
-      bullets: [
-        'Watch the main screen — listen to each pattern',
-        'Pedal Tone: one note, held underneath',
-        'Walking Bass: C → D → E → F, step by step',
-        'Root & Fifth: C → G → C → G, back and forth'
-      ]
-    }
-  },
-  {
-    id: 'emotion-lab-intro',
-    label: 'Emotion Lab Introduction',
-    description: 'Explain: same melody through 6 instruments, rate the emotion.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'Instrument Emotion Lab',
-      subtitle: 'Same melody. Six instruments. Which one fits YOUR character?',
-      bullets: [
-        'You will hear the SAME melody played on 6 different instruments',
-        'For each one, choose the EMOTION it creates',
-        'Pay attention — instrument choice completely changes the feeling',
-        'Think about which instrument fits the character you created in Lesson 1'
-      ]
-    }
-  },
-  {
-    id: 'instrument-emotion-lab',
-    label: '🎮 Unlock Instrument Emotion Lab',
-    description: 'STUDENTS WORK: Listen to melody on each instrument, rate emotions.',
-    bonusDescription: 'Bonus: Which instrument fits YOUR character?',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 7,
-    presentationView: {
-      type: 'summary',
-      title: 'Instrument Emotion Lab',
-      subtitle: 'Student Activity',
-      bullets: [
-        'Listen to each instrument carefully',
-        'Choose the emotion that fits each sound',
-        'Bonus: Think about which instrument best matches your character'
-      ]
-    }
-  },
-  {
-    id: 'bass-builder-intro',
-    label: 'Bass Builder Introduction',
-    description: 'Show how to try different bass patterns underneath a melody.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'Bass Builder',
-      subtitle: 'Time to experiment with bass notes',
-      bullets: [
-        'Use keys A through K to play bass notes (C through C, one octave lower)',
-        'Try all THREE patterns before recording your own: Pedal, Walking, Root & Fifth',
-        'When you are ready, hit RECORD and play your bassline',
-        'You can always re-record if you want to try again'
-      ]
-    }
-  },
-  {
-    id: 'bass-builder',
-    label: '🎮 Unlock Bass Builder',
-    description: 'STUDENTS WORK: Try bass patterns, record your own bassline.',
-    bonusDescription: 'Bonus: Try all three patterns before recording!',
-    hasProgress: true,
-    type: 'activity',
-    hasTimer: true,
-    duration: 6,
-    presentationView: {
-      type: 'summary',
-      title: 'Bass Builder',
-      subtitle: 'Student Activity',
-      bullets: [
-        'Try each bass pattern first — then record your own',
-        'Bonus: Try all three patterns before making your final recording!'
-      ]
-    }
-  },
-  {
-    id: 'composition-instructions',
-    label: 'Composition Requirements',
-    description: 'Add a bassline underneath your Theme A using the virtual instrument.',
-    type: 'summary',
-    duration: 1,
-    presentationView: {
-      type: 'summary',
-      title: 'Composition Time',
-      subtitle: 'Add a bassline to your score',
+      title: 'Music Lives in Time',
       sections: [
         {
-          heading: 'Requirements',
+          heading: 'The Big Idea',
           bullets: [
-            'Open the Film Music DAW',
-            'Use the Virtual Instrument to record bass notes on the BASS track',
-            'Your bassline should support your Theme A — not compete with it',
-            'Try switching the instrument sound for your melody too!'
+            'A film score isn\'t ONE piece of music — it\'s many pieces, each matched to what\'s happening on screen.',
+            'When the camera changes → the music can change.',
+            'When a new character appears → their theme starts.',
+            'When the mood shifts → the instruments shift.'
           ]
         },
         {
-          heading: 'Remember',
+          heading: '',
           bullets: [
-            'Bass = low and slow. Less is more.',
-            'Leave space — not every beat needs a bass note',
-            'Your composition saves automatically'
+            'As a composer, you control WHEN music happens — not just WHAT it sounds like.'
           ]
         }
       ]
     }
   },
   {
-    id: 'composition',
-    label: '🎬 Unlock Composition',
-    description: 'STUDENTS WORK: Open DAW, add bassline underneath Theme A.',
-    bonusDescription: 'Bonus: Try switching instruments for your melody!',
-    hasProgress: true,
+    id: 'score-this-character',
+    label: '🎬 Score This Character',
+    description: 'CLASS GAME: Create characters, compose motifs, vote on the best match!',
     type: 'activity',
     hasTimer: true,
-    duration: 9,
+    hasProgress: true,
+    duration: 15,
     presentationView: {
-      type: 'composition-workspace',
-      title: 'Film Music Composition',
-      instruction: 'Add a bassline underneath your Theme A using the virtual instrument.',
-      bonusTip: 'Try switching instruments for your melody!'
+      type: 'score-this-character-teacher',
     }
   },
   {
-    id: 'reflection',
-    label: '🎮 Unlock Reflection',
-    description: 'STUDENTS WORK: Complete Two Stars and a Wish.',
-    bonusDescription: 'Bonus: Share your reflection with a partner.',
+    id: 'compose',
+    label: '🎬 Scene Composer',
+    description: 'STUDENTS WORK: Draw two scenes, choose instruments, compose themes.',
+    bonusDescription: 'Bonus: Make your scene change as dramatic as possible!',
     hasProgress: true,
     type: 'activity',
     hasTimer: true,
-    duration: 3,
+    duration: 25,
+    presentationView: {
+      type: 'scene-composer-teacher',
+    }
+  },
+  {
+    id: 'partner-share',
+    label: 'Partner Share',
+    description: 'Play your timeline for a partner — did they hear the scene change?',
+    type: 'discussion',
+    duration: 4,
     presentationView: {
       type: 'summary',
-      title: 'Reflection',
-      subtitle: 'Two Stars and a Wish',
-      bullets: [
-        'Share TWO things that went well with your composition',
-        'Share ONE thing you want to improve next time',
-        'Bonus: Share your reflection with a partner'
+      title: 'Did Your Partner Hear the Scene Change?',
+      sections: [
+        {
+          heading: 'With a partner:',
+          bullets: [
+            'Play your full 20-second timeline (don\'t say what the scenes are)',
+            'Your partner listens: where did the scene change? What changed in the music?',
+            'Then look at your drawings together — did the music match the picture?'
+          ]
+        },
+        {
+          heading: '',
+          bullets: [
+            '"If the scene change was obvious in the music, your instrument choice worked."'
+          ]
+        }
+      ]
+    }
+  },
+  {
+    id: 'closing',
+    label: 'Closing',
+    description: 'Review what we learned today.',
+    type: 'summary',
+    duration: 1,
+    presentationView: {
+      type: 'summary',
+      title: 'You Just Scored Two Scenes',
+      sections: [
+        {
+          heading: 'Today you learned:',
+          bullets: [
+            'Music changes in TIME — composers decide WHEN music happens',
+            'When the scene changes, the music changes too',
+            'Bigger contrast = clearer storytelling'
+          ]
+        },
+        {
+          heading: 'Next Class',
+          bullets: [
+            'You\'ll pick the video for your final project and plan the whole score.'
+          ]
+        }
       ]
     }
   }
@@ -517,19 +389,12 @@ export const lessonStages = [
 // Helper function to map session stage to activity type
 export const getActivityForStage = (stage) => {
   const stageMap = {
-    'welcome-intro': 'summary',
-    'show-agenda': 'summary',
-    'hook-scene': 'demo',
-    'timbre-emotion': 'summary',
-    'bass-intro': 'summary',
-    'bass-demo': 'demo',
-    'emotion-lab-intro': 'summary',
-    'instrument-emotion-lab': 'instrument-emotion-lab',
-    'bass-builder-intro': 'summary',
-    'bass-builder': 'bass-builder',
-    'composition-instructions': 'summary',
-    'composition': 'film-music-daw',
-    'reflection': 'two-stars-wish'
+    'hook': 'demo',
+    'concept': 'summary',
+    'score-this-character': 'score-this-character',
+    'compose': 'scene-composer',
+    'partner-share': 'discussion',
+    'closing': 'summary'
   };
   return stageMap[stage];
 };

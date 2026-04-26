@@ -47,6 +47,9 @@ import IndependentListeningActivity from '../activities/listening-guide/Independ
 import ClaimArtistReport from '../activities/scouting-report/ClaimArtistReport';
 import { ScoutingReport } from '../activities/scouting-report';
 import { PressKitDesigner } from '../activities/press-kit-designer';
+import { INSTRUMENT_DEMOS, DEMO_MELODY, HOOK_INSTRUMENTS } from '../../film-music/lesson2/Lesson2config';
+import SceneComposerActivity from '../activities/scene-composer/SceneComposerActivity';
+import { ORCHESTRA_INSTRUMENTS, MOTIF_INSTRUMENTS as MOTIF_INSTRUMENTS_CONFIG } from '../../film-music/lesson1/motifInstrumentConfig';
 
 // ============================================
 // SLIDE WITH AUDIO COMPONENT
@@ -509,6 +512,7 @@ const PresentationContent = ({
   const [SourceOrNotGame, setSourceOrNotGame] = useState(null);
   const [HeadlineWriterGame, setHeadlineWriterGame] = useState(null);
   const [GenreMatchTeacherGame, setGenreMatchTeacherGame] = useState(null);
+  const [ScoreThisCharacterTeacher, setScoreThisCharacterTeacher] = useState(null);
   const [GenreShowcase, setGenreShowcase] = useState(null);
   const [GuidedListeningActivity, setGuidedListeningActivity] = useState(null);
 
@@ -744,6 +748,10 @@ const PresentationContent = ({
     import('../../shared/activities/genre-match/GenreMatchTeacherGame')
       .then(module => setGenreMatchTeacherGame(() => module.default))
       .catch(() => console.log('Genre Match Teacher Game not available'));
+
+    import('../../shared/activities/score-this-character/ScoreThisCharacterTeacher')
+      .then(module => setScoreThisCharacterTeacher(() => module.default))
+      .catch(() => console.log('Score This Character Teacher not available'));
 
     // Unit 3 Music Journalist Lesson 1: Genre Showcase
     import('../../shared/activities/genre-showcase/GenreShowcase')
@@ -1922,6 +1930,40 @@ const PresentationContent = ({
               isSessionMode={false}
             />
             <ShareOutOverlay />
+          </div>
+        </div>
+      );
+    }
+
+    // Score This Character (Film Music Lesson 2) — class game
+    if (type === 'score-this-character-teacher') {
+      if (!ScoreThisCharacterTeacher) {
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+            <div className="text-white text-2xl">Loading Score This Character...</div>
+          </div>
+        );
+      }
+      return (
+        <div className="absolute inset-0">
+          <ScoreThisCharacterTeacher sessionData={sessionData} onComplete={goToNextStage} />
+        </div>
+      );
+    }
+
+    // Scene Composer (Film Music Lesson 2) — teacher sees same activity as students
+    if (type === 'scene-composer-teacher') {
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <style>{`
+            .teacher-embed-activity .h-screen { height: 100% !important; }
+          `}</style>
+          <div className="h-full teacher-embed-activity">
+            <SceneComposerActivity
+              onComplete={() => {}}
+              viewMode={false}
+              isSessionMode={false}
+            />
           </div>
         </div>
       );
@@ -3126,6 +3168,237 @@ const PresentationContent = ({
       };
 
       return <LeitmotifExampleSlide />;
+    }
+
+    // Instrument Demo (Film Music Lesson 2 — slides 3-6)
+    // Shows instrument info on left, play button on right using Tone.js
+    if (type === 'instrument-demo') {
+      const demo = INSTRUMENT_DEMOS[currentStageData.presentationView.demoIndex];
+
+      const InstrumentDemoSlide = () => {
+        const audioRef = React.useRef(null);
+        const [isPlaying, setIsPlaying] = React.useState(false);
+        const [hasPlayed, setHasPlayed] = React.useState(false);
+
+        React.useEffect(() => {
+          return () => { if (audioRef.current) audioRef.current.pause(); };
+        }, []);
+
+        const playDemo = () => {
+          if (!demo.audioPath) return;
+          if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+          const audio = new Audio(demo.audioPath);
+          audioRef.current = audio;
+          audio.play().catch(() => {});
+          setIsPlaying(true);
+          audio.onended = () => { setIsPlaying(false); setHasPlayed(true); };
+        };
+
+        const stopDemo = () => {
+          if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+          setIsPlaying(false);
+        };
+
+        if (!demo) return <div className="absolute inset-0 flex items-center justify-center bg-gray-900 text-white text-2xl">Demo not found</div>;
+
+        return (
+          <div className="absolute inset-0 flex bg-gray-900">
+            {/* Left side — instrument info */}
+            <div className="flex-1 flex flex-col justify-center p-10">
+              <h1 className="text-5xl font-bold mb-6" style={{ color: demo.color }}>
+                {demo.emoji} {demo.name}
+              </h1>
+              <div className="space-y-4 mb-6">
+                <h2 className="text-2xl font-bold text-gray-300 uppercase tracking-wide">What It Feels Like</h2>
+                {demo.feelsLike.map((f, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="text-xl font-bold text-white mt-0.5">{i + 1}.</span>
+                    <p className="text-xl text-gray-200">
+                      <span className="font-bold text-white">{f.bold}</span>
+                      <span className="text-gray-400"> — {f.detail}</span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="bg-gray-800 rounded-xl p-4">
+                <p className="text-lg text-gray-300">
+                  <span className="font-bold text-white">GREAT FOR: </span>
+                  {demo.greatFor}
+                </p>
+              </div>
+            </div>
+
+            {/* Right side — play button */}
+            <div className="w-96 flex flex-col items-center justify-center bg-gray-800/50 border-l border-gray-700">
+              <div className="text-center">
+                <p className="text-gray-400 text-lg mb-6">Hear the {demo.name.replace('The ', '')}</p>
+                <button
+                  onClick={isPlaying ? stopDemo : playDemo}
+                  className={`w-32 h-32 rounded-full flex items-center justify-center transition-all shadow-xl hover:scale-105 active:scale-95 ${
+                    isPlaying ? 'bg-gray-600' : 'hover:brightness-110'
+                  }`}
+                  style={!isPlaying ? { backgroundColor: demo.color } : {}}
+                >
+                  {isPlaying ? (
+                    <span className="w-10 h-10 bg-white rounded-md" />
+                  ) : (
+                    <span className="w-0 h-0 border-t-[24px] border-t-transparent border-b-[24px] border-b-transparent border-l-[36px] border-l-white ml-2" />
+                  )}
+                </button>
+                {hasPlayed && (
+                  <button
+                    onClick={goToNextStage}
+                    className="mt-6 flex items-center gap-2 mx-auto px-6 py-3 bg-white text-gray-900 text-lg font-bold rounded-xl hover:bg-gray-100 transition-all shadow-lg hover:scale-105 active:scale-95"
+                  >
+                    Next <ChevronRight size={18} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      return <InstrumentDemoSlide />;
+    }
+
+    // Same Melody Hook (Film Music Lesson 2 — slide 1)
+    // Plays the same 5-note melody on two different instruments back-to-back
+    if (type === 'same-melody-hook') {
+      const pv = currentStageData.presentationView;
+
+      const SameMelodyHookSlide = () => {
+        const [playState, setPlayState] = React.useState('idle'); // idle | playing-a | playing-b | done
+        const synthRef = React.useRef(null);
+        const timeoutsRef = React.useRef([]);
+
+        React.useEffect(() => {
+          return () => {
+            timeoutsRef.current.forEach(t => clearTimeout(t));
+            if (synthRef.current) try { synthRef.current.dispose(); } catch(e) {}
+          };
+        }, []);
+
+        const playBothClips = async () => {
+          const Tone = (await import('tone')).default || await import('tone');
+          if (Tone.context.state !== 'running') await Tone.start();
+          timeoutsRef.current.forEach(t => clearTimeout(t));
+          if (synthRef.current) try { synthRef.current.dispose(); } catch(e) {}
+
+          const allInstruments = { ...ORCHESTRA_INSTRUMENTS };
+          Object.values(MOTIF_INSTRUMENTS_CONFIG).forEach(i => { allInstruments[i.id] = i; });
+
+          const newTimeouts = [];
+          setPlayState('playing-a');
+
+          // Play instrument A
+          const instA = allInstruments[HOOK_INSTRUMENTS[0]];
+          if (instA) {
+            const synthA = new Tone.PolySynth(Tone.Synth, instA.config).toDestination();
+            synthA.volume.value = -6;
+            synthRef.current = synthA;
+            let elapsed = 0;
+            DEMO_MELODY.forEach(({ note, duration }) => {
+              newTimeouts.push(setTimeout(() => {
+                try { synthA.triggerAttackRelease(note, duration); } catch(e) {}
+              }, elapsed * 1000));
+              elapsed += duration + 0.15;
+            });
+
+            // After clip A, pause, then play clip B
+            const gapMs = (elapsed + 1.5) * 1000;
+            newTimeouts.push(setTimeout(() => {
+              synthA.dispose();
+              setPlayState('playing-b');
+              const instB = allInstruments[HOOK_INSTRUMENTS[1]];
+              if (!instB) { setPlayState('done'); return; }
+              const synthB = new Tone.PolySynth(Tone.Synth, instB.config).toDestination();
+              synthB.volume.value = -6;
+              synthRef.current = synthB;
+              let elapsed2 = 0;
+              DEMO_MELODY.forEach(({ note, duration }) => {
+                newTimeouts.push(setTimeout(() => {
+                  try { synthB.triggerAttackRelease(note, duration); } catch(e) {}
+                }, elapsed2 * 1000));
+                elapsed2 += duration + 0.15;
+              });
+              newTimeouts.push(setTimeout(() => {
+                setPlayState('done');
+              }, elapsed2 * 1000));
+            }, gapMs));
+          }
+
+          timeoutsRef.current = newTimeouts;
+        };
+
+        const stopPlay = () => {
+          timeoutsRef.current.forEach(t => clearTimeout(t));
+          if (synthRef.current) try { synthRef.current.dispose(); } catch(e) {}
+          synthRef.current = null;
+          setPlayState('idle');
+        };
+
+        return (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900 p-10">
+            <h1 className="text-6xl font-bold text-white mb-4">{pv.title}</h1>
+            <p className="text-2xl text-gray-400 mb-10">{pv.subtitle}</p>
+
+            <div className="flex items-center gap-8 mb-10">
+              <div className={`px-6 py-4 rounded-2xl text-center transition-all ${playState === 'playing-a' ? 'bg-cyan-600 scale-105' : 'bg-gray-800'}`}>
+                <p className="text-4xl mb-2">🎶</p>
+                <p className="text-xl font-bold text-white">Clip A: Flute</p>
+                {playState === 'playing-a' && <p className="text-cyan-200 text-sm mt-1 animate-pulse">Playing...</p>}
+              </div>
+              <div className="text-3xl text-gray-600">→</div>
+              <div className={`px-6 py-4 rounded-2xl text-center transition-all ${playState === 'playing-b' ? 'bg-amber-700 scale-105' : 'bg-gray-800'}`}>
+                <p className="text-4xl mb-2">🎵</p>
+                <p className="text-xl font-bold text-white">Clip B: Bassoon</p>
+                {playState === 'playing-b' && <p className="text-amber-200 text-sm mt-1 animate-pulse">Playing...</p>}
+              </div>
+            </div>
+
+            {playState === 'idle' && (
+              <button
+                onClick={playBothClips}
+                className="px-10 py-4 bg-orange-600 text-white text-xl font-bold rounded-2xl hover:bg-orange-700 transition-all shadow-lg hover:scale-105 active:scale-95"
+              >
+                <span className="w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-l-[18px] border-l-white inline-block mr-3 align-middle" />
+                Play Both Clips
+              </button>
+            )}
+            {(playState === 'playing-a' || playState === 'playing-b') && (
+              <button
+                onClick={stopPlay}
+                className="px-10 py-4 bg-gray-600 text-white text-xl font-bold rounded-2xl hover:bg-gray-700 transition-all"
+              >
+                Stop
+              </button>
+            )}
+            {playState === 'done' && (
+              <div className="text-center">
+                <p className="text-2xl text-orange-400 font-bold mb-4">"{pv.teacherPrompt}"</p>
+                <p className="text-xl text-gray-400 mb-6">Turn and talk: {pv.turnAndTalk}</p>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={playBothClips}
+                    className="px-8 py-3 bg-gray-700 text-white text-lg font-bold rounded-xl hover:bg-gray-600 transition-all"
+                  >
+                    Play Again
+                  </button>
+                  <button
+                    onClick={goToNextStage}
+                    className="flex items-center gap-2 px-8 py-3 bg-white text-gray-900 text-lg font-bold rounded-xl hover:bg-gray-100 transition-all shadow-lg hover:scale-105 active:scale-95"
+                  >
+                    Next <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      return <SameMelodyHookSlide />;
     }
 
     // Slide (with optional audio)

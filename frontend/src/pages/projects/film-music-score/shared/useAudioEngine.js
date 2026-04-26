@@ -388,7 +388,7 @@ export const useAudioEngine = (videoDuration = 60) => {
       const shouldLoop = timelineDuration > beatAligned * 1.05;
 
       // Compute playback rate early — needed for offset calculation
-      const playbackRate = (loop.type !== 'custom-beat' && loop.type !== 'custom-melody')
+      const playbackRate = (loop.type !== 'custom-beat' && loop.type !== 'custom-melody' && loop.type !== 'custom-recording')
         ? calculatePlaybackRate(bufferDuration)
         : 1.0;
 

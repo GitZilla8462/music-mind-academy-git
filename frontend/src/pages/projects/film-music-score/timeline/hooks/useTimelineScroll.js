@@ -7,43 +7,46 @@ export const useTimelineScroll = (timelineScrollRef, headerScrollRef, timeHeader
   const handleTimelineScroll = (e) => {
     if (isScrollingSyncRef.current) return;
     isScrollingSyncRef.current = true;
-    
+
+    const scrollLeft = e.target.scrollLeft;
+    const scrollTop = e.target.scrollTop;
+
     if (timeHeaderRef.current) {
-      timeHeaderRef.current.scrollLeft = e.target.scrollLeft;
+      timeHeaderRef.current.scrollLeft = scrollLeft;
     }
     if (headerScrollRef.current) {
-      headerScrollRef.current.scrollTop = e.target.scrollTop;
+      headerScrollRef.current.scrollTop = scrollTop;
     }
-    
-    setTimeout(() => {
+
+    requestAnimationFrame(() => {
       isScrollingSyncRef.current = false;
-    }, 10);
+    });
   };
 
   const handleHeaderScroll = (e) => {
     if (isScrollingSyncRef.current) return;
     isScrollingSyncRef.current = true;
-    
+
     if (timelineScrollRef.current) {
       timelineScrollRef.current.scrollTop = e.target.scrollTop;
     }
-    
-    setTimeout(() => {
+
+    requestAnimationFrame(() => {
       isScrollingSyncRef.current = false;
-    }, 10);
+    });
   };
 
   const handleTimeHeaderScroll = (e) => {
     if (isScrollingSyncRef.current) return;
     isScrollingSyncRef.current = true;
-    
+
     if (timelineScrollRef.current) {
       timelineScrollRef.current.scrollLeft = e.target.scrollLeft;
     }
-    
-    setTimeout(() => {
+
+    requestAnimationFrame(() => {
       isScrollingSyncRef.current = false;
-    }, 10);
+    });
   };
 
   return {

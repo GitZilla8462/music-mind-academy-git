@@ -47,6 +47,8 @@ const ComposerLayout = ({
   showSoundEffects,
   currentlyPlayingPreview,
   assignmentPanelContent,  // NEW PROP
+  customVideoContent,  // Replaces VideoPlayer in the video area (e.g., drawn scenes)
+  sceneBlocks,  // Scene blocks data passed to Timeline
   playersReady,  // NEW: Track if audio players are ready
   
   // Callbacks
@@ -83,6 +85,8 @@ const ComposerLayout = ({
 
   // Creator tools (Beat Maker, Melody Maker, Virtual Instrument)
   showCreatorTools = false,
+  primaryCreatorTool = null,
+  maxTracks = null,
   creatorMenuOpen = false,
   setCreatorMenuOpen,
   beatMakerOpen = false,
@@ -203,7 +207,7 @@ const ComposerLayout = ({
             }
             bottomContent={
               // Timeline Section
-              <div className="h-full">
+              <div className="h-full flex flex-col">
                 <Timeline
                   placedLoops={placedLoops}
                   duration={selectedVideo?.duration || 60}
@@ -236,9 +240,9 @@ const ComposerLayout = ({
         ) : (
           // Normal Mode - ResizableSplitPane with video area
           <ResizableSplitPane
-            initialTopHeight={280}
+            initialTopHeight={topPanelHeight || 280}
             minTopHeight={100}
-            minBottomHeight={300}
+            minBottomHeight={200}
             topContent={
               // Creator Panel (left) + Video Player (right)
               <div className="h-full flex">
@@ -256,6 +260,7 @@ const ComposerLayout = ({
                     onOpenMelodyMaker={() => setMelodyMakerOpen(true)}
                     onOpenVirtualInstrument={showVirtualInstrument ? () => setVirtualInstrumentOpen(true) : undefined}
                     onOpenLoopLibrary={showVirtualInstrument ? () => setFloatingLoopLibraryOpen(true) : undefined}
+                    primaryTool={primaryCreatorTool}
                     activeTool={
                       beatMakerOpen ? 'beat-maker' :
                       melodyMakerOpen ? 'melody-maker' :
@@ -268,7 +273,7 @@ const ComposerLayout = ({
 
                 {/* Video Player Section - Takes remaining space */}
                 <div
-                  className="flex-1 p-4 relative"
+                  className="flex-1 relative overflow-hidden"
                   onClick={() => {
                     if (onVideoPlayerClick) {
                       onVideoPlayerClick();
@@ -276,23 +281,27 @@ const ComposerLayout = ({
                   }}
                 >
                   <div className="h-full">
-                    <VideoPlayer
-                      selectedVideo={selectedVideo}
-                      isPlaying={isPlaying}
-                      currentTime={currentTime}
-                      onSeek={handleSeek}
-                      onPlay={handlePlay}
-                      onPause={pause}
-                      highlighted={highlightSelector === '.video-player-container'}
-                      onFullScreenClick={onFullScreenClick}
-                    />
+                    {customVideoContent ? customVideoContent : (
+                      <div className="h-full p-4">
+                        <VideoPlayer
+                          selectedVideo={selectedVideo}
+                          isPlaying={isPlaying}
+                          currentTime={currentTime}
+                          onSeek={handleSeek}
+                          onPlay={handlePlay}
+                          onPause={pause}
+                          highlighted={highlightSelector === '.video-player-container'}
+                          onFullScreenClick={onFullScreenClick}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             }
             bottomContent={
               // Timeline Section
-              <div className="h-full">
+              <div className="h-full flex flex-col">
                 <Timeline
                   placedLoops={placedLoops}
                   duration={selectedVideo?.duration || 60}
@@ -319,6 +328,7 @@ const ComposerLayout = ({
                   onRestart={handleRestart}
                   playersReady={playersReady}
                   compositionKey={compositionKey}
+                  sceneBlocks={sceneBlocks}
                 />
               </div>
             }

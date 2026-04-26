@@ -10,7 +10,8 @@ const CreatorPanel = ({
   onOpenMelodyMaker,
   onOpenVirtualInstrument,
   onOpenLoopLibrary,
-  activeTool = null
+  activeTool = null,
+  primaryTool = null, // When set, this tool appears first and others are dimmed
 }) => {
   const tools = [
     {
@@ -55,7 +56,14 @@ const CreatorPanel = ({
     }
   ];
 
-  const visibleTools = tools.filter(t => t.show);
+  let visibleTools = tools.filter(t => t.show);
+
+  // When primaryTool is set, move it first
+  if (primaryTool) {
+    const primary = visibleTools.find(t => t.id === primaryTool);
+    const rest = visibleTools.filter(t => t.id !== primaryTool);
+    if (primary) visibleTools = [primary, ...rest];
+  }
 
   return (
     <div className="w-48 h-full bg-gray-850 border-r border-gray-700 flex flex-col">
@@ -70,6 +78,7 @@ const CreatorPanel = ({
           const Icon = tool.icon;
           const isActive = activeTool === tool.id;
           const isDisabled = !tool.enabled;
+          const isDimmed = primaryTool && !isActive && tool.id !== primaryTool;
 
           return (
             <button
@@ -82,7 +91,9 @@ const CreatorPanel = ({
                   ? `${tool.bgColor} text-white shadow-lg`
                   : isDisabled
                     ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed'
-                    : `bg-gray-800 text-white hover:bg-gray-700`
+                    : isDimmed
+                      ? 'bg-gray-800/40 text-gray-400 hover:bg-gray-700 hover:text-white'
+                      : `bg-gray-800 text-white hover:bg-gray-700`
                 }
               `}
             >

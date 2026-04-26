@@ -1,7 +1,6 @@
 // File: /src/pages/projects/film-music-score/timeline/TimelineContent.jsx
-// REFACTORED: Uses InteractionOverlay for all mouse events
-// Visual elements have pointer-events: none
-// This eliminates cursor flickering on Chromebooks
+// REFACTORED: Single scroll container with CSS Grid + position:sticky
+// Eliminates scroll desync between track headers and timeline content
 
 import React, { forwardRef, useCallback, useState, useEffect } from 'react';
 import TimeMarkers from './components/TimeMarkers';
@@ -12,6 +11,8 @@ import Playhead from './components/Playhead';
 import TimelineGrid from './components/TimelineGrid';
 import InteractionOverlay from './components/InteractionOverlay';
 import { TIMELINE_CONSTANTS } from './constants/timelineConstants';
+
+const HEADER_COL_WIDTH = 154;
 
 const TimelineContent = forwardRef(({
   placedLoops,
@@ -37,9 +38,6 @@ const TimelineContent = forwardRef(({
   onLoopResizeCallback,
   onSeek,
   onPlayheadMouseDown,
-  onTimelineScroll,
-  onHeaderScroll,
-  onTimeHeaderScroll,
   updateTrackState,
   selectedLoop,
   localZoom,
@@ -49,18 +47,21 @@ const TimelineContent = forwardRef(({
   lockFeatures = {},
   highlightSelector,
   showTimelineLabel = false,
+  // Scene blocks rendered in video track area
+  sceneBlocks = null,
   // Selection box props
   selectionBox,
   selectedLoopIds,
   setSelectedLoopIds,
   handleSelectionStart,
   isSelectingBox
-}, {
-  timelineRef,
-  timelineScrollRef,
-  headerScrollRef,
-  timeHeaderRef
-}) => {
+}, ref) => {
+
+  // Destructure refs from the forwarded ref object
+  const { timelineRef, timelineScrollRef } = ref;
+
+  // Scene blocks increase the video track height
+  const VIDEO_TRACK_H = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT;
 
   // Context menu state
   const [contextMenu, setContextMenu] = useState(null);
@@ -73,7 +74,7 @@ const TimelineContent = forwardRef(({
     if (e.button != null && e.button !== 0) return; // Left click only (touch has no button)
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const scrollLeft = timeHeaderRef?.current?.scrollLeft || 0;
+    const scrollLeft = timelineScrollRef?.current?.scrollLeft || 0;
     const x = e.clientX - rect.left + scrollLeft;
     const time = pixelToTime(x);
     const constrainedTime = Math.max(0, Math.min(duration, time));
@@ -81,19 +82,19 @@ const TimelineContent = forwardRef(({
     setIsScrubbing(true);
     setIsDraggingPlayhead(true);
     onSeek?.(constrainedTime);
-  }, [pixelToTime, duration, onSeek, setIsDraggingPlayhead, timeHeaderRef]);
+  }, [pixelToTime, duration, onSeek, setIsDraggingPlayhead, timelineScrollRef]);
 
   const handleTimeRulerMouseMove = useCallback((e) => {
     if (!isScrubbing) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const scrollLeft = timeHeaderRef?.current?.scrollLeft || 0;
+    const scrollLeft = timelineScrollRef?.current?.scrollLeft || 0;
     const x = e.clientX - rect.left + scrollLeft;
     const time = pixelToTime(x);
     const constrainedTime = Math.max(0, Math.min(duration, time));
 
     onSeek?.(constrainedTime);
-  }, [isScrubbing, pixelToTime, duration, onSeek, timeHeaderRef]);
+  }, [isScrubbing, pixelToTime, duration, onSeek, timelineScrollRef]);
 
   const handleTimeRulerMouseUp = useCallback(() => {
     setIsScrubbing(false);
@@ -120,7 +121,7 @@ const TimelineContent = forwardRef(({
   // ============================================================================
   // SELECTION BOX HANDLERS (delegated from overlay)
   // ============================================================================
-  
+
   const handleSelectionStartFromOverlay = useCallback((startPos) => {
     if (handleSelectionStart) {
       // Create a synthetic event-like object
@@ -136,27 +137,27 @@ const TimelineContent = forwardRef(({
   const handleSelectionUpdate = useCallback((box) => {
     // Calculate which loops are in the selection box
     if (!box || !placedLoops) return;
-    
+
     const selected = new Set();
-    
+
     placedLoops.forEach(loop => {
       const loopLeft = timeToPixel(loop.startTime);
       const loopRight = timeToPixel(loop.endTime);
-      const loopTop = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
+      const loopTop = VIDEO_TRACK_H + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
       const loopBottom = loopTop + TIMELINE_CONSTANTS.TRACK_HEIGHT;
-      
+
       const boxLeft = Math.min(box.startX, box.currentX);
       const boxRight = Math.max(box.startX, box.currentX);
       const boxTop = Math.min(box.startY, box.currentY);
       const boxBottom = Math.max(box.startY, box.currentY);
-      
+
       // Check intersection
       if (loopRight >= boxLeft && loopLeft <= boxRight &&
           loopBottom >= boxTop && loopTop <= boxBottom) {
         selected.add(loop.id);
       }
     });
-    
+
     setSelectedLoopIds?.(selected);
   }, [placedLoops, timeToPixel, setSelectedLoopIds]);
 
@@ -167,7 +168,7 @@ const TimelineContent = forwardRef(({
   // ============================================================================
   // CONTEXT MENU HANDLER
   // ============================================================================
-  
+
   const handleContextMenu = useCallback((e, loop) => {
     setContextMenu({
       x: e.clientX,
@@ -205,7 +206,7 @@ const TimelineContent = forwardRef(({
   // ============================================================================
   // LOOP UPDATE HANDLER (with multi-select support)
   // ============================================================================
-  
+
   const handleLoopUpdateWithMulti = useCallback((loopId, updates) => {
     // If this loop is part of multi-selection, move all selected loops
     if (selectedLoopIds?.has(loopId) && selectedLoopIds.size > 1 && updates.trackIndex !== undefined) {
@@ -214,17 +215,17 @@ const TimelineContent = forwardRef(({
         onLoopUpdate(loopId, updates);
         return;
       }
-      
+
       const trackDelta = updates.trackIndex - targetLoop.trackIndex;
       const timeDelta = updates.startTime - targetLoop.startTime;
-      
+
       selectedLoopIds.forEach(id => {
         const loop = placedLoops.find(l => l.id === id);
         if (loop) {
           const newTrack = Math.max(0, Math.min(TIMELINE_CONSTANTS.NUM_TRACKS - 1, loop.trackIndex + trackDelta));
           const newStart = Math.max(0, loop.startTime + timeDelta);
           const loopDuration = loop.endTime - loop.startTime;
-          
+
           onLoopUpdate(id, {
             trackIndex: newTrack,
             startTime: newStart,
@@ -240,7 +241,7 @@ const TimelineContent = forwardRef(({
   // ============================================================================
   // SELECTION BOX STYLE
   // ============================================================================
-  
+
   const getSelectionBoxStyle = () => {
     if (!selectionBox) return null;
 
@@ -264,110 +265,132 @@ const TimelineContent = forwardRef(({
     };
   };
 
+  // Total content height for the track area
+  const contentHeight = VIDEO_TRACK_H + TIMELINE_CONSTANTS.NUM_TRACKS * TIMELINE_CONSTANTS.TRACK_HEIGHT;
+
   // ============================================================================
-  // RENDER
+  // RENDER — Single scroll container with CSS Grid + position:sticky
   // ============================================================================
 
   return (
-    <div className="flex flex-1 min-h-0 relative">
-      {/* Fixed time header */}
-      <div className="absolute top-0 left-0 right-0 z-30 flex">
-        {/* Spacer matching track headers width */}
-        <div 
-          className="bg-gray-800 border-r border-gray-600" 
-          style={{ width: '154px', height: TIMELINE_CONSTANTS.HEADER_HEIGHT }} 
-        />
-        
-        <div
-          ref={timeHeaderRef}
-          className="flex-1 overflow-x-hidden bg-gray-800 border-b border-gray-700 select-none"
-          style={{ height: TIMELINE_CONSTANTS.HEADER_HEIGHT, cursor: isScrubbing ? 'col-resize' : 'pointer', touchAction: 'none' }}
-          onScroll={onTimeHeaderScroll}
-          onPointerDown={handleTimeRulerMouseDown}
-          onPointerMove={handleTimeRulerMouseMove}
-          onPointerUp={handleTimeRulerMouseUp}
-        >
-          <div
-            className="relative bg-gray-800"
-            style={{ width: timelineWidth, height: TIMELINE_CONSTANTS.HEADER_HEIGHT, cursor: 'inherit' }}
-          >
-            <TimeMarkers 
-              duration={duration} 
-              timeToPixel={timeToPixel} 
-              showTimelineLabel={showTimelineLabel}
-            />
-            
-            {/* Playhead in header - visual only */}
-            <Playhead
-              currentTime={currentTime}
-              timeToPixel={timeToPixel}
-              isDraggingPlayhead={isDraggingPlayhead}
-              onPlayheadMouseDown={() => {}} // No-op, handled by overlay
-              isInHeader={true}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Track headers - with hidden scrollbar */}
-      <div 
-        ref={headerScrollRef}
-        className="bg-gray-800 border-r border-gray-600 overflow-y-scroll overflow-x-hidden z-20 scrollbar-hidden"
-        onScroll={onHeaderScroll}
+    <>
+      <div className="flex-1 min-h-0 relative">
+      <div
+        ref={timelineScrollRef}
+        data-timeline-scroll="true"
+        className="absolute inset-0"
         style={{
-          width: '154px',
-          maxHeight: '576px',
-          minHeight: 0,
-          paddingTop: TIMELINE_CONSTANTS.HEADER_HEIGHT,
-          paddingBottom: '20px',
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
+          overflow: 'auto',
+          paddingBottom: '20px'
         }}
       >
-        <style>{`
-          .scrollbar-hidden::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
-        
-        <div style={{ height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + TIMELINE_CONSTANTS.NUM_TRACKS * TIMELINE_CONSTANTS.TRACK_HEIGHT }}>
-          <VideoTrackHeader />
-          {Array.from({ length: TIMELINE_CONSTANTS.NUM_TRACKS }, (_, i) => (
-            <TrackHeader 
-              key={i} 
-              trackIndex={i}
-              trackStates={trackStates}
-              updateTrackState={updateTrackState}
-              placedLoops={placedLoops}
-              hoveredTrack={hoveredTrack}
-              onTrackHeaderClick={onTrackHeaderClick}
-              tutorialMode={tutorialMode}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Timeline content with scrollbar */}
-      <div className="flex-1 relative">
+        {/* CSS GRID LAYOUT */}
         <div
-          ref={timelineScrollRef}
-          className="absolute inset-0"
-          data-timeline-scroll="true"
-          onScroll={onTimelineScroll}
           style={{
-            paddingTop: TIMELINE_CONSTANTS.HEADER_HEIGHT,
-            paddingBottom: '20px',
-            overflow: 'auto'
+            display: 'grid',
+            gridTemplateColumns: `${HEADER_COL_WIDTH}px ${timelineWidth}px`,
+            gridTemplateRows: `${TIMELINE_CONSTANTS.HEADER_HEIGHT}px ${contentHeight}px`,
+            minWidth: HEADER_COL_WIDTH + timelineWidth
           }}
         >
+          {/* ============================================================ */}
+          {/* CORNER CELL — sticky top + left (z-30) */}
+          {/* ============================================================ */}
+          <div
+            className="bg-gray-800 border-r border-gray-600 border-b border-gray-700"
+            style={{
+              position: 'sticky',
+              top: 0,
+              left: 0,
+              zIndex: 30,
+              height: TIMELINE_CONSTANTS.HEADER_HEIGHT
+            }}
+          />
+
+          {/* ============================================================ */}
+          {/* TIME RULER — sticky top (z-20) */}
+          {/* ============================================================ */}
+          <div
+            className="bg-gray-800 border-b border-gray-700 select-none"
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 20,
+              height: TIMELINE_CONSTANTS.HEADER_HEIGHT,
+              cursor: isScrubbing ? 'col-resize' : 'pointer',
+              touchAction: 'none'
+            }}
+            onPointerDown={handleTimeRulerMouseDown}
+            onPointerMove={handleTimeRulerMouseMove}
+            onPointerUp={handleTimeRulerMouseUp}
+          >
+            <div
+              className="relative bg-gray-800"
+              style={{ width: timelineWidth, height: TIMELINE_CONSTANTS.HEADER_HEIGHT, cursor: 'inherit' }}
+            >
+              <TimeMarkers
+                duration={duration}
+                timeToPixel={timeToPixel}
+                showTimelineLabel={showTimelineLabel}
+              />
+
+              {/* Playhead in header - visual only */}
+              <Playhead
+                currentTime={currentTime}
+                timeToPixel={timeToPixel}
+                isDraggingPlayhead={isDraggingPlayhead}
+                onPlayheadMouseDown={() => {}} // No-op, handled by overlay
+                isInHeader={true}
+              />
+            </div>
+          </div>
+
+          {/* ============================================================ */}
+          {/* TRACK HEADERS — sticky left (z-10) */}
+          {/* ============================================================ */}
+          <div
+            className="bg-gray-800 border-r border-gray-600"
+            style={{
+              position: 'sticky',
+              left: 0,
+              zIndex: 10,
+              height: contentHeight
+            }}
+          >
+            {sceneBlocks ? (
+              <div
+                className="bg-gray-700 border-r border-gray-600 border-b border-gray-700 flex items-center px-2"
+                style={{ width: HEADER_COL_WIDTH, height: VIDEO_TRACK_H }}
+              >
+                <span className="text-white text-xs font-medium">Scenes</span>
+              </div>
+            ) : (
+              <VideoTrackHeader />
+            )}
+            {Array.from({ length: TIMELINE_CONSTANTS.NUM_TRACKS }, (_, i) => (
+              <TrackHeader
+                key={i}
+                trackIndex={i}
+                trackStates={trackStates}
+                updateTrackState={updateTrackState}
+                placedLoops={placedLoops}
+                hoveredTrack={hoveredTrack}
+                onTrackHeaderClick={onTrackHeaderClick}
+                tutorialMode={tutorialMode}
+              />
+            ))}
+          </div>
+
+          {/* ============================================================ */}
+          {/* TIMELINE CONTENT — the main content area */}
+          {/* ============================================================ */}
           <div
             ref={timelineRef}
             className="relative bg-gray-900"
             data-timeline-content="true"
             style={{
               width: timelineWidth,
-              height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + TIMELINE_CONSTANTS.NUM_TRACKS * TIMELINE_CONSTANTS.TRACK_HEIGHT,
+              height: contentHeight,
               minWidth: timelineWidth,
               position: 'relative'
             }}
@@ -375,43 +398,140 @@ const TimelineContent = forwardRef(({
             {/* ============================================================ */}
             {/* VISUAL LAYER - All pointer-events: none */}
             {/* ============================================================ */}
-            
+
             {/* Timeline Grid Lines */}
-            <TimelineGrid 
-              duration={duration} 
-              timeToPixel={timeToPixel} 
+            <TimelineGrid
+              duration={duration}
+              timeToPixel={timeToPixel}
             />
 
-            {/* Video track */}
+            {/* Video track / Scene blocks — z-60 above InteractionOverlay (z-50) */}
             <div
-              className="absolute left-0 right-0 border-b border-gray-700 bg-gray-700"
+              className="absolute left-0 right-0 border-b border-gray-700 bg-gray-800"
               style={{
                 top: 0,
-                height: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT,
-                pointerEvents: 'none'
+                height: VIDEO_TRACK_H,
+                zIndex: 60,
               }}
             >
-              <div
-                className="absolute bg-blue-600 rounded opacity-80 flex items-center justify-center"
-                style={{
-                  left: '8px',
-                  top: '4px',
-                  width: Math.max(0, timeToPixel(duration) - 16),
-                  height: `${TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT - 8}px`,
-                  pointerEvents: 'none'
-                }}
-              >
-                <span className="text-white text-xs font-medium pointer-events-none">
-                  Video ({Math.floor(duration / 60)}:{String(Math.floor(duration % 60)).padStart(2, '0')})
-                </span>
-              </div>
-              
-              <div 
-                className="absolute left-2 text-xs text-gray-300 font-medium pointer-events-none" 
-                style={{ top: '2px' }}
-              >
-                V
-              </div>
+              {sceneBlocks ? (
+                // Scene blocks — aligned to timeline time axis with draggable dividers
+                <>
+                  {sceneBlocks.map((block, i) => {
+                    // "+" add button — rendered as a small button after the last scene
+                    if (block.isAddButton) {
+                      const left = timeToPixel(block.startTime);
+                      return (
+                        <button
+                          key="add-scene"
+                          onClick={block.onClick}
+                          className="absolute flex items-center justify-center rounded bg-gray-700 hover:bg-orange-600 text-gray-400 hover:text-white transition-colors"
+                          style={{
+                            left: left + 4,
+                            top: 3,
+                            width: 24,
+                            height: VIDEO_TRACK_H - 6,
+                          }}
+                          title="Add scene"
+                        >
+                          <span className="text-sm font-bold">+</span>
+                        </button>
+                      );
+                    }
+
+                    const left = timeToPixel(block.startTime);
+                    const width = timeToPixel(block.endTime) - left;
+                    return (
+                      <div
+                        key={i}
+                        onClick={block.onClick}
+                        className={`absolute flex items-center gap-1.5 px-2 rounded cursor-pointer transition-colors group/scene ${
+                          block.active
+                            ? 'bg-orange-600 ring-1 ring-orange-400'
+                            : 'bg-gray-700 hover:bg-gray-600'
+                        }`}
+                        style={{
+                          left: left + 2,
+                          top: 3,
+                          width: Math.max(0, width - 4),
+                          height: VIDEO_TRACK_H - 6,
+                        }}
+                      >
+                        <span className={`text-[10px] font-bold truncate flex-1 ${block.active ? 'text-white' : 'text-gray-300'}`}>
+                          {block.label}
+                        </span>
+                        {block.onDelete && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); block.onDelete(); }}
+                            className="hidden group-hover/scene:flex items-center justify-center w-4 h-4 rounded-full bg-red-600 hover:bg-red-500 text-white text-[8px] font-bold flex-shrink-0"
+                            title="Delete scene"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {/* Draggable dividers between adjacent scenes */}
+                  {sceneBlocks.filter(b => b.onResize).map((block, i) => {
+                    const dividerX = timeToPixel(block.endTime);
+                    return (
+                      <div
+                        key={`divider-${i}`}
+                        className="absolute cursor-col-resize z-10 group"
+                        style={{
+                          left: dividerX - 6,
+                          top: 0,
+                          width: 12,
+                          height: VIDEO_TRACK_H,
+                        }}
+                        onPointerDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const parentRect = e.currentTarget.parentElement.getBoundingClientRect();
+                          const onMove = (ev) => {
+                            const x = ev.clientX - parentRect.left;
+                            const newTime = pixelToTime(x);
+                            block.onResize(newTime);
+                          };
+                          const onUp = () => {
+                            document.removeEventListener('pointermove', onMove);
+                            document.removeEventListener('pointerup', onUp);
+                          };
+                          document.addEventListener('pointermove', onMove);
+                          document.addEventListener('pointerup', onUp);
+                        }}
+                      >
+                        <div className="absolute left-1/2 top-1 bottom-1 w-0.5 -translate-x-1/2 bg-gray-500 group-hover:bg-orange-400 transition-colors rounded" />
+                      </div>
+                    );
+                  })}
+                </>
+              ) : (
+                // Default video bar
+                <>
+                  <div
+                    className="absolute bg-blue-600 rounded opacity-80 flex items-center justify-center"
+                    style={{
+                      left: '8px',
+                      top: '4px',
+                      width: Math.max(0, timeToPixel(duration) - 16),
+                      height: `${VIDEO_TRACK_H - 8}px`,
+                      pointerEvents: 'none'
+                    }}
+                  >
+                    <span className="text-white text-xs font-medium pointer-events-none">
+                      Video ({Math.floor(duration / 60)}:{String(Math.floor(duration % 60)).padStart(2, '0')})
+                    </span>
+                  </div>
+                  <div
+                    className="absolute left-2 text-xs text-gray-300 font-medium pointer-events-none"
+                    style={{ top: '2px' }}
+                  >
+                    V
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Audio track backgrounds */}
@@ -427,7 +547,7 @@ const TimelineContent = forwardRef(({
                   trackStates[`track-${i}`]?.muted ? 'opacity-50' : ''
                 }`}
                 style={{
-                  top: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + i * TIMELINE_CONSTANTS.TRACK_HEIGHT,
+                  top: VIDEO_TRACK_H + i * TIMELINE_CONSTANTS.TRACK_HEIGHT,
                   height: TIMELINE_CONSTANTS.TRACK_HEIGHT,
                   pointerEvents: 'none'
                 }}
@@ -451,8 +571,8 @@ const TimelineContent = forwardRef(({
             {placedLoops
               .filter(loop => trackStates[`track-${loop.trackIndex}`]?.visible !== false)
               .map((loop) => (
-                <LoopBlock 
-                  key={loop.id} 
+                <LoopBlock
+                  key={loop.id}
                   loop={loop}
                   timeToPixel={timeToPixel}
                   trackStates={trackStates}
@@ -480,7 +600,7 @@ const TimelineContent = forwardRef(({
               <div
                 className="absolute left-0 right-0 border-2 border-dashed border-blue-400 bg-blue-400/10 pointer-events-none animate-pulse"
                 style={{
-                  top: TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + hoveredTrack * TIMELINE_CONSTANTS.TRACK_HEIGHT,
+                  top: VIDEO_TRACK_H + hoveredTrack * TIMELINE_CONSTANTS.TRACK_HEIGHT,
                   height: TIMELINE_CONSTANTS.TRACK_HEIGHT
                 }}
               >
@@ -493,7 +613,7 @@ const TimelineContent = forwardRef(({
             {/* ============================================================ */}
             {/* INTERACTION OVERLAY - Handles ALL mouse events */}
             {/* ============================================================ */}
-            
+
             <InteractionOverlay
               // Data
               placedLoops={placedLoops}
@@ -549,8 +669,9 @@ const TimelineContent = forwardRef(({
           </div>
         </div>
       </div>
+      </div>
 
-      {/* Context menu */}
+      {/* Context menu — fixed position, outside scroll container */}
       {contextMenu && (
         <div
           className="fixed bg-gray-800 rounded-lg shadow-2xl border border-gray-700 py-1 z-[9999]"
@@ -575,10 +696,10 @@ const TimelineContent = forwardRef(({
           </button>
         </div>
       )}
-    </div>
+    </>
   );
 });
 
 TimelineContent.displayName = 'TimelineContent';
 
-export default TimelineContent;// force rebuild Sat Dec 13 14:52:38 EST 2025
+export default TimelineContent;

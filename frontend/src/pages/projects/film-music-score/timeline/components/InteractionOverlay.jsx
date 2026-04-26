@@ -66,6 +66,7 @@ const InteractionOverlay = ({
   hoveredTrack,
   setHoveredTrack
 }) => {
+  const VIDEO_TRACK_H = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT;
   // UNIFIED CURSOR: Get global cursor state from context
   const { isChromebook, isDraggingFromLibrary, isCustomCursorEnabled, cursorKey, registerDropHandler, registerHoverHandler } = useCursor();
 
@@ -264,7 +265,7 @@ const InteractionOverlay = ({
         // These ARE in content coordinates, so use x/y directly
         const left = timeToPixel(loop.startTime);
         const right = timeToPixel(loop.endTime);
-        const top = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
+        const top = VIDEO_TRACK_H + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
         const bottom = top + TIMELINE_CONSTANTS.TRACK_HEIGHT;
         
         if (x >= left && x <= right && y >= top && y <= bottom) {
@@ -343,7 +344,7 @@ const InteractionOverlay = ({
    * Get track index from Y position
    */
   const getTrackIndexFromY = useCallback((y) => {
-    const yRelativeToTracks = y - TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT;
+    const yRelativeToTracks = y - VIDEO_TRACK_H;
     if (yRelativeToTracks < 0) return -1; // Video track area
     
     const trackIndex = Math.floor(yRelativeToTracks / TIMELINE_CONSTANTS.TRACK_HEIGHT);
@@ -521,7 +522,12 @@ const InteractionOverlay = ({
 
   const handleMouseDown = useCallback((e) => {
     if (e.button !== 0) return; // Left click only
-    
+
+    // Capture pointer so drag continues even if cursor leaves the overlay
+    if (overlayRef.current && e.pointerId != null) {
+      try { overlayRef.current.setPointerCapture(e.pointerId); } catch(err) {}
+    }
+
     const { x, y, viewportX, viewportY } = getMousePosition(e);
 
     // Check what we clicked on
@@ -566,7 +572,7 @@ const InteractionOverlay = ({
       setCursor('grabbing');
       
       const loopLeft = timeToPixel(loop.startTime);
-      const loopTop = TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
+      const loopTop = VIDEO_TRACK_H + (loop.trackIndex * TIMELINE_CONSTANTS.TRACK_HEIGHT);
       
       dragStateRef.current = {
         startX: x,
@@ -594,7 +600,7 @@ const InteractionOverlay = ({
     }
     
     // Start selection box (if clicking on empty area)
-    if (y > TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT) {
+    if (y > VIDEO_TRACK_H) {
       e.preventDefault();
       
       setIsSelecting(true);
@@ -609,6 +615,11 @@ const InteractionOverlay = ({
   ]);
 
   const handleMouseUp = useCallback((e) => {
+    // Release pointer capture
+    if (overlayRef.current && e?.pointerId != null) {
+      try { overlayRef.current.releasePointerCapture(e.pointerId); } catch(err) {}
+    }
+
     // PERFORMANCE FIX: Apply pending loop update on drag end (single state update)
     // This replaces the ~80 state updates that were happening during drag
     if ((isDraggingLoop || isResizing) && pendingLoopUpdateRef.current) {
@@ -759,7 +770,7 @@ const InteractionOverlay = ({
 
     // Calculate track index based on cursor position (not loop position)
     // This is more intuitive: the loop goes to whatever track the cursor is in
-    const cursorYRelativeToTracks = y - TIMELINE_CONSTANTS.VIDEO_TRACK_HEIGHT;
+    const cursorYRelativeToTracks = y - VIDEO_TRACK_H;
     const newTrackIndex = Math.floor(cursorYRelativeToTracks / TIMELINE_CONSTANTS.TRACK_HEIGHT);
 
     // Constrain values
@@ -1091,7 +1102,6 @@ const InteractionOverlay = ({
         onPointerDown={handleMouseDown}
         onPointerUp={handleMouseUp}
         onPointerCancel={handleMouseUp}
-        onPointerLeave={handleMouseUp}
         onContextMenu={handleContextMenu}
         onDoubleClick={handleDoubleClick}
         onDragOver={handleDragOver}
