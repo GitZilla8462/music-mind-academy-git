@@ -143,61 +143,6 @@ export const CURRICULUM = [
     ]
   },
   {
-    id: 'film-music-scoring',
-    name: 'Film Music: Scoring the Story',
-    shortName: 'Film Scoring',
-    icon: '🎬',
-    color: 'orange',
-    lessons: [
-      {
-        id: 'fms-lesson1',
-        name: 'Lesson 1: WHO Is In The Story?',
-        shortName: 'Leitmotif',
-        concept: 'Leitmotif & Melody — character identity through music',
-        route: '/lessons/film-music/lesson1',
-        activities: [
-          { id: 'fm-motif-builder', name: 'Motif Builder', type: 'composition' }
-        ]
-      },
-      {
-        id: 'fms-lesson2',
-        name: 'Lesson 2: WHAT Do They Feel?',
-        shortName: 'Instruments',
-        concept: 'Instruments & Emotion — how instrument choice affects feeling',
-        route: '/lessons/film-music/lesson2',
-        activities: [
-          { id: 'fm-scene-composer', name: 'Scene Composer', type: 'composition' }
-        ]
-      },
-      {
-        id: 'fms-lesson3',
-        name: 'Lesson 3: Plan Your Score',
-        shortName: 'Spotting',
-        concept: 'Choose a film & build your spotting guide',
-        route: '/lessons/film-music/lesson3',
-        activities: [
-          { id: 'fm-spotting-guide', name: 'Spotting Guide', type: 'composition' }
-        ]
-      },
-      {
-        id: 'fms-lesson4',
-        name: 'Lesson 4: HOW Does Tension Build?',
-        shortName: 'Tension',
-        concept: 'Tension & Harmony — how music follows the story arc',
-        route: '/lessons/film-music/lesson4',
-        activities: []
-      },
-      {
-        id: 'fms-lesson5',
-        name: 'Lesson 5: Complete Story',
-        shortName: 'Capstone',
-        concept: 'Integration & Refinement — complete film score',
-        route: '/lessons/film-music/lesson5',
-        activities: []
-      }
-    ]
-  },
-  {
     id: 'music-journalist',
     name: 'Music Journalist',
     shortName: 'Music Journalist',
@@ -257,6 +202,61 @@ export const CURRICULUM = [
         shortName: 'Present',
         concept: 'Present your story and give peer feedback',
         route: '/lessons/music-journalist/lesson5',
+        activities: []
+      }
+    ]
+  },
+  {
+    id: 'film-music-scoring',
+    name: 'Film Music: Scoring the Story',
+    shortName: 'Film Scoring',
+    icon: '🎬',
+    color: 'orange',
+    lessons: [
+      {
+        id: 'fms-lesson1',
+        name: 'Lesson 1: WHO Is In The Story?',
+        shortName: 'Leitmotif',
+        concept: 'Leitmotif & Melody — character identity through music',
+        route: '/lessons/film-music/lesson1',
+        activities: [
+          { id: 'fm-motif-builder', name: 'Motif Builder', type: 'composition' }
+        ]
+      },
+      {
+        id: 'fms-lesson2',
+        name: 'Lesson 2: WHAT Do They Feel?',
+        shortName: 'Instruments',
+        concept: 'Instruments & Emotion — how instrument choice affects feeling',
+        route: '/lessons/film-music/lesson2',
+        activities: [
+          { id: 'fm-scene-composer', name: 'Scene Composer', type: 'composition' }
+        ]
+      },
+      {
+        id: 'fms-lesson3',
+        name: 'Lesson 3: Plan Your Score',
+        shortName: 'Spotting',
+        concept: 'Choose a film & build your spotting guide',
+        route: '/lessons/film-music/lesson3',
+        activities: [
+          { id: 'fm-spotting-guide', name: 'Spotting Guide', type: 'composition' }
+        ]
+      },
+      {
+        id: 'fms-lesson4',
+        name: 'Lesson 4: HOW Does Tension Build?',
+        shortName: 'Tension',
+        concept: 'Tension & Harmony — how music follows the story arc',
+        route: '/lessons/film-music/lesson4',
+        activities: []
+      },
+      {
+        id: 'fms-lesson5',
+        name: 'Lesson 5: Complete Story',
+        shortName: 'Capstone',
+        concept: 'Integration & Refinement — complete film score',
+        route: '/lessons/film-music/lesson5',
         activities: []
       }
     ]
