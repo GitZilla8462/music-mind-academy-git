@@ -88,6 +88,98 @@ const SidebarRow = ({ student, idx, isSelected, onSelect, maxPoints, onScoreSave
   );
 };
 
+// Motif Builder preview with play button
+const MotifPreview = ({ data: d }) => {
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const synthRef = React.useRef(null);
+  const timeoutsRef = React.useRef([]);
+
+  React.useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach(t => clearTimeout(t));
+      if (synthRef.current) { try { synthRef.current.dispose(); } catch(e) {} }
+    };
+  }, []);
+
+  const playMotif = async () => {
+    if (isPlaying || !d.notes?.length) return;
+    const Tone = (await import('tone')).default;
+    if (Tone.context.state !== 'running') await Tone.start();
+    setIsPlaying(true);
+
+    timeoutsRef.current.forEach(t => clearTimeout(t));
+    if (synthRef.current) { try { synthRef.current.dispose(); } catch(e) {} }
+
+    const { INSTRUMENTS } = await import('../../lessons/film-music/shared/virtual-instrument/instrumentConfig');
+    const instConfig = INSTRUMENTS[d.instrument] || INSTRUMENTS.piano;
+    const synth = new Tone.PolySynth(Tone.Synth, instConfig.config).toDestination();
+    synth.volume.value = -6;
+    synthRef.current = synth;
+
+    const filtered = d.notes.filter(n => !n.note?.startsWith('drum-'));
+    filtered.forEach(nd => {
+      const t = setTimeout(() => {
+        try { synth.triggerAttackRelease(nd.note, nd.duration); } catch(e) {}
+      }, nd.timestamp * 1000);
+      timeoutsRef.current.push(t);
+    });
+
+    const maxEnd = filtered.reduce((max, n) => Math.max(max, (n.timestamp + n.duration) * 1000), 0);
+    timeoutsRef.current.push(setTimeout(() => setIsPlaying(false), maxEnd + 300));
+  };
+
+  const stopMotif = () => {
+    timeoutsRef.current.forEach(t => clearTimeout(t));
+    timeoutsRef.current = [];
+    if (synthRef.current) { try { synthRef.current.releaseAll(); } catch(e) {} }
+    setIsPlaying(false);
+  };
+
+  const CHARACTER_EMOJIS = { hero: '🦸', villain: '🦹', romantic: '💕', sneaky: '🕵️', funny: '🤡', other: '✏️' };
+
+  return (
+    <div className="flex-1 flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-xl border-2 border-indigo-300">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl" style={{ backgroundColor: d.characterColor || '#3B82F6' }}>
+            {CHARACTER_EMOJIS[d.characterType] || '🎵'}
+          </div>
+          <div>
+            <div className="text-lg font-bold text-gray-900">{d.characterName}</div>
+            <div className="text-sm text-gray-500 capitalize">{d.characterType}{d.customType ? ` — ${d.customType}` : ''}</div>
+          </div>
+        </div>
+        {d.characterDescription && (
+          <p className="text-sm text-gray-700 italic mb-3">"{d.characterDescription}"</p>
+        )}
+        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm mb-4">
+          <span className="text-gray-500">Instrument:</span>
+          <span className="text-gray-900 capitalize">{d.instrument || 'Unknown'}</span>
+          <span className="text-gray-500">Notes:</span>
+          <span className="text-gray-900">{d.notes?.length || 0} notes</span>
+          {d.notes?.length > 0 && (
+            <>
+              <span className="text-gray-500">Melody:</span>
+              <span className="text-gray-900 font-mono text-xs">{d.notes.filter(n => !n.note?.startsWith('drum-')).map(n => n.note).join(' → ')}</span>
+            </>
+          )}
+        </div>
+        <button
+          onClick={isPlaying ? stopMotif : playMotif}
+          disabled={!d.notes?.length}
+          className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all ${
+            isPlaying
+              ? 'bg-red-500 hover:bg-red-600 text-white'
+              : 'bg-indigo-500 hover:bg-indigo-600 text-white'
+          }`}
+        >
+          {isPlaying ? '■ Stop' : '▶ Play Motif'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const ActivityGradingView = ({
   isOpen,
   onClose,
@@ -526,38 +618,7 @@ const ActivityGradingView = ({
     }
     // Motif Builder preview
     if (workData.data?.notes && workData.data?.characterName) {
-      const d = workData.data;
-      const CHARACTER_EMOJIS = { hero: '🦸', villain: '🦹', romantic: '💕', sneaky: '🕵️', funny: '🤡', other: '✏️' };
-      return (
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-xl border-2 border-indigo-300">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl" style={{ backgroundColor: d.characterColor || '#3B82F6' }}>
-                {CHARACTER_EMOJIS[d.characterType] || '🎵'}
-              </div>
-              <div>
-                <div className="text-lg font-bold text-gray-900">{d.characterName}</div>
-                <div className="text-sm text-gray-500 capitalize">{d.characterType}{d.customType ? ` — ${d.customType}` : ''}</div>
-              </div>
-            </div>
-            {d.characterDescription && (
-              <p className="text-sm text-gray-700 italic mb-3">"{d.characterDescription}"</p>
-            )}
-            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-              <span className="text-gray-500">Instrument:</span>
-              <span className="text-gray-900 capitalize">{d.instrument || 'Unknown'}</span>
-              <span className="text-gray-500">Notes:</span>
-              <span className="text-gray-900">{d.notes?.length || 0} notes</span>
-              {d.notes?.length > 0 && (
-                <>
-                  <span className="text-gray-500">Melody:</span>
-                  <span className="text-gray-900 font-mono text-xs">{d.notes.filter(n => !n.note?.startsWith('drum-')).map(n => n.note).join(' → ')}</span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      );
+      return <MotifPreview data={workData.data} />;
     }
     return (
       <div className="flex-1 flex items-center justify-center text-gray-400">
