@@ -103,7 +103,7 @@ const MotifPreview = ({ data: d }) => {
 
   const playMotif = async () => {
     if (isPlaying || !d.notes?.length) return;
-    const Tone = (await import('tone')).default;
+    const Tone = await import('tone');
     if (Tone.context.state !== 'running') await Tone.start();
     setIsPlaying(true);
 
