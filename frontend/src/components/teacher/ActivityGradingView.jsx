@@ -524,6 +524,41 @@ const ActivityGradingView = ({
         </Suspense>
       );
     }
+    // Motif Builder preview
+    if (workData.data?.notes && workData.data?.characterName) {
+      const d = workData.data;
+      const CHARACTER_EMOJIS = { hero: '🦸', villain: '🦹', romantic: '💕', sneaky: '🕵️', funny: '🤡', other: '✏️' };
+      return (
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-xl border-2 border-indigo-300">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl" style={{ backgroundColor: d.characterColor || '#3B82F6' }}>
+                {CHARACTER_EMOJIS[d.characterType] || '🎵'}
+              </div>
+              <div>
+                <div className="text-lg font-bold text-gray-900">{d.characterName}</div>
+                <div className="text-sm text-gray-500 capitalize">{d.characterType}{d.customType ? ` — ${d.customType}` : ''}</div>
+              </div>
+            </div>
+            {d.characterDescription && (
+              <p className="text-sm text-gray-700 italic mb-3">"{d.characterDescription}"</p>
+            )}
+            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+              <span className="text-gray-500">Instrument:</span>
+              <span className="text-gray-900 capitalize">{d.instrument || 'Unknown'}</span>
+              <span className="text-gray-500">Notes:</span>
+              <span className="text-gray-900">{d.notes?.length || 0} notes</span>
+              {d.notes?.length > 0 && (
+                <>
+                  <span className="text-gray-500">Melody:</span>
+                  <span className="text-gray-900 font-mono text-xs">{d.notes.filter(n => !n.note?.startsWith('drum-')).map(n => n.note).join(' → ')}</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="flex-1 flex items-center justify-center text-gray-400">
         <p>Preview not available</p>
