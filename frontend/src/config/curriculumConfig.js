@@ -171,11 +171,13 @@ export const CURRICULUM = [
       },
       {
         id: 'fms-lesson3',
-        name: 'Lesson 3: WHEN Does Music Speak?',
+        name: 'Lesson 3: Plan Your Score',
         shortName: 'Spotting',
-        concept: 'Spotting & Silence — when music should talk and listen',
+        concept: 'Choose a film & build your spotting guide',
         route: '/lessons/film-music/lesson3',
-        activities: []
+        activities: [
+          { id: 'fm-spotting-guide', name: 'Spotting Guide', type: 'composition' }
+        ]
       },
       {
         id: 'fms-lesson4',
