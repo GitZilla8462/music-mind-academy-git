@@ -732,32 +732,29 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
     saveMotif(recordedNotes, selectedCharacterId, recordedInstrument, 80);
     syncMotifToFirebase(selectedCharacterId, recordedNotes, recordedInstrument, charData);
 
-    // Save first motif to student dashboard + teacher gradebook (don't overwrite)
-    const studentId = getStudentId();
-    const authInfo = getClassAuthInfo();
+    // Save to student dashboard + teacher gradebook
     try {
-      const existing = localStorage.getItem(`mma-saved-${studentId || 'anon'}-fm-motif-builder`);
-      if (!existing) {
-        saveStudentWork('fm-motif-builder', {
-          title: 'Motif Builder',
-          emoji: '🎵',
-          viewRoute: '/lessons/film-music/lesson1?view=saved',
-          subtitle: `${characterName || 'Unnamed'} (${characterType})`,
-          category: 'Film Music: Scoring the Story',
-          lessonId: 'fms-lesson1',
-          data: {
-            characterId: selectedCharacterId,
-            characterName,
-            characterDescription,
-            characterType,
-            customType,
-            characterColor,
-            notes: recordedNotes,
-            instrument: recordedInstrument,
-          }
-        }, studentId, authInfo);
-      }
-    } catch(e) {}
+      const studentId = getStudentId();
+      const authInfo = getClassAuthInfo();
+      saveStudentWork('fm-motif-builder', {
+        title: 'Motif Builder',
+        emoji: '🎵',
+        viewRoute: '/lessons/film-music/lesson1?view=saved',
+        subtitle: `${characterName || 'Unnamed'} (${characterType})`,
+        category: 'Film Music: Scoring the Story',
+        lessonId: 'fms-lesson1',
+        data: {
+          characterId: selectedCharacterId,
+          characterName,
+          characterDescription,
+          characterType,
+          customType,
+          characterColor,
+          notes: recordedNotes,
+          instrument: recordedInstrument,
+        }
+      }, studentId, authInfo);
+    } catch(e) { console.error('Failed to save student work:', e); }
 
     setHasSaved(true);
     setShowSaveSuccess(true);

@@ -22,9 +22,11 @@ import { getAllStudentWork, saveStudentWork, parseActivityId } from '../../utils
 
 // Unit styling — matches ClassDetailPage
 const UNIT_STYLE = {
-  'film-music':        { number: 1, title: 'The Loop Lab',           color: '#3b82f6' },
-  'listening-lab':     { number: 2, title: 'The Listening Lab',     color: '#8b5cf6' },
-  'production-studio': { number: 3, title: 'The Production Studio', color: '#f97316' },
+  'film-music':          { number: 1, title: 'The Loop Lab',                 color: '#3b82f6' },
+  'listening-lab':       { number: 2, title: 'The Listening Lab',           color: '#8b5cf6' },
+  'music-journalist':    { number: 3, title: 'The Music Agent',             color: '#0d9488' },
+  'film-music-scoring':  { number: 4, title: 'Film Music: Scoring the Story', color: '#f97316' },
+  'production-studio':   { number: 5, title: 'The Production Studio',       color: '#ec4899' },
 };
 
 // Grade percentage → color
