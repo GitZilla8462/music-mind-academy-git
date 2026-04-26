@@ -26,15 +26,24 @@ const COLOR_PALETTE = [
   '#FFFFFF', '#1F2937',
 ];
 
-const MOTIF_BUILDER_DIRECTIONS = [
-  { text: 'Pick a character from the grid on the left' },
-  { text: 'Draw your character, choose a color, and name them' },
-  { text: 'Choose your character type (Hero, Villain, etc.) and describe them in 1–2 sentences' },
-  { text: 'Pick an instrument and scale that match your character' },
-  { text: 'Press Record, then play 4-8 notes on the keyboard to create their theme' },
-  { text: 'Press Play to hear it back — does it match your character?' },
-  { text: 'If not, press Clear and try again!' },
-  { text: 'Your motif auto-saves when you stop recording' },
+const MOTIF_BUILDER_PAGES = [
+  {
+    title: 'Create Your Character',
+    items: [
+      'Pick a character from the grid on the left',
+      'Draw your character, choose a color, and name them',
+      'Choose a type (Hero, Villain, Sneaky, etc.) and describe them in a few words',
+    ]
+  },
+  {
+    title: 'Compose Their Theme',
+    items: [
+      'Pick an instrument and scale that match your character',
+      'Press Record, then play 4–8 notes on the keyboard',
+      'Press Play to hear it back — does it match your character?',
+      'If not, press Clear and try again!',
+    ]
+  }
 ];
 
 // ========================================
@@ -55,6 +64,13 @@ const saveCharacterMotif = (charId, notes, instrument, characterData) => {
 
 const getCharacterDrawing = (charId) => {
   try { return localStorage.getItem(`fm-lesson1-drawing-${charId}`) || null; } catch { return null; }
+};
+
+const deleteCharacterMotif = (charId) => {
+  try {
+    localStorage.removeItem(`fm-lesson1-motif-${charId}`);
+    localStorage.removeItem(`fm-lesson1-drawing-${charId}`);
+  } catch(e) {}
 };
 
 const saveCharacterDrawing = (charId, dataUrl) => {
@@ -113,6 +129,7 @@ const renderFreehandStroke = (ctx, points, color, size) => {
 const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [hasDrawn, setHasDrawn] = useState(false);
   const [tool, setTool] = useState('pen'); // 'pen' | 'eraser' | 'fill' | 'stamp'
   const [brushSize, setBrushSize] = useState(3);
   const [drawColor, setDrawColor] = useState(characterColor || '#FFFFFF');
@@ -142,6 +159,9 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
       const img = new Image();
       img.onload = () => ctx.drawImage(img, 0, 0);
       img.src = saved;
+      setHasDrawn(true);
+    } else {
+      setHasDrawn(false);
     }
   }, [characterId]);
 
@@ -305,22 +325,35 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
     </button>
   );
 
+  const handleStartDraw = (e) => {
+    setHasDrawn(true);
+    startDraw(e);
+  };
+
   return (
     <div className="space-y-1.5">
-      <canvas
-        ref={canvasRef}
-        width={300}
-        height={225}
-        className="w-full rounded-lg border border-gray-600"
-        style={{ touchAction: 'none', aspectRatio: '4/3', cursor: tool === 'stamp' ? 'copy' : tool === 'fill' ? 'crosshair' : 'crosshair' }}
-        onMouseDown={startDraw}
-        onMouseMove={draw}
-        onMouseUp={stopDraw}
-        onMouseLeave={stopDraw}
-        onTouchStart={startDraw}
-        onTouchMove={draw}
-        onTouchEnd={stopDraw}
-      />
+      <div className="relative">
+        <canvas
+          ref={canvasRef}
+          width={300}
+          height={450}
+          className="w-full rounded-lg border border-gray-600"
+          style={{ touchAction: 'none', aspectRatio: '2/3', cursor: tool === 'stamp' ? 'copy' : tool === 'fill' ? 'crosshair' : 'crosshair' }}
+          onMouseDown={handleStartDraw}
+          onMouseMove={draw}
+          onMouseUp={stopDraw}
+          onMouseLeave={stopDraw}
+          onTouchStart={handleStartDraw}
+          onTouchMove={draw}
+          onTouchEnd={stopDraw}
+        />
+        {!hasDrawn && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-6xl mb-3 opacity-30">✏️</span>
+            <span className="text-gray-500 text-sm font-semibold">Draw Your Character</span>
+          </div>
+        )}
+      </div>
 
       {/* Toolbar: pen, eraser, fill, stamps, undo, clear, size */}
       <div className="flex items-center gap-0.5">
@@ -448,6 +481,9 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
       })
     });
   }, [studentsPath, userId]);
+
+  // Force re-render when characters are deleted
+  const [charVersion, setCharVersion] = useState(0);
 
   // Character card state
   const [selectedCharacterId, setSelectedCharacterId] = useState(null);
@@ -715,7 +751,9 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
   const selectedCharacter = CHARACTER_LIBRARY.find(c => c.id === selectedCharacterId);
 
   // Check which characters have saved motifs (for the grid indicators)
+  // charVersion dependency forces re-check after delete
   const savedCharIds = CHARACTER_LIBRARY.map(c => c.id).filter(id => {
+    void charVersion; // depend on version to re-compute after delete
     const m = getCharacterMotif(id);
     return m?.notes?.length >= 4;
   });
@@ -732,19 +770,31 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
             const isActive = selectedCharacterId === charId;
             const motif = getCharacterMotif(charId);
             return (
-              <button
-                key={charId}
-                onClick={() => switchCharacter(charId)}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                  isActive
-                    ? 'bg-orange-500/20 text-orange-300 ring-1 ring-orange-500'
-                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
-                }`}
-              >
-                <span>{char.emoji}</span>
-                <span>{motif?.characterName || char.name}</span>
-                <Check size={10} className="text-green-400" />
-              </button>
+              <div key={charId} className="flex items-center gap-0.5 flex-shrink-0">
+                <button
+                  onClick={() => switchCharacter(charId)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-l-lg text-xs font-medium transition-all whitespace-nowrap ${
+                    isActive
+                      ? 'bg-orange-500/20 text-orange-300 ring-1 ring-orange-500'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white'
+                  }`}
+                >
+                  <span>{char.emoji}</span>
+                  <span>{motif?.characterName || char.name}</span>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteCharacterMotif(charId);
+                    setCharVersion(v => v + 1);
+                    if (selectedCharacterId === charId) switchToNewCharacter();
+                  }}
+                  className="px-1 py-1 rounded-r-lg bg-gray-800 text-gray-600 hover:text-red-400 hover:bg-gray-700 transition-colors text-xs"
+                  title="Delete character"
+                >
+                  ×
+                </button>
+              </div>
             );
           })}
           {savedCharIds.length === 0 && (
@@ -772,14 +822,15 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
             <span className="text-xs font-semibold">Directions</span>
           </button>
 
-          {hasSaved && (
-            <button
-              onClick={handleComplete}
-              className="flex items-center gap-1 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg text-xs"
-            >
-              Done <ChevronRight size={12} />
-            </button>
-          )}
+          <button
+            onClick={handleSave}
+            disabled={!canSave}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg font-semibold text-xs transition-colors ${
+              canSave ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            <Save size={12} /> Save
+          </button>
         </div>
       </div>
 
@@ -787,7 +838,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
       <div className="flex-1 flex overflow-hidden min-h-0">
 
         {/* ====== LEFT: Character picker + artwork ====== */}
-        <div className="w-[260px] flex-shrink-0 border-r border-gray-700 flex flex-col overflow-y-auto p-3 space-y-2">
+        <div className="w-[340px] flex-shrink-0 border-r border-gray-700 flex flex-col overflow-y-auto p-3 space-y-2">
           {/* Character dropdown */}
           <div className="relative" ref={charDropdownRef}>
             <button
@@ -838,7 +889,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
               className="rounded-xl p-3 border-2 flex-1 flex flex-col min-h-0"
               style={{ borderColor: characterColor, background: `${characterColor}15` }}
             >
-              {showDrawing || selectedCharacter?.isCustom ? (
+              {true ? (
                 <DrawingCanvas
                   characterId={selectedCharacterId}
                   characterColor={characterColor}
@@ -850,15 +901,6 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
                 </div>
               )}
 
-              {!selectedCharacter?.isCustom && (
-                <button
-                  onClick={() => setShowDrawing(!showDrawing)}
-                  className="w-full mt-2 flex items-center justify-center gap-1.5 px-3 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs rounded-lg transition-colors"
-                >
-                  <Pencil size={12} />
-                  {showDrawing ? 'Hide Drawing' : 'Draw Your Character'}
-                </button>
-              )}
 
             </div>
           )}
@@ -913,8 +955,8 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
             </div>
           )}
 
-          {/* Keyboard */}
-          <div className="flex-1 min-h-0">
+          {/* Keyboard — natural height, controls sit right below */}
+          <div className="flex-shrink-0">
             <VirtualInstrumentOverlay
               embedded={true}
               showRecord={false}
@@ -930,8 +972,19 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
             />
           </div>
 
-          {/* Controls directly under piano */}
-          <div className="flex-shrink-0 px-3 py-1.5 flex items-center gap-2 bg-gray-900">
+          {/* Controls — flush under piano */}
+          <div className="flex-shrink-0 px-3 py-1 flex items-center gap-2 bg-gray-900 border-t border-gray-700">
+            <button
+              onClick={isRecording ? handleRecordStop : handleRecordStart}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg font-semibold text-sm transition-all ${
+                isRecording
+                  ? 'bg-red-600 text-white animate-pulse shadow-lg shadow-red-600/40'
+                  : 'bg-gray-700 text-gray-300 hover:bg-red-600/80 hover:text-white'
+              }`}
+            >
+              {isRecording ? <><Square size={14} fill="currentColor" /> Stop Rec</> : <><span className="w-3 h-3 rounded-full bg-red-500" /> Record</>}
+            </button>
+
             <button
               onClick={isPlaying ? stopPlayback : playMotif}
               disabled={recordedNotes.length === 0 || isRecording}
@@ -945,34 +998,11 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
             </button>
 
             <button
-              onClick={clearMotif}
+              onClick={() => { if (window.confirm('Are you sure you want to erase your recording?')) clearMotif(); }}
               disabled={recordedNotes.length === 0 || isRecording}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-400 rounded-lg text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <RotateCcw size={14} /> Clear
-            </button>
-
-            <div className="flex-1" />
-
-            <button
-              onClick={isRecording ? handleRecordStop : handleRecordStart}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg font-semibold text-sm transition-all ${
-                isRecording
-                  ? 'bg-red-600 text-white animate-pulse shadow-lg shadow-red-600/40'
-                  : 'bg-gray-700 text-gray-300 hover:bg-red-600/80 hover:text-white'
-              }`}
-            >
-              {isRecording ? <><Square size={14} fill="currentColor" /> Stop Rec</> : <><span className="w-3 h-3 rounded-full bg-red-500" /> Record</>}
-            </button>
-
-            <button
-              onClick={handleSave}
-              disabled={!canSave}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg font-semibold text-sm transition-colors ${
-                canSave ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              <Save size={14} /> Save
             </button>
           </div>
         </div>
@@ -990,8 +1020,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
         title="Motif Builder"
         isOpen={directions.isOpen}
         onClose={directions.close}
-        steps={MOTIF_BUILDER_DIRECTIONS}
-        bonusText="Try a different instrument — does it change the character's personality?"
+        pages={MOTIF_BUILDER_PAGES}
       />
 
       {/* DirectionsReopenButton is inline in the header — no fixed-position one needed */}

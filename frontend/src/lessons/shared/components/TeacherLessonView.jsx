@@ -3101,7 +3101,22 @@ const PresentationContent = ({
         const [hasPlayed, setHasPlayed] = React.useState(false);
 
         React.useEffect(() => {
-          return () => { if (audioRef.current) audioRef.current.pause(); };
+          return () => {
+            // Fade out audio on unmount instead of abrupt cut
+            const audio = audioRef.current;
+            if (audio) {
+              const fadeOut = setInterval(() => {
+                if (audio.volume > 0.05) {
+                  audio.volume = Math.max(0, audio.volume - 0.15);
+                } else {
+                  clearInterval(fadeOut);
+                  audio.pause();
+                }
+              }, 30);
+              // Safety: force stop after 300ms regardless
+              setTimeout(() => { clearInterval(fadeOut); audio.pause(); }, 300);
+            }
+          };
         }, []);
 
         const playAudio = () => {
@@ -3154,14 +3169,12 @@ const PresentationContent = ({
                   <><span className="w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-l-[18px] border-l-white" /> Play Example</>
                 )}
               </button>
-              {hasPlayed && (
-                <button
-                  onClick={goToNextStage}
-                  className="flex items-center gap-2 px-8 py-4 bg-white text-gray-900 text-xl font-bold rounded-2xl hover:bg-gray-100 transition-all shadow-lg hover:scale-105 active:scale-95"
-                >
-                  Next <ChevronRight size={22} />
-                </button>
-              )}
+              <button
+                onClick={goToNextStage}
+                className="flex items-center gap-2 px-8 py-4 bg-white text-gray-900 text-xl font-bold rounded-2xl hover:bg-gray-100 transition-all shadow-lg hover:scale-105 active:scale-95"
+              >
+                Next <ChevronRight size={22} />
+              </button>
             </div>
           </div>
         );
