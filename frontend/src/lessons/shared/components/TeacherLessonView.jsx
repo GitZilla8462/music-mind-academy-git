@@ -5511,6 +5511,9 @@ const TeacherLessonView = ({
      currentStageData?.id === 'scouting-report' ||
      currentStageData?.id === 'build-press-kit' ||
      currentStageData?.id === 'peer-review' ||
+     currentStageData?.id === 'motif-builder' ||
+     currentStageData?.id === 'compose' ||
+     currentStageData?.id === 'spotting-guide' ||
      currentStageData?.id?.includes('reflection'));
 
   // Send save command to all students via Firebase

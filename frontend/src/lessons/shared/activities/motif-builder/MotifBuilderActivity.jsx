@@ -10,7 +10,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Square, Save, Check, ChevronRight, ChevronDown, RotateCcw, Pencil, Eraser, Trash2, HelpCircle, Stamp } from 'lucide-react';
 import getStroke from 'perfect-freehand';
 import * as Tone from 'tone';
-import { getDatabase, ref, update } from 'firebase/database';
+import { getDatabase, ref, update, onValue } from 'firebase/database';
 import { useSession } from '../../../../context/SessionContext';
 import { CHARACTER_LIBRARY, MOTIF_INSTRUMENTS } from '../../../film-music/lesson1/Lesson1config';
 import { saveCharacterCard, getCharacterCard, saveMotif, getMotif } from '../../../film-music/lesson1/lesson1StorageUtils';
@@ -718,7 +718,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
   };
 
   // Save — per character
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (recordedNotes.length < 1 || !selectedCharacterId) return;
     const charData = { characterName, characterDescription, characterType, customType, characterColor };
     saveCharacterCard(selectedCharacterId, characterName, characterDescription, characterColor, characterType, customType);
@@ -729,9 +729,35 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
     setHasSaved(true);
     setShowSaveSuccess(true);
     setTimeout(() => setShowSaveSuccess(false), 3000);
-  };
+  }, [recordedNotes, selectedCharacterId, characterName, characterDescription, characterType, customType, characterColor, recordedInstrument, syncMotifToFirebase]);
 
   const handleComplete = () => { if (onComplete) onComplete(); };
+
+  // Listen for teacher save command (Save & Continue)
+  const lastSaveCommandRef = useRef(null);
+  useEffect(() => {
+    const effectiveCode = sessionCode || classId;
+    if (!effectiveCode || !isSessionMode) return;
+
+    const db = getDatabase();
+    const saveCommandRef = ref(db, `sessions/${effectiveCode}/saveCommand`);
+
+    const unsubscribe = onValue(saveCommandRef, (snapshot) => {
+      const saveCommand = snapshot.val();
+      if (!saveCommand) return;
+      if (lastSaveCommandRef.current === null) {
+        lastSaveCommandRef.current = saveCommand;
+        return;
+      }
+      if (saveCommand !== lastSaveCommandRef.current) {
+        lastSaveCommandRef.current = saveCommand;
+        console.log('📡 Teacher save command received — saving motif builder');
+        handleSave();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [sessionCode, classId, isSessionMode, handleSave]);
 
   // Switch characters directly (auto-save means nothing is lost)
   const switchCharacter = (targetId) => {

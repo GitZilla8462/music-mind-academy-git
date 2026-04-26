@@ -385,12 +385,6 @@ const MotifGalleryTeacher = ({ sessionData, onComplete }) => {
                   <Search size={24} /> Search Student
                 </button>
 
-                <button
-                  onClick={onComplete}
-                  className="w-full py-4 bg-white/5 hover:bg-white/10 text-purple-300 hover:text-white text-lg font-bold rounded-2xl transition-all"
-                >
-                  Finish Gallery
-                </button>
               </div>
             </div>
           )}
