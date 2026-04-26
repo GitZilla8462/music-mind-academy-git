@@ -7,19 +7,14 @@
   </defs>
   <rect width="1920" height="1080" fill="url(#bg2)"/>
 
-  <text x="960" y="160" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="72" font-weight="bold">What Is a Leitmotif?</text>
+  <text x="960" y="200" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="80" font-weight="bold">What Is a Leitmotif?</text>
 
-  <rect x="260" y="240" width="1400" height="180" rx="16" fill="#1e3a5f"/>
-  <text x="960" y="320" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="40" font-weight="bold">A short musical idea that represents</text>
-  <text x="960" y="380" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="40" font-weight="bold">a character, place, or idea in a story.</text>
+  <rect x="260" y="300" width="1400" height="200" rx="16" fill="#1e3a5f"/>
+  <text x="960" y="390" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="48" font-weight="bold">A short musical idea that represents</text>
+  <text x="960" y="455" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="48" font-weight="bold">a character, place, or idea in a story.</text>
 
-  <text x="960" y="510" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="32" font-style="italic">"Leit" = leading &amp; "Motif" = musical idea</text>
+  <text x="960" y="610" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="38" font-style="italic">"Leit" = leading &amp; "Motif" = musical idea</text>
 
-  <text x="960" y="620" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="36" font-weight="bold">Every time that character appears...</text>
-  <text x="960" y="680" text-anchor="middle" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="36">you hear their music.</text>
-
-  <rect x="360" y="750" width="1200" height="120" rx="12" fill="#f97316" fill-opacity="0.1" stroke="#f97316" stroke-width="2"/>
-  <text x="960" y="825" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="34">Think: Darth Vader, Hedwig's Theme, Jaws</text>
-
-  <text x="960" y="980" text-anchor="middle" fill="#64748b" font-family="Arial, sans-serif" font-size="26">Before you see the character, you can HEAR them coming.</text>
+  <text x="960" y="760" text-anchor="middle" fill="#f97316" font-family="Arial, sans-serif" font-size="48" font-weight="bold">Every time that character appears...</text>
+  <text x="960" y="840" text-anchor="middle" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="48">you hear their music.</text>
 </svg>
