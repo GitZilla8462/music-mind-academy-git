@@ -4945,10 +4945,12 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
 
 // Motif Share & Pair modal overlay (motif builder visible behind)
 const SHARE_AND_PAIR_STEPS = [
+  'Don\'t show your partner your screen — they\'re going to guess just by listening!',
   'Play your motif for your partner — don\'t say anything!',
-  'Partner guesses: Hero, Villain, Romantic, or Sneaky?',
-  'Partner guesses: What instrument family?',
-  'Reveal your character and show your artwork!',
+  'Partner guesses: What kind of character is this? A hero? A villain? Someone sneaky? Romantic?',
+  'Partner guesses: What instrument family do they hear — strings, woodwind, or brass?',
+  'Partner guesses: Does the music sound bright (major) or dark (minor)?',
+  'Reveal your character, show your artwork, and see how close they got!',
   'Switch roles! Partner B plays, Partner A guesses.',
 ];
 
