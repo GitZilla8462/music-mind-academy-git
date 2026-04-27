@@ -12,7 +12,7 @@ const EduLandingPage = () => {
   // If logged in via Firebase, redirect directly to lessons hub
   useEffect(() => {
     if (isAuthenticated && !firebaseLoading) {
-      navigate('/music-loops-in-media');
+      navigate('/music-classroom-resources');
     }
   }, [isAuthenticated, firebaseLoading, navigate]);
 

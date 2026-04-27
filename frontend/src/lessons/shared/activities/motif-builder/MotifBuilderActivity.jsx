@@ -425,7 +425,7 @@ const DrawingCanvas = ({ characterId, characterColor, onSave }) => {
 // ========================================
 // Main Component
 // ========================================
-const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = false }) => {
+const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = false, hideDirections = false }) => {
   // Session context for Firebase sync
   const { classId, sessionCode, userId: contextUserId } = useSession();
   const userId = contextUserId || localStorage.getItem('current-session-userId');
@@ -466,6 +466,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
     if (!studentsPath || !userId) return;
     const db = getDatabase();
     const charType = charData.characterType || 'hero';
+    const drawing = getCharacterDrawing(charId);
     const motifData = {
       characterId: charId,
       notes,
@@ -478,6 +479,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
       instrumentFamily: deriveInstrumentFamily(instrument),
       register: deriveRegister(notes),
       submittedAt: Date.now(),
+      ...(drawing ? { drawing } : {}),
     };
     // Save as primary submission (gallery reads this)
     update(ref(db, `${studentsPath}/${userId}`), {
@@ -555,6 +557,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
         const motif = getCharacterMotif(char.id);
         if (motif?.notes?.length >= 4) {
           const authInfo = getClassAuthInfo();
+          const drawing = getCharacterDrawing(char.id);
           saveStudentWork('fm-motif-builder', {
             title: 'Motif Builder',
             emoji: '🎵',
@@ -571,6 +574,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
               characterColor: motif.characterColor || '#3B82F6',
               notes: motif.notes,
               instrument: motif.instrument || 'piano',
+              ...(drawing ? { drawing } : {}),
             }
           }, studentId, authInfo);
           console.log('📦 Migrated existing motif to student dashboard:', char.id);
@@ -773,6 +777,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
     try {
       const studentId = getStudentId();
       const authInfo = getClassAuthInfo();
+      const drawing = getCharacterDrawing(selectedCharacterId);
       saveStudentWork('fm-motif-builder', {
         title: 'Motif Builder',
         emoji: '🎵',
@@ -789,6 +794,7 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
           characterColor,
           notes: recordedNotes,
           instrument: recordedInstrument,
+          ...(drawing ? { drawing } : {}),
         }
       }, studentId, authInfo);
     } catch(e) { console.error('Failed to save student work:', e); }
@@ -897,10 +903,11 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
           {/* Add new motif button */}
           <button
             onClick={switchToNewCharacter}
-            className="flex items-center gap-1 px-2 py-1 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-lg text-xs transition-colors flex-shrink-0"
-            title="New character motif"
+            className="flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-500 text-white rounded-lg text-xs transition-colors flex-shrink-0"
+            title="Add a new character when you are done"
           >
             <span className="text-lg leading-none">+</span>
+            <span>Add a new character when you are done</span>
           </button>
         </div>
 
@@ -1109,12 +1116,14 @@ const MotifBuilderActivity = ({ onComplete, isSessionMode = false, viewMode = fa
         </div>
       )}
 
-      <DirectionsModal
-        title="Motif Builder"
-        isOpen={directions.isOpen}
-        onClose={directions.close}
-        pages={MOTIF_BUILDER_PAGES}
-      />
+      {!hideDirections && (
+        <DirectionsModal
+          title="Motif Builder"
+          isOpen={directions.isOpen}
+          onClose={directions.close}
+          pages={MOTIF_BUILDER_PAGES}
+        />
+      )}
 
       {/* DirectionsReopenButton is inline in the header — no fixed-position one needed */}
     </div>

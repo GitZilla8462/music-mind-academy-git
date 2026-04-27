@@ -229,13 +229,21 @@ export const lessonSections = [
         trackProgress: true,
         description: 'STUDENTS WORK: Pick character, describe in 3 words, compose a 4-8 note theme.',
         bonusDescription: 'Bonus: Try a different instrument — does it change the character?'
+      },
+      {
+        id: 'share-and-pair',
+        type: 'activity',
+        label: 'Share & Pair',
+        description: 'Partner activity: Play your motif, partner guesses character type & instrument.',
+        duration: 4,
+        hasTimer: true
       }
     ]
   },
   {
     id: 'gallery',
     title: '5. Gallery',
-    subtitle: 'Class Showcase',
+    subtitle: 'Class Showcase (Optional)',
     color: 'orange',
     estimatedTime: 5,
     stages: [
@@ -245,7 +253,7 @@ export const lessonSections = [
         label: 'Motif Gallery',
         duration: 5,
         hasTimer: false,
-        description: 'CLASS ACTIVITY: Teacher features student motifs, class guesses character type.',
+        description: 'OPTIONAL: Volunteers share motifs with the class. Class guesses character type.',
       }
     ]
   },
@@ -442,6 +450,19 @@ export const lessonStages = [
     }
   },
 
+  // --- Share & Pair ---
+  {
+    id: 'share-and-pair',
+    label: 'Share & Pair',
+    description: 'Partner activity: Play your motif, partner guesses character type & instrument.',
+    type: 'activity',
+    hasTimer: true,
+    duration: 4,
+    presentationView: {
+      type: 'motif-builder-share-and-pair'
+    }
+  },
+
   // --- Motif Gallery ---
   {
     id: 'motif-gallery',
@@ -468,9 +489,10 @@ export const getActivityForStage = (stage) => {
     'example-sneaky': 'demo',
     'leitmotif-spotter-instructions': 'summary',
     'leitmotif-spotter-game': 'leitmotif-spotter',
-    'leitmotif-spotter-results': 'summary',
+    'leitmotif-spotter-results': 'leitmotif-spotter',
     'your-mission': 'summary',
     'motif-builder': 'motif-builder',
+    'share-and-pair': 'motif-builder',
     'motif-gallery': 'motif-gallery'
   };
   return stageMap[stage];

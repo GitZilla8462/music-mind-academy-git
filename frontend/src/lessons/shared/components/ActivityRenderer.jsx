@@ -630,6 +630,7 @@ const ActivityRenderer = ({
           onComplete={onComplete}
           viewMode={viewMode}
           isSessionMode={isSessionMode}
+          hideDirections={activity.hideDirections}
         />
       );
 

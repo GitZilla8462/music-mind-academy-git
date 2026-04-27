@@ -24,7 +24,7 @@ const LeitmotifSpotterResults = ({ sessionData }) => {
     const unsubscribe = onValue(ref(db, studentsPath), (snapshot) => {
       const data = snapshot.val() || {};
       const list = Object.entries(data)
-        .filter(([, s]) => (s.displayName || s.playerName || s.name) && s.leitmotifSpotterScore != null)
+        .filter(([, s]) => s.displayName || s.playerName || s.name)
         .map(([id, s]) => ({
           id,
           name: formatFirstNameLastInitial(s.displayName || s.playerName || s.name),

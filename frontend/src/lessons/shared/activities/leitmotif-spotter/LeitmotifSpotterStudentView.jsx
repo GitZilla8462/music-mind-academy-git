@@ -258,63 +258,12 @@ const LeitmotifSpotterStudentView = ({ onComplete, isSessionMode = true }) => {
 
   // ============ FINISHED ============
   if (gamePhase === 'finished') {
-    const myEntry = leaderboard.find(s => s.id === userId);
-    const displayScore = score > 0 ? score : (myEntry?.score ?? score);
-    const getRankEmoji = (rank) => {
-      if (rank === 1) return '🥇';
-      if (rank === 2) return '🥈';
-      if (rank === 3) return '🥉';
-      return `#${rank}`;
-    };
-
     return (
-      <div className="h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-violet-900 flex items-center justify-center p-4 overflow-auto">
-        <div className="text-center max-w-md w-full">
+      <div className="h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-violet-900 flex items-center justify-center p-4">
+        <div className="text-center">
           <div className="text-6xl mb-4">🏆</div>
-          <div
-            className="inline-flex flex-col items-center px-8 py-4 rounded-2xl mb-4 shadow-lg"
-            style={{ backgroundColor: playerColor }}
-          >
-            <span className="text-4xl mb-1">{playerEmoji}</span>
-            <span className="text-2xl font-bold text-white">{playerName}</span>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-3xl">{getRankEmoji(myRank)}</span>
-              {myRank && myRank <= 3 && (
-                <span className="text-xl font-bold text-white">
-                  {myRank === 1 ? '1st Place!' : myRank === 2 ? '2nd Place!' : '3rd Place!'}
-                </span>
-              )}
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-white mb-2">Game Complete!</h1>
-          <div className="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-lg p-4 mb-4 inline-block">
-            <div className="text-4xl font-bold text-gray-900 mb-1">{displayScore}</div>
-            <div className="text-lg text-gray-800">Your Score</div>
-          </div>
-          <div className="bg-white/10 rounded-lg p-3 mb-4">
-            <h3 className="text-sm font-bold text-white/70 mb-2">Class Leaderboard</h3>
-            <div className="space-y-1">
-              {leaderboard.slice(0, 5).map((student, idx) => (
-                <div
-                  key={student.id}
-                  className={`flex items-center gap-2 px-2 py-1 rounded ${
-                    student.id === userId ? 'bg-purple-500/50 ring-2 ring-purple-300' : ''
-                  }`}
-                >
-                  <span className="w-6 text-center font-bold text-sm text-white">
-                    {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`}
-                  </span>
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                    style={{ backgroundColor: student.playerColor }}
-                  >{student.playerEmoji}</div>
-                  <span className="flex-1 truncate text-sm text-white">{student.name}</span>
-                  <span className="font-bold text-sm text-yellow-300">{student.score}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <p className="text-purple-200 text-sm">Look at the main screen!</p>
+          <h1 className="text-3xl font-bold text-white mb-4">Game Complete!</h1>
+          <p className="text-xl text-purple-200">Look at the main screen for results!</p>
         </div>
       </div>
     );

@@ -298,9 +298,9 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
     <div className="h-screen flex flex-col bg-gradient-to-br from-indigo-900 via-purple-900 to-violet-900">
       <ActivityBanner />
 
-      <div className="flex-1 flex">
+      <div className="grid grid-cols-3 gap-3 flex-1 min-h-0 p-3">
         {/* Main content - 2/3 width */}
-        <div className="flex-1 flex flex-col p-6">
+        <div className="col-span-2 bg-black/20 rounded-2xl p-6 flex flex-col min-h-0">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -322,22 +322,22 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
             {gamePhase === 'playing' && (
               <div className="text-center">
                 <p className="text-2xl text-purple-200 mb-6">Play the motif for students to identify</p>
-                <div className="flex gap-4 justify-center mb-6">
-                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                <div className="grid grid-cols-4 gap-3 mb-6 max-w-3xl mx-auto">
+                  <div className="bg-white/10 rounded-xl px-4 py-3 text-center">
                     <div className="text-sm text-purple-300 mb-1">Character</div>
-                    <div className="text-lg font-bold text-white">Hero, Villain, Romantic, or Sneaky?</div>
+                    <div className="text-base font-bold text-white">Hero, Villain, Romantic, or Sneaky?</div>
                   </div>
-                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                  <div className="bg-white/10 rounded-xl px-4 py-3 text-center">
                     <div className="text-sm text-purple-300 mb-1">Mode</div>
-                    <div className="text-lg font-bold text-white">Bright or Dark?</div>
+                    <div className="text-base font-bold text-white">Bright or Dark?</div>
                   </div>
-                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                  <div className="bg-white/10 rounded-xl px-4 py-3 text-center">
                     <div className="text-sm text-purple-300 mb-1">Instrument Family</div>
-                    <div className="text-lg font-bold text-white">What family?</div>
+                    <div className="text-base font-bold text-white">What family?</div>
                   </div>
-                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                  <div className="bg-white/10 rounded-xl px-4 py-3 text-center">
                     <div className="text-sm text-purple-300 mb-1">Register</div>
-                    <div className="text-lg font-bold text-white">Low, Mid, or High?</div>
+                    <div className="text-base font-bold text-white">Low, Mid, or High?</div>
                   </div>
                 </div>
                 <button
@@ -354,22 +354,22 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
                 <p className="text-xl text-purple-200 mb-6">
                   {lockedCount} of {totalStudents} students answered
                 </p>
-                <div className="flex gap-4 justify-center mb-6">
-                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                <div className="grid grid-cols-4 gap-3 mb-6 max-w-3xl mx-auto">
+                  <div className="bg-white/10 rounded-xl px-4 py-3 text-center">
                     <div className="text-sm text-purple-300 mb-1">Character</div>
-                    <div className="text-lg font-bold text-white">Hero, Villain, Romantic, or Sneaky?</div>
+                    <div className="text-base font-bold text-white">Hero, Villain, Romantic, or Sneaky?</div>
                   </div>
-                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                  <div className="bg-white/10 rounded-xl px-4 py-3 text-center">
                     <div className="text-sm text-purple-300 mb-1">Mode</div>
-                    <div className="text-lg font-bold text-white">Bright or Dark?</div>
+                    <div className="text-base font-bold text-white">Bright or Dark?</div>
                   </div>
-                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                  <div className="bg-white/10 rounded-xl px-4 py-3 text-center">
                     <div className="text-sm text-purple-300 mb-1">Instrument Family</div>
-                    <div className="text-lg font-bold text-white">What family?</div>
+                    <div className="text-base font-bold text-white">What family?</div>
                   </div>
-                  <div className="bg-white/10 rounded-xl px-6 py-3 text-center">
+                  <div className="bg-white/10 rounded-xl px-4 py-3 text-center">
                     <div className="text-sm text-purple-300 mb-1">Register</div>
-                    <div className="text-lg font-bold text-white">Low, Mid, or High?</div>
+                    <div className="text-base font-bold text-white">Low, Mid, or High?</div>
                   </div>
                 </div>
                 <div className="flex gap-4 justify-center">
@@ -468,12 +468,12 @@ const LeitmotifSpotterClassGame = ({ sessionData, onComplete }) => {
 
         {/* Leaderboard sidebar - 1/3 width */}
         {gamePhase !== 'setup' && (
-          <div className="w-80 bg-black/20 p-4 flex flex-col overflow-hidden">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="bg-black/20 rounded-2xl p-4 flex flex-col min-h-0">
+            <div className="flex items-center gap-3 mb-3">
               <Trophy size={20} className="text-yellow-400" />
               <h3 className="text-lg font-bold text-white">Leaderboard</h3>
             </div>
-            <div className="flex-1 overflow-y-auto space-y-1">
+            <div className="flex-1 overflow-y-auto space-y-2">
               {leaderboard.map((student, idx) => {
                 const hasAnswered = !!student.answer;
                 return (

@@ -139,35 +139,52 @@ const MotifPreview = ({ data: d }) => {
 
   return (
     <div className="flex-1 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-xl border-2 border-indigo-300">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl" style={{ backgroundColor: d.characterColor || '#3B82F6' }}>
-            {CHARACTER_EMOJIS[d.characterType] || '🎵'}
-          </div>
-          <div>
-            <div className="text-lg font-bold text-gray-900">{d.characterName}</div>
-            <div className="text-sm text-gray-500 capitalize">{d.characterType}{d.customType ? ` — ${d.customType}` : ''}</div>
-          </div>
-        </div>
-        {d.characterDescription && (
-          <p className="text-sm text-gray-700 italic mb-3">"{d.characterDescription}"</p>
-        )}
-        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm mb-4">
-          <span className="text-gray-500">Instrument:</span>
-          <span className="text-gray-900 capitalize">{d.instrument || 'Unknown'}</span>
-          <span className="text-gray-500">Notes:</span>
-          <span className="text-gray-900">{d.notes?.length || 0} notes</span>
-          {d.notes?.length > 0 && (
-            <>
-              <span className="text-gray-500">Melody:</span>
-              <span className="text-gray-900 font-mono text-xs">{d.notes.filter(n => !n.note?.startsWith('drum-')).map(n => n.note).join(' → ')}</span>
-            </>
+      <div className="max-w-lg w-full bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-xl border-2 border-indigo-300">
+        <div className="flex gap-4">
+          {/* Artwork */}
+          {d.drawing && (
+            <div className="w-36 shrink-0">
+              <img
+                src={d.drawing}
+                alt={d.characterName || 'Character artwork'}
+                className="w-full rounded-lg border border-indigo-200"
+                style={{ aspectRatio: '2/3', objectFit: 'contain', backgroundColor: '#fff' }}
+              />
+            </div>
           )}
+
+          {/* Character info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0" style={{ backgroundColor: d.characterColor || '#3B82F6' }}>
+                {CHARACTER_EMOJIS[d.characterType] || '🎵'}
+              </div>
+              <div className="min-w-0">
+                <div className="text-lg font-bold text-gray-900 truncate">{d.characterName}</div>
+                <div className="text-sm text-gray-500 capitalize">{d.characterType}{d.customType ? ` — ${d.customType}` : ''}</div>
+              </div>
+            </div>
+            {d.characterDescription && (
+              <p className="text-sm text-gray-700 italic mb-3">"{d.characterDescription}"</p>
+            )}
+            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm mb-3">
+              <span className="text-gray-500">Instrument:</span>
+              <span className="text-gray-900 capitalize">{d.instrument || 'Unknown'}</span>
+              <span className="text-gray-500">Notes:</span>
+              <span className="text-gray-900">{d.notes?.length || 0} notes</span>
+              {d.notes?.length > 0 && (
+                <>
+                  <span className="text-gray-500">Melody:</span>
+                  <span className="text-gray-900 font-mono text-xs truncate">{d.notes.filter(n => !n.note?.startsWith('drum-')).map(n => n.note).join(' → ')}</span>
+                </>
+              )}
+            </div>
+          </div>
         </div>
         <button
           onClick={isPlaying ? stopMotif : playMotif}
           disabled={!d.notes?.length}
-          className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all ${
+          className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all mt-3 ${
             isPlaying
               ? 'bg-red-500 hover:bg-red-600 text-white'
               : 'bg-indigo-500 hover:bg-indigo-600 text-white'

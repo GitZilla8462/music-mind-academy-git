@@ -2469,6 +2469,24 @@ const PresentationContent = ({
       );
     }
 
+    // Share & Pair — motif builder with directions modal overlay
+    if (type === 'motif-builder-share-and-pair') {
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <style>{`.teacher-embed-activity .h-screen { height: 100% !important; }`}</style>
+          <div className="h-full teacher-embed-activity">
+            <ActivityRenderer
+              activity={{ type: 'motif-builder', id: 'teacher-motif-builder-share', hideDirections: true }}
+              onComplete={() => {}}
+              viewMode={false}
+              isSessionMode={false}
+            />
+          </div>
+          <MotifShareAndPairModal />
+        </div>
+      );
+    }
+
     // Activity type - renders the actual activity in teacher view
     if (type === 'activity') {
       const { activityType } = currentStageData.presentationView;
@@ -4924,6 +4942,27 @@ const AnimatorDirectionsOverlay = React.memo(({ ListeningJourneyComponent, piece
     </div>
   );
 });
+
+// Motif Share & Pair modal overlay (motif builder visible behind)
+const SHARE_AND_PAIR_STEPS = [
+  'Play your motif for your partner — don\'t say anything!',
+  'Partner guesses: Hero, Villain, Romantic, or Sneaky?',
+  'Partner guesses: What instrument family?',
+  'Reveal your character and show your artwork!',
+  'Switch roles! Partner B plays, Partner A guesses.',
+];
+
+const MotifShareAndPairModal = () => {
+  const [dismissed, setDismissed] = React.useState(false);
+  return (
+    <DirectionsModal
+      title="Share & Pair"
+      isOpen={!dismissed}
+      onClose={() => setDismissed(true)}
+      steps={SHARE_AND_PAIR_STEPS}
+    />
+  );
+};
 
 // Share Out overlay with dismiss (used in teacher presentation view)
 const ShareOutOverlay = () => {

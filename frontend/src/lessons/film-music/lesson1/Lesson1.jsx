@@ -23,9 +23,30 @@ import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
 import ExitSessionButton from '../../../components/ExitSessionButton';
+import DirectionsModal from '../../shared/components/DirectionsModal';
 
 const LESSON_PROGRESS_KEY = 'fm-lesson1-progress';
 const LESSON_TIMER_KEY = 'fm-lesson1-timer';
+
+const SHARE_AND_PAIR_STEPS = [
+  'Play your motif for your partner — don\'t say anything!',
+  'Partner guesses: Hero, Villain, Romantic, or Sneaky?',
+  'Partner guesses: What instrument family?',
+  'Reveal your character and show your artwork!',
+  'Switch roles! Partner B plays, Partner A guesses.',
+];
+
+const ShareAndPairModal = () => {
+  const [dismissed, setDismissed] = React.useState(false);
+  return (
+    <DirectionsModal
+      title="Share & Pair"
+      isOpen={!dismissed}
+      onClose={() => setDismissed(true)}
+      steps={SHARE_AND_PAIR_STEPS}
+    />
+  );
+};
 
 const Lesson1 = () => {
   const navigate = useNavigate();
@@ -234,6 +255,31 @@ const Lesson1 = () => {
             <h1 className="text-5xl font-bold mb-4">Watch the Main Screen</h1>
             <p className="text-2xl text-gray-400">Your teacher is leading a class discussion</p>
           </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
+      );
+    }
+
+    // Share & Pair: show motif builder with directions modal overlay
+    if (currentStage === 'share-and-pair') {
+      const motifBuilderActivity = fmLesson1Config.activities.find(a => a.type === 'motif-builder');
+      return (
+        <>
+          <div className="h-screen flex flex-col">
+            <div className="flex-1 overflow-hidden">
+              <ActivityRenderer
+                activity={{ ...motifBuilderActivity, hideDirections: true }}
+                onComplete={() => {}}
+                navToolsEnabled={false}
+                canAccessNavTools={false}
+                lessonStartTime={lesson.lessonStartTime}
+                viewMode={false}
+                isSessionMode={true}
+                muted={isPreviewMode || isMuted}
+              />
+            </div>
+          </div>
+          <ShareAndPairModal />
           <TransitionOverlay isVisible={showTransition} />
         </>
       );
