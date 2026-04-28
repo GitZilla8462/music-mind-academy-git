@@ -24,9 +24,30 @@ import ActivityRenderer from '../../shared/components/ActivityRenderer';
 import StudentWaitingScreen from '../../../components/StudentWaitingScreen';
 import TransitionOverlay from '../../shared/components/TransitionOverlay';
 import ExitSessionButton from '../../../components/ExitSessionButton';
+import DirectionsModal from '../../shared/components/DirectionsModal';
 
 const LESSON_PROGRESS_KEY = 'fm-lesson2-progress';
 const LESSON_TIMER_KEY = 'fm-lesson2-timer';
+
+const SHARE_AND_PAIR_STEPS = [
+  'Hide your screen from your partner — no peeking!',
+  'Play your score and let them just listen.',
+  'Your partner guesses: What characters or scenes do they hear? When does the mood change?',
+  'Reveal your drawings and see how close they got!',
+  'Switch roles!',
+];
+
+const ShareAndPairModal = () => {
+  const [dismissed, setDismissed] = React.useState(false);
+  return (
+    <DirectionsModal
+      title="Share & Pair"
+      isOpen={!dismissed}
+      onClose={() => setDismissed(true)}
+      steps={SHARE_AND_PAIR_STEPS}
+    />
+  );
+};
 
 const Lesson2 = () => {
   const navigate = useNavigate();
@@ -158,6 +179,31 @@ const Lesson2 = () => {
                   : 'Your teacher will provide instruction'}
             </p>
           </div>
+          <TransitionOverlay isVisible={showTransition} />
+        </>
+      );
+    }
+
+    // Share & Pair: show scene composer with directions modal overlay
+    if (currentStage === 'share-and-pair') {
+      const sceneComposerActivity = fmLesson2Config.activities.find(a => a.type === 'scene-composer');
+      return (
+        <>
+          <div className="h-screen flex flex-col">
+            <div className="flex-1 overflow-hidden">
+              <ActivityRenderer
+                activity={sceneComposerActivity}
+                onComplete={() => {}}
+                navToolsEnabled={false}
+                canAccessNavTools={false}
+                lessonStartTime={lesson.lessonStartTime}
+                viewMode={false}
+                isSessionMode={true}
+                muted={isPreviewMode || isMuted}
+              />
+            </div>
+          </div>
+          <ShareAndPairModal />
           <TransitionOverlay isVisible={showTransition} />
         </>
       );

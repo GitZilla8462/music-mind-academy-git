@@ -78,6 +78,11 @@ export const useAudioEngine = (videoDuration = 60) => {
   const getBaseLoopId = (loopId) => {
     const parts = loopId.split('-');
 
+    // Custom recordings are each unique audio — never deduplicate them
+    if (parts[0] === 'custom' && parts[1] === 'recording') {
+      return loopId;
+    }
+
     // Handle custom beats and custom melodies specially
     if (parts[0] === 'custom' && (parts[1] === 'beat' || parts[1] === 'melody')) {
       if (parts.length >= 3) {

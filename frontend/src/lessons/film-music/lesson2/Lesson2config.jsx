@@ -188,16 +188,17 @@ export const lessonSections = [
   {
     id: 'share',
     title: '4. Share & Close',
-    subtitle: 'Partner Share → Closing',
+    subtitle: 'Share & Pair → Closing',
     color: 'orange',
     estimatedTime: 5,
     stages: [
       {
-        id: 'partner-share',
-        type: 'discussion',
-        label: 'Partner Share',
-        description: 'Play your timeline for a partner — did they hear the scene change?',
-        duration: 4
+        id: 'share-and-pair',
+        type: 'activity',
+        label: 'Share & Pair',
+        description: 'Partner activity: Play your timeline, partner guesses when the scene changes.',
+        duration: 4,
+        hasTimer: true
       },
       {
         id: 'closing',
@@ -331,30 +332,14 @@ export const lessonStages = [
     }
   },
   {
-    id: 'partner-share',
-    label: 'Partner Share',
-    description: 'Play your timeline for a partner — did they hear the scene change?',
-    type: 'discussion',
+    id: 'share-and-pair',
+    label: 'Share & Pair',
+    description: 'Partner activity: Play your timeline, partner guesses when the scene changes.',
+    type: 'activity',
+    hasTimer: true,
     duration: 4,
     presentationView: {
-      type: 'summary',
-      title: 'Did Your Partner Hear the Scene Change?',
-      sections: [
-        {
-          heading: 'With a partner:',
-          bullets: [
-            'Play your full 20-second timeline (don\'t say what the scenes are)',
-            'Your partner listens: where did the scene change? What changed in the music?',
-            'Then look at your drawings together — did the music match the picture?'
-          ]
-        },
-        {
-          heading: '',
-          bullets: [
-            '"If the scene change was obvious in the music, your instrument choice worked."'
-          ]
-        }
-      ]
+      type: 'scene-composer-share-and-pair'
     }
   },
   {
@@ -393,7 +378,7 @@ export const getActivityForStage = (stage) => {
     'concept': 'summary',
     'score-this-character': 'score-this-character',
     'compose': 'scene-composer',
-    'partner-share': 'discussion',
+    'share-and-pair': 'scene-composer',
     'closing': 'summary'
   };
   return stageMap[stage];

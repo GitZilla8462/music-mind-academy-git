@@ -17,6 +17,7 @@ import { usePlaybackHandlers } from './hooks/usePlaybackHandlers';
 import { useComposerEffects } from './hooks/useComposerEffects';
 import { usePreventAccidentalNavigation } from '../../../../hooks/usePreventAccidentalNavigation';
 import { renderBeatToBlob, renderMelodyToBlob } from '../shared/beatRenderUtils';
+import renderNotesToWav from '../shared/renderWithSampler';
 
 // Components
 import ComposerHeader from './components/ComposerHeader';
@@ -378,7 +379,7 @@ const MusicComposer = ({
     // copy was stripped of melody data (pattern, synthType, notes, etc.) but the
     // sidebar customLoops (initialCustomLoops) still have it. Cross-reference via originalId.
     const enrichedLoops = initialPlacedLoops.map(loop => {
-      if (loop.type === 'custom-melody' || loop.type === 'custom-beat') {
+      if (loop.type === 'custom-melody' || loop.type === 'custom-beat' || loop.type === 'custom-recording') {
         // Already has custom properties, but blob URLs don't persist — mark for re-rendering
         return { ...loop, needsRender: true };
       }
@@ -430,8 +431,8 @@ const MusicComposer = ({
     // Freshly placed loops already have valid blob URLs and don't need re-rendering
     // Skip loops that have already been re-rendered in this session
     const customLoopsNeedingRender = placedLoops.filter(loop =>
-      (loop.type === 'custom-beat' || loop.type === 'custom-melody') &&
-      loop.pattern &&
+      (loop.type === 'custom-beat' || loop.type === 'custom-melody' || loop.type === 'custom-recording') &&
+      (loop.pattern || loop.notes) &&
       loop.needsRender === true &&
       !reRenderedBeatsRef.current.has(loop.id)
     );
@@ -442,7 +443,8 @@ const MusicComposer = ({
 
     const beatsCount = customLoopsNeedingRender.filter(l => l.type === 'custom-beat').length;
     const melodiesCount = customLoopsNeedingRender.filter(l => l.type === 'custom-melody').length;
-    console.log(`🔄 Re-rendering ${beatsCount} custom beats and ${melodiesCount} custom melodies on timeline...`);
+    const recordingsCount = customLoopsNeedingRender.filter(l => l.type === 'custom-recording').length;
+    console.log(`🔄 Re-rendering ${beatsCount} custom beats, ${melodiesCount} custom melodies, and ${recordingsCount} custom recordings on timeline...`);
     setCustomBeatsRendering(true);
 
     const renderTimelineLoops = async () => {
@@ -456,7 +458,13 @@ const MusicComposer = ({
 
           let blobURL, duration;
 
-          if (loop.type === 'custom-melody') {
+          if (loop.type === 'custom-recording') {
+            const result = await renderNotesToWav(loop.notes, loop.instrumentId);
+            if (result) {
+              blobURL = result.blobURL;
+              duration = result.duration;
+            }
+          } else if (loop.type === 'custom-melody') {
             const result = await renderMelodyToBlob({
               pattern: loop.pattern,
               bpm: loop.bpm,
@@ -533,14 +541,9 @@ const MusicComposer = ({
       // Skip loops that already have players
       if (hasPlayer) return false;
 
-      // Skip custom beats with blob URLs that might be stale (they need re-rendering first)
-      if (loop.type === 'custom-beat' && loop.file && loop.file.startsWith('blob:') && loop.pattern) {
-        // Check if this is a potentially stale blob URL by looking for re-rendered ones in placedLoops
-        const currentLoop = placedLoops.find(l => l.id === loop.id);
-        if (currentLoop && currentLoop.file !== loop.file) {
-          // The loop was updated with a new blob URL, use the new one
-          loop.file = currentLoop.file;
-        }
+      // Skip custom loops that need re-rendering (stale blob URLs)
+      if ((loop.type === 'custom-beat' || loop.type === 'custom-melody' || loop.type === 'custom-recording') && loop.needsRender) {
+        return false;
       }
 
       return true;

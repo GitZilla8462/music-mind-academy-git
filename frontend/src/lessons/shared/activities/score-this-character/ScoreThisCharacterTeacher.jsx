@@ -419,50 +419,25 @@ const ScoreThisCharacterTeacher = ({ sessionData, onComplete }) => {
             {/* ── SETUP ── */}
             {gamePhase === 'setup' && (
               <div className="flex-1 flex flex-col items-center justify-center">
-                <div className="text-8xl mb-6">🎬</div>
-                <h2 className="text-4xl font-bold mb-4">Score This Character</h2>
-                <p className="text-xl text-white/60 mb-8 text-center max-w-lg">
-                  Students create characters, compose motifs to match, and vote on the best one.
-                  Majority voters get +1 point. Winning composer gets +2 points.
-                </p>
-                <div className="flex flex-col gap-3 mb-6">
-                  <div className="flex items-center gap-4">
-                    <span className="text-white/60 w-36">Characters:</span>
-                    {[2, 3].map(n => (
-                      <button key={n} onClick={() => setTotalRounds(n)}
-                        className={`px-6 py-3 rounded-xl text-xl font-bold transition-colors ${
-                          totalRounds === n ? 'bg-orange-600 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'
-                        }`}>
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-white/60 w-36">Motifs per round:</span>
-                    {[3, 4, 5].map(n => (
-                      <button key={n} onClick={() => setNumCandidates(n)}
-                        className={`px-6 py-3 rounded-xl text-xl font-bold transition-colors ${
-                          numCandidates === n ? 'bg-orange-600 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'
-                        }`}>
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-white/60 w-36">Rounds per character:</span>
-                    {[1, 2, 3].map(n => (
-                      <button key={n} onClick={() => setListenRoundsPerCharacter(n)}
-                        className={`px-6 py-3 rounded-xl text-xl font-bold transition-colors ${
-                          listenRoundsPerCharacter === n ? 'bg-orange-600 text-white' : 'bg-white/10 text-white/60 hover:bg-white/20'
-                        }`}>
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="text-white/40 text-sm text-center">
-                    {totalRounds} characters × {listenRoundsPerCharacter} rounds × {numCandidates} motifs = {totalRounds * listenRoundsPerCharacter * numCandidates} students featured
-                  </div>
+                <div className="text-8xl mb-4">🎬</div>
+                <h2 className="text-4xl font-bold mb-6">Score This Character</h2>
+
+                {/* How to Play */}
+                <div className="bg-white/10 rounded-2xl p-6 max-w-lg w-full mb-6">
+                  <h3 className="text-lg font-bold text-orange-400 mb-3">How to Play</h3>
+                  <ol className="space-y-2 text-white text-lg">
+                    <li className="flex gap-3"><span className="font-black text-orange-400 shrink-0">1.</span> Everyone creates a character on their device (draw, name, describe)</li>
+                    <li className="flex gap-3"><span className="font-black text-orange-400 shrink-0">2.</span> Teacher picks one character to feature on the main screen</li>
+                    <li className="flex gap-3"><span className="font-black text-orange-400 shrink-0">3.</span> Everyone composes a short motif that fits that character</li>
+                    <li className="flex gap-3"><span className="font-black text-orange-400 shrink-0">4.</span> A few motifs play anonymously — class votes on the best match</li>
+                    <li className="flex gap-3"><span className="font-black text-orange-400 shrink-0">5.</span> Voting with the majority = +1 point. Winning composer = +2 points</li>
+                    <li className="flex gap-3"><span className="font-black text-orange-400 shrink-0">6.</span> Repeat with new characters!</li>
+                  </ol>
                 </div>
+
+                <p className="text-white/40 text-sm mb-6">
+                  {totalRounds} characters × {listenRoundsPerCharacter} rounds × {numCandidates} motifs = {totalRounds * listenRoundsPerCharacter * numCandidates} students featured
+                </p>
                 <button onClick={startGame}
                   className="px-10 py-4 bg-green-600 hover:bg-green-700 rounded-2xl text-2xl font-bold transition-colors">
                   Start Game

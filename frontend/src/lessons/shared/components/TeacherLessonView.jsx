@@ -1969,6 +1969,23 @@ const PresentationContent = ({
       );
     }
 
+    // Share & Pair — scene composer with directions modal overlay
+    if (type === 'scene-composer-share-and-pair') {
+      return (
+        <div className="absolute inset-0 overflow-hidden">
+          <style>{`.teacher-embed-activity .h-screen { height: 100% !important; }`}</style>
+          <div className="h-full teacher-embed-activity">
+            <SceneComposerActivity
+              onComplete={() => {}}
+              viewMode={false}
+              isSessionMode={false}
+            />
+          </div>
+          <SceneComposerShareAndPairModal />
+        </div>
+      );
+    }
+
     // Scouting Report (Music Journalist Lesson 3) — teacher sees actual activity
     if (type === 'scouting-report-teacher') {
       return (
@@ -4962,6 +4979,26 @@ const MotifShareAndPairModal = () => {
       isOpen={!dismissed}
       onClose={() => setDismissed(true)}
       steps={SHARE_AND_PAIR_STEPS}
+    />
+  );
+};
+
+const SCENE_COMPOSER_SHARE_AND_PAIR_STEPS = [
+  'Hide your screen from your partner — no peeking!',
+  'Play your score and let them just listen.',
+  'Your partner guesses: What characters or scenes do they hear? When does the mood change?',
+  'Reveal your drawings and see how close they got!',
+  'Switch roles!',
+];
+
+const SceneComposerShareAndPairModal = () => {
+  const [dismissed, setDismissed] = React.useState(false);
+  return (
+    <DirectionsModal
+      title="Share & Pair"
+      isOpen={!dismissed}
+      onClose={() => setDismissed(true)}
+      steps={SCENE_COMPOSER_SHARE_AND_PAIR_STEPS}
     />
   );
 };
